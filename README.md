@@ -1,2 +1,3 @@
-# zapp-atlas
-Client and server for the ZAPP atlas
+# ZAPP Atlas
+
+Client and server for the [ZAPP zebrafish toxicology atlas](https://zappfish.org/).
