@@ -21,7 +21,7 @@ function emptyObservation(): ZappObservation {
     exposure: {
       substance: { name: '', idType: 'None', id: '' },
       concentration: { value: null, unit: 'uM' },
-      route: null,
+      route: 'water',
       type: null,
       pattern: null,
       start_stage: { value: null, unit: 'hpf' },

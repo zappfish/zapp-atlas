@@ -14,13 +14,6 @@ export const STAGE_UNIT_OPTIONS = [
   { value: 'month', label: 'month' }
 ];
 
-export const EXPOSURE_ROUTE_OPTIONS = [
-  { value: '', label: 'Select exposure route' },
-  { value: 'water', label: 'Chemical added to the water' },
-  { value: 'injected', label: 'Chemical injected' },
-  { value: 'ingested', label: 'Chemical ingested (diet)' }
-];
-
 export const EXPOSURE_TYPE_OPTIONS = [
   { value: 'continuous', label: 'Continuous exposure' },
   { value: 'repeated', label: 'Repeated exposures' }
@@ -60,4 +53,3 @@ export const SUBSTANCE_IDTYPE_OPTIONS = [
   { value: 'CAS', label: 'CAS number' },
   { value: 'ChEBI', label: 'ChEBI' }
 ];
-
