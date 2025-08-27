@@ -1,21 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
+    "target": "es2023",
+    "lib": [
+      "es2023",
+      "dom"
+    ],
+
     "jsx": "react-jsx",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
     },
-    "strict": true
-  },
-  "include": ["src"]
-}
 
+    "moduleResolution": "node",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  }
+}
