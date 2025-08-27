@@ -1,28 +1,88 @@
 import React from 'react';
 import FileInput from '@/ui/FileInput';
 import FormSection from '@/ui/FormSection';
-import type { ZappObservation } from '@/schema';
+type ImageMeta = { name?: string; type?: string; size?: number } | null;
 
-export default function ImageSection({ setImageFile }: { setImageFile: (file: File | null) => void }) {
+export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { setImageFile: (file: File | null) => void; previewSrc: string | null; fileMeta: ImageMeta }) {
+  const [dragOver, setDragOver] = React.useState(false);
+
+  const handleDrop: React.DragEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+    }
+  };
+
+  const handleDragOver: React.DragEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave: React.DragEventHandler<HTMLDivElement> = () => setDragOver(false);
+
+  const triggerBrowse = () => {
+    const el = document.getElementById('image-file-input') as HTMLInputElement | null;
+    el?.click();
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    const el = document.getElementById('image-file-input') as HTMLInputElement | null;
+    if (el) el.value = '';
+  };
+
+  const formatBytes = (bytes?: number) => {
+    if (!bytes && bytes !== 0) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    return `${mb.toFixed(2)} MB`;
+  };
   return (
     <div className="row">
       <FormSection title="Image of Observation">
         <div className="col-6">
-          <FileInput
-            label="Upload image"
-            accept="image/jpeg,image/png,image/tiff"
-            onChange={(e) => setImageFile((e.target as HTMLInputElement).files?.[0] || null)}
-            hint="Accepted: .jpeg, .png, .tiff"
-          />
+          <div
+            className={`drop-zone ${dragOver ? 'drag-over' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={triggerBrowse}
+          >
+            <FileInput
+              id="image-file-input"
+              label="Upload image"
+              accept="image/jpeg,image/png,image/tiff"
+              onChange={(e) => setImageFile((e.target as HTMLInputElement).files?.[0] || null)}
+              hint="Drag & drop an image here, or click to browse. Accepted: .jpeg, .png, .tiff"
+            />
+          </div>
         </div>
         <div className="col-6">
           <div className="field">
-            <label>Additional image metadata</label>
-            <small className="hint">Scale bar, DPI, magnification, control fish — TODO in later iteration.</small>
+            <label>Preview</label>
+            {previewSrc ? (
+              <>
+                <img src={previewSrc} alt="Selected observation" className="img-preview" />
+                {fileMeta && (
+                  <small className="hint">
+                    {fileMeta.name || 'unnamed'} • {fileMeta.type || 'unknown type'} • {formatBytes(fileMeta.size)}
+                  </small>
+                )}
+                <div className="inline" style={{ marginTop: 8 }}>
+                  <button type="button" onClick={triggerBrowse}>Replace image</button>
+                  <button type="button" onClick={removeImage}>Remove image</button>
+                </div>
+              </>
+            ) : (
+              <small className="hint">No image selected yet.</small>
+            )}
           </div>
         </div>
       </FormSection>
     </div>
   );
 }
-

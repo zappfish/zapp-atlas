@@ -44,6 +44,8 @@ function emptyObservation(): ZappObservation {
 export default function ZappForm({ onChange }: Props) {
   const [data, setData] = React.useState<ZappObservation>(() => emptyObservation());
   const [, setErrors] = React.useState<Record<string, string>>({});
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const prevObjectUrlRef = React.useRef<string | null>(null);
 
   const update = (updater: (d: ZappObservation) => ZappObservation) => {
     const next = updater(data);
@@ -67,6 +69,18 @@ export default function ZappForm({ onChange }: Props) {
         file: file ? { name: file.name, type: file.type, size: file.size } : null
       }
     }));
+    // Manage preview URL lifecycle
+    if (prevObjectUrlRef.current) {
+      URL.revokeObjectURL(prevObjectUrlRef.current);
+      prevObjectUrlRef.current = null;
+    }
+    if (file) {
+      const url = URL.createObjectURL(file);
+      prevObjectUrlRef.current = url;
+      setImagePreview(url);
+    } else {
+      setImagePreview(null);
+    }
   };
 
   const addPhenotype = () =>
@@ -96,10 +110,18 @@ export default function ZappForm({ onChange }: Props) {
       };
     });
 
+  React.useEffect(() => {
+    return () => {
+      if (prevObjectUrlRef.current) {
+        URL.revokeObjectURL(prevObjectUrlRef.current);
+      }
+    };
+  }, []);
+
   return (
     <form className="grid" onSubmit={(e) => e.preventDefault()}>
+      <ImageSection setImageFile={setImageFile} previewSrc={imagePreview} fileMeta={data.image.file} />
       <ProvenanceSection data={data} update={update} />
-      <ImageSection setImageFile={setImageFile} />
       <FishInfoSection data={data} update={update} />
       <RearingSection data={data} update={update} />
       <ExposureSection data={data} update={update} />

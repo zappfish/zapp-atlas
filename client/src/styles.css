@@ -93,3 +93,22 @@ small.hint {
   font-size: 12px;
 }
 
+.img-preview {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+}
+
+.drop-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 8px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.drop-zone.drag-over {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
