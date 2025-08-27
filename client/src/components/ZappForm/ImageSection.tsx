@@ -5,6 +5,7 @@ type ImageMeta = { name?: string; type?: string; size?: number } | null;
 
 export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { setImageFile: (file: File | null) => void; previewSrc: string | null; fileMeta: ImageMeta }) {
   const [dragOver, setDragOver] = React.useState(false);
+  const [fullscreen, setFullscreen] = React.useState(false);
 
   const handleDrop: React.DragEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
@@ -66,7 +67,12 @@ export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { s
             <label>Preview</label>
             {previewSrc ? (
               <>
-                <img src={previewSrc} alt="Selected observation" className="img-preview" />
+                <img
+                  src={previewSrc}
+                  alt="Selected observation"
+                  className="img-preview"
+                  onClick={() => setFullscreen(true)}
+                />
                 {fileMeta && (
                   <small className="hint">
                     {fileMeta.name || 'unnamed'} • {fileMeta.type || 'unknown type'} • {formatBytes(fileMeta.size)}
@@ -76,6 +82,17 @@ export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { s
                   <button type="button" onClick={triggerBrowse}>Replace image</button>
                   <button type="button" onClick={removeImage}>Remove image</button>
                 </div>
+                {fullscreen && previewSrc && (
+                  <div
+                    className="image-overlay"
+                    onClick={() => setFullscreen(false)}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Full screen image preview"
+                  >
+                    <img src={previewSrc} alt="Full screen observation preview" />
+                  </div>
+                )}
               </>
             ) : (
               <small className="hint">No image selected yet.</small>
@@ -83,6 +100,17 @@ export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { s
           </div>
         </div>
       </FormSection>
+      {previewSrc && !fullscreen && (
+        <button
+          type="button"
+          className="floating-thumb"
+          onClick={() => setFullscreen(true)}
+          aria-label="Open full screen image preview from thumbnail"
+          title="Open preview"
+        >
+          <img src={previewSrc} alt="Thumbnail of uploaded image" />
+        </button>
+      )}
     </div>
   );
 }
