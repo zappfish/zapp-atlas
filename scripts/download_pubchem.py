@@ -40,5 +40,5 @@ if __name__ == '__main__':
     ###############
     ### PROGRAM ###
 
-    pubchem_unfiltered_url = "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Synonym-filtered.gz"
+    pubchem_unfiltered_url = "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Synonym-unfiltered.gz
     download_file_url(pubchem_unfiltered_url, args.download_dir, overwrite=False)
