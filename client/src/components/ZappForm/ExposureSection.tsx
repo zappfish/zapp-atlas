@@ -3,7 +3,14 @@ import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
 import type { ZappObservation } from '@/schema';
-import { SUBSTANCE_IDTYPE_OPTIONS, CONC_UNIT_OPTIONS, PATTERN_OPTIONS, STAGE_UNIT_OPTIONS } from './constants';
+import { CONC_UNIT_OPTIONS, PATTERN_OPTIONS, STAGE_UNIT_OPTIONS } from './constants';
+import SubstanceFields from './SubstanceFields';
+
+type ExposureRoute = 'water' | 'injected' | 'ingested';
+type ExposureType = 'continuous' | 'repeated';
+type ExposurePattern = 'static' | 'static_renewal' | 'flow_through';
+type ConcUnit = 'uM' | 'mg/L';
+type StageUnit = 'hpf' | 'dpf' | 'month';
 
 export default function ExposureSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
   const route = data.exposure.route;
@@ -12,60 +19,15 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
   return (
     <div className="row">
       <FormSection title="Exposure Event">
-        <div className="col-5">
-          <Input
-            label="Substance name"
-            placeholder="Chemical name"
-            value={data.exposure.substance.name || ''}
-            onChange={(e) =>
-              update((d) => ({
-                ...d,
-                exposure: {
-                  ...d.exposure,
-                  substance: { ...d.exposure.substance, name: e.target.value }
-                }
-              }))
-            }
-          />
-        </div>
-        <div className="col-3">
-          <Select
-            label="Identifier type"
-            value={data.exposure.substance.idType}
-            options={SUBSTANCE_IDTYPE_OPTIONS}
-            onChange={(e) => {
-              const idType = (e.target as HTMLSelectElement).value as any;
-              update((d) => ({
-                ...d,
-                exposure: {
-                  ...d.exposure,
-                  substance: {
-                    ...d.exposure.substance,
-                    idType,
-                    id: idType === 'None' ? '' : d.exposure.substance.id
-                  }
-                }
-              }));
-            }}
-          />
-        </div>
-        <div className="col-4">
-          <Input
-            label="Identifier value"
-            placeholder="e.g., 2244 (PubChem), 50-00-0 (CAS), CHEBI:15377"
-            value={data.exposure.substance.id || ''}
-            onChange={(e) =>
-              update((d) => ({
-                ...d,
-                exposure: {
-                  ...d.exposure,
-                  substance: { ...d.exposure.substance, id: e.target.value }
-                }
-              }))
-            }
-            disabled={data.exposure.substance.idType === 'None'}
-          />
-        </div>
+        <SubstanceFields
+          value={data.exposure.substance}
+          onChange={(substance) =>
+            update((d) => ({
+              ...d,
+              exposure: { ...d.exposure, substance }
+            }))
+          }
+        />
 
         <div className="col-4">
           <Input
@@ -99,7 +61,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                   ...d.exposure,
                   concentration: {
                     ...d.exposure.concentration,
-                    unit: (e.target as HTMLSelectElement).value as any
+                    unit: (e.target as HTMLSelectElement).value as ConcUnit
                   }
                 }
               }))
@@ -122,9 +84,9 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                     type="radio"
                     name="exposure-route"
                     value={opt.value}
-                    checked={data.exposure.route === (opt.value as any)}
+                    checked={data.exposure.route === (opt.value as ExposureRoute)}
                     onChange={(e) => {
-                      const routeVal = (e.currentTarget.value as any);
+                      const routeVal = e.currentTarget.value as ExposureRoute;
                       update((d) => ({
                         ...d,
                         exposure: {
@@ -163,13 +125,13 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                           type="radio"
                           name="exposure-type"
                           value={opt.value}
-                          checked={data.exposure.type === (opt.value as any)}
+                          checked={data.exposure.type === (opt.value as ExposureType)}
                           onChange={(e) =>
                             update((d) => ({
                               ...d,
                               exposure: {
                                 ...d.exposure,
-                                type: (e.currentTarget.value as any),
+                                type: e.currentTarget.value as ExposureType,
                                 pattern: null,
                                 repeated: {
                                   duration_per_exposure_hours: null,
@@ -198,13 +160,13 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                           type="radio"
                           name="exposure-pattern"
                           value={opt.value}
-                          checked={data.exposure.pattern === (opt.value as any)}
+                          checked={data.exposure.pattern === (opt.value as ExposurePattern)}
                           onChange={(e) =>
                             update((d) => ({
                               ...d,
                               exposure: {
                                 ...d.exposure,
-                                pattern: (e.currentTarget.value as any)
+                                pattern: e.currentTarget.value as ExposurePattern
                               }
                             }))
                           }
@@ -358,7 +320,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                   ...d.exposure,
                   start_stage: {
                     ...d.exposure.start_stage,
-                    unit: (e.target as HTMLSelectElement).value as any
+                    unit: (e.target as HTMLSelectElement).value as StageUnit
                   }
                 }
               }))
@@ -396,7 +358,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                   ...d.exposure,
                   end_stage: {
                     ...d.exposure.end_stage,
-                    unit: (e.target as HTMLSelectElement).value as any
+                    unit: (e.target as HTMLSelectElement).value as StageUnit
                   }
                 }
               }))
