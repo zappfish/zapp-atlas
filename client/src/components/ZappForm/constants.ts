@@ -20,9 +20,9 @@ export const EXPOSURE_TYPE_OPTIONS = [
 ];
 
 export const PATTERN_OPTIONS = [
-  { value: 'static', label: 'Static (no renewal)' },
-  { value: 'static_renewal', label: 'Static renewal' },
-  { value: 'flow_through', label: 'Flow through' }
+  { value: 'static', label: 'Sustained - static' },
+  { value: 'static_renewal', label: 'Sustained - static renewal' },
+  { value: 'flow_through', label: 'Sustained - dynamic (flow through)' }
 ];
 
 export const SEVERITY_OPTIONS = [
@@ -52,4 +52,9 @@ export const SUBSTANCE_IDTYPE_OPTIONS = [
   { value: 'PubChem', label: 'PubChem ID' },
   { value: 'CAS', label: 'CAS number' },
   { value: 'ChEBI', label: 'ChEBI' }
+];
+
+export const DURATION_UNIT_OPTIONS = [
+  { value: 'hour', label: 'hour' },
+  { value: 'min', label: 'min' }
 ];

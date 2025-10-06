@@ -24,6 +24,7 @@ function emptyObservation(): ZappObservation {
       route: 'water',
       type: null,
       pattern: null,
+      duration: { value: null, unit: null },
       start_stage: { value: null, unit: 'hpf' },
       end_stage: { value: null, unit: 'hpf' },
       repeated: {

@@ -56,9 +56,13 @@ export const ZappObservationSchema = z.object({
       value: z.number().nonnegative().nullable(),
       unit: z.enum(['uM', 'mg/L']).nullable()
     }),
-    route: z.enum(['water', 'injected', 'ingested']).nullable(),
+    route: z.enum(['water', 'injected', 'ingested', 'gavage']).nullable(),
     type: z.enum(['continuous', 'repeated']).nullable(),
     pattern: z.enum(['static', 'static_renewal', 'flow_through']).nullable(),
+    duration: z.object({
+      value: z.number().nonnegative().nullable(),
+      unit: z.enum(['hour', 'min']).nullable()
+    }),
     start_stage: StageSchema,
     end_stage: StageSchema,
     repeated: RepeatedExposureSchema
@@ -70,4 +74,3 @@ export const ZappObservationSchema = z.object({
 });
 
 export type ZappObservation = z.infer<typeof ZappObservationSchema>;
-
