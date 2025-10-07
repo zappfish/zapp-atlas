@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Input from '@/ui/Input';
 import type { ZappObservation } from '@/schema';
+import { EXPOSURE_SUBSTANCE } from './explanations';
 
 type Substance = ZappObservation['exposure']['substance'];
 
@@ -172,6 +173,7 @@ export default function SubstanceFields({
           <Input
             label="Substance"
             placeholder="Type a chemical name, synonym, or CAS…"
+            tooltip={EXPOSURE_SUBSTANCE}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

@@ -5,6 +5,23 @@ import FormSection from '@/ui/FormSection';
 import type { ZappObservation } from '@/schema';
 import { CONC_UNIT_OPTIONS, PATTERN_OPTIONS, STAGE_UNIT_OPTIONS, DURATION_UNIT_OPTIONS } from './constants';
 import SubstanceFields from './SubstanceFields';
+import Tooltip from '@/ui/Tooltip';
+import {
+  EXPOSURE_CONCENTRATION_VALUE,
+  EXPOSURE_CONCENTRATION_UNIT,
+  EXPOSURE_ROUTE,
+  EXPOSURE_REGIMEN,
+  EXPOSURE_PATTERN,
+  EXPOSURE_DURATION_VALUE,
+  EXPOSURE_DURATION_UNIT,
+  EXPOSURE_REP_DURATION_PER,
+  EXPOSURE_REP_FREQUENCY,
+  EXPOSURE_REP_INTERVAL,
+  EXPOSURE_START_STAGE_VALUE,
+  EXPOSURE_START_STAGE_UNIT,
+  EXPOSURE_END_STAGE_VALUE,
+  EXPOSURE_END_STAGE_UNIT
+} from './explanations';
 
 type ExposureRoute = 'water' | 'injected' | 'ingested' | 'gavage';
 type ExposureType = 'continuous' | 'repeated';
@@ -33,6 +50,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
         <div className="col-4">
           <Input
             label="Substance concentration"
+            tooltip={EXPOSURE_CONCENTRATION_VALUE}
             type="number"
             placeholder="e.g., 10"
             value={data.exposure.concentration.value ?? ''}
@@ -55,6 +73,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
             label="Unit"
             value={data.exposure.concentration.unit || ''}
             options={CONC_UNIT_OPTIONS}
+            tooltip={EXPOSURE_CONCENTRATION_UNIT}
             onChange={(e) =>
               update((d) => ({
                 ...d,
@@ -73,7 +92,10 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
 
         <div className="col-12">
           <div className="field">
-            <label>Exposure route</label>
+            <div className="inline">
+              <label>Exposure route</label>
+              <Tooltip text={EXPOSURE_ROUTE} />
+            </div>
             <div className="inline" role="radiogroup" aria-label="Exposure route">
               {[
                 { value: 'water', label: 'via environment (ambient aquatic environment route)' },
@@ -117,7 +139,10 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
           <>
             <div className="col-12">
               <div className="field">
-                  <label>Exposure regimen</label>
+                  <div className="inline">
+                    <label>Exposure regimen</label>
+                    <Tooltip text={EXPOSURE_REGIMEN} />
+                  </div>
                   <div className="inline" role="radiogroup" aria-label="Exposure regimen">
                     {[
                       { value: 'continuous', label: 'Continuous exposure' },
@@ -161,6 +186,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                 <div className="col-4">
                   <Input
                     label="Exposure duration"
+                    tooltip={EXPOSURE_DURATION_VALUE}
                     type="number"
                     value={data.exposure.duration.value ?? ''}
                     onChange={(e) =>
@@ -180,6 +206,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                 <div className="col-2">
                   <Select
                     label="Unit"
+                    tooltip={EXPOSURE_DURATION_UNIT}
                     value={data.exposure.duration.unit || ''}
                     options={DURATION_UNIT_OPTIONS}
                     onChange={(e) =>
@@ -199,7 +226,10 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                 <div className="col-6" />
                 <div className="col-12">
                   <div className="field">
-                    <label>Exposure pattern</label>
+                    <div className="inline">
+                      <label>Exposure pattern</label>
+                      <Tooltip text={EXPOSURE_PATTERN} />
+                    </div>
                     <div className="inline" role="radiogroup" aria-label="Exposure pattern">
                       {PATTERN_OPTIONS.map((opt) => (
                         <label key={opt.value} className="inline" style={{ gap: 4 }}>
@@ -232,6 +262,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                   <Input
                     label="Duration per exposure (hours)"
                     type="number"
+                    tooltip={EXPOSURE_REP_DURATION_PER}
                     value={data.exposure.repeated.duration_per_exposure_hours ?? ''}
                     onChange={(e) =>
                       update((d) => ({
@@ -251,6 +282,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                   <Input
                     label="Exposure frequency (count)"
                     type="number"
+                    tooltip={EXPOSURE_REP_FREQUENCY}
                     value={data.exposure.repeated.frequency_count ?? ''}
                     onChange={(e) =>
                       update((d) => ({
@@ -270,6 +302,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                   <Input
                     label="Interval between exposures (hours)"
                     type="number"
+                    tooltip={EXPOSURE_REP_INTERVAL}
                     value={data.exposure.repeated.interval_hours ?? ''}
                     onChange={(e) =>
                       update((d) => ({
@@ -302,6 +335,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                     : 'Feeding with chemical (count)'
                 }
                 type="number"
+                tooltip={EXPOSURE_REP_FREQUENCY}
                 value={data.exposure.repeated.frequency_count ?? ''}
                 onChange={(e) =>
                   update((d) => ({
@@ -327,6 +361,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                     : 'Interval between feedings (hours)'
                 }
                 type="number"
+                tooltip={EXPOSURE_REP_INTERVAL}
                 value={data.exposure.repeated.interval_hours ?? ''}
                 onChange={(e) =>
                   update((d) => ({
@@ -353,6 +388,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
           <Input
             label="Start stage value"
             type="number"
+            tooltip={EXPOSURE_START_STAGE_VALUE}
             value={data.exposure.start_stage.value ?? ''}
             onChange={(e) =>
               update((d) => ({
@@ -373,6 +409,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
             label="Start stage unit"
             value={data.exposure.start_stage.unit || ''}
             options={STAGE_UNIT_OPTIONS}
+            tooltip={EXPOSURE_START_STAGE_UNIT}
             onChange={(e) =>
               update((d) => ({
                 ...d,
@@ -391,6 +428,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
           <Input
             label="End stage value"
             type="number"
+            tooltip={EXPOSURE_END_STAGE_VALUE}
             value={data.exposure.end_stage.value ?? ''}
             onChange={(e) =>
               update((d) => ({
@@ -411,6 +449,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
             label="End stage unit"
             value={data.exposure.end_stage.unit || ''}
             options={STAGE_UNIT_OPTIONS}
+            tooltip={EXPOSURE_END_STAGE_UNIT}
             onChange={(e) =>
               update((d) => ({
                 ...d,

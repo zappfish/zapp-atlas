@@ -4,6 +4,16 @@ import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
 import type { ZappObservation } from '@/schema';
 import { STAGE_UNIT_OPTIONS, SEVERITY_OPTIONS } from './constants';
+import {
+  PHENOTYPE_OBS_STAGE_VALUE,
+  PHENOTYPE_OBS_STAGE_UNIT,
+  PHENOTYPE_TERM,
+  PHENOTYPE_PREVALENCE,
+  PHENOTYPE_SEVERITY
+} from './explanations';
+
+type StageUnit = 'hpf' | 'dpf' | 'month';
+type Severity = 'mild' | 'moderate' | 'severe';
 
 type Props = {
   data: ZappObservation;
@@ -20,6 +30,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
           <Input
             label="Observation stage value"
             type="number"
+            tooltip={PHENOTYPE_OBS_STAGE_VALUE}
             value={data.phenotype.observation_stage.value ?? ''}
             onChange={(e) =>
               update((d) => ({
@@ -40,6 +51,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
             label="Observation stage unit"
             value={data.phenotype.observation_stage.unit || ''}
             options={STAGE_UNIT_OPTIONS}
+            tooltip={PHENOTYPE_OBS_STAGE_UNIT}
             onChange={(e) =>
               update((d) => ({
                 ...d,
@@ -47,7 +59,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
                   ...d.phenotype,
                   observation_stage: {
                     ...d.phenotype.observation_stage,
-                    unit: (e.target as HTMLSelectElement).value as any
+                    unit: (e.target as HTMLSelectElement).value as StageUnit
                   }
                 }
               }))
@@ -61,6 +73,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
               <Input
                 label={`Observed phenotype ${idx + 1} (ontology term — TODO)`}
                 placeholder="Ontology term picker will be added"
+                tooltip={PHENOTYPE_TERM}
                 value={item.termLabel || ''}
                 onChange={(e) =>
                   update((d) => ({
@@ -79,6 +92,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
               <Input
                 label="Prevalence (%)"
                 type="number"
+                tooltip={PHENOTYPE_PREVALENCE}
                 value={item.prevalencePercent ?? ''}
                 onChange={(e) =>
                   update((d) => ({
@@ -100,13 +114,14 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
                 label="Severity"
                 value={item.severity || ''}
                 options={SEVERITY_OPTIONS}
+                tooltip={PHENOTYPE_SEVERITY}
                 onChange={(e) =>
                   update((d) => ({
                     ...d,
                     phenotype: {
                       ...d.phenotype,
                       items: d.phenotype.items.map((it, i) =>
-                        i === idx ? { ...it, severity: ((e.target as HTMLSelectElement).value || null) as any } : it
+                        i === idx ? { ...it, severity: ((e.target as HTMLSelectElement).value || null) as Severity | null } : it
                       )
                     }
                   }))

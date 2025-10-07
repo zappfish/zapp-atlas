@@ -3,6 +3,7 @@ import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
 import type { ZappObservation } from '@/schema';
 import { WT_OPTIONS } from './constants';
+import { FISH_STRAIN } from './explanations';
 
 export default function FishInfoSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
   return (
@@ -13,6 +14,7 @@ export default function FishInfoSection({ data, update }: { data: ZappObservatio
             label="Strain/Background (WT)"
             value={data.fish.strain_background || ''}
             options={WT_OPTIONS}
+            tooltip={FISH_STRAIN}
             onChange={(e) =>
               update((d) => ({
                 ...d,

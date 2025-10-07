@@ -4,6 +4,7 @@ import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
 import type { ZappObservation } from '@/schema';
 import { SOURCE_TYPE_OPTIONS } from './constants';
+import { PROVENANCE_ORCID, PROVENANCE_SOURCE_TYPE, PROVENANCE_SOURCE_VALUE } from './explanations';
 
 export default function ProvenanceSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
   return (
@@ -14,6 +15,7 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
             label="Annotator/Submitter ORCID"
             placeholder="0000-0000-0000-0000"
             value={data.provenance.annotator_orcid || ''}
+            tooltip={PROVENANCE_ORCID}
             onChange={(e) =>
               update((d) => ({
                 ...d,
@@ -32,6 +34,7 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
             label="Source of the information"
             value={data.provenance.source.type || ''}
             options={SOURCE_TYPE_OPTIONS}
+            tooltip={PROVENANCE_SOURCE_TYPE}
             onChange={(e) =>
               update((d) => ({
                 ...d,
@@ -39,7 +42,7 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
                   ...d.provenance,
                   source: {
                     ...d.provenance.source,
-                    type: (e.target as HTMLSelectElement).value as any,
+                    type: (e.target as HTMLSelectElement).value as ZappObservation['provenance']['source']['type'],
                     value: ''
                   }
                 }
@@ -52,6 +55,7 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
             label="Source value"
             placeholder="PMID number, DOI url, link, etc."
             value={data.provenance.source.value || ''}
+            tooltip={PROVENANCE_SOURCE_VALUE}
             onChange={(e) =>
               update((d) => ({
                 ...d,

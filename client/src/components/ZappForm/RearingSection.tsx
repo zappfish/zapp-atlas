@@ -1,7 +1,9 @@
 import React from 'react';
 import TextArea from '@/ui/TextArea';
 import FormSection from '@/ui/FormSection';
+import Tooltip from '@/ui/Tooltip';
 import type { ZappObservation } from '@/schema';
+import { REARING_STANDARD, REARING_NONSTANDARD } from './explanations';
 
 export default function RearingSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
   return (
@@ -9,7 +11,10 @@ export default function RearingSection({ data, update }: { data: ZappObservation
       <FormSection title="Fish Rearing Conditions">
         <div className="col-4">
           <div className="field">
-            <label>Standard rearing (Westerfield 2000)</label>
+            <div className="inline">
+              <label>Standard rearing (Westerfield 2000)</label>
+              <Tooltip text={REARING_STANDARD} />
+            </div>
             <div className="inline">
               <input
                 type="checkbox"
@@ -35,6 +40,7 @@ export default function RearingSection({ data, update }: { data: ZappObservation
             <TextArea
               label="If not standard, list differences"
               placeholder="List parameters that do not follow standard (temperature, light/dark, pH, water type, density, etc.)"
+              tooltip={REARING_NONSTANDARD}
               value={data.rearing.non_standard_notes || ''}
               onChange={(e) =>
                 update((d) => ({

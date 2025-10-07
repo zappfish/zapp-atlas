@@ -1,6 +1,7 @@
 import React from 'react';
 import FileInput from '@/ui/FileInput';
 import FormSection from '@/ui/FormSection';
+import { IMAGE_UPLOAD } from './explanations';
 type ImageMeta = { name?: string; type?: string; size?: number } | null;
 
 export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { setImageFile: (file: File | null) => void; previewSrc: string | null; fileMeta: ImageMeta }) {
@@ -56,6 +57,7 @@ export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { s
             <FileInput
               id="image-file-input"
               label="Upload image"
+              tooltip={IMAGE_UPLOAD}
               accept="image/jpeg,image/png,image/tiff"
               onChange={(e) => setImageFile((e.target as HTMLInputElement).files?.[0] || null)}
               hint="Drag & drop an image here, or click to browse. Accepted: .jpeg, .png, .tiff"
