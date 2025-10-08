@@ -4,7 +4,7 @@ import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
 import TextArea from '@/ui/TextArea';
 import type { ZappObservation } from '@/schema';
-import { CONC_UNIT_OPTIONS, PATTERN_OPTIONS, STAGE_UNIT_OPTIONS, DURATION_UNIT_OPTIONS } from './constants';
+import { PATTERN_OPTIONS, STAGE_UNIT_OPTIONS, DURATION_UNIT_OPTIONS } from './constants';
 import SubstanceFields from './SubstanceFields';
 import Tooltip from '@/ui/Tooltip';
 import {
@@ -27,9 +27,8 @@ import {
 type ExposureRoute = 'water' | 'injected' | 'ingested' | 'gavage';
 type ExposureType = 'continuous' | 'repeated';
 type ExposurePattern = 'static' | 'static_renewal' | 'flow_through';
-type ConcUnit = 'uM' | 'mg/L';
 type StageUnit = 'hpf' | 'dpf' | 'month';
-type DurationUnit = 'hour' | 'min';
+type DurationUnit = 'hour' | 'min' | 'day';
 
 export default function ExposureSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
   const route = data.exposure.route;
@@ -70,27 +69,80 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
             }
           />
         </div>
-        <div className="col-2">
-          <Select
-            label="Unit"
-            value={data.exposure.concentration.unit || ''}
-            options={CONC_UNIT_OPTIONS}
-            tooltip={EXPOSURE_CONCENTRATION_UNIT}
-            onChange={(e) =>
-              update((d) => ({
-                ...d,
-                exposure: {
-                  ...d.exposure,
-                  concentration: {
-                    ...d.exposure.concentration,
-                    unit: (e.target as HTMLSelectElement).value as ConcUnit
-                  }
-                }
-              }))
-            }
-          />
+        <div className="col-4">
+          <div className="field">
+            <div className="inline">
+              <label>Unit</label>
+              <Tooltip text={EXPOSURE_CONCENTRATION_UNIT} />
+            </div>
+            <div className="inline" role="radiogroup" aria-label="Concentration unit">
+              {[
+                { v: 'uM', label: 'μM' },
+                { v: 'mg/L', label: 'mg/L' },
+                { v: '__other__', label: 'Other' }
+              ].map((opt) => (
+                <label key={opt.v} className="inline" style={{ gap: 4 }}>
+                  <input
+                    type="radio"
+                    name="conc-unit"
+                    value={opt.v}
+                    checked={
+                      opt.v === '__other__'
+                        ? !!(data.exposure.concentration.unit &&
+                            data.exposure.concentration.unit !== 'uM' &&
+                            data.exposure.concentration.unit !== 'mg/L')
+                        : data.exposure.concentration.unit === opt.v
+                    }
+                    onChange={(e) => {
+                      const val = e.currentTarget.value;
+                      update((d) => ({
+                        ...d,
+                        exposure: {
+                          ...d.exposure,
+                          concentration: {
+                            ...d.exposure.concentration,
+                            unit:
+                              val === '__other__'
+                                ? d.exposure.concentration.unit &&
+                                  d.exposure.concentration.unit !== 'uM' &&
+                                  d.exposure.concentration.unit !== 'mg/L'
+                                  ? d.exposure.concentration.unit
+                                  : ''
+                                : val
+                          }
+                        }
+                      }));
+                    }}
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="col-6" />
+        <div className="col-4">
+          {data.exposure.concentration.unit &&
+          data.exposure.concentration.unit !== 'uM' &&
+          data.exposure.concentration.unit !== 'mg/L' ? (
+            <Input
+              label="Custom unit"
+              placeholder="Enter unit"
+              value={data.exposure.concentration.unit || ''}
+              onChange={(e) =>
+                update((d) => ({
+                  ...d,
+                  exposure: {
+                    ...d.exposure,
+                    concentration: {
+                      ...d.exposure.concentration,
+                      unit: e.target.value
+                    }
+                  }
+                }))
+              }
+            />
+          ) : null}
+        </div>
 
         <div className="col-12">
           <div className="field">
@@ -118,7 +170,7 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                         exposure: {
                           ...d.exposure,
                           route: routeVal,
-                          type: routeVal === 'water' ? null : 'repeated',
+                          type: null,
                           pattern: null,
                           duration: { value: null, unit: null },
                           repeated: {
@@ -232,20 +284,20 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
                       <label>Exposure pattern</label>
                       <Tooltip text={EXPOSURE_PATTERN} />
                     </div>
-                    <div className="inline" role="radiogroup" aria-label="Exposure pattern">
+                    <div className="inline" role="group" aria-label="Exposure pattern">
                       {PATTERN_OPTIONS.map((opt) => (
                         <label key={opt.value} className="inline" style={{ gap: 4 }}>
                           <input
-                            type="radio"
-                            name="exposure-pattern"
+                            type="checkbox"
+                            name={`exposure-pattern-${opt.value}`}
                             value={opt.value}
-                            checked={data.exposure.pattern === (opt.value as ExposurePattern)}
-                            onChange={(e) =>
+                            checked={data.exposure.pattern === opt.value}
+                            onChange={() =>
                               update((d) => ({
                                 ...d,
                                 exposure: {
                                   ...d.exposure,
-                                  pattern: e.currentTarget.value as ExposurePattern
+                                  pattern: d.exposure.pattern === opt.value ? null : (opt.value as ExposurePattern)
                                 }
                               }))
                             }
@@ -327,58 +379,104 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
 
         {route && route !== 'water' && (
           <>
-            <div className="col-6">
-              <Input
-                label={
-                  route === 'injected'
-                    ? 'Injection frequency (count)'
-                    : route === 'gavage'
-                    ? 'Gavage frequency (count)'
-                    : 'Feeding with chemical (count)'
-                }
-                type="number"
-                tooltip={EXPOSURE_REP_FREQUENCY}
-                value={data.exposure.repeated.frequency_count ?? ''}
-                onChange={(e) =>
-                  update((d) => ({
-                    ...d,
-                    exposure: {
-                      ...d.exposure,
-                      repeated: {
-                        ...d.exposure.repeated,
-                        frequency_count: e.target.value === '' ? null : Number(e.target.value)
-                      }
-                    }
-                  }))
-                }
-              />
+            <div className="col-12">
+              <div className="field">
+                <div className="inline">
+                  <label>Exposure regimen</label>
+                  <Tooltip text={EXPOSURE_REGIMEN} />
+                </div>
+                <div className="inline" role="radiogroup" aria-label="Exposure regimen">
+                  {[
+                    { value: 'single', label: 'Single exposure' },
+                    { value: 'repeated', label: 'Repeated exposures' }
+                  ].map((opt) => (
+                    <label key={opt.value} className="inline" style={{ gap: 4 }}>
+                      <input
+                        type="radio"
+                        name="exposure-type-nonwater"
+                        value={opt.value}
+                        checked={opt.value === 'single' ? data.exposure.type === null : data.exposure.type === 'repeated'}
+                        onChange={(e) =>
+                          update((d) => {
+                            const isRepeated = e.currentTarget.value === 'repeated';
+                            return {
+                              ...d,
+                              exposure: {
+                                ...d.exposure,
+                                type: isRepeated ? 'repeated' : null,
+                                repeated: {
+                                  duration_per_exposure_hours: null,
+                                  frequency_count: null,
+                                  interval_hours: null
+                                }
+                              }
+                            };
+                          })
+                        }
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="col-6">
-              <Input
-                label={
-                  route === 'injected'
-                    ? 'Interval between injections (hours)'
-                    : route === 'gavage'
-                    ? 'Interval between gavages (hours)'
-                    : 'Interval between feedings (hours)'
-                }
-                type="number"
-                tooltip={EXPOSURE_REP_INTERVAL}
-                value={data.exposure.repeated.interval_hours ?? ''}
-                onChange={(e) =>
-                  update((d) => ({
-                    ...d,
-                    exposure: {
-                      ...d.exposure,
-                      repeated: {
-                        ...d.exposure.repeated,
-                        interval_hours: e.target.value === '' ? null : Number(e.target.value)
-                      }
+
+            {data.exposure.type === 'repeated' && (
+              <>
+                <div className="col-6">
+                  <Input
+                    label={
+                      route === 'injected'
+                        ? 'Injection frequency (count)'
+                        : route === 'gavage'
+                        ? 'Gavage frequency (count)'
+                        : 'Feeding with chemical (count)'
                     }
-                  }))
-                }
-              />
-            </div>
+                    type="number"
+                    tooltip={EXPOSURE_REP_FREQUENCY}
+                    value={data.exposure.repeated.frequency_count ?? ''}
+                    onChange={(e) =>
+                      update((d) => ({
+                        ...d,
+                        exposure: {
+                          ...d.exposure,
+                          repeated: {
+                            ...d.exposure.repeated,
+                            frequency_count: e.target.value === '' ? null : Number(e.target.value)
+                          }
+                        }
+                      }))
+                    }
+                  />
+                </div>
+                <div className="col-6">
+                  <Input
+                    label={
+                      route === 'injected'
+                        ? 'Interval between injections (hours)'
+                        : route === 'gavage'
+                        ? 'Interval between gavages (hours)'
+                        : 'Interval between feedings (hours)'
+                    }
+                    type="number"
+                    tooltip={EXPOSURE_REP_INTERVAL}
+                    value={data.exposure.repeated.interval_hours ?? ''}
+                    onChange={(e) =>
+                      update((d) => ({
+                        ...d,
+                        exposure: {
+                          ...d.exposure,
+                          repeated: {
+                            ...d.exposure.repeated,
+                            interval_hours: e.target.value === '' ? null : Number(e.target.value)
+                          }
+                        }
+                      }))
+                    }
+                  />
+                </div>
+              </>
+            )}
           </>
         )}
 
@@ -467,12 +565,6 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
           />
         </div>
 
-        <div className="row">
-          <div className="field">
-            <label>Note</label>
-            <small className="hint">Ontology stage picker (ZFS) is TODO. Numeric + unit captured here.</small>
-          </div>
-        </div>
         <div className="col-12">
           <button type="button" onClick={() => setShowNotes((s) => !s)}>
             {showNotes ? 'Hide notes' : 'Add notes'}
