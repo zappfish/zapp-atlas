@@ -27,8 +27,11 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
                 }
               }))
             }
-            hint="Enter your ORCID iD (link to create one will be added)."
           />
+          <small className="hint">
+            Don't have an ORCID?{' '}
+            <a href="https://orcid.org/register" target="_blank" rel="noreferrer">Create one</a>.
+          </small>
         </div>
         <div className="col-6"></div>
         <div className="col-4">
