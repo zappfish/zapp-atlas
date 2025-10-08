@@ -186,3 +186,8 @@ small.hint {
 .tooltip-arrow {
   fill: #111827;
 }
+
+/* Narrow numeric inputs globally */
+input[type="number"] {
+  max-width: 10rem;
+}
