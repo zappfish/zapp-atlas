@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Input from '@/ui/Input';
-import type { ZappObservation } from '@/schema';
 import { EXPOSURE_SUBSTANCE } from './explanations';
 
-type Substance = ZappObservation['exposure']['substance'];
+type Substance = {
+  name?: string;
+  idType: 'PubChem' | 'CAS' | 'ChEBI' | 'None';
+  id?: string;
+};
 
 type SubstanceRecord = {
   label: string;

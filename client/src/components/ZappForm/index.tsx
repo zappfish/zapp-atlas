@@ -9,6 +9,27 @@ import PhenotypeSection from './PhenotypeSection';
 
 type Props = { onChange: (data: ZappObservation) => void };
 
+type ExposureEvent = ZappObservation['exposures'][number];
+
+function emptyExposureEvent(): ExposureEvent {
+  return {
+    substance: { name: '', idType: 'None', id: '' },
+    concentration: { value: null, unit: 'uM' },
+    route: 'water',
+    type: null,
+    pattern: null,
+    duration: { value: null, unit: null },
+    start_stage: { value: null, unit: 'hpf' },
+    end_stage: { value: null, unit: 'hpf' },
+    repeated: {
+      duration_per_exposure_hours: null,
+      frequency_count: null,
+      interval_hours: null
+    },
+    additional_notes: ''
+  };
+}
+
 function emptyObservation(): ZappObservation {
   return {
     provenance: {
@@ -18,21 +39,7 @@ function emptyObservation(): ZappObservation {
     image: { file: null },
     fish: { strain_background: '' },
     rearing: { standard: true, non_standard_notes: '' },
-    exposure: {
-      substance: { name: '', idType: 'None', id: '' },
-      concentration: { value: null, unit: 'uM' },
-      route: 'water',
-      type: null,
-      pattern: null,
-      duration: { value: null, unit: null },
-      start_stage: { value: null, unit: 'hpf' },
-      end_stage: { value: null, unit: 'hpf' },
-      repeated: {
-        duration_per_exposure_hours: null,
-        frequency_count: null,
-        interval_hours: null
-      }
-    },
+    exposures: [emptyExposureEvent()],
     phenotype: {
       observation_stage: { value: null, unit: 'hpf' },
       items: [
@@ -164,7 +171,49 @@ export default function ZappForm({ onChange }: Props) {
       <ProvenanceSection data={data} update={update} />
       <FishInfoSection data={data} update={update} />
       <RearingSection data={data} update={update} />
-      <ExposureSection data={data} update={update} />
+      {data.exposures.map((ev, idx) => (
+        <div key={idx} className="row">
+          <div className="col-12">
+            <h4>Exposure Event {idx + 1}</h4>
+          </div>
+          <ExposureSection
+            exposure={ev}
+            update={(fn) =>
+              update((d) => ({
+                ...d,
+                exposures: d.exposures.map((e, i) => (i === idx ? fn(e) : e))
+              }))
+            }
+          />
+          <div className="col-12" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {data.exposures.length > 1 && (
+              <button
+                type="button"
+                onClick={() =>
+                  update((d) => ({
+                    ...d,
+                    exposures: d.exposures.filter((__, i) => i !== idx)
+                  }))
+                }
+              >
+                Remove this exposure
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+      <div className="row">
+        <div className="col-12">
+          <button
+            type="button"
+            onClick={() =>
+              update((d) => ({ ...d, exposures: [...d.exposures, emptyExposureEvent()] }))
+            }
+          >
+            + Add exposure
+          </button>
+        </div>
+      </div>
       <PhenotypeSection data={data} update={update} addPhenotype={addPhenotype} removePhenotype={removePhenotype} />
       <div className="row">
         <div className="col-12">

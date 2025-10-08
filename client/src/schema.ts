@@ -35,6 +35,25 @@ const PhenotypeItemSchema = z.object({
   severity: z.enum(['mild', 'moderate', 'severe']).nullable().optional()
 });
 
+const ExposureEventSchema = z.object({
+  substance: SubstanceIdSchema,
+  concentration: z.object({
+    value: z.number().nonnegative().nullable(),
+    unit: z.string().nullable()
+  }),
+  route: z.enum(['water', 'injected', 'ingested', 'gavage']).nullable(),
+  type: z.enum(['continuous', 'repeated']).nullable(),
+  pattern: z.enum(['static', 'static_renewal', 'flow_through']).nullable(),
+  duration: z.object({
+    value: z.number().nonnegative().nullable(),
+    unit: z.enum(['hour', 'min', 'day']).nullable()
+  }),
+  start_stage: StageSchema,
+  end_stage: StageSchema,
+  repeated: RepeatedExposureSchema,
+  additional_notes: z.string().optional()
+});
+
 export const ZappObservationSchema = z.object({
   provenance: z.object({
     annotator_orcid: z.string().optional(),
@@ -55,24 +74,7 @@ export const ZappObservationSchema = z.object({
     non_standard_notes: z.string().optional(),
     additional_notes: z.string().optional()
   }),
-  exposure: z.object({
-    substance: SubstanceIdSchema,
-    concentration: z.object({
-      value: z.number().nonnegative().nullable(),
-      unit: z.string().nullable()
-    }),
-    route: z.enum(['water', 'injected', 'ingested', 'gavage']).nullable(),
-    type: z.enum(['continuous', 'repeated']).nullable(),
-    pattern: z.enum(['static', 'static_renewal', 'flow_through']).nullable(),
-    duration: z.object({
-      value: z.number().nonnegative().nullable(),
-      unit: z.enum(['hour', 'min', 'day']).nullable()
-    }),
-    start_stage: StageSchema,
-    end_stage: StageSchema,
-    repeated: RepeatedExposureSchema,
-    additional_notes: z.string().optional()
-  }),
+  exposures: z.array(ExposureEventSchema),
   phenotype: z.object({
     observation_stage: StageSchema,
     items: z.array(PhenotypeItemSchema),
