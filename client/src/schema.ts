@@ -19,7 +19,11 @@ const StageSchema = z.object({
 const RepeatedExposureSchema = z.object({
   duration_per_exposure_hours: z.number().nonnegative().nullable(),
   frequency_count: z.number().int().nonnegative().nullable(),
-  interval_hours: z.number().nonnegative().nullable()
+  interval_hours: z.number().nonnegative().nullable(),
+  frequency_per_time: z.object({
+    value: z.number().nonnegative().nullable(),
+    unit: z.enum(['hour', 'min', 'day']).nullable()
+  })
 });
 
 const SubstanceIdSchema = z.object({

@@ -18,6 +18,7 @@ import {
   EXPOSURE_REP_DURATION_PER,
   EXPOSURE_REP_FREQUENCY,
   EXPOSURE_REP_INTERVAL,
+  EXPOSURE_REP_FREQUENCY_PER,
   EXPOSURE_START_STAGE_VALUE,
   EXPOSURE_START_STAGE_UNIT,
   EXPOSURE_END_STAGE_VALUE,
@@ -29,6 +30,133 @@ type ExposureRoute = 'water' | 'injected' | 'ingested' | 'gavage';
 type ExposurePattern = 'static' | 'static_renewal' | 'flow_through';
 type StageUnit = 'hpf' | 'dpf' | 'month';
 type DurationUnit = 'hour' | 'min' | 'day';
+
+function RepeatedExposureFields({
+  route,
+  repeated,
+  onChange
+}: {
+  route: ExposureRoute;
+  repeated: ExposureEvent['repeated'];
+  onChange: (rep: ExposureEvent['repeated']) => void;
+}) {
+  const disableDuration = route !== 'water';
+  const [durUnit, setDurUnit] = React.useState<DurationUnit>('hour');
+  const [intUnit, setIntUnit] = React.useState<DurationUnit>('hour');
+  const HOURS_PER_UNIT: Record<DurationUnit, number> = { hour: 1, min: 1 / 60, day: 24 };
+
+  const durationDisplay =
+    repeated.duration_per_exposure_hours != null
+      ? repeated.duration_per_exposure_hours / HOURS_PER_UNIT[durUnit]
+      : '';
+
+  const intervalDisplay =
+    repeated.interval_hours != null ? repeated.interval_hours / HOURS_PER_UNIT[intUnit] : '';
+
+  const updateRepeated = (patch: Partial<ExposureEvent['repeated']>) => {
+    onChange({ ...repeated, ...patch });
+  };
+
+  return (
+    <>
+      <div className="col-4">
+        <Input
+          label="Duration per exposure"
+          type="number"
+          tooltip={EXPOSURE_REP_DURATION_PER}
+          disabled={disableDuration}
+          value={durationDisplay}
+          onChange={(e) => {
+            if (disableDuration) return;
+            const raw = e.currentTarget.value;
+            const hours = raw === '' ? null : Number(raw) * HOURS_PER_UNIT[durUnit];
+            updateRepeated({ duration_per_exposure_hours: hours });
+          }}
+        />
+      </div>
+      <div className="col-2">
+        <Select
+          label="Unit"
+          tooltip={EXPOSURE_DURATION_UNIT}
+          disabled={disableDuration}
+          value={durUnit}
+          options={DURATION_UNIT_OPTIONS}
+          onChange={(e) => setDurUnit((e.target as HTMLSelectElement).value as DurationUnit)}
+        />
+      </div>
+
+      <div className="col-6">
+        <Input
+          label="Number of repeated exposures"
+          type="number"
+          tooltip={EXPOSURE_REP_FREQUENCY}
+          value={repeated.frequency_count ?? ''}
+          onChange={(e) =>
+            updateRepeated({
+              frequency_count: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
+            })
+          }
+        />
+      </div>
+
+      <div className="col-4">
+        <Input
+          label="Interval between exposures"
+          type="number"
+          tooltip={EXPOSURE_REP_INTERVAL}
+          value={intervalDisplay}
+          onChange={(e) => {
+            const raw = e.currentTarget.value;
+            const hours = raw === '' ? null : Number(raw) * HOURS_PER_UNIT[intUnit];
+            updateRepeated({ interval_hours: hours });
+          }}
+        />
+      </div>
+      <div className="col-2">
+        <Select
+          label="Unit"
+          tooltip={EXPOSURE_DURATION_UNIT}
+          value={intUnit}
+          options={DURATION_UNIT_OPTIONS}
+          onChange={(e) => setIntUnit((e.target as HTMLSelectElement).value as DurationUnit)}
+        />
+      </div>
+
+      <div className="col-4">
+        <Input
+          label="Exposure frequency (count)"
+          type="number"
+          tooltip={EXPOSURE_REP_FREQUENCY_PER}
+          value={repeated.frequency_per_time?.value ?? ''}
+          onChange={(e) =>
+            updateRepeated({
+              frequency_per_time: {
+                value: e.currentTarget.value === '' ? null : Number(e.currentTarget.value),
+                unit: repeated.frequency_per_time?.unit ?? 'hour'
+              }
+            })
+          }
+        />
+      </div>
+      <div className="col-2">
+        <Select
+          label="Unit"
+          tooltip={EXPOSURE_DURATION_UNIT}
+          value={repeated.frequency_per_time?.unit ?? 'hour'}
+          options={DURATION_UNIT_OPTIONS}
+          onChange={(e) =>
+            updateRepeated({
+              frequency_per_time: {
+                value: repeated.frequency_per_time?.value ?? null,
+                unit: (e.target as HTMLSelectElement).value as DurationUnit
+              }
+            })
+          }
+        />
+      </div>
+    </>
+  );
+}
 
 export default function ExposureSection({
   exposure,
@@ -173,7 +301,8 @@ export default function ExposureSection({
                         repeated: {
                           duration_per_exposure_hours: null,
                           frequency_count: null,
-                          interval_hours: null
+                          interval_hours: null,
+                          frequency_per_time: { value: null, unit: null }
                         }
                       }));
                     }}
@@ -215,7 +344,8 @@ export default function ExposureSection({
                               repeated: {
                                 duration_per_exposure_hours: null,
                                 frequency_count: null,
-                                interval_hours: null
+                                interval_hours: null,
+                                frequency_per_time: { value: null, unit: null }
                               }
                             };
                           })
@@ -296,59 +426,16 @@ export default function ExposureSection({
             )}
 
             {type === 'repeated' && (
-              <>
-                <div className="col-4">
-                  <Input
-                    label="Duration per exposure (hours)"
-                    type="number"
-                    tooltip={EXPOSURE_REP_DURATION_PER}
-                    value={exposure.repeated.duration_per_exposure_hours ?? ''}
-                    onChange={(e) =>
-                      update((ex) => ({
-                        ...ex,
-                        repeated: {
-                          ...ex.repeated,
-                          duration_per_exposure_hours: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
-                        }
-                      }))
-                    }
-                  />
-                </div>
-                <div className="col-4">
-                  <Input
-                    label="Exposure frequency (count)"
-                    type="number"
-                    tooltip={EXPOSURE_REP_FREQUENCY}
-                    value={exposure.repeated.frequency_count ?? ''}
-                    onChange={(e) =>
-                      update((ex) => ({
-                        ...ex,
-                        repeated: {
-                          ...ex.repeated,
-                          frequency_count: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
-                        }
-                      }))
-                    }
-                  />
-                </div>
-                <div className="col-4">
-                  <Input
-                    label="Interval between exposures (hours)"
-                    type="number"
-                    tooltip={EXPOSURE_REP_INTERVAL}
-                    value={exposure.repeated.interval_hours ?? ''}
-                    onChange={(e) =>
-                      update((ex) => ({
-                        ...ex,
-                        repeated: {
-                          ...ex.repeated,
-                          interval_hours: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
-                        }
-                      }))
-                    }
-                  />
-                </div>
-              </>
+              <RepeatedExposureFields
+                route={route}
+                repeated={exposure.repeated}
+                onChange={(rep) =>
+                  update((ex) => ({
+                    ...ex,
+                    repeated: rep
+                  }))
+                }
+              />
             )}
           </>
         )}
@@ -381,7 +468,8 @@ export default function ExposureSection({
                               repeated: {
                                 duration_per_exposure_hours: null,
                                 frequency_count: null,
-                                interval_hours: null
+                                interval_hours: null,
+                                frequency_per_time: { value: null, unit: null }
                               }
                             };
                           })
@@ -395,54 +483,16 @@ export default function ExposureSection({
             </div>
 
             {exposure.type === 'repeated' && (
-              <>
-                <div className="col-6">
-                  <Input
-                    label={
-                      route === 'injected'
-                        ? 'Injection frequency (count)'
-                        : route === 'gavage'
-                        ? 'Gavage frequency (count)'
-                        : 'Feeding with chemical (count)'
-                    }
-                    type="number"
-                    tooltip={EXPOSURE_REP_FREQUENCY}
-                    value={exposure.repeated.frequency_count ?? ''}
-                    onChange={(e) =>
-                      update((ex) => ({
-                        ...ex,
-                        repeated: {
-                          ...ex.repeated,
-                          frequency_count: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
-                        }
-                      }))
-                    }
-                  />
-                </div>
-                <div className="col-6">
-                  <Input
-                    label={
-                      route === 'injected'
-                        ? 'Interval between injections (hours)'
-                        : route === 'gavage'
-                        ? 'Interval between gavages (hours)'
-                        : 'Interval between feedings (hours)'
-                    }
-                    type="number"
-                    tooltip={EXPOSURE_REP_INTERVAL}
-                    value={exposure.repeated.interval_hours ?? ''}
-                    onChange={(e) =>
-                      update((ex) => ({
-                        ...ex,
-                        repeated: {
-                          ...ex.repeated,
-                          interval_hours: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
-                        }
-                      }))
-                    }
-                  />
-                </div>
-              </>
+              <RepeatedExposureFields
+                route={route}
+                repeated={exposure.repeated}
+                onChange={(rep) =>
+                  update((ex) => ({
+                    ...ex,
+                    repeated: rep
+                  }))
+                }
+              />
             )}
           </>
         )}

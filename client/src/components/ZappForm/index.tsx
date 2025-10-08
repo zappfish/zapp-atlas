@@ -24,7 +24,8 @@ function emptyExposureEvent(): ExposureEvent {
     repeated: {
       duration_per_exposure_hours: null,
       frequency_count: null,
-      interval_hours: null
+      interval_hours: null,
+      frequency_per_time: { value: null, unit: null }
     },
     additional_notes: ''
   };
