@@ -121,7 +121,18 @@ export default function ZappForm({ onChange }: Props) {
 
   return (
     <form className="grid" onSubmit={(e) => e.preventDefault()}>
-      <ImageSection setImageFile={setImageFile} previewSrc={imagePreview} fileMeta={data.image.file} />
+      <ImageSection
+        setImageFile={setImageFile}
+        previewSrc={imagePreview}
+        fileMeta={data.image.file}
+        imageNotes={data.image.additional_notes || ''}
+        setImageNotes={(val: string) =>
+          update((d) => ({
+            ...d,
+            image: { ...d.image, additional_notes: val }
+          }))
+        }
+      />
       <ProvenanceSection data={data} update={update} />
       <FishInfoSection data={data} update={update} />
       <RearingSection data={data} update={update} />

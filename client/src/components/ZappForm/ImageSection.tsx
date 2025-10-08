@@ -1,12 +1,26 @@
 import React from 'react';
 import FileInput from '@/ui/FileInput';
 import FormSection from '@/ui/FormSection';
+import TextArea from '@/ui/TextArea';
 import { IMAGE_UPLOAD } from './explanations';
 type ImageMeta = { name?: string; type?: string; size?: number } | null;
 
-export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { setImageFile: (file: File | null) => void; previewSrc: string | null; fileMeta: ImageMeta }) {
+export default function ImageSection({
+  setImageFile,
+  previewSrc,
+  fileMeta,
+  imageNotes,
+  setImageNotes
+}: {
+  setImageFile: (file: File | null) => void;
+  previewSrc: string | null;
+  fileMeta: ImageMeta;
+  imageNotes: string;
+  setImageNotes: (val: string) => void;
+}) {
   const [dragOver, setDragOver] = React.useState(false);
   const [fullscreen, setFullscreen] = React.useState(false);
+  const [showNotes, setShowNotes] = React.useState(false);
 
   const handleDrop: React.DragEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
@@ -101,6 +115,21 @@ export default function ImageSection({ setImageFile, previewSrc, fileMeta }: { s
             )}
           </div>
         </div>
+      <div className="col-12">
+        <button type="button" onClick={() => setShowNotes((s) => !s)}>
+          {showNotes ? 'Hide notes' : 'Add notes'}
+        </button>
+      </div>
+      {showNotes && (
+        <div className="col-12">
+          <TextArea
+            label="Additional notes"
+            placeholder="Additional notes not captured by the fields in this section"
+            value={imageNotes}
+            onChange={(e) => setImageNotes((e.target as HTMLTextAreaElement).value)}
+          />
+        </div>
+      )}
       </FormSection>
       {previewSrc && !fullscreen && (
         <button

@@ -38,17 +38,21 @@ const PhenotypeItemSchema = z.object({
 export const ZappObservationSchema = z.object({
   provenance: z.object({
     annotator_orcid: z.string().optional(),
-    source: IdRefSchema
+    source: IdRefSchema,
+    additional_notes: z.string().optional()
   }),
   image: z.object({
-    file: ImageMetaSchema.nullable()
+    file: ImageMetaSchema.nullable(),
+    additional_notes: z.string().optional()
   }),
   fish: z.object({
-    strain_background: z.string().optional()
+    strain_background: z.string().optional(),
+    additional_notes: z.string().optional()
   }),
   rearing: z.object({
     standard: z.boolean(),
-    non_standard_notes: z.string().optional()
+    non_standard_notes: z.string().optional(),
+    additional_notes: z.string().optional()
   }),
   exposure: z.object({
     substance: SubstanceIdSchema,
@@ -65,11 +69,13 @@ export const ZappObservationSchema = z.object({
     }),
     start_stage: StageSchema,
     end_stage: StageSchema,
-    repeated: RepeatedExposureSchema
+    repeated: RepeatedExposureSchema,
+    additional_notes: z.string().optional()
   }),
   phenotype: z.object({
     observation_stage: StageSchema,
-    items: z.array(PhenotypeItemSchema)
+    items: z.array(PhenotypeItemSchema),
+    additional_notes: z.string().optional()
   })
 });
 

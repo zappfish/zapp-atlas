@@ -2,6 +2,7 @@ import React from 'react';
 import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
+import TextArea from '@/ui/TextArea';
 import type { ZappObservation } from '@/schema';
 import { STAGE_UNIT_OPTIONS, SEVERITY_OPTIONS } from './constants';
 import {
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function PhenotypeSection({ data, update, addPhenotype, removePhenotype }: Props) {
+  const [showNotes, setShowNotes] = React.useState(false);
   return (
     <div className="row">
       <FormSection title="Fish Phenotype">
@@ -138,6 +140,26 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
         <div className="row">
           <button type="button" onClick={addPhenotype}>+ Add phenotype</button>
         </div>
+        <div className="col-12">
+          <button type="button" onClick={() => setShowNotes((s) => !s)}>
+            {showNotes ? 'Hide notes' : 'Add notes'}
+          </button>
+        </div>
+        {showNotes && (
+          <div className="col-12">
+            <TextArea
+              label="Additional notes"
+              placeholder="Additional notes not captured by the fields in this section"
+              value={data.phenotype.additional_notes || ''}
+              onChange={(e) =>
+                update((d) => ({
+                  ...d,
+                  phenotype: { ...d.phenotype, additional_notes: (e.target as HTMLTextAreaElement).value }
+                }))
+              }
+            />
+          </div>
+        )}
       </FormSection>
     </div>
   );

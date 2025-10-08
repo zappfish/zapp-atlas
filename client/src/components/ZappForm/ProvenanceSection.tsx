@@ -2,11 +2,13 @@ import React from 'react';
 import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
+import TextArea from '@/ui/TextArea';
 import type { ZappObservation } from '@/schema';
 import { SOURCE_TYPE_OPTIONS } from './constants';
 import { PROVENANCE_ORCID, PROVENANCE_SOURCE_TYPE, PROVENANCE_SOURCE_VALUE } from './explanations';
 
 export default function ProvenanceSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
+  const [showNotes, setShowNotes] = React.useState(false);
   return (
     <div className="row">
       <FormSection title="Provenance of Data">
@@ -67,6 +69,26 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
             }
           />
         </div>
+        <div className="col-12">
+          <button type="button" onClick={() => setShowNotes((s) => !s)}>
+            {showNotes ? 'Hide notes' : 'Add notes'}
+          </button>
+        </div>
+        {showNotes && (
+          <div className="col-12">
+            <TextArea
+              label="Additional notes"
+              placeholder="Additional notes not captured by the fields in this section"
+              value={data.provenance.additional_notes || ''}
+              onChange={(e) =>
+                update((d) => ({
+                  ...d,
+                  provenance: { ...d.provenance, additional_notes: (e.target as HTMLTextAreaElement).value }
+                }))
+              }
+            />
+          </div>
+        )}
       </FormSection>
     </div>
   );

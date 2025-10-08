@@ -2,6 +2,7 @@ import React from 'react';
 import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
+import TextArea from '@/ui/TextArea';
 import type { ZappObservation } from '@/schema';
 import { CONC_UNIT_OPTIONS, PATTERN_OPTIONS, STAGE_UNIT_OPTIONS, DURATION_UNIT_OPTIONS } from './constants';
 import SubstanceFields from './SubstanceFields';
@@ -33,6 +34,7 @@ type DurationUnit = 'hour' | 'min';
 export default function ExposureSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
   const route = data.exposure.route;
   const type = data.exposure.type;
+  const [showNotes, setShowNotes] = React.useState(false);
 
   return (
     <div className="row">
@@ -471,6 +473,26 @@ export default function ExposureSection({ data, update }: { data: ZappObservatio
             <small className="hint">Ontology stage picker (ZFS) is TODO. Numeric + unit captured here.</small>
           </div>
         </div>
+        <div className="col-12">
+          <button type="button" onClick={() => setShowNotes((s) => !s)}>
+            {showNotes ? 'Hide notes' : 'Add notes'}
+          </button>
+        </div>
+        {showNotes && (
+          <div className="col-12">
+            <TextArea
+              label="Additional notes"
+              placeholder="Additional notes not captured by the fields in this section"
+              value={data.exposure.additional_notes || ''}
+              onChange={(e) =>
+                update((d) => ({
+                  ...d,
+                  exposure: { ...d.exposure, additional_notes: (e.target as HTMLTextAreaElement).value }
+                }))
+              }
+            />
+          </div>
+        )}
       </FormSection>
     </div>
   );

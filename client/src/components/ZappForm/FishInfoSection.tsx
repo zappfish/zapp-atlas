@@ -1,11 +1,13 @@
 import React from 'react';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
+import TextArea from '@/ui/TextArea';
 import type { ZappObservation } from '@/schema';
 import { WT_OPTIONS } from './constants';
 import { FISH_STRAIN } from './explanations';
 
 export default function FishInfoSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
+  const [showNotes, setShowNotes] = React.useState(false);
   return (
     <div className="row">
       <FormSection title="Fish Information">
@@ -32,6 +34,26 @@ export default function FishInfoSection({ data, update }: { data: ZappObservatio
             <small className="hint">Autocomplete from ZFIN — TODO in later iteration.</small>
           </div>
         </div>
+        <div className="col-12">
+          <button type="button" onClick={() => setShowNotes((s) => !s)}>
+            {showNotes ? 'Hide notes' : 'Add notes'}
+          </button>
+        </div>
+        {showNotes && (
+          <div className="col-12">
+            <TextArea
+              label="Additional notes"
+              placeholder="Additional notes not captured by the fields in this section"
+              value={data.fish.additional_notes || ''}
+              onChange={(e) =>
+                update((d) => ({
+                  ...d,
+                  fish: { ...d.fish, additional_notes: (e.target as HTMLTextAreaElement).value }
+                }))
+              }
+            />
+          </div>
+        )}
       </FormSection>
     </div>
   );

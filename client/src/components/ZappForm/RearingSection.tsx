@@ -6,6 +6,7 @@ import type { ZappObservation } from '@/schema';
 import { REARING_STANDARD, REARING_NONSTANDARD } from './explanations';
 
 export default function RearingSection({ data, update }: { data: ZappObservation; update: (u: (d: ZappObservation) => ZappObservation) => void }) {
+  const [showNotes, setShowNotes] = React.useState(false);
   return (
     <div className="row">
       <FormSection title="Fish Rearing Conditions">
@@ -46,6 +47,26 @@ export default function RearingSection({ data, update }: { data: ZappObservation
                 update((d) => ({
                   ...d,
                   rearing: { ...d.rearing, non_standard_notes: e.target.value }
+                }))
+              }
+            />
+          </div>
+        )}
+        <div className="col-12">
+          <button type="button" onClick={() => setShowNotes((s) => !s)}>
+            {showNotes ? 'Hide notes' : 'Add notes'}
+          </button>
+        </div>
+        {showNotes && (
+          <div className="col-12">
+            <TextArea
+              label="Additional notes"
+              placeholder="Additional notes not captured by the fields in this section"
+              value={data.rearing.additional_notes || ''}
+              onChange={(e) =>
+                update((d) => ({
+                  ...d,
+                  rearing: { ...d.rearing, additional_notes: (e.target as HTMLTextAreaElement).value }
                 }))
               }
             />
