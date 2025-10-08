@@ -1,3 +1,4 @@
+export const PROVENANCE_ORCID = 'ORCID of the annotator/submitter in the format 0000-0000-0000-0000.';
 export const PROVENANCE_SOURCE_TYPE = 'Reference where the information originated, and possibly, where more details can be found.';
 export const PROVENANCE_SOURCE_VALUE = 'Provide the identifier or URL for the selected source type.';
 

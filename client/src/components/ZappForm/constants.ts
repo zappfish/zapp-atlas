@@ -55,7 +55,7 @@ export const SUBSTANCE_IDTYPE_OPTIONS = [
 ];
 
 export const DURATION_UNIT_OPTIONS = [
+  { value: 'minute', label: 'minute' },
   { value: 'hour', label: 'hour' },
-  { value: 'min', label: 'min' },
   { value: 'day', label: 'day' }
 ];

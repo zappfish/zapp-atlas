@@ -17,12 +17,14 @@ const StageSchema = z.object({
 });
 
 const RepeatedExposureSchema = z.object({
-  duration_per_exposure_hours: z.number().nonnegative().nullable(),
-  frequency_count: z.number().int().nonnegative().nullable(),
-  interval_hours: z.number().nonnegative().nullable(),
-  frequency_per_time: z.object({
+  duration_per_exposure: z.object({
     value: z.number().nonnegative().nullable(),
-    unit: z.enum(['hour', 'min', 'day']).nullable()
+    unit: z.enum(['minute', 'hour', 'day']).nullable()
+  }),
+  frequency_count: z.number().int().nonnegative().nullable(),
+  interval: z.object({
+    value: z.number().nonnegative().nullable(),
+    unit: z.enum(['minute', 'hour', 'day']).nullable()
   })
 });
 
@@ -50,7 +52,7 @@ const ExposureEventSchema = z.object({
   pattern: z.enum(['static', 'static_renewal', 'flow_through']).nullable(),
   duration: z.object({
     value: z.number().nonnegative().nullable(),
-    unit: z.enum(['hour', 'min', 'day']).nullable()
+    unit: z.enum(['minute', 'hour', 'day']).nullable()
   }),
   start_stage: StageSchema,
   end_stage: StageSchema,
