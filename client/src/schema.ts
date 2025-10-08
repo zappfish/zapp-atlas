@@ -47,6 +47,7 @@ export const ZappObservationSchema = z.object({
   }),
   fish: z.object({
     strain_background: z.string().optional(),
+    description: z.string().optional(),
     additional_notes: z.string().optional()
   }),
   rearing: z.object({

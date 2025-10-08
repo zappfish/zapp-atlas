@@ -4,7 +4,7 @@ export const PROVENANCE_SOURCE_VALUE = 'Provide the identifier or URL for the se
 
 export const IMAGE_UPLOAD = 'Accepted formats: JPEG, TIFF, PNG. 300 DPI recommended for publications.';
 
-export const FISH_STRAIN = 'Wildtype background of the fish. Use ZFIN identifiers (ZDB-##) when available.';
+export const FISH_STRAIN = 'Wildtype background of the fish.';
 
 export const REARING_STANDARD = 'Westerfield (2000): 28.5 °C; 14:10 light:dark; pH 7.2–7.5; E3/Danieau’s; ≤ 50 embryos per 100 mm dish.';
 export const REARING_NONSTANDARD = 'Describe deviations from standard conditions (temperature, light/dark, pH, water type, density, etc.).';
