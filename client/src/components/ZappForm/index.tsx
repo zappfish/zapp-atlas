@@ -47,6 +47,9 @@ export default function ZappForm({ onChange }: Props) {
   const [, setErrors] = React.useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
   const prevObjectUrlRef = React.useRef<string | null>(null);
+  const [imageFile, setImageFileState] = React.useState<File | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitResult, setSubmitResult] = React.useState<string | null>(null);
 
   const update = (updater: (d: ZappObservation) => ZappObservation) => {
     const next = updater(data);
@@ -70,6 +73,7 @@ export default function ZappForm({ onChange }: Props) {
         file: file ? { name: file.name, type: file.type, size: file.size } : null
       }
     }));
+    setImageFileState(file);
     // Manage preview URL lifecycle
     if (prevObjectUrlRef.current) {
       URL.revokeObjectURL(prevObjectUrlRef.current);
@@ -119,8 +123,32 @@ export default function ZappForm({ onChange }: Props) {
     };
   }, []);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitResult(null);
+    try {
+      const formData = new FormData();
+      formData.append(
+        'data',
+        new Blob([JSON.stringify(data)], { type: 'application/json' }),
+        'observation.json'
+      );
+      if (imageFile) {
+        formData.append('image', imageFile, imageFile.name);
+      }
+      const res = await fetch('/obervation', { method: 'POST', body: formData });
+      const text = await res.text();
+      setSubmitResult(text || `Submitted. Status ${res.status}`);
+    } catch (err) {
+      setSubmitResult(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <form className="grid" onSubmit={(e) => e.preventDefault()}>
+    <form className="grid" onSubmit={handleSubmit}>
       <ImageSection
         setImageFile={setImageFile}
         previewSrc={imagePreview}
@@ -138,6 +166,12 @@ export default function ZappForm({ onChange }: Props) {
       <RearingSection data={data} update={update} />
       <ExposureSection data={data} update={update} />
       <PhenotypeSection data={data} update={update} addPhenotype={addPhenotype} removePhenotype={removePhenotype} />
+      <div className="row">
+        <div className="col-12">
+          <button type="submit" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit'}</button>
+          {submitResult && <small className="hint" style={{ marginLeft: 12 }}>{submitResult}</small>}
+        </div>
+      </div>
     </form>
   );
 }
