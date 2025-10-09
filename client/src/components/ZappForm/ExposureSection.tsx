@@ -163,7 +163,7 @@ export default function ExposureSection({
           }
         />
 
-        <div className="col-4">
+        <div className="col-3">
           <Input
             label="Substance concentration"
             tooltip={EXPOSURE_CONCENTRATION_VALUE}
@@ -182,7 +182,7 @@ export default function ExposureSection({
           />
         </div>
 
-        <div className="col-4">
+        <div className="col-3">
           <div className="field">
             <div className="inline">
               <label>Unit</label>
@@ -241,6 +241,10 @@ export default function ExposureSection({
               }
             />
           ) : null}
+        </div>
+
+        <div className="col-12">
+          <hr />
         </div>
 
         <div className="col-12">

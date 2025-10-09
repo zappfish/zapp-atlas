@@ -35,22 +35,24 @@ export default function SubstanceFields({
 
   return (
     <>
-      <div className="col-8">
+      <div className="col-6">
         <Input
           label="Substance"
-          placeholder="Enter substance label"
+          placeholder="Substance label"
           tooltip={EXPOSURE_SUBSTANCE}
           value={value.name || ''}
           onChange={(e) => applyChange({ name: e.target.value })}
         />
       </div>
-      <div className="col-4">
+      <div className="col-2">
         <Select
           label="ID Type"
           value={idTypeValue}
           onChange={(e) => applyChange({ idType: e.target.value as Substance['idType'] })}
           options={ID_TYPE_OPTIONS}
         />
+      </div>
+      <div className="col-4">
         <Input
           label="Identifier"
           placeholder="e.g., 50-00-0"
