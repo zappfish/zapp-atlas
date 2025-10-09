@@ -41,6 +41,8 @@ const PhenotypeItemSchema = z.object({
   severity: z.enum(['mild', 'moderate', 'severe']).nullable().optional()
 });
 
+
+// FIXME: This should really have a `regimen` key.
 const ExposureEventSchema = z.object({
   substance: SubstanceIdSchema,
   concentration: z.object({
@@ -49,6 +51,7 @@ const ExposureEventSchema = z.object({
   }),
   route: z.enum(['water', 'injected', 'ingested', 'gavage']).nullable(),
   type: z.enum(['continuous', 'repeated']).nullable(),
+  textual_description: z.string().nullable(),
   pattern: z.enum(['static', 'static_renewal', 'flow_through']).nullable(),
   duration: z.object({
     value: z.number().nonnegative().nullable(),

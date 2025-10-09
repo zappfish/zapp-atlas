@@ -278,6 +278,22 @@ export default function ExposureSection({
           <hr />
         </div>
 
+        <>
+        <div className="col-12">
+          <Input
+            label="Exposure description"
+            placeholder="e.g. 4uM of ethanol were added to water every four hours"
+            tooltip="A textual description of the method of exposure"
+            onChange={(e) =>
+              update((ex) => ({
+                ...ex,
+                textual_description: e.currentTarget.value,
+              }))
+            }
+          />
+        </div>
+        </>
+
         <div className="col-12">
           <div className="field">
             <div className="inline">
