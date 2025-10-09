@@ -18,6 +18,7 @@ import {
   EXPOSURE_REP_DURATION_PER,
   EXPOSURE_REP_FREQUENCY,
   EXPOSURE_REP_INTERVAL,
+  EXPOSURE_REP_TOTAL_LENGTH,
   EXPOSURE_START_STAGE_VALUE,
   EXPOSURE_START_STAGE_UNIT,
   EXPOSURE_END_STAGE_VALUE,
@@ -55,12 +56,12 @@ function RepeatedExposureFields({
           type="number"
           tooltip={EXPOSURE_REP_DURATION_PER}
           disabled={disableDuration}
-          value={repeated.duration_per_exposure.value ?? ''}
+          value={repeated.duration_per.value ?? ''}
           onChange={(e) => {
             if (disableDuration) return;
             updateRepeated({
-              duration_per_exposure: {
-                ...repeated.duration_per_exposure,
+              duration_per: {
+                ...repeated.duration_per,
                 value: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
               }
             });
@@ -70,14 +71,13 @@ function RepeatedExposureFields({
       <div className="col-2">
         <Select
           label="Unit"
-          tooltip={EXPOSURE_DURATION_UNIT}
           disabled={disableDuration}
-          value={repeated.duration_per_exposure.unit || ''}
+          value={repeated.duration_per.unit || ''}
           options={DURATION_UNIT_OPTIONS}
           onChange={(e) =>
             updateRepeated({
-              duration_per_exposure: {
-                ...repeated.duration_per_exposure,
+              duration_per: {
+                ...repeated.duration_per,
                 unit: (e.target as HTMLSelectElement).value as DurationUnit
               }
             })
@@ -87,13 +87,13 @@ function RepeatedExposureFields({
 
       <div className="col-6">
         <Input
-          label="Exposure frequency (count)"
+          label="Number of exposures"
           type="number"
           tooltip={EXPOSURE_REP_FREQUENCY}
-          value={repeated.frequency_count ?? ''}
+          value={repeated.count ?? ''}
           onChange={(e) =>
             updateRepeated({
-              frequency_count: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
+              count: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
             })
           }
         />
@@ -104,11 +104,11 @@ function RepeatedExposureFields({
           label="Interval between exposures"
           type="number"
           tooltip={EXPOSURE_REP_INTERVAL}
-          value={repeated.interval.value ?? ''}
+          value={repeated.interval_between.value ?? ''}
           onChange={(e) =>
             updateRepeated({
-              interval: {
-                ...repeated.interval,
+              interval_between: {
+                ...repeated.interval_between,
                 value: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
               }
             })
@@ -118,13 +118,44 @@ function RepeatedExposureFields({
       <div className="col-2">
         <Select
           label="Unit"
-          tooltip={EXPOSURE_DURATION_UNIT}
-          value={repeated.interval.unit || ''}
+          value={repeated.interval_between.unit || ''}
           options={DURATION_UNIT_OPTIONS}
           onChange={(e) =>
             updateRepeated({
-              interval: {
-                ...repeated.interval,
+              interval_between: {
+                ...repeated.interval_between,
+                unit: (e.target as HTMLSelectElement).value as DurationUnit
+              }
+            })
+          }
+        />
+      </div>
+
+      <div className="col-4">
+        <Input
+          label="Total length of exposure"
+          type="number"
+          tooltip={EXPOSURE_REP_TOTAL_LENGTH}
+          value={repeated.total_length.value ?? ''}
+          onChange={(e) =>
+            updateRepeated({
+              total_length: {
+                ...repeated.total_length,
+                value: e.currentTarget.value === '' ? null : Number(e.currentTarget.value)
+              }
+            })
+          }
+        />
+      </div>
+      <div className="col-2">
+        <Select
+          label="Unit"
+          value={repeated.total_length.unit || ''}
+          options={DURATION_UNIT_OPTIONS}
+          onChange={(e) =>
+            updateRepeated({
+              total_length: {
+                ...repeated.total_length,
                 unit: (e.target as HTMLSelectElement).value as DurationUnit
               }
             })
@@ -275,9 +306,10 @@ export default function ExposureSection({
                         pattern: null,
                         duration: { value: null, unit: null },
                         repeated: {
-                          duration_per_exposure: { value: null, unit: null },
-                          frequency_count: null,
-                          interval: { value: null, unit: null }
+                          count: null,
+                          duration_per: { value: null, unit: null },
+                          interval_between: { value: null, unit: null },
+                          total_length: { value: null, unit: null },
                         }
                       }));
                     }}
@@ -317,9 +349,10 @@ export default function ExposureSection({
                               pattern: null,
                               duration: nextType === 'continuous' ? ex.duration : { value: null, unit: null },
                               repeated: {
-                                duration_per_exposure: { value: null, unit: null },
-                                frequency_count: null,
-                                interval: { value: null, unit: null }
+                                count: null,
+                                duration_per: { value: null, unit: null },
+                                interval_between: { value: null, unit: null },
+                                total_length: { value: null, unit: null },
                               }
                             };
                           })
@@ -440,9 +473,10 @@ export default function ExposureSection({
                               ...ex,
                               type: isRepeated ? 'repeated' : null,
                               repeated: {
-                                duration_per_exposure: { value: null, unit: null },
-                                frequency_count: null,
-                                interval: { value: null, unit: null }
+                                count: null,
+                                duration_per: { value: null, unit: null },
+                                interval_between: { value: null, unit: null },
+                                total_length: { value: null, unit: null },
                               }
                             };
                           })

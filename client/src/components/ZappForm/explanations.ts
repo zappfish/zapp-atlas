@@ -21,6 +21,7 @@ export const EXPOSURE_REP_DURATION_PER = 'Duration of each repeated exposure dur
 export const EXPOSURE_REP_FREQUENCY = 'Number of exposures in the exposure event.';
 export const EXPOSURE_REP_INTERVAL = 'The time between consecutive exposures.';
 export const EXPOSURE_REP_FREQUENCY_PER = 'Number of exposures per period of time.';
+export const EXPOSURE_REP_TOTAL_LENGTH = 'The total length of time during which the fish was exposed to the substance.';
 export const EXPOSURE_START_STAGE_VALUE = 'Developmental stage of the zebrafish when the exposure event began.';
 export const EXPOSURE_START_STAGE_UNIT = 'Unit for the start stage.';
 export const EXPOSURE_END_STAGE_VALUE = 'Developmental stage of the zebrafish when the exposure event ended.';

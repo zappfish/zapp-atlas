@@ -22,9 +22,10 @@ function emptyExposureEvent(): ExposureEvent {
     start_stage: { value: null, unit: 'hpf' },
     end_stage: { value: null, unit: 'hpf' },
     repeated: {
-      duration_per_exposure: { value: null, unit: null },
-      frequency_count: null,
-      interval: { value: null, unit: null }
+      count: null,
+      duration_per: { value: null, unit: null },
+      interval_between: { value: null, unit: null },
+      total_length: { value: null, unit: null },
     },
     additional_notes: ''
   };

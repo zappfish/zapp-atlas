@@ -16,16 +16,16 @@ const StageSchema = z.object({
   unit: z.enum(['hpf', 'dpf', 'month']).nullable()
 });
 
+const DurationSchema = z.object({
+  value: z.number().nonnegative().nullable(),
+  unit: z.enum(['minute', 'hour', 'day']).nullable()
+})
+
 const RepeatedExposureSchema = z.object({
-  duration_per_exposure: z.object({
-    value: z.number().nonnegative().nullable(),
-    unit: z.enum(['minute', 'hour', 'day']).nullable()
-  }),
-  frequency_count: z.number().int().nonnegative().nullable(),
-  interval: z.object({
-    value: z.number().nonnegative().nullable(),
-    unit: z.enum(['minute', 'hour', 'day']).nullable()
-  })
+  count: z.number().int().nonnegative().nullable(),
+  duration_per: DurationSchema,
+  interval_between: DurationSchema,
+  total_length: DurationSchema,
 });
 
 const SubstanceIdSchema = z.object({
