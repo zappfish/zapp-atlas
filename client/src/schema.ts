@@ -65,6 +65,7 @@ const ExposureEventSchema = z.object({
 
 export const ZappObservationSchema = z.object({
   provenance: z.object({
+    annotator_name: z.string().optional(),
     annotator_orcid: z.string().optional(),
     source: IdRefSchema,
     additional_notes: z.string().optional()

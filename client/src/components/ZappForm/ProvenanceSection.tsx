@@ -14,6 +14,22 @@ export default function ProvenanceSection({ data, update }: { data: ZappObservat
       <FormSection title="Provenance of Data">
         <div className="col-6">
           <Input
+            label="Annotator/Submitter name"
+            value={data.provenance.annotator_name || ''}
+            onChange={(e) =>
+              update((d) => ({
+                ...d,
+                provenance: {
+                  ...d.provenance,
+                  annotator_name: e.target.value
+                }
+              }))
+            }
+          />
+        </div>
+        <div className="col-6"></div>
+        <div className="col-6">
+          <Input
             label="Annotator/Submitter ORCID"
             placeholder="0000-0000-0000-0000"
             value={data.provenance.annotator_orcid || ''}
