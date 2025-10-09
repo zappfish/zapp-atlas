@@ -40,11 +40,9 @@ function getZfinUsage(node: OBOGraphNode) {
 
   if (!zfinUsageBPV) return 0;
 
-  const usageMetaBPV = zfinUsageBPV.meta?.basicPropertyValues
+  const usageMetaBPV = zfinUsageBPV.meta?.basicPropertyValues || [];
 
-  // @ts-ignore
   const zfinUsageNumber = usageMetaBPV.find(
-  // @ts-ignore
     bpv => bpv.pred == "http://www.geneontology.org/formats/oboInOwl#zapp:hasReferenceCount"
   )
 
