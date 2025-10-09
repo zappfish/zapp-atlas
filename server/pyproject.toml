@@ -1,0 +1,9 @@
+[project]
+name = "zapp-atlas-server"
+version = "0.1.0"
+description = "Server for the ZAPP atlas"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1.2",
+]

@@ -60,6 +60,8 @@ export default function ZappForm({ onChange }: Props) {
   const [imageFile, setImageFileState] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [submitResult, setSubmitResult] = React.useState<string | null>(null);
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
   const update = (updater: (d: ZappObservation) => ZappObservation) => {
     const next = updater(data);
@@ -147,7 +149,9 @@ export default function ZappForm({ onChange }: Props) {
       if (imageFile) {
         formData.append('image', imageFile, imageFile.name);
       }
-      const res = await fetch('/obervation', { method: 'POST', body: formData });
+      formData.append('username', username);
+      formData.append('password', password);
+      const res = await fetch('/observation', { method: 'POST', body: formData });
       const text = await res.text();
       setSubmitResult(text || `Submitted. Status ${res.status}`);
     } catch (err) {
@@ -219,8 +223,28 @@ export default function ZappForm({ onChange }: Props) {
       </div>
       <PhenotypeSection data={data} update={update} addPhenotype={addPhenotype} removePhenotype={removePhenotype} />
       <div className="row">
+        <div className="col-6">
+          <label>Username</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-6">
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <div className="row">
         <div className="col-12">
-          <button type="submit" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit'}</button>
+          <button type="submit" disabled={submitting || !username || !password}>{submitting ? 'Submitting...' : 'Submit'}</button>
           {submitResult && <small className="hint" style={{ marginLeft: 12 }}>{submitResult}</small>}
         </div>
       </div>

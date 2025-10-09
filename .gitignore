@@ -1,3 +1,7 @@
 node_modules
 dist
 tsconfig.tsbuildinfo
+
+# Server secrets and uploads
+server/credentials.txt
+server/data/
