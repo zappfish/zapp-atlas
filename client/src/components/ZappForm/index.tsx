@@ -13,6 +13,7 @@ type ExposureEvent = ZappObservation['exposures'][number];
 
 function emptyExposureEvent(): ExposureEvent {
   return {
+    textual_description: null,
     substance: { name: '', idType: 'CAS', id: '' },
     concentration: { value: null, unit: 'uM' },
     route: 'water',
@@ -34,6 +35,7 @@ function emptyExposureEvent(): ExposureEvent {
 function emptyObservation(): ZappObservation {
   return {
     provenance: {
+      annotator_name: '',
       annotator_orcid: '',
       source: { type: undefined, value: undefined }
     },
