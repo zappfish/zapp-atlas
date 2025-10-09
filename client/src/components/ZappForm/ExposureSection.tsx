@@ -133,7 +133,7 @@ function RepeatedExposureFields({
 
       <div className="col-4">
         <Input
-          label="Total length of exposure"
+          label="Total duration of exposure"
           type="number"
           tooltip={EXPOSURE_REP_TOTAL_LENGTH}
           value={repeated.total_length.value ?? ''}
