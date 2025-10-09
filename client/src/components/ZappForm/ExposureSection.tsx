@@ -147,6 +147,9 @@ export default function ExposureSection({
   const type = exposure.type;
   const [showNotes, setShowNotes] = React.useState(false);
 
+  const u = exposure.concentration.unit;
+  const isCustomUnit = u === '' || (u != null && u !== 'uM' && u !== 'mg/L');
+
   return (
     <div className="row">
       <FormSection title="Exposure Event">
@@ -196,29 +199,22 @@ export default function ExposureSection({
                     type="radio"
                     name="conc-unit"
                     value={opt.v}
-                    checked={
-                      opt.v === '__other__'
-                        ? !!(exposure.concentration.unit &&
-                            exposure.concentration.unit !== 'uM' &&
-                            exposure.concentration.unit !== 'mg/L')
-                        : exposure.concentration.unit === opt.v
-                    }
+                    checked={opt.v === '__other__' ? isCustomUnit : exposure.concentration.unit === opt.v}
                     onChange={(e) => {
                       const val = e.currentTarget.value;
-                      update((ex) => ({
-                        ...ex,
-                        concentration: {
-                          ...ex.concentration,
-                          unit:
-                            val === '__other__'
-                              ? ex.concentration.unit &&
-                                ex.concentration.unit !== 'uM' &&
-                                ex.concentration.unit !== 'mg/L'
-                                ? ex.concentration.unit
-                                : ''
-                              : val
-                        }
-                      }));
+                      update((ex) => {
+                        const KNOWN = ['uM', 'mg/L'];
+                        return {
+                          ...ex,
+                          concentration: {
+                            ...ex.concentration,
+                            unit:
+                              val === '__other__'
+                                ? (ex.concentration.unit && !KNOWN.includes(ex.concentration.unit) ? ex.concentration.unit : '')
+                                : val
+                          }
+                        };
+                      });
                     }}
                   />
                   {opt.label}
@@ -229,9 +225,7 @@ export default function ExposureSection({
         </div>
 
         <div className="col-4">
-          {exposure.concentration.unit &&
-          exposure.concentration.unit !== 'uM' &&
-          exposure.concentration.unit !== 'mg/L' ? (
+          {isCustomUnit ? (
             <Input
               label="Custom unit"
               placeholder="Enter unit"
