@@ -285,3 +285,10 @@ small.hint {
   background: #e5f0ff;
   border-left-color: #3b82f6;
 }
+
+/* FIXME: Remove this nonsense */
+.observed-phenotype-input {
+  cursor: grab !important;
+  background: white !important;
+  color: black !important;
+}

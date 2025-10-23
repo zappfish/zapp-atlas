@@ -199,10 +199,12 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
             <div className="col-8">
               <Input
                 label={`Observed phenotype ${idx + 1} (ontology term)`}
+                className="observed-phenotype-input"
+                onChange={() => {} }
+                onClick={() => openModalFor(idx)}
                 placeholder="No phenotype selected"
                 tooltip={PHENOTYPE_TERM}
                 value={item.termLabel || ''}
-                disabled
               />
             </div>
             <div className="col-2">
