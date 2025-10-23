@@ -305,6 +305,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
                   {zfaHierarchy ? (
                     <HierarchyTree
                       key={zfaHierarchy.root.uri}
+                      width={600}
                       hierarchy={zfaHierarchy}
                       rootURI={zfaHierarchy.root.uri}
                       itemURI={zfaHierarchy.root.uri}
