@@ -21,7 +21,7 @@ import {
   HierarchyTree ,
   OBOGraphLoader,
   type OBOGraphNode,
-} from 'zapp-hierarchy-browser';
+} from 'frogpot';
 
 type Props = {
   data: ZappObservation;
@@ -308,7 +308,6 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
                       width={600}
                       hierarchy={zfaHierarchy}
                       rootURI={zfaHierarchy.root.uri}
-                      itemURI={zfaHierarchy.root.uri}
                       onSelectNode={(node) => {
                         const nodes = zpByZFA?.get(node.uri);
                         if (!nodes) {
