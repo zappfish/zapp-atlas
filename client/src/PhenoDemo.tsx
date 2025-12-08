@@ -12,6 +12,7 @@ async function main() {
       display: "grid",
       gridAutoFlow: "column",
       gridAutoColumns: "1fr",
+      height: "100%",
     }}>
       <PhenotypePicker />
     </div>
