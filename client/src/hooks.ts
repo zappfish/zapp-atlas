@@ -6,7 +6,7 @@ import {
 } from 'frogpot';
 
 const ZP_ROOT = "http://purl.obolibrary.org/obo/ZP_0000000";
-const ZFA_ROOT = "http://purl.obolibrary.org/obo/ZFA_0001439";
+const ZFA_ROOT = "http://purl.obolibrary.org/obo/ZFA_0100000";
 const UPHENO_ASSOCIATED_WITH = "http://purl.obolibrary.org/obo/UPHENO_0000003";
 
 export type ZPData = {
