@@ -1,8 +1,9 @@
-import React from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
 import TextArea from '@/ui/TextArea';
+import PhenotypePicker from './PhenotypePicker';
 import type { ZappObservation } from '@/schema';
 import { STAGE_UNIT_OPTIONS, SEVERITY_OPTIONS } from './constants';
 import {
@@ -30,46 +31,25 @@ type Props = {
   removePhenotype: (idx: number) => void;
 };
 
-function getZfinUsage(node: OBOGraphNode) {
-  const bpvs = node.meta?.basicPropertyValues || [];
-
-  const zfinUsageBPV = bpvs.find(bpv =>
-    bpv.pred === "http://purl.obolibrary.org/obo/terms_isReferencedBy" &&
-    bpv.val === "http://purl.obolibrary.org/obo/infores_zfin"
-  );
-
-  if (!zfinUsageBPV) return 0;
-
-  const usageMetaBPV = zfinUsageBPV.meta?.basicPropertyValues || [];
-
-  const zfinUsageNumber = usageMetaBPV.find(
-    bpv => bpv.pred == "http://www.geneontology.org/formats/oboInOwl#zapp:hasReferenceCount"
-  )
-
-  if (!zfinUsageNumber) return 0;
-
-  return parseInt(zfinUsageNumber.val)
-
-}
-
 export default function PhenotypeSection({ data, update, addPhenotype, removePhenotype }: Props) {
-  const [showNotes, setShowNotes] = React.useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   // Modal + ontology state
-  const [modalOpenForIndex, setModalOpenForIndex] = React.useState<number | null>(null);
-  const [loadingOntologies, setLoadingOntologies] = React.useState(false);
-  const [zfaHierarchy, setZfaHierarchy] = React.useState<Hierarchy<OBOGraphNode> | null>(null);
-  const [zpByZFA, setZpByZFA] = React.useState<Map<string, OBOGraphNode[]> | null>(null);
-  const [currentZPPhenotypes, setCurrentZPPhenotypes] = React.useState<OBOGraphNode[]>([]);
-  const [selectedZpNode, setSelectedZpNode] = React.useState<OBOGraphNode | null>(null);
+  const [modalOpenForIndex, setModalOpenForIndex] = useState<number | null>(null);
+  const [loadingOntologies, setLoadingOntologies] = useState(false);
+  const [zfaHierarchy, setZfaHierarchy] = useState<Hierarchy<OBOGraphNode> | null>(null);
+  const [zpByZFA, setZpByZFA] = useState<Map<string, OBOGraphNode[]> | null>(null);
+  const [currentZPPhenotypes, setCurrentZPPhenotypes] = useState<OBOGraphNode[]>([]);
+  const [selectedZpNode, setSelectedZpNode] = useState<OBOGraphNode | null>(null);
 
   // Lazy-load ontologies the first time the modal is opened
-  React.useEffect(() => {
+  useEffect(() => {
     if (modalOpenForIndex !== null && !zfaHierarchy) {
       let cancelled = false;
       (async () => {
         try {
           setLoadingOntologies(true);
+
           const loader = new OBOGraphLoader();
           const graph = await loader.fromURI('data/zfa.json');
           const zpGraph = await loader.fromURI('data/zp-zapp.json');
@@ -195,7 +175,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
         </div>
 
         {data.phenotype.items.map((item, idx) => (
-          <React.Fragment key={idx}>
+          <Fragment key={idx}>
             <div className="col-8">
               <Input
                 label={`Observed phenotype ${idx + 1} (ontology term)`}
@@ -263,7 +243,7 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
                 </button>
               </div>
             </div>
-          </React.Fragment>
+          </Fragment>
         ))}
         <div className="row">
           <button type="button" onClick={addPhenotype}>+ Add phenotype</button>
@@ -296,6 +276,8 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
           <div className="phenotype-modal">
             <div className="phenotype-modal-header">Select phenotype</div>
             <div className="phenotype-modal-body">
+              <PhenotypePicker
+              />
               <div className="phenotype-pane">
                 <div className="phenotype-pane-header">ZFA anatomy</div>
                 <div className="phenotype-pane-content">
