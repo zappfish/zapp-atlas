@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import FormSection from '@/ui/FormSection';
@@ -18,9 +18,6 @@ type StageUnit = 'hpf' | 'dpf' | 'month';
 type Severity = 'mild' | 'moderate' | 'severe';
 
 import {
-  Hierarchy,
-  HierarchyTree ,
-  OBOGraphLoader,
   type OBOGraphNode,
 } from 'frogpot';
 
@@ -33,72 +30,17 @@ type Props = {
 
 export default function PhenotypeSection({ data, update, addPhenotype, removePhenotype }: Props) {
   const [showNotes, setShowNotes] = useState(false);
-
-  // Modal + ontology state
   const [modalOpenForIndex, setModalOpenForIndex] = useState<number | null>(null);
-  const [loadingOntologies, setLoadingOntologies] = useState(false);
-  const [zfaHierarchy, setZfaHierarchy] = useState<Hierarchy<OBOGraphNode> | null>(null);
-  const [zpByZFA, setZpByZFA] = useState<Map<string, OBOGraphNode[]> | null>(null);
-  const [currentZPPhenotypes, setCurrentZPPhenotypes] = useState<OBOGraphNode[]>([]);
   const [selectedZpNode, setSelectedZpNode] = useState<OBOGraphNode | null>(null);
-
-  // Lazy-load ontologies the first time the modal is opened
-  useEffect(() => {
-    if (modalOpenForIndex !== null && !zfaHierarchy) {
-      let cancelled = false;
-      (async () => {
-        try {
-          setLoadingOntologies(true);
-
-          const loader = new OBOGraphLoader();
-          const graph = await loader.fromURI('data/zfa.json');
-          const zpGraph = await loader.fromURI('data/zp-zapp.json');
-          const zpRoot = zpGraph.getItem('http://purl.obolibrary.org/obo/ZP_0000000');
-          const zfaPreferredRoot = 'http://purl.obolibrary.org/obo/ZFA_0001439';
-
-          const zpItems = zpGraph.findAllChildren(zpRoot);
-          const zfaItemsByZFA = new Map<string, OBOGraphNode[]>();
-
-          zpItems.forEach((node) => {
-            (node.edges || [])
-              .filter((edge) => edge.pred === 'http://purl.obolibrary.org/obo/UPHENO_0000003')
-              .forEach((edge) => {
-                if (!zfaItemsByZFA.has(edge.obj)) {
-                  zfaItemsByZFA.set(edge.obj, []);
-                }
-                zfaItemsByZFA.get(edge.obj)!.push(node);
-              });
-          });
-
-          const hierarchy = graph.getHierarchy(zfaPreferredRoot);
-
-          if (!cancelled) {
-            setZfaHierarchy(hierarchy);
-            setZpByZFA(zfaItemsByZFA);
-          }
-        } catch (e) {
-          console.error('Failed to load ontologies', e);
-        } finally {
-          if (!cancelled) setLoadingOntologies(false);
-        }
-      })();
-
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [modalOpenForIndex, zfaHierarchy]);
 
   const openModalFor = (idx: number) => {
     setSelectedZpNode(null);
-    setCurrentZPPhenotypes([]);
     setModalOpenForIndex(idx);
   };
 
   const closeModal = () => {
     setModalOpenForIndex(null);
     setSelectedZpNode(null);
-    setCurrentZPPhenotypes([]);
   };
 
   const confirmSelection = () => {
@@ -277,62 +219,8 @@ export default function PhenotypeSection({ data, update, addPhenotype, removePhe
             <div className="phenotype-modal-header">Select phenotype</div>
             <div className="phenotype-modal-body">
               <PhenotypePicker
+                onSelectNode={node => setSelectedZpNode(node)}
               />
-              <div className="phenotype-pane">
-                <div className="phenotype-pane-header">ZFA anatomy</div>
-                <div className="phenotype-pane-content">
-                  {loadingOntologies && !zfaHierarchy ? (
-                    <div>Loading ontologies…</div>
-                  ) : null}
-                  {zfaHierarchy ? (
-                    <HierarchyTree
-                      key={zfaHierarchy.root.uri}
-                      width={600}
-                      hierarchy={zfaHierarchy}
-                      rootURI={zfaHierarchy.root.uri}
-                      onSelectNode={(node) => {
-                        const nodes = zpByZFA?.get(node.uri);
-                        if (!nodes) {
-                          setCurrentZPPhenotypes([]);
-                        } else {
-                          nodes.sort((nodeA, nodeB) => {
-                            return getZfinUsage(nodeB) - getZfinUsage(nodeA);
-                          })
-                          setCurrentZPPhenotypes(nodes);
-                        }
-                        setSelectedZpNode(null);
-                      }}
-                    />
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="phenotype-pane">
-                <div className="phenotype-pane-header">Phenotypes</div>
-                <div className="phenotype-pane-content">
-                  <ul className="phenotype-list">
-                    {currentZPPhenotypes.length === 0 ? (
-                      <li className="phenotype-item" style={{ cursor: 'default' }}>
-                        Select an anatomy term to view phenotypes
-                      </li>
-                    ) : (
-                      currentZPPhenotypes.map((node) => (
-                        <li
-                          key={node.uri}
-                          className={'phenotype-item' + (selectedZpNode?.uri === node.uri ? ' active' : '')}
-                          onClick={() => setSelectedZpNode(node)}
-                        >
-                          <div style={{ fontWeight: 600 }}>{node.label}</div>
-                          <div style={{ fontSize: 12, color: '#555' }}>{node.uri}</div>
-                          <div style={{ fontSize: 12, color: '#555' }}>
-                            ZFin usages: {getZfinUsage(node)}
-                          </div>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              </div>
             </div>
             <div className="phenotype-modal-footer">
               <button type="button" onClick={closeModal}>Cancel</button>

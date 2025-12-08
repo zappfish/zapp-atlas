@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Graph, OBOGraphNode, HierarchyTree } from "frogpot"
+import { OBOGraphNode, HierarchyTree } from "frogpot"
 import { useZPGraph } from "@/hooks";
 
 type PhenotypePickerProps = {
-  zpGraph: Graph<OBOGraphNode>;
   onSelectNode?: (node: OBOGraphNode) => void;
 }
 
