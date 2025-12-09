@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { OBOGraphNode, HierarchyTree, HierarchyTreeHandle, useNodeSearch } from "frogpot"
+import { GraphNode, OBOGraphNode, HierarchyTree, HierarchyTreeHandle, useNodeSearch } from "frogpot"
 import { useZPGraph } from "@/hooks";
 
 type PhenotypePickerProps = {
@@ -29,41 +29,43 @@ function getZfinUsage(node: OBOGraphNode) {
 
 export default function PhenotypePicker(props: PhenotypePickerProps) {
   const result = useZPGraph();
-  const search = useNodeSearch(result.loading ? [] : result.zfaHierarchy.items())
+  const zfaSearch = useNodeSearch(result.loading ? [] : result.zfaHierarchy.items())
+  const zpSearch = useNodeSearch(result.loading ? [] : result.zpHierarchy.items())
   const treeRef = useRef<HierarchyTreeHandle | null>(null)
   const [currentZPPhenotypes, setCurrentZPPhenotypes] = useState<OBOGraphNode[]>([]);
+  const [selectedZFANode, setSelectedZFANode] = useState<GraphNode | null>(null);
   const [selectedZpNode, setSelectedZpNode] = useState<OBOGraphNode | null>(null);
 
   if (result.loading) {
     return "Loading zebrafish ontologies...";
   }
 
-  const {
-    query,
-    setQuery,
-    results,
-    highlightText,
-  } = search
-
-
-  const { zpHierarchy, zfaHierarchy, zpByZFA } = result
+  const { zfaHierarchy, zpByZFA } = result
 
   return (
     <>
       <div className="phenotype-pane">
-        <div className="phenotype-pane-header">ZFA anatomy</div>
+        <div className="phenotype-pane-header">Zebrafish anatomy</div>
         <div className="phenotype-pane-content">
           <div>
             <input
               style={{
                 width: "100%",
-                marginBottom: '1rem',
               }}
               type="text"
-              value={query}
-              placeholder="Search for a Zebrafish anatomical entity"
-              onChange={e => { setQuery(e.target.value) }}
+              value={zfaSearch.query}
+              placeholder="Search for a Zebrafish anatomical entity to filter phenotypes"
+              onChange={e => { zfaSearch.setQuery(e.target.value) }}
             />
+          </div>
+          <div className="phenotype-pane-content">
+            <button
+              onClick={() => {
+                treeRef.current?.reset();
+                setCurrentZPPhenotypes([]);
+                setSelectedZFANode(null);
+              }}
+            >Reset</button>
           </div>
           <div style={{
             position: "relative",
@@ -75,15 +77,15 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
               background: "white",
               width: '100%',
             }}>
-              {results === null ? null : results.slice(0, 50).map(result =>
+              {zfaSearch.results === null ? null : zfaSearch.results.slice(0, 50).map(result =>
               <div
                 key={result.node.uri}
                 className="phenotype-item"
                 onClick={() => {
                   const nodes = zpByZFA?.get(result.node.uri);
 
-                  treeRef.current?.openAndFocusNode(result.node.uri);
-                  setQuery("");
+                  treeRef.current?.showNode(result.node.uri);
+                  zfaSearch.setQuery("");
 
                   if (!nodes) {
                     setCurrentZPPhenotypes([]);
@@ -98,11 +100,11 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
                   cursor: "pointer",
                 }}
               >
-                <label>{highlightText(result.node.label || "")}</label>
+                <label>{zfaSearch.highlightText(result.node.label || "")}</label>
                 {result.node.synonyms.length === 0 ? null : (
                   <div>
                     {result.node.synonyms.map(synonym => (
-                      <div>{highlightText(synonym.value)}</div>
+                      <div>{zfaSearch.highlightText(synonym.value)}</div>
                     ))}
                   </div>
                 )}
@@ -110,7 +112,7 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
                   <div>
                     <br />
                     {result.node.definitions.map(synonym => (
-                      <div>{highlightText(synonym.value)}</div>
+                      <div>{zfaSearch.highlightText(synonym.value)}</div>
                     ))}
                   </div>
                 )}
@@ -134,6 +136,8 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
                 setCurrentZPPhenotypes(nodes);
               }
 
+              // FIXME: Why is this typed as GraphNode and not OBOGraphNode?
+              setSelectedZFANode(node);
               setSelectedZpNode(null);
             }}
           />
@@ -144,7 +148,7 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
         <div className="phenotype-pane-header">Phenotypes</div>
         <div className="phenotype-pane-content">
           <ul className="phenotype-list">
-            {currentZPPhenotypes.length === 0 ? (
+            {selectedZFANode === null ? (
               <li className="phenotype-item" style={{ cursor: 'default' }}>
                 Select an anatomy term to view phenotypes
               </li>
@@ -159,6 +163,28 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
                   }}
                 >
                   <div style={{ fontWeight: 600 }}>{node.label}</div>
+                  {selectedZpNode?.uri !== node.uri ? null : (
+                    <div>
+                      {node.synonyms.length === 0 ? null : (
+                        <div>
+                          <div style={{ fontWeight: 500, margin: ".5rem 0", }}>Synonyms</div>
+                          <ul>
+                          {node.synonyms.map(synonym => (
+                            <li key={synonym.value}>{synonym.value}</li>
+                          ))}
+                          </ul>
+                        </div>
+                      )}
+                      {node.definitions.length === 0 ? null : (
+                        <div>
+                          <div style={{ fontWeight: 500, marginTop: ".5rem 0", }}>Definition</div>
+                          {node.definitions.map(definition => (
+                            <div style={{ paddingLeft: "40px" }} key={definition.value}>{definition.value}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div style={{ fontSize: 12, color: '#555' }}>{node.uri}</div>
                   <div style={{ fontSize: 12, color: '#555' }}>
                     ZFin usages: {getZfinUsage(node)}
