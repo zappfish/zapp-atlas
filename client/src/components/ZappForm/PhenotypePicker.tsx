@@ -35,12 +35,26 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
   const [currentZPPhenotypes, setCurrentZPPhenotypes] = useState<OBOGraphNode[]>([]);
   const [selectedZFANode, setSelectedZFANode] = useState<GraphNode | null>(null);
   const [selectedZpNode, setSelectedZpNode] = useState<OBOGraphNode | null>(null);
+  const [searchPhenotypesByZFA, setSearchPhenotypesByZFA] = useState(false);
+  const anatomyPhenotypeSearch = useNodeSearch(currentZPPhenotypes)
 
   if (result.loading) {
     return "Loading zebrafish ontologies...";
   }
 
   const { zfaHierarchy, zpByZFA } = result
+
+  let phenotypeResults: OBOGraphNode[]
+
+  if (zpSearch.query) {
+    if (searchPhenotypesByZFA) {
+      phenotypeResults = anatomyPhenotypeSearch.results?.map(n => n.node) || [];
+    } else {
+      phenotypeResults = zpSearch.results?.map(n => n.node).slice(0, 50) || [];
+    }
+  } else {
+    phenotypeResults = currentZPPhenotypes;
+  }
 
   return (
     <>
@@ -147,13 +161,36 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
       <div className="phenotype-pane">
         <div className="phenotype-pane-header">Phenotypes</div>
         <div className="phenotype-pane-content">
+          <div>
+            <input
+              style={{
+                width: "100%",
+              }}
+              type="text"
+              value={zpSearch.query}
+              placeholder="Search for Zebrafish phenotypes"
+              onChange={e => {
+                zpSearch.setQuery(e.target.value);
+                anatomyPhenotypeSearch.setQuery(e.target.value);
+              }}
+            />
+          </div>
+          <div className="phenotype-pane-content">
+            <label>
+              <input
+                type="checkbox"
+                checked={searchPhenotypesByZFA}
+                onChange={() => {
+                  setSearchPhenotypesByZFA(prev => !prev)
+                }}
+              >
+              </input>
+              Limit to selected anatomical entity
+            </label>
+          </div>
           <ul className="phenotype-list">
-            {selectedZFANode === null ? (
-              <li className="phenotype-item" style={{ cursor: 'default' }}>
-                Select an anatomy term to view phenotypes
-              </li>
-            ) : (
-              currentZPPhenotypes.map((node) => (
+            {
+              phenotypeResults.map((node) => (
                 <li
                   key={node.uri}
                   className={'phenotype-item' + (selectedZpNode?.uri === node.uri ? ' active' : '')}
@@ -191,7 +228,7 @@ export default function PhenotypePicker(props: PhenotypePickerProps) {
                   </div>
                 </li>
               ))
-            )}
+            }
           </ul>
         </div>
       </div>
