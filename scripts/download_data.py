@@ -17,7 +17,7 @@ def download_file_url(url: str, outdir: str, overwrite: bool = False):
 
     if overwrite != True:
         if os.path.isfile(filename):
-            print("- Warning, file {} already exists... Set overwrite to True to download and replace".format(filename))
+            print("- Warning, file {} already exists... Add -o argument to overwrite".format(filename))
             return
 
     print("- Downloading file from {} to {}...".format(url, filename))
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     def parse_input_command():
         parser = argparse.ArgumentParser(description='Downloads pubchem cid_synonym file to specified directory')
         parser.add_argument("-d", "--download_dir", help="path/to/directory to write file(s) to", required=True, type=str)
-        parser.add_argument("-o", "--overwrite", help="whether to overwrite existing files", required=False, choices=[True, False], default=False)
+        parser.add_argument("-o", "--overwrite", help="whether to overwrite existing files", required=False, action='store_true', default=False)
         return parser.parse_args()
 
     args = parse_input_command()
