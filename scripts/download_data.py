@@ -32,6 +32,7 @@ if __name__ == '__main__':
     def parse_input_command():
         parser = argparse.ArgumentParser(description='Downloads pubchem cid_synonym file to specified directory')
         parser.add_argument("-d", "--download_dir", help="path/to/directory to write file(s) to", required=True, type=str)
+        parser.add_argument("-o", "--overwrite", help="whether to overwrite existing files", required=False, choices=[True, False], default=False)
         return parser.parse_args()
 
     args = parse_input_command()
@@ -41,4 +42,10 @@ if __name__ == '__main__':
     ### PROGRAM ###
 
     pubchem_unfiltered_url = "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Synonym-unfiltered.gz"
-    download_file_url(pubchem_unfiltered_url, args.download_dir, overwrite=False)
+    chebi_flatnames_url = "https://ftp.ebi.ac.uk/pub/databases/chebi/flat_files/names.tsv.gz"
+    chebi_obo_url = "https://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo"
+
+    os.makedirs(args.download_dir, exist_ok=True)
+    download_file_url(pubchem_unfiltered_url, args.download_dir, overwrite=args.overwrite)
+    download_file_url(chebi_flatnames_url, args.download_dir, overwrite=args.overwrite)
+    download_file_url(chebi_obo_url, args.download_dir, overwrite=args.overwrite)
