@@ -13,6 +13,44 @@ from werkzeug.utils import secure_filename
 SERVER_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SERVER_DIR.parent
 DIST_DIR = (REPO_ROOT / "client" / "dist").resolve()
+
+# Chemical lookup index (built lazily from the pre-computed JSON)
+DEFAULT_CHEMICAL_JSON = (REPO_ROOT / "scripts" / "data" / "chemical_mappings.json").resolve()
+_chemical_index: dict | None = None  # synonym (lowercase) -> entry
+
+
+def _load_chemical_index() -> dict:
+    """
+    Build an inverted index from the pre-computed chemical_mappings JSON.
+    Keys are lowercased synonyms/names and CAS numbers; values are the full entry.
+    Loaded once and cached for the lifetime of the process.
+    """
+    global _chemical_index
+    if _chemical_index is not None:
+        return _chemical_index
+
+    json_path = _env_path("ZAPP_CHEMICAL_JSON", DEFAULT_CHEMICAL_JSON)
+    if not json_path.exists():
+        _chemical_index = {}
+        return _chemical_index
+
+    raw = json.loads(json_path.read_text(encoding="utf-8"))
+    # The file is a JSON-encoded string (double-serialised in the current script)
+    if isinstance(raw, str):
+        raw = json.loads(raw)
+
+    index: dict = {}
+    for entry in raw:
+        cas = entry.get("cas_number", "")
+        if cas:
+            index[cas.lower()] = entry
+        for syn in entry.get("synonyms", []):
+            key = syn.strip().lower()
+            if key and key not in index:
+                index[key] = entry
+
+    _chemical_index = index
+    return _chemical_index
 DEFAULT_UPLOAD_BASE = (SERVER_DIR / "data" / "submissions").resolve()
 DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
 
@@ -116,6 +154,36 @@ def handle_internal_error(e):
 @app.get("/health")
 def health():
     return jsonify({"status": "ok"}), 200
+
+
+@app.get("/normalize/chemical")
+def normalize_chemical():
+    """
+    Look up a chemical by name, synonym, or CAS number in the pre-computed
+    ChEBI mapping index and return the resolved entry.
+
+    Query params:
+      q  - the search string (name, synonym, or CAS-RN)
+
+    Returns:
+      { found: true,  cas_number, chebi_ids[], pubchem_cids[], synonyms[] }
+      { found: false, query }
+      { error: "index_unavailable" }  -- JSON not yet built
+    """
+    query = (request.args.get("q") or "").strip()
+    if not query:
+        return jsonify({"error": "missing_query"}), 400
+
+    index = _load_chemical_index()
+    if not index:
+        return jsonify({"error": "index_unavailable",
+                        "detail": "Chemical mapping data is not yet built. Run the pipeline first."}), 503
+
+    entry = index.get(query.lower())
+    if entry:
+        return jsonify({"found": True, **entry}), 200
+
+    return jsonify({"found": False, "query": query}), 200
 
 
 @app.post("/observation")

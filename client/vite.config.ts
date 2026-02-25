@@ -9,6 +9,13 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src')
     }
+  },
+  server: {
+    proxy: {
+      '/observation': 'http://localhost:5001',
+      '/normalize': 'http://localhost:5001',
+      '/health': 'http://localhost:5001',
+    }
   }
 });
 
