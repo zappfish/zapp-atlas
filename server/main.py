@@ -16,31 +16,37 @@ DIST_DIR = (REPO_ROOT / "client" / "dist").resolve()
 
 # Chemical lookup index (built lazily from the pre-computed JSON)
 DEFAULT_CHEMICAL_JSON = (REPO_ROOT / "scripts" / "data" / "chemical_mappings.json").resolve()
-_chemical_index: dict | None = None  # synonym (lowercase) -> entry
+_UNLOADED = object()          # sentinel: index has never been attempted
+_chemical_index = _UNLOADED   # synonym (lowercase) -> entry, or _UNLOADED
 
 
 def _load_chemical_index() -> dict:
     """
     Build an inverted index from the pre-computed chemical_mappings JSON.
     Keys are lowercased synonyms/names and CAS numbers; values are the full entry.
-    Loaded once and cached for the lifetime of the process.
+    Only entries with at least one ChEBI ID are indexed (keeps memory reasonable).
+    Returns an empty dict if the JSON file doesn't exist yet; retries on every
+    request until the file appears so the server doesn't need a restart.
     """
     global _chemical_index
-    if _chemical_index is not None:
-        return _chemical_index
+    if _chemical_index is not _UNLOADED:
+        return _chemical_index  # type: ignore[return-value]
 
     json_path = _env_path("ZAPP_CHEMICAL_JSON", DEFAULT_CHEMICAL_JSON)
     if not json_path.exists():
-        _chemical_index = {}
-        return _chemical_index
+        return {}  # don't cache — file may appear after pipeline finishes
 
+    print(f"Loading chemical index from {json_path} …", flush=True)
     raw = json.loads(json_path.read_text(encoding="utf-8"))
-    # The file is a JSON-encoded string (double-serialised in the current script)
+    # The pipeline double-serialises: the file contains a JSON-encoded string
     if isinstance(raw, str):
         raw = json.loads(raw)
 
     index: dict = {}
     for entry in raw:
+        # Only index entries that have at least one ChEBI ID
+        if not entry.get("chebi_ids"):
+            continue
         cas = entry.get("cas_number", "")
         if cas:
             index[cas.lower()] = entry
@@ -50,6 +56,7 @@ def _load_chemical_index() -> dict:
                 index[key] = entry
 
     _chemical_index = index
+    print(f"Chemical index ready: {len(index):,} entries", flush=True)
     return _chemical_index
 DEFAULT_UPLOAD_BASE = (SERVER_DIR / "data" / "submissions").resolve()
 DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
