@@ -31,7 +31,15 @@ const RepeatedExposureSchema = z.object({
 const SubstanceIdSchema = z.object({
   name: z.string().optional(),
   idType: z.enum(['PubChem', 'CAS', 'ChEBI', 'None']).default('None'),
-  id: z.string().optional()
+  id: z.string().optional(),
+  // Fields populated after normalization
+  resolvedNamespace: z.enum(['ChEBI', 'PubChem']).nullable().optional(),
+  resolvedId: z.string().nullable().optional(),
+  confidence: z.enum(['high', 'medium', 'low']).nullable().optional(),
+  allChebiIds: z.array(z.string()).optional(),
+  allPubchemCids: z.array(z.string()).optional(),
+  casNumber: z.string().optional(),
+  normalized: z.boolean().optional(),
 });
 
 const PhenotypeItemSchema = z.object({

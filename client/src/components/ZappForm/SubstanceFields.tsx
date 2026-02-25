@@ -3,33 +3,45 @@ import Input from '@/ui/Input';
 import Select from '@/ui/Select';
 import { EXPOSURE_SUBSTANCE } from './explanations';
 
-type Substance = {
+type IdType = 'PubChem' | 'CAS' | 'ChEBI' | 'None';
+
+export type Substance = {
   name?: string;
-  idType: 'PubChem' | 'CAS' | 'ChEBI' | 'None';
+  idType: IdType;
   id?: string;
-  // Resolved fields populated by normalization
-  resolvedChebiIds?: string[];
-  resolvedPubchemCids?: string[];
-  resolvedSynonyms?: string[];
+  // Populated after normalization
+  resolvedNamespace?: 'ChEBI' | 'PubChem' | null;
+  resolvedId?: string | null;
+  confidence?: 'high' | 'medium' | 'low' | null;
+  allChebiIds?: string[];
+  allPubchemCids?: string[];
+  casNumber?: string;
   normalized?: boolean;
 };
 
-type LookupStatus = 'idle' | 'loading' | 'found' | 'not_found' | 'unavailable' | 'error';
+type NormalizeStatus = 'idle' | 'loading' | 'high' | 'medium' | 'low' | 'not_found' | 'unavailable' | 'error';
 
-const ID_TYPE_OPTIONS: Array<{ value: Substance['idType']; label: string }> = [
+const ID_TYPE_OPTIONS: Array<{ value: IdType; label: string }> = [
   { value: 'CAS', label: 'CAS' },
   { value: 'PubChem', label: 'PubChem' },
   { value: 'ChEBI', label: 'ChEBI' },
   { value: 'None', label: 'None' }
 ];
 
-async function lookupChemical(query: string): Promise<{ found: boolean; entry?: Record<string, unknown>; error?: string }> {
-  const res = await fetch(`/normalize/chemical?q=${encodeURIComponent(query)}`);
-  if (res.status === 503) return { found: false, error: 'unavailable' };
-  if (!res.ok) return { found: false, error: 'error' };
-  const data = await res.json();
-  if (data.error) return { found: false, error: data.error };
-  return { found: data.found, entry: data.found ? data : undefined };
+// Maps Substance['idType'] to the id_type value the server expects
+const ID_TYPE_SERVER: Record<IdType, string> = {
+  CAS: 'CAS',
+  PubChem: 'PubChem',
+  ChEBI: 'ChEBI',
+  None: '',
+};
+
+async function fetchNormalization(idType: IdType, id: string) {
+  const params = new URLSearchParams({ id_type: ID_TYPE_SERVER[idType], id });
+  const res = await fetch(`/normalize/chemical?${params}`);
+  if (res.status === 503) return { error: 'unavailable' as const };
+  if (!res.ok) return { error: 'error' as const };
+  return res.json();
 }
 
 export default function SubstanceFields({
@@ -39,77 +51,88 @@ export default function SubstanceFields({
   value: Substance;
   onChange: (next: Substance) => void;
 }) {
-  const [lookupStatus, setLookupStatus] = useState<LookupStatus>('idle');
-  const [lookupMessage, setLookupMessage] = useState<string>('');
+  const [status, setStatus] = useState<NormalizeStatus>('idle');
+  const [message, setMessage] = useState('');
+
+  const idTypeValue: IdType = value.idType ?? 'CAS';
+  const canNormalize = idTypeValue !== 'None' && !!(value.id?.trim());
 
   const applyChange = (partial: Partial<Substance>) => {
     onChange({ ...value, ...partial });
   };
 
-  const idTypeValue: Substance['idType'] = value.idType ?? 'CAS';
+  const resetNormalization = () => {
+    setStatus('idle');
+    setMessage('');
+  };
 
-  const handleLookup = async () => {
-    const query = (value.name || value.id || '').trim();
-    if (!query) return;
-
-    setLookupStatus('loading');
-    setLookupMessage('');
+  const handleNormalize = async () => {
+    if (!canNormalize) return;
+    setStatus('loading');
+    setMessage('');
 
     try {
-      const result = await lookupChemical(query);
+      const data = await fetchNormalization(idTypeValue, value.id!.trim());
 
-      if (result.error === 'unavailable') {
-        setLookupStatus('unavailable');
-        setLookupMessage('Chemical index not yet available — run the pipeline first.');
+      if (data.error === 'unavailable') {
+        setStatus('unavailable');
+        setMessage('Chemical index not yet available.');
         return;
       }
-      if (result.error) {
-        setLookupStatus('error');
-        setLookupMessage('Lookup failed. Check that the server is running.');
+      if (data.error) {
+        setStatus('error');
+        setMessage('Lookup failed — is the server running?');
         return;
       }
-      if (!result.found || !result.entry) {
-        setLookupStatus('not_found');
-        setLookupMessage(`"${query}" not found in chemical index.`);
+      if (!data.found) {
+        setStatus('not_found');
+        setMessage(`${idTypeValue} "${value.id}" not found in chemical index.`);
         return;
       }
 
-      const entry = result.entry as {
-        cas_number: string;
-        chebi_ids: string[];
-        pubchem_cids: string[];
-        synonyms: string[];
-      };
-
-      // Auto-fill: prefer ChEBI as the canonical ID type
-      const chebiId = entry.chebi_ids?.[0];
-      const resolvedId = chebiId ?? entry.cas_number ?? '';
-      const resolvedIdType: Substance['idType'] = chebiId ? 'ChEBI' : 'CAS';
+      // Update form: set idType + id to the resolved canonical values
+      const resolvedIdType: IdType = data.resolved_namespace === 'ChEBI' ? 'ChEBI'
+                                    : data.resolved_namespace === 'PubChem' ? 'PubChem'
+                                    : idTypeValue;
 
       onChange({
         ...value,
-        id: resolvedId,
-        idType: resolvedIdType,
-        resolvedChebiIds: entry.chebi_ids,
-        resolvedPubchemCids: entry.pubchem_cids,
-        resolvedSynonyms: entry.synonyms,
+        idType: data.resolved_id ? resolvedIdType : idTypeValue,
+        id: data.resolved_id ?? value.id,
+        resolvedNamespace: data.resolved_namespace ?? null,
+        resolvedId: data.resolved_id ?? null,
+        confidence: data.confidence ?? null,
+        allChebiIds: data.chebi_ids ?? [],
+        allPubchemCids: data.pubchem_cids ?? [],
+        casNumber: data.cas_number ?? undefined,
         normalized: true,
       });
 
-      setLookupStatus('found');
-      setLookupMessage(
-        `Resolved → ChEBI: ${entry.chebi_ids.join(', ') || 'none'} | CAS: ${entry.cas_number}`
-      );
+      const conf: NormalizeStatus = data.confidence === 'high' ? 'high'
+                                  : data.confidence === 'medium' ? 'medium'
+                                  : 'low';
+      setStatus(conf);
+
+      if (data.resolved_namespace && data.resolved_id) {
+        const confLabel = data.confidence === 'high' ? 'unambiguous'
+                        : data.confidence === 'medium' ? 'fallback (ambiguous ChEBI)'
+                        : 'ambiguous';
+        setMessage(`→ ${data.resolved_namespace}: ${data.resolved_id}  [${confLabel}]`);
+      } else {
+        setMessage('Could not resolve to a single identifier — input is ambiguous in both ChEBI and PubChem.');
+      }
     } catch {
-      setLookupStatus('error');
-      setLookupMessage('Lookup failed. Check that the server is running.');
+      setStatus('error');
+      setMessage('Lookup failed — is the server running?');
     }
   };
 
-  const statusColor: Record<LookupStatus, string> = {
+  const statusColor: Record<NormalizeStatus, string> = {
     idle: '',
     loading: '#888',
-    found: '#2a7a2a',
+    high: '#2a7a2a',
+    medium: '#7a6a00',
+    low: '#b05000',
     not_found: '#b05000',
     unavailable: '#888',
     error: '#c00',
@@ -117,55 +140,65 @@ export default function SubstanceFields({
 
   return (
     <>
-      <div className="col-6" style={{ display: 'flex', gap: '6px', alignItems: 'flex-end' }}>
-        <div style={{ flex: 1 }}>
-          <Input
-            label="Substance"
-            placeholder="Substance label or CAS number"
-            tooltip={EXPOSURE_SUBSTANCE}
-            value={value.name || ''}
-            onChange={(e) => {
-              applyChange({ name: e.target.value, normalized: false });
-              setLookupStatus('idle');
-              setLookupMessage('');
-            }}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={handleLookup}
-          disabled={lookupStatus === 'loading' || !(value.name || value.id)}
-          style={{
-            marginBottom: '2px',
-            padding: '0 10px',
-            height: '32px',
-            fontSize: '12px',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {lookupStatus === 'loading' ? '...' : 'Normalize'}
-        </button>
+      <div className="col-6">
+        <Input
+          label="Substance"
+          placeholder="Substance name"
+          tooltip={EXPOSURE_SUBSTANCE}
+          value={value.name || ''}
+          onChange={(e) => applyChange({ name: e.target.value })}
+        />
       </div>
       <div className="col-2">
         <Select
           label="ID Type"
           value={idTypeValue}
-          onChange={(e) => applyChange({ idType: e.target.value as Substance['idType'] })}
+          onChange={(e) => {
+            applyChange({ idType: e.target.value as IdType, normalized: false });
+            resetNormalization();
+          }}
           options={ID_TYPE_OPTIONS}
         />
       </div>
-      <div className="col-4">
-        <Input
-          label="Identifier"
-          placeholder="e.g., 50-00-0"
-          value={value.id || ''}
-          onChange={(e) => applyChange({ id: e.target.value })}
-        />
+      <div className="col-4" style={{ display: 'flex', gap: '6px', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1 }}>
+          <Input
+            label="Identifier"
+            placeholder={
+              idTypeValue === 'CAS' ? 'e.g. 64-17-5'
+              : idTypeValue === 'PubChem' ? 'e.g. 702'
+              : idTypeValue === 'ChEBI' ? 'e.g. CHEBI:16236'
+              : '—'
+            }
+            value={value.id || ''}
+            onChange={(e) => {
+              applyChange({ id: e.target.value, normalized: false });
+              resetNormalization();
+            }}
+          />
+        </div>
+        {idTypeValue !== 'None' && (
+          <button
+            type="button"
+            onClick={handleNormalize}
+            disabled={status === 'loading' || !canNormalize}
+            title="Resolve to canonical ChEBI or PubChem ID"
+            style={{
+              marginBottom: '2px',
+              padding: '0 10px',
+              height: '32px',
+              fontSize: '12px',
+              cursor: canNormalize ? 'pointer' : 'default',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {status === 'loading' ? '…' : 'Normalize'}
+          </button>
+        )}
       </div>
-      {lookupMessage && (
-        <div className="col-12" style={{ fontSize: '12px', color: statusColor[lookupStatus], marginTop: '-6px' }}>
-          {lookupMessage}
+      {message && (
+        <div className="col-12" style={{ fontSize: '12px', color: statusColor[status], marginTop: '-4px' }}>
+          {message}
         </div>
       )}
     </>

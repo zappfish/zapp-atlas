@@ -14,50 +14,100 @@ SERVER_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SERVER_DIR.parent
 DIST_DIR = (REPO_ROOT / "client" / "dist").resolve()
 
-# Chemical lookup index (built lazily from the pre-computed JSON)
+# Chemical lookup indexes (built lazily from the pre-computed JSON)
 DEFAULT_CHEMICAL_JSON = (REPO_ROOT / "scripts" / "data" / "chemical_mappings.json").resolve()
-_UNLOADED = object()          # sentinel: index has never been attempted
-_chemical_index = _UNLOADED   # synonym (lowercase) -> entry, or _UNLOADED
+_UNLOADED = object()   # sentinel: indexes have never been attempted
+_indexes = _UNLOADED   # dict with 'cas', 'cid', 'chebi' sub-indexes, or _UNLOADED
 
 
-def _load_chemical_index() -> dict:
+def _load_indexes() -> dict | None:
     """
-    Build an inverted index from the pre-computed chemical_mappings JSON.
-    Keys are lowercased synonyms/names and CAS numbers; values are the full entry.
+    Build three typed lookup indexes from the pre-computed chemical_mappings JSON.
     Only entries with at least one ChEBI ID are indexed (keeps memory reasonable).
-    Returns an empty dict if the JSON file doesn't exist yet; retries on every
-    request until the file appears so the server doesn't need a restart.
+    Returns None if the JSON file doesn't exist yet (retried on every request).
+
+    Indexes built:
+      cas   : {cas_number (str) -> entry}
+      cid   : {pubchem_cid (str) -> entry}  first-match wins
+      chebi : {chebi_id (str) -> entry}     first-match wins; confirms ID is known
     """
-    global _chemical_index
-    if _chemical_index is not _UNLOADED:
-        return _chemical_index  # type: ignore[return-value]
+    global _indexes
+    if _indexes is not _UNLOADED:
+        return _indexes  # type: ignore[return-value]
 
     json_path = _env_path("ZAPP_CHEMICAL_JSON", DEFAULT_CHEMICAL_JSON)
     if not json_path.exists():
-        return {}  # don't cache — file may appear after pipeline finishes
+        return None  # don't cache — file may appear after pipeline finishes
 
-    print(f"Loading chemical index from {json_path} …", flush=True)
+    print(f"Loading chemical indexes from {json_path} …", flush=True)
     raw = json.loads(json_path.read_text(encoding="utf-8"))
-    # The pipeline double-serialises: the file contains a JSON-encoded string
-    if isinstance(raw, str):
+    if isinstance(raw, str):  # pipeline double-serialises the file
         raw = json.loads(raw)
 
-    index: dict = {}
+    cas_idx: dict = {}
+    cid_idx: dict = {}
+    chebi_idx: dict = {}
+
     for entry in raw:
+        chebi_ids = entry.get("chebi_ids", [])
+        pubchem_cids = entry.get("pubchem_cids", [])
+
         # Only index entries that have at least one ChEBI ID
-        if not entry.get("chebi_ids"):
+        if not chebi_ids:
             continue
+
         cas = entry.get("cas_number", "")
         if cas:
-            index[cas.lower()] = entry
-        for syn in entry.get("synonyms", []):
-            key = syn.strip().lower()
-            if key and key not in index:
-                index[key] = entry
+            cas_idx[cas] = entry
 
-    _chemical_index = index
-    print(f"Chemical index ready: {len(index):,} entries", flush=True)
-    return _chemical_index
+        for cid in pubchem_cids:
+            existing = cid_idx.get(cid)
+            if existing is None:
+                cid_idx[cid] = entry
+            else:
+                # Prefer the entry with fewer (ideally 1) ChEBI IDs — more trustworthy
+                if len(existing.get("chebi_ids", [])) != 1 and len(chebi_ids) == 1:
+                    cid_idx[cid] = entry
+
+        for chebi_id in chebi_ids:
+            if chebi_id not in chebi_idx:
+                chebi_idx[chebi_id] = entry
+
+    _indexes = {"cas": cas_idx, "cid": cid_idx, "chebi": chebi_idx}
+    print(
+        f"Chemical indexes ready — CAS: {len(cas_idx):,}  CID: {len(cid_idx):,}  ChEBI: {len(chebi_idx):,}",
+        flush=True,
+    )
+    return _indexes
+
+
+def _resolve(entry: dict) -> dict:
+    """
+    Apply trust rules to an entry and return the best canonical ID.
+
+    Rules (in priority order):
+      1. Exactly 1 ChEBI ID  → resolved ChEBI, confidence HIGH
+      2. >1 ChEBI IDs (ambiguous ChEBI) + exactly 1 PubChem CID
+                             → resolved PubChem, confidence MEDIUM
+      3. 0 ChEBI IDs + exactly 1 PubChem CID
+                             → resolved PubChem, confidence MEDIUM
+      4. Anything else       → unresolvable, confidence LOW
+    """
+    chebi_ids = entry.get("chebi_ids", [])
+    pubchem_cids = entry.get("pubchem_cids", [])
+
+    if len(chebi_ids) == 1:
+        return {"resolved_namespace": "ChEBI", "resolved_id": chebi_ids[0], "confidence": "high"}
+
+    if len(pubchem_cids) == 1:
+        return {"resolved_namespace": "PubChem", "resolved_id": pubchem_cids[0], "confidence": "medium"}
+
+    return {
+        "resolved_namespace": None,
+        "resolved_id": None,
+        "confidence": "low",
+        "ambiguity": "multiple_chebi" if len(chebi_ids) > 1 else "multiple_pubchem",
+    }
 DEFAULT_UPLOAD_BASE = (SERVER_DIR / "data" / "submissions").resolve()
 DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
 
@@ -166,31 +216,81 @@ def health():
 @app.get("/normalize/chemical")
 def normalize_chemical():
     """
-    Look up a chemical by name, synonym, or CAS number in the pre-computed
-    ChEBI mapping index and return the resolved entry.
+    Normalize a chemical identifier to the most trustworthy canonical namespace.
 
     Query params:
-      q  - the search string (name, synonym, or CAS-RN)
+      id_type  - one of: CAS | PubChem | ChEBI
+      id       - the identifier value (e.g. "64-17-5", "702", "CHEBI:16236")
 
-    Returns:
-      { found: true,  cas_number, chebi_ids[], pubchem_cids[], synonyms[] }
-      { found: false, query }
-      { error: "index_unavailable" }  -- JSON not yet built
+    Returns on success:
+      {
+        found: true,
+        resolved_namespace: "ChEBI" | "PubChem" | null,
+        resolved_id: "<id>" | null,
+        confidence: "high" | "medium" | "low",
+        cas_number: "...",
+        chebi_ids: [...],
+        pubchem_cids: [...],
+        synonyms: [...]
+      }
+
+    Confidence semantics:
+      high   - exactly 1 ChEBI ID; mapping is unambiguous
+      medium - ambiguous or absent ChEBI, but exactly 1 PubChem CID
+      low    - multiple candidates in both namespaces; cannot resolve
+
+    Returns { found: false }          when the ID is not in the index.
+    Returns { error: "index_unavailable" } (503) when the JSON isn't built yet.
     """
-    query = (request.args.get("q") or "").strip()
-    if not query:
-        return jsonify({"error": "missing_query"}), 400
+    id_type = (request.args.get("id_type") or "").strip().upper()
+    id_val = (request.args.get("id") or "").strip()
 
-    index = _load_chemical_index()
-    if not index:
+    if not id_type or not id_val:
+        return jsonify({"error": "missing_params", "detail": "id_type and id are required"}), 400
+    if id_type not in ("CAS", "PUBCHEM", "CHEBI"):
+        return jsonify({"error": "invalid_id_type", "detail": "id_type must be CAS, PubChem, or ChEBI"}), 400
+
+    idxs = _load_indexes()
+    if idxs is None:
         return jsonify({"error": "index_unavailable",
                         "detail": "Chemical mapping data is not yet built. Run the pipeline first."}), 503
 
-    entry = index.get(query.lower())
-    if entry:
-        return jsonify({"found": True, **entry}), 200
+    entry = None
+    if id_type == "CAS":
+        entry = idxs["cas"].get(id_val)
+    elif id_type == "PUBCHEM":
+        entry = idxs["cid"].get(id_val)
+    elif id_type == "CHEBI":
+        # Normalise prefix: accept "16236", "CHEBI16236", "CHEBI:16236"
+        chebi_key = id_val.upper()
+        if not chebi_key.startswith("CHEBI:"):
+            chebi_key = "CHEBI:" + chebi_key.lstrip("CHEBI").lstrip(":")
+        entry = idxs["chebi"].get(chebi_key)
+        # For a direct ChEBI input that IS in our index, we can confirm it immediately
+        if entry:
+            return jsonify({
+                "found": True,
+                "resolved_namespace": "ChEBI",
+                "resolved_id": chebi_key,
+                "confidence": "high",
+                "cas_number": entry.get("cas_number"),
+                "chebi_ids": entry.get("chebi_ids", []),
+                "pubchem_cids": entry.get("pubchem_cids", []),
+                "synonyms": entry.get("synonyms", []),
+            }), 200
 
-    return jsonify({"found": False, "query": query}), 200
+    if not entry:
+        return jsonify({"found": False, "id_type": id_type, "id": id_val}), 200
+
+    resolution = _resolve(entry)
+    return jsonify({
+        "found": True,
+        **resolution,
+        "cas_number": entry.get("cas_number"),
+        "chebi_ids": entry.get("chebi_ids", []),
+        "pubchem_cids": entry.get("pubchem_cids", []),
+        "synonyms": entry.get("synonyms", []),
+    }), 200
 
 
 @app.post("/observation")
