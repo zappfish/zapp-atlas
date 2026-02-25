@@ -35,8 +35,8 @@ def read_obo_to_mapping_tables(input_obo_path):
         # replaced_terms will have key as the term that is replaced. And the value is the term that is replacing it 
         if term.replaced_by and term.obsolete:
             replaced_terms[primary_id] = term.replaced_by
-            chebi_term_mappings.update({primary_id:term.replaced_by})
-            chebi_term_mappings.update({term.replaced_by:term.replaced_by})
+            term_mappings.update({primary_id:term.replaced_by})
+            term_mappings.update({term.replaced_by:term.replaced_by})
 
         # obsolete_terms will have no replacements, and are just obsolete
         elif term.obsolete:
@@ -258,7 +258,7 @@ def map_cas_to_chebi(chebi2cid: dict, cas2cid: dict, cid2chebi: dict, cid2cas: d
     return cas2chebi, chebi2cas, zero_chebi_cas, multi_chebi_cas
 
 
-def read_compounds_to_select_cas_alias(pubchem_cid_synonym_filepath: str, select_cids: dict, cid2chebi: dict):
+def read_compounds_to_select_cas_alias(pubchem_cid_synonym_filepath: str, select_cids: dict, cid2chebi: dict, cid2cas: dict):
     """
     TSV file where first column is the pubchem CID number, and the second column is an alternate alias for that CID.
     Multiple alias are/can be present for each unique CID.
