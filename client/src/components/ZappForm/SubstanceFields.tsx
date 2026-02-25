@@ -114,12 +114,12 @@ export default function SubstanceFields({
       setStatus(conf);
 
       if (data.resolved_namespace && data.resolved_id) {
-        const confLabel = data.confidence === 'high' ? 'unambiguous'
-                        : data.confidence === 'medium' ? 'fallback (ambiguous ChEBI)'
-                        : 'ambiguous';
-        setMessage(`→ ${data.resolved_namespace}: ${data.resolved_id}  [${confLabel}]`);
+        const fallbackNote = data.resolved_namespace === 'PubChem'
+          ? '  (no unique ChEBI mapping — using PubChem as fallback)'
+          : '';
+        setMessage(`→ ${data.resolved_namespace}: ${data.resolved_id}${fallbackNote}`);
       } else {
-        setMessage('Could not resolve to a single identifier — input is ambiguous in both ChEBI and PubChem.');
+        setMessage('No unique identifier found — try entering the ID directly in a different namespace.');
       }
     } catch {
       setStatus('error');

@@ -85,13 +85,15 @@ def _resolve(entry: dict) -> dict:
     """
     Apply trust rules to an entry and return the best canonical ID.
 
-    Rules (in priority order):
-      1. Exactly 1 ChEBI ID  → resolved ChEBI, confidence HIGH
-      2. >1 ChEBI IDs (ambiguous ChEBI) + exactly 1 PubChem CID
-                             → resolved PubChem, confidence MEDIUM
-      3. 0 ChEBI IDs + exactly 1 PubChem CID
-                             → resolved PubChem, confidence MEDIUM
-      4. Anything else       → unresolvable, confidence LOW
+    Mirrors the pipeline's map_cas_to_chebi logic:
+      - Exactly 1 ChEBI ID (cas2chebi bucket)
+            → resolved ChEBI, confidence HIGH
+      - Multiple ChEBI IDs (multi_chebi_cas bucket) — unreliable, discard
+            → unresolvable; do NOT fall back to PubChem
+      - Zero ChEBI IDs (zero_chebi_cas bucket) + exactly 1 PubChem CID
+            → resolved PubChem, confidence MEDIUM (best available fallback)
+      - Anything else
+            → unresolvable
     """
     chebi_ids = entry.get("chebi_ids", [])
     pubchem_cids = entry.get("pubchem_cids", [])
@@ -99,15 +101,17 @@ def _resolve(entry: dict) -> dict:
     if len(chebi_ids) == 1:
         return {"resolved_namespace": "ChEBI", "resolved_id": chebi_ids[0], "confidence": "high"}
 
+    if len(chebi_ids) > 1:
+        # Ambiguous — pipeline deliberately discards these; never fall back to PubChem
+        return {"resolved_namespace": None, "resolved_id": None, "confidence": "low",
+                "ambiguity": "multiple_chebi"}
+
+    # len(chebi_ids) == 0: no ChEBI mapping at all; PubChem is acceptable fallback
     if len(pubchem_cids) == 1:
         return {"resolved_namespace": "PubChem", "resolved_id": pubchem_cids[0], "confidence": "medium"}
 
-    return {
-        "resolved_namespace": None,
-        "resolved_id": None,
-        "confidence": "low",
-        "ambiguity": "multiple_chebi" if len(chebi_ids) > 1 else "multiple_pubchem",
-    }
+    return {"resolved_namespace": None, "resolved_id": None, "confidence": "low",
+            "ambiguity": "no_mapping"}
 DEFAULT_UPLOAD_BASE = (SERVER_DIR / "data" / "submissions").resolve()
 DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
 
