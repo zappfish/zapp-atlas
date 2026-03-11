@@ -1,7 +1,9 @@
 node_modules
 dist
 tsconfig.tsbuildinfo
+__pycache__/
 
 # Server secrets and uploads
 server/credentials.txt
 server/data/
+*.db
