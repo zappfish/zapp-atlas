@@ -5,14 +5,16 @@ description = "Server for the ZAPP atlas"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "flask>=3.1.2",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
     "sqlalchemy>=2.0",
-    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@sqlalchemy-and-minor-tweaks",
+    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@pydantic-crud-models",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "httpx>=0.28",
 ]
 
 [tool.pytest.ini_options]

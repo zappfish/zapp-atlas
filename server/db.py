@@ -28,3 +28,11 @@ def init_db(engine=None):
     engine = engine or get_engine()
     Base.metadata.create_all(engine)
     return engine
+
+
+def get_db():
+    session = get_session_factory()()
+    try:
+        yield session
+    finally:
+        session.close()
