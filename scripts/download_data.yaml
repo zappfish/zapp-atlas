@@ -1,0 +1,34 @@
+- ZFIN_ameliorated_phenotypes_with_chemicals:
+    url: https://zfin.org/downloads/ameliorated_phenotype_fish_with_chemicals_2.txt
+    filename: ./zfin_test_data/ameliorated_phenotype_fish_with_chemicals_2.txt
+    description: "ZFIN ameliorated phenotypes with chemicals."
+
+- ZFIN_disease_models_that_include_chemical:
+    url: https://zfin.org/downloads/fish_model_disease_chemical_2.txt
+    filename: ./zfin_test_data/fish_model_disease_chemical_2.txt
+    description: "ZFIN disease models that include chemical."
+
+- ZFIN_expression_phenotypes_with_single_chemical_in_environment_in_WT_fish:
+    url: https://zfin.org/downloads/gene_expression_phenotype_wildtype_with_one_chemical_2.txt
+    filename: ./zfin_test_data/gene_expression_phenotype_wildtype_with_one_chemical_2.txt
+    description: "ZFIN expression phenotypes with single chemical in environment in WT fish."
+
+- ZFIN_gene_expression_phenotypes_with_chemicals:
+    url: https://zfin.org/downloads/gene_expression_phenotype_with_chemicals_2.txt
+    filename: ./zfin_test_data/gene_expression_phenotype_with_chemicals_2.txt
+    description: "ZFIN gene expression phenotypes with chemical."
+
+- ZFIN_phenotypes_modified_by_chemical:
+    url: https://zfin.org/downloads/phenotypes_modified_by_chemicals_ameliorated_or_exacerbated_2.txt
+    filename: ./zfin_test_data/phenotypes_modified_by_chemicals_ameliorated_or_exacerbated_2.txt
+    description: "ZFIN phenotypes modified by chemical."
+
+- ZFIN_phenotypes_with_chemicals_in_environment:
+    url: https://zfin.org/downloads/phenotype_fish_with_chemicals_including_mutants_and_wt_2.txt
+    filename: ./zfin_test_data/phenotype_fish_with_chemicals_including_mutants_and_wt_2.txt
+    description: "ZFIN phenotypes with chemicals in environment."
+
+- ZFIN_phenotypes_with_single_chemical_in_environment_in_WT_fish:
+    url: https://zfin.org/downloads/phenotype_fish_with_chemicals_2.txt
+    filename: ./zfin_test_data/phenotype_fish_with_one_chemical_including_mutants_and_wt_2.txt
+    description: "ZFIN phenotypes with single chemical in environment in WT fish."
