@@ -7,13 +7,17 @@ requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.2",
     "sqlalchemy>=2.0",
-    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@sqlalchemy-and-minor-tweaks",
+    "linkml",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "ruff>=0.15.8",
 ]
+
+[tool.uv.sources]
+linkml = { git = "https://github.com/linkml/linkml", branch = "feat/sqla-2x-declarative", subdirectory = "packages/linkml" }
 
 [build-system]
 requires = ["hatchling"]

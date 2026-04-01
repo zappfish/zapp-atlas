@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base
+from ..schema.sqla import Base
 
 SERVER_DIR = Path(__file__).resolve().parent
 DEFAULT_DB_PATH = SERVER_DIR / "data" / "zapp.db"
