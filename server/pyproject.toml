@@ -8,6 +8,7 @@ dependencies = [
     "flask>=3.1.2",
     "sqlalchemy>=2.0",
     "linkml",
+    "fastapi>=0.135.2",
 ]
 
 [dependency-groups]
