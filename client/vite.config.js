@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => ({
           '@': path.resolve(__dirname, 'src')
       }
   },
+  server: {
+    proxy: {
+      '/normalize-chemical': 'http://localhost:5001'
+    }
+  },
   build: {
     rollupOptions: {
       input: mode === "phenodemo"

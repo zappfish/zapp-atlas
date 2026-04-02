@@ -28,9 +28,17 @@ const RepeatedExposureSchema = z.object({
   total_length: DurationSchema,
 });
 
+export const SUBSTANCE_ID_TYPES = [
+  'None', 'CHEBI', 'PUBCHEM.COMPOUND', 'CAS', 'INCHIKEY', 'HMDB',
+  'CHEMBL.COMPOUND', 'UNII', 'MESH', 'UMLS', 'DrugCentral',
+  'GTOPDB', 'RXCUI', 'DRUGBANK', 'KEGG.COMPOUND', 'UniProtKB', 'ENSEMBL', 'PR',
+] as const;
+
+export type SubstanceIdType = typeof SUBSTANCE_ID_TYPES[number];
+
 const SubstanceIdSchema = z.object({
   name: z.string().optional(),
-  idType: z.enum(['PubChem', 'CAS', 'ChEBI', 'None']).default('None'),
+  idType: z.enum(SUBSTANCE_ID_TYPES).default('None'),
   id: z.string().optional()
 });
 

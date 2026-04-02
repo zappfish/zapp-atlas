@@ -48,10 +48,24 @@ export const CONC_UNIT_OPTIONS = [
 ];
 
 export const SUBSTANCE_IDTYPE_OPTIONS = [
-  { value: 'None', label: 'None (name only)' },
-  { value: 'PubChem', label: 'PubChem ID' },
-  { value: 'CAS', label: 'CAS number' },
-  { value: 'ChEBI', label: 'ChEBI' }
+  { value: 'None',             label: 'None (name only)' },
+  { value: 'CHEBI',            label: 'ChEBI' },
+  { value: 'PUBCHEM.COMPOUND', label: 'PubChem Compound' },
+  { value: 'CAS',              label: 'CAS number' },
+  { value: 'INCHIKEY',         label: 'InChIKey' },
+  { value: 'HMDB',             label: 'HMDB' },
+  { value: 'CHEMBL.COMPOUND',  label: 'ChEMBL' },
+  { value: 'UNII',             label: 'UNII' },
+  { value: 'MESH',             label: 'MeSH' },
+  { value: 'UMLS',             label: 'UMLS' },
+  { value: 'DrugCentral',      label: 'DrugCentral' },
+  { value: 'GTOPDB',           label: 'GtoPdb' },
+  { value: 'RXCUI',            label: 'RxCUI' },
+  { value: 'DRUGBANK',         label: 'DrugBank' },
+  { value: 'KEGG.COMPOUND',    label: 'KEGG Compound' },
+  { value: 'UniProtKB',        label: 'UniProtKB' },
+  { value: 'ENSEMBL',          label: 'Ensembl' },
+  { value: 'PR',               label: 'Protein Ontology (PR)' },
 ];
 
 export const DURATION_UNIT_OPTIONS = [

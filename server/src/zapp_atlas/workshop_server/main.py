@@ -1,6 +1,10 @@
+import base64
 import json
 import os
 import secrets
+import subprocess
+import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,9 +14,12 @@ from werkzeug.utils import secure_filename
 
 
 # Paths relative to repo
+# __file__ is .../server/src/zapp_atlas/workshop_server/main.py
+# parents: [0]=workshop_server, [1]=zapp_atlas, [2]=src, [3]=server, [4]=repo root
 SERVER_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SERVER_DIR.parent
+REPO_ROOT = Path(__file__).resolve().parents[4]
 DIST_DIR = (REPO_ROOT / "client" / "dist").resolve()
+SCRIPTS_DIR = (REPO_ROOT / "scripts").resolve()
 DEFAULT_UPLOAD_BASE = (SERVER_DIR / "data" / "submissions").resolve()
 DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
 
@@ -116,6 +123,57 @@ def handle_internal_error(e):
 @app.get("/health")
 def health():
     return jsonify({"status": "ok"}), 200
+
+
+@app.post("/normalize-chemical")
+def normalize_chemical():
+    body = request.get_json(silent=True) or {}
+    namespace = (body.get("namespace") or "").strip()
+    chemical_id = (body.get("chemical_id") or "").strip()
+
+    if not namespace or not chemical_id:
+        return jsonify({"error": "bad_request", "details": "namespace and chemical_id are required"}), 400
+
+    script = SCRIPTS_DIR / "normalize_chemical.py"
+    if not script.exists():
+        return jsonify({"error": "server_error", "details": "normalize_chemical.py not found"}), 500
+
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(script),
+             "--id", chemical_id,
+             "--namespace", namespace,
+             "--skip-prefetch",
+             "--save-image", str(tmp_path)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+        if proc.returncode == 1:
+            return jsonify({"error": "bad_namespace", "details": proc.stderr.strip()}), 400
+        if proc.returncode == 2:
+            return jsonify({"error": "api_error", "details": proc.stderr.strip()}), 502
+        if proc.returncode != 0:
+            return jsonify({"error": "script_error", "details": proc.stderr.strip()}), 500
+
+        data = json.loads(proc.stdout)
+
+        image_b64 = None
+        if tmp_path.exists() and tmp_path.stat().st_size > 0:
+            image_b64 = base64.b64encode(tmp_path.read_bytes()).decode("ascii")
+
+        return jsonify({**data, "structure_image_b64": image_b64}), 200
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"error": "timeout"}), 504
+    except Exception as e:
+        return jsonify({"error": "server_error", "details": str(e)}), 500
+    finally:
+        tmp_path.unlink(missing_ok=True)
 
 
 @app.post("/observation")
