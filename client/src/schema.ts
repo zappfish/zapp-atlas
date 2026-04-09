@@ -53,6 +53,7 @@ const PhenotypeItemSchema = z.object({
 // FIXME: This should really have a `regimen` key.
 const ExposureEventSchema = z.object({
   substance: SubstanceIdSchema,
+  vehicle: SubstanceIdSchema.optional(),
   concentration: z.object({
     value: z.number().nonnegative().nullable(),
     unit: z.string().nullable()

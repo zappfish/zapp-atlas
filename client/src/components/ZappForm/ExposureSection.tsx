@@ -184,12 +184,29 @@ export default function ExposureSection({
   return (
     <div className="row">
       <FormSection title="Exposure Event">
+
+        <div className="col-12" style={{ fontWeight: 600, fontSize: '0.9rem', color: '#444', borderBottom: '1px solid #e2e2e2', paddingBottom: '4px', marginBottom: '4px' }}>
+          Substance / Toxin
+        </div>
         <SubstanceFields
           value={exposure.substance}
           onChange={(substance) =>
             update((e) => ({
               ...e,
               substance
+            }))
+          }
+        />
+
+        <div className="col-12" style={{ fontWeight: 600, fontSize: '0.9rem', color: '#444', borderBottom: '1px solid #e2e2e2', paddingBottom: '4px', marginTop: '8px', marginBottom: '4px' }}>
+          Vehicle of Transmission
+        </div>
+        <SubstanceFields
+          value={exposure.vehicle ?? { name: '', idType: 'None', id: '' }}
+          onChange={(vehicle) =>
+            update((e) => ({
+              ...e,
+              vehicle
             }))
           }
         />

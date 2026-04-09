@@ -130,9 +130,12 @@ def normalize_chemical():
     body = request.get_json(silent=True) or {}
     namespace = (body.get("namespace") or "").strip()
     chemical_id = (body.get("chemical_id") or "").strip()
+    name = (body.get("name") or "").strip()
 
-    if not namespace or not chemical_id:
-        return jsonify({"error": "bad_request", "details": "namespace and chemical_id are required"}), 400
+    use_name_resolver = bool(name) and not namespace and not chemical_id
+
+    if not use_name_resolver and (not namespace or not chemical_id):
+        return jsonify({"error": "bad_request", "details": "Provide either 'name' or both 'namespace' and 'chemical_id'"}), 400
 
     script = SCRIPTS_DIR / "normalize_chemical.py"
     if not script.exists():
@@ -142,12 +145,13 @@ def normalize_chemical():
         tmp_path = Path(tmp.name)
 
     try:
+        if use_name_resolver:
+            cmd = [sys.executable, str(script), "--name", name, "--skip-prefetch", "--save-image", str(tmp_path)]
+        else:
+            cmd = [sys.executable, str(script), "--id", chemical_id, "--namespace", namespace, "--skip-prefetch", "--save-image", str(tmp_path)]
+
         proc = subprocess.run(
-            [sys.executable, str(script),
-             "--id", chemical_id,
-             "--namespace", namespace,
-             "--skip-prefetch",
-             "--save-image", str(tmp_path)],
+            cmd,
             capture_output=True,
             text=True,
             timeout=30,
