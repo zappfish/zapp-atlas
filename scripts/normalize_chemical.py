@@ -1,7 +1,8 @@
 """
 normalize_chemical.py
 ---------------------
-CLI wrapper around the NCATS NodeNormalization API for chemical identifiers.
+CLI wrapper around the NCATS NodeNormalization and SRI Name Resolution APIs
+for chemical identifiers.
 Intended to be called by a submission form backend; outputs JSON to stdout.
 
 Usage
@@ -11,6 +12,9 @@ Usage
     python normalize_chemical.py --id 50-00-0 --namespace CAS
     python normalize_chemical.py --id 16236 --namespace CHEBI --save-image ethanol.png
     python normalize_chemical.py --id 16236 --namespace CHEBI --skip-prefetch
+    python normalize_chemical.py --name "ethanol"
+    python normalize_chemical.py --name "ethanol" --save-image ethanol.png
+    python normalize_chemical.py --name "ethanol" --skip-prefetch
 
 Exit codes
 ----------
@@ -31,7 +35,8 @@ from rdkit.Chem import Draw
 # Constants
 # ---------------------------------------------------------------------------
 
-NODE_NORM_BASE = "https://nodenormalization-sri.renci.org"
+NODE_NORM_BASE     = "https://nodenormalization-sri.renci.org"
+NAME_RESOLVER_BASE = "https://name-resolution-sri.renci.org"
 
 # Biolink classes we consider chemical-relevant
 REL_BIOLINK = [
@@ -180,6 +185,31 @@ def parse_norm_result(curie, raw):
     }
 
 # ---------------------------------------------------------------------------
+# Name Resolver API helpers
+# ---------------------------------------------------------------------------
+
+def query_name_resolver(name, biolink_classes=None):
+    """
+    Query the SRI Name Resolution API /lookup endpoint with a chemical name string.
+    Returns a list of hits ordered by relevance score, each with keys:
+        curie, label, score, types, synonyms, taxa, clique_identifier_count
+    """
+    r = requests.get(
+        "{}/lookup".format(NAME_RESOLVER_BASE),
+        params={
+            "string":       name,
+            "autocomplete": "false",
+            "highlighting": "false",
+            "offset":       0,
+            "limit":        10,
+            "biolink_type": biolink_classes or REL_BIOLINK,
+        },
+        timeout=15,
+    )
+    r.raise_for_status()
+    return r.json()
+
+# ---------------------------------------------------------------------------
 # Visualization  (adapted from zapp_chemical_mappings.ipynb)
 # ---------------------------------------------------------------------------
 
@@ -204,6 +234,8 @@ def get_visualization_data(norm_result, save_path=None):
     if not results:
         return {"available": False, "reason": "Compound not found in PubChem"}
 
+    # Try to visualize using smiles first, then inchi if smiles is not available. Take the first result if multiple are returned.
+    # Take the first result and try to get a structure from its isomeric_smiles or canonical_smiles
     c = results[0]
     smiles = next(
         (s for s in [getattr(c, "isomeric_smiles", None), getattr(c, "canonical_smiles", None)]
@@ -212,11 +244,14 @@ def get_visualization_data(norm_result, save_path=None):
     )
 
     mol, mol_repr, mol_value = Chem.MolFromSmiles(smiles) if smiles else None, "smiles", smiles
+
+    # Assumes no smiles id so we try inchi next
     if mol is None:
         inchi = getattr(c, "inchi", None)
         if isinstance(inchi, str) and inchi.strip():
             mol, mol_repr, mol_value = Chem.MolFromInchi(inchi), "inchi", inchi
 
+    # If mol is present, we can save an image if requested
     image_saved_to = None
     if mol is not None and save_path:
         Draw.MolToImage(mol, size=(400, 400), legend=getattr(c, "iupac_name", None) or "").save(save_path)
@@ -232,7 +267,7 @@ def get_visualization_data(norm_result, save_path=None):
     }
 
 # ---------------------------------------------------------------------------
-# Main normalization entry point
+# Main normalization entry points
 # ---------------------------------------------------------------------------
 
 def normalize_chemical(chemical_id, namespace, allowed_namespaces=None, version_info=None, save_image=None):
@@ -289,18 +324,106 @@ def normalize_chemical(chemical_id, namespace, allowed_namespaces=None, version_
         "visualization":  vis,
     }
 
+
+def resolve_name(name, allowed_namespaces=None, version_info=None, save_image=None):
+    """
+    Resolve a chemical name via the SRI Name Resolver, then normalize the top hit
+    through NodeNorm.
+
+    Parameters
+    ----------
+    name : str
+        Human-readable chemical name (e.g. "ethanol", "glycerol").
+    allowed_namespaces : dict | None
+        Maps accepted prefixes -> canonical prefix. Uses FALLBACK_NAMESPACES if None.
+    version_info : dict | None
+        Pre-fetched version info dict; omitted from output if None.
+    save_image : str | None
+        File path to save a structure PNG. Skipped if None.
+
+    Returns
+    -------
+    dict with keys:
+        query               -- input_name, resolved_curie
+        name_resolver_hits  -- full list of hits returned by the name resolver
+        node_norm_meta      -- version info (same as normalize_chemical)
+        result              -- same structure as normalize_chemical
+        visualization       -- same structure as normalize_chemical
+    """
+    if allowed_namespaces is None:
+        allowed_namespaces = FALLBACK_NAMESPACES
+
+    hits = query_name_resolver(name)
+
+    _empty_result = {
+        "normalized":             False,
+        "primary_id":             None,
+        "label":                  None,
+        "description":            None,
+        "equivalent_identifiers": [],
+    }
+
+    if not hits:
+        return {
+            "query":              {"input_name": name, "resolved_curie": None},
+            "name_resolver_hits": [],
+            "node_norm_meta":     version_info or {},
+            "result":             _empty_result,
+            "visualization":      {},
+        }
+
+    top_curie = hits[0].get("curie", "")
+
+    # Split curie into namespace and id, then resolve canonical casing
+    if ":" in top_curie:
+        raw_ns, cid = top_curie.split(":", 1)
+        canonical_ns = allowed_namespaces.get(raw_ns) or allowed_namespaces.get(raw_ns.upper())
+    else:
+        canonical_ns, cid = None, top_curie
+
+    if canonical_ns is None:
+        return {
+            "query":              {"input_name": name, "resolved_curie": top_curie},
+            "name_resolver_hits": hits,
+            "node_norm_meta":     version_info or {},
+            "result":             _empty_result,
+            "visualization":      {},
+        }
+
+    norm_output = normalize_chemical(
+        cid, canonical_ns,
+        allowed_namespaces=allowed_namespaces,
+        version_info=version_info,
+        save_image=save_image,
+    )
+
+    return {
+        "query": {
+            "input_name":    name,
+            "resolved_curie": top_curie,
+        },
+        "name_resolver_hits": hits,
+        "node_norm_meta":     norm_output["node_norm_meta"],
+        "result":             norm_output["result"],
+        "visualization":      norm_output["visualization"],
+    }
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def build_parser():
     p = argparse.ArgumentParser(
-        description="Normalize a chemical identifier via the NCATS NodeNorm API.",
+        description="Normalize a chemical identifier or name via the NCATS NodeNorm / SRI Name Resolver APIs.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument("--id",        dest="chemical_id", help="Chemical identifier value (no prefix), e.g. 16236")
-    p.add_argument("--namespace", dest="namespace",   help="CURIE namespace prefix, e.g. CHEBI, PUBCHEM.COMPOUND, CAS")
+
+    mode = p.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--name",      dest="name",       help="Chemical name to resolve (e.g. 'ethanol')")
+    mode.add_argument("--id",        dest="chemical_id", help="Chemical identifier value (no prefix), e.g. 16236")
+
+    p.add_argument("--namespace", dest="namespace", help="CURIE namespace prefix (required with --id), e.g. CHEBI, PUBCHEM.COMPOUND, CAS")
     p.add_argument(
         "--save-image",
         dest="save_image",
@@ -319,8 +442,8 @@ def main():
     parser = build_parser()
     args   = parser.parse_args()
 
-    if not args.chemical_id or not args.namespace:
-        parser.error("--id and --namespace are both required")
+    if args.chemical_id and not args.namespace:
+        parser.error("--namespace is required when using --id")
 
     if args.skip_prefetch:
         version_info       = {}
@@ -334,15 +457,23 @@ def main():
             sys.exit(2)
 
     try:
-        output = normalize_chemical(
-            args.chemical_id,
-            args.namespace,
-            allowed_namespaces=allowed_namespaces,
-            version_info=version_info,
-            save_image=args.save_image,
-        )
+        if args.name:
+            output = resolve_name(
+                args.name,
+                allowed_namespaces=allowed_namespaces,
+                version_info=version_info,
+                save_image=args.save_image,
+            )
+        else:
+            output = normalize_chemical(
+                args.chemical_id,
+                args.namespace,
+                allowed_namespaces=allowed_namespaces,
+                version_info=version_info,
+                save_image=args.save_image,
+            )
     except requests.RequestException as e:
-        print("ERROR: NodeNorm API request failed -- {}".format(e), file=sys.stderr)
+        print("ERROR: API request failed -- {}".format(e), file=sys.stderr)
         sys.exit(2)
 
     print(json.dumps(output, indent=2))
