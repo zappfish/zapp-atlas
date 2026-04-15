@@ -8,7 +8,9 @@ and the name resolver pipeline against the SRI Name Resolution API.
 Usage
 -----
     python test_normalize_chemical.py
-    python test_normalize_chemical.py --skip-prefetch
+    python test_normalize_chemical.py --skip-version
+    python test_normalize_chemical.py --skip-namespace-lookup
+    python test_normalize_chemical.py --skip-version --skip-namespace-lookup
 
 Exit codes
 ----------
@@ -22,18 +24,15 @@ import sys
 import requests
 
 from normalize_chemical import (
-    fetch_allowed_namespaces,
-    get_node_norm_version_info,
-    normalize_chemical,
-    resolve_name,
+    fetch_version_info,
+    fetch_namespace_prefixes,
+    lookup,
     FALLBACK_NAMESPACES,
 )
 
-# ---------------------------------------------------------------------------
-# ID-based test cases
+# ── ID-based test cases ────────────────────────────────────────────────────────
 # Format: (label, chemical_id, namespace, expect_normalized, expected_primary_id)
 # expected_primary_id is None if we only care about the normalized bool.
-# ---------------------------------------------------------------------------
 
 ID_TEST_CASES = [
     # Known chemicals via different namespaces
@@ -53,11 +52,9 @@ ID_TEST_CASES = [
     ("Nonexistent CHEBI ID",        "ZAPP-999999",  "CHEBI",            False, None),
 ]
 
-# ---------------------------------------------------------------------------
-# Name-based test cases
+# ── Name-based test cases ──────────────────────────────────────────────────────
 # Format: (label, name, expect_normalized, expected_primary_id)
 # expected_primary_id is None if we only care about the normalized bool.
-# ---------------------------------------------------------------------------
 
 NAME_TEST_CASES = [
     ("Ethanol by name",    "ethanol",    True, "CHEBI:16236"),
@@ -70,7 +67,7 @@ NAME_TEST_CASES = [
 SEP = "=" * 65
 
 
-def run_id_tests(allowed_namespaces, version_info):
+def run_id_tests(namespaces, meta):
     print("\n--- ID-based tests ({}) ---\n".format(len(ID_TEST_CASES)))
     passed = failed = 0
 
@@ -79,17 +76,12 @@ def run_id_tests(allowed_namespaces, version_info):
         print("TEST: {}  [{}:{}]".format(label, ns, cid))
 
         try:
-            output = normalize_chemical(
-                cid, ns,
-                allowed_namespaces=allowed_namespaces,
-                version_info=version_info,
-            )
+            output = lookup(cid, namespace=ns, namespaces=namespaces, meta=meta)
             result = output["result"]
-            vis    = output.get("visualization", {})
 
             norm_ok    = result["normalized"] == expect_norm
             primary_ok = (expect_primary is None) or (result["primary_id"] == expect_primary)
-            ok = norm_ok and primary_ok
+            ok         = norm_ok and primary_ok
 
             if ok:
                 passed += 1
@@ -108,17 +100,9 @@ def run_id_tests(allowed_namespaces, version_info):
                 print("  ** expected primary_id={}".format(expect_primary))
             if result["description"]:
                 print("  description: {}".format(result["description"][:100]))
-            if vis.get("available"):
-                print("  visualization: cid={}  iupac={}  repr={}".format(
-                    vis.get("cid"), vis.get("iupac_name"), vis.get("repr")
-                ))
-            else:
-                print("  visualization: not available -- {}".format(
-                    vis.get("reason") or vis.get("error", "mol build failed")
-                ))
 
-        except SystemExit as e:
-            print("  FAIL  SystemExit({}) -- bad namespace or arg".format(e.code))
+        except ValueError as e:
+            print("  FAIL  ValueError -- {}".format(e))
             failed += 1
         except Exception as e:
             print("  ERROR  {}".format(e))
@@ -127,7 +111,7 @@ def run_id_tests(allowed_namespaces, version_info):
     return passed, failed
 
 
-def run_name_tests(allowed_namespaces, version_info):
+def run_name_tests(namespaces, meta):
     print("\n--- Name-based tests ({}) ---\n".format(len(NAME_TEST_CASES)))
     passed = failed = 0
 
@@ -136,19 +120,14 @@ def run_name_tests(allowed_namespaces, version_info):
         print("TEST: {}  [name='{}']".format(label, name))
 
         try:
-            output = resolve_name(
-                name,
-                allowed_namespaces=allowed_namespaces,
-                version_info=version_info,
-            )
+            output    = lookup(name, namespaces=namespaces, meta=meta)
             result    = output["result"]
-            hits      = output.get("name_resolver_hits", [])
-            vis       = output.get("visualization", {})
-            res_curie = output["query"].get("resolved_curie")
+            hits      = output["name_resolver_hits"]
+            res_curie = output["query"]["curie"]
 
             norm_ok    = result["normalized"] == expect_norm
             primary_ok = (expect_primary is None) or (result["primary_id"] == expect_primary)
-            ok = norm_ok and primary_ok
+            ok         = norm_ok and primary_ok
 
             if ok:
                 passed += 1
@@ -171,14 +150,8 @@ def run_name_tests(allowed_namespaces, version_info):
                 print("  top hit: {}  score={}".format(
                     hits[0].get("curie"), hits[0].get("score")
                 ))
-            if vis.get("available"):
-                print("  visualization: cid={}  iupac={}  repr={}".format(
-                    vis.get("cid"), vis.get("iupac_name"), vis.get("repr")
-                ))
-            else:
-                print("  visualization: not available -- {}".format(
-                    vis.get("reason") or vis.get("error", "mol build failed")
-                ))
+            if result["description"]:
+                print("  description: {}".format(result["description"][:100]))
 
         except Exception as e:
             print("  ERROR  {}".format(e))
@@ -187,20 +160,20 @@ def run_name_tests(allowed_namespaces, version_info):
     return passed, failed
 
 
-def run_all_tests(allowed_namespaces, version_info):
-    print("\nNodeNorm version: {}".format(version_info.get("babel_version", "unknown")))
+def run_all_tests(namespaces, meta):
+    print("\nNodeNorm version: {}".format(meta.get("babel_version", "unknown")))
 
-    id_passed, id_failed     = run_id_tests(allowed_namespaces, version_info)
-    name_passed, name_failed = run_name_tests(allowed_namespaces, version_info)
+    id_passed,   id_failed   = run_id_tests(namespaces, meta)
+    name_passed, name_failed = run_name_tests(namespaces, meta)
 
-    total   = len(ID_TEST_CASES) + len(NAME_TEST_CASES)
-    passed  = id_passed + name_passed
-    failed  = id_failed + name_failed
+    total  = len(ID_TEST_CASES) + len(NAME_TEST_CASES)
+    passed = id_passed + name_passed
+    failed = id_failed + name_failed
 
     print(SEP)
     print("\nResults: {}/{} passed  (id: {}/{}  name: {}/{})".format(
         passed, total,
-        id_passed, len(ID_TEST_CASES),
+        id_passed,   len(ID_TEST_CASES),
         name_passed, len(NAME_TEST_CASES),
     ))
     return failed == 0
@@ -208,29 +181,29 @@ def run_all_tests(allowed_namespaces, version_info):
 
 def build_parser():
     p = argparse.ArgumentParser(description="Run normalize_chemical test suite.")
-    p.add_argument(
-        "--skip-prefetch",
-        action="store_true",
-        help="Use hardcoded fallback namespaces instead of querying NodeNorm live",
-    )
+    p.add_argument("--skip-version",          action="store_true", help="Skip fetching babel/biolink version info")
+    p.add_argument("--skip-namespace-lookup", action="store_true", help="Use hardcoded fallback namespaces instead of querying NodeNorm live")
     return p
 
 
 def main():
     args = build_parser().parse_args()
 
-    if args.skip_prefetch:
-        version_info       = {}
-        allowed_namespaces = FALLBACK_NAMESPACES
-    else:
-        try:
-            version_info       = get_node_norm_version_info()
-            allowed_namespaces = fetch_allowed_namespaces()
-        except requests.RequestException as e:
-            print("ERROR: could not reach NodeNorm API -- {}".format(e), file=sys.stderr)
-            sys.exit(2)
+    meta       = {}
+    namespaces = FALLBACK_NAMESPACES
 
-    success = run_all_tests(allowed_namespaces, version_info)
+    try:
+        if not args.skip_version:
+            meta.update(fetch_version_info())
+        if not args.skip_namespace_lookup:
+            namespaces = fetch_namespace_prefixes()
+    except requests.RequestException as e:
+        print("ERROR: could not reach NodeNorm API -- {}".format(e), file=sys.stderr)
+        sys.exit(2)
+
+    meta["namespaces_fetched"] = not args.skip_namespace_lookup
+
+    success = run_all_tests(namespaces, meta)
     sys.exit(0 if success else 1)
 
 

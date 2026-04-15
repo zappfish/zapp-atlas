@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     proxy: {
-      '/normalize-chemical': 'http://localhost:5001'
+      '/normalize-chemical': 'http://localhost:5001',
+      '/autocomplete-chemical': 'http://localhost:5001',
     }
   },
   build: {

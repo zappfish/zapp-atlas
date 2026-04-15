@@ -39,7 +39,11 @@ export type SubstanceIdType = typeof SUBSTANCE_ID_TYPES[number];
 const SubstanceIdSchema = z.object({
   name: z.string().optional(),
   idType: z.enum(SUBSTANCE_ID_TYPES).default('None'),
-  id: z.string().optional()
+  id: z.string().optional(),
+  concentration: z.string().optional(),
+  cas_number: z.string().optional(),
+  manufacturer: z.string().optional(),
+  comment: z.string().optional(),
 });
 
 const PhenotypeItemSchema = z.object({

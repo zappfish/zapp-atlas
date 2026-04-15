@@ -3,18 +3,35 @@ normalize_chemical.py
 ---------------------
 CLI wrapper around the NCATS NodeNormalization and SRI Name Resolution APIs
 for chemical identifiers.
-Intended to be called by a submission form backend; outputs JSON to stdout.
+Intended to be called by a submission form backend; outputs JSON or TSV to stdout.
 
 Usage
 -----
+    # Normalize by ID
     python normalize_chemical.py --id 16236 --namespace CHEBI
     python normalize_chemical.py --id 702 --namespace PUBCHEM.COMPOUND
     python normalize_chemical.py --id 50-00-0 --namespace CAS
-    python normalize_chemical.py --id 16236 --namespace CHEBI --save-image ethanol.png
-    python normalize_chemical.py --id 16236 --namespace CHEBI --skip-prefetch
+
+    # Normalize by name
     python normalize_chemical.py --name "ethanol"
+    python normalize_chemical.py --name "ethanol" --hits 5
+
+    # Output format
+    python normalize_chemical.py --name "ethanol" --format tsv
+    python normalize_chemical.py --name "ethanol" --format json
+
+    # Save a structure image (auto-selects first visualizable identifier)
     python normalize_chemical.py --name "ethanol" --save-image ethanol.png
-    python normalize_chemical.py --name "ethanol" --skip-prefetch
+    python normalize_chemical.py --id 16236 --namespace CHEBI --save-image ethanol.png
+
+    # Visualize a CURIE directly (standalone, no normalization)
+    python normalize_chemical.py --visualize PUBCHEM.COMPOUND:702
+    python normalize_chemical.py --visualize PUBCHEM.COMPOUND:702 --save-image water.png
+
+    # Skip optional prefetch steps
+    python normalize_chemical.py --name "ethanol" --skip-version
+    python normalize_chemical.py --name "ethanol" --skip-namespace-lookup
+    python normalize_chemical.py --name "ethanol" --skip-version --skip-namespace-lookup
 
 Exit codes
 ----------
@@ -31,9 +48,7 @@ import pubchempy as pcp
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+# ── Constants ──────────────────────────────────────────────────────────────────
 
 NODE_NORM_BASE     = "https://nodenormalization-sri.renci.org"
 NAME_RESOLVER_BASE = "https://name-resolution-sri.renci.org"
@@ -47,12 +62,13 @@ REL_BIOLINK = [
     "biolink:ChemicalMixture",
     "biolink:ChemicalEntityOrProteinOrPolypeptide",
     "biolink:SmallMolecule",
+    "biolink:MacromolecularComplex",
+    "biolink:MolecularEntity",
 ]
 
-# Fallback namespace map when --skip-prefetch is used.
-# Sourced from NodeNorm /get_curie_prefixes output captured in notebook cell 9
-# (babel_version 2025sep1). Maps input prefix -> canonical prefix, preserving
-# the original casing that NodeNorm uses (e.g. DrugCentral, UniProtKB).
+# Fallback namespace map when --skip-namespace-lookup is used.
+# Sourced from NodeNorm /get_curie_prefixes (babel_version 2025sep1).
+# Maps input prefix -> canonical prefix, preserving NodeNorm casing.
 FALLBACK_NAMESPACES = {
     "PUBCHEM.COMPOUND":  "PUBCHEM.COMPOUND",
     "INCHIKEY":          "INCHIKEY",
@@ -75,58 +91,49 @@ FALLBACK_NAMESPACES = {
     "PR":                "PR",
 }
 
-# Pubchempy-compliant namespace names used for visualization lookups.
-# https://docs.pubchempy.org/en/latest/api.html
-ALLOWED_VISUALIZATION_NAMESPACES = {
+# Namespaces that can be looked up in PubChem for structure visualization.
+# Values are pubchempy namespace argument names.
+VISUALIZATION_NAMESPACES = {
     "PUBCHEM.COMPOUND": "cid",
     "SMILES":           "smiles",
-    "SDF":              "sdf",
     "INCHIKEY":         "inchi",
 }
 
-# ---------------------------------------------------------------------------
-# Node Norm API helpers
-# ---------------------------------------------------------------------------
+# ── API helpers ────────────────────────────────────────────────────────────────
 
-def get_node_norm_version_info():
-    """Return babel version + biolink model metadata from /status."""
+def fetch_version_info():
+    """Fetch babel/biolink version metadata from NodeNorm /status."""
     r = requests.get("{}/status".format(NODE_NORM_BASE), timeout=15)
     r.raise_for_status()
-    res = r.json()
+    d = r.json()
     return {
-        "babel_version":     res.get("babel_version"),
-        "babel_version_url": res.get("babel_version_url"),
-        "biolink_model_url": res.get("biolink_model", {}).get("url"),
+        "babel_version":     d.get("babel_version"),
+        "babel_version_url": d.get("babel_version_url"),
+        "biolink_model_url": d.get("biolink_model", {}).get("url"),
     }
 
 
-def get_curie_prefixes(semantic_types=None):
-    """Return {biolink_type: {curie_prefix: {PREFIX: count}}} from /get_curie_prefixes."""
-    params = {}
-    if semantic_types:
-        params["semantic_type"] = semantic_types if isinstance(semantic_types, list) else [semantic_types]
-    r = requests.get("{}/get_curie_prefixes".format(NODE_NORM_BASE), params=params, timeout=15)
+def fetch_namespace_prefixes(biolink_classes=None):
+    """
+    Fetch the live namespace prefix list from NodeNorm /get_curie_prefixes.
+    Returns {prefix: canonical_prefix}, same structure as FALLBACK_NAMESPACES.
+    """
+    r = requests.get(
+        "{}/get_curie_prefixes".format(NODE_NORM_BASE),
+        params={"semantic_type": biolink_classes or REL_BIOLINK},
+        timeout=15,
+    )
     r.raise_for_status()
-    return r.json()
-
-
-def fetch_allowed_namespaces(biolink_classes=None):
-    """
-    Query the live NodeNorm prefix list for the given biolink classes and return
-    a dict mapping input prefix (and uppercase variant) -> canonical prefix,
-    matching the same structure as FALLBACK_NAMESPACES.
-    """
-    prefs = get_curie_prefixes(semantic_types=biolink_classes or REL_BIOLINK)
     namespaces = {}
-    for btype_data in prefs.values():
+    for btype_data in r.json().values():
         for prefix in btype_data.get("curie_prefix", {}).keys():
             namespaces[prefix] = prefix
             namespaces[prefix.upper()] = prefix
     return namespaces
 
 
-def query_node_normalizer(curies):
-    """Query /get_normalized_nodes with one or more CURIEs. Returns raw JSON dict."""
+def _query_node_normalizer(curies):
+    """Query NodeNorm /get_normalized_nodes with one or more CURIEs. Returns raw JSON."""
     if isinstance(curies, str):
         curies = [curies]
     r = requests.get(
@@ -136,7 +143,7 @@ def query_node_normalizer(curies):
             "conflate":               "false",
             "drug_chemical_conflate": "false",
             "description":            "true",
-            "individual_types":       "false",
+            "individual_types":       "true",
         },
         timeout=15,
     )
@@ -144,56 +151,8 @@ def query_node_normalizer(curies):
     return r.json()
 
 
-def parse_norm_result(curie, raw):
-    """
-    Parse the raw NodeNorm response for a single CURIE into a clean dict.
-
-    Returns
-    -------
-    dict with keys:
-        normalized              bool
-        primary_id              str | None
-        label                   str | None
-        description             str | None
-        equivalent_identifiers  list[dict]  -- each has identifier / label / description
-    """
-    hit = raw.get(curie)
-    if not hit:
-        return {
-            "normalized":             False,
-            "primary_id":             None,
-            "label":                  None,
-            "description":            None,
-            "equivalent_identifiers": [],
-        }
-
-    primary = hit.get("id", {})
-    eqs = []
-    for eq in hit.get("equivalent_identifiers", []):
-        eqs.append({
-            "identifier":  eq.get("identifier"),
-            "label":       eq.get("label"),
-            "description": eq.get("description"),
-        })
-
-    return {
-        "normalized":             True,
-        "primary_id":             primary.get("identifier"),
-        "label":                  primary.get("label"),
-        "description":            primary.get("description"),
-        "equivalent_identifiers": eqs,
-    }
-
-# ---------------------------------------------------------------------------
-# Name Resolver API helpers
-# ---------------------------------------------------------------------------
-
-def query_name_resolver(name, biolink_classes=None):
-    """
-    Query the SRI Name Resolution API /lookup endpoint with a chemical name string.
-    Returns a list of hits ordered by relevance score, each with keys:
-        curie, label, score, types, synonyms, taxa, clique_identifier_count
-    """
+def _query_name_resolver(name, limit=10):
+    """Query SRI Name Resolver /lookup for a chemical name. Returns list of hits."""
     r = requests.get(
         "{}/lookup".format(NAME_RESOLVER_BASE),
         params={
@@ -201,57 +160,227 @@ def query_name_resolver(name, biolink_classes=None):
             "autocomplete": "false",
             "highlighting": "false",
             "offset":       0,
-            "limit":        10,
-            "biolink_type": biolink_classes or REL_BIOLINK,
+            "limit":        limit,
+            "biolink_type": REL_BIOLINK,
         },
         timeout=15,
     )
     r.raise_for_status()
     return r.json()
 
-# ---------------------------------------------------------------------------
-# Visualization  (adapted from zapp_chemical_mappings.ipynb)
-# ---------------------------------------------------------------------------
+# ── Core normalization ─────────────────────────────────────────────────────────
 
-def get_visualization_data(norm_result, save_path=None):
+def _empty_result():
+    return {
+        "normalized":             False,
+        "primary_id":             None,
+        "label":                  None,
+        "description":            None,
+        "biolink_type":           None,
+        "equivalent_identifiers": [],
+    }
+
+
+def _parse_node_norm(curie, raw):
+    """Parse a raw NodeNorm response for one CURIE into a clean result dict."""
+    result = _empty_result()
+    hit    = raw.get(curie)
+    if not hit:
+        return result
+    primary = hit.get("id", {})
+    result.update({
+        "normalized":  True,
+        "primary_id":  primary.get("identifier"),
+        "label":       primary.get("label"),
+        "description": primary.get("description"),
+        "biolink_type": hit.get("type"),
+        "equivalent_identifiers": [
+            {
+                "identifier":  eq.get("identifier"),
+                "label":       eq.get("label"),
+                "description": eq.get("description"),
+            }
+            for eq in hit.get("equivalent_identifiers", [])
+        ],
+    })
+    return result
+
+
+def normalize_curie(curie):
     """
-    Find the first visualizable identifier in norm_result's equivalent_identifiers,
-    fetch from PubChem, build an RDKit mol, and optionally save a PNG.
-    Returns a dict with: available, iupac_name, cid, repr, value, image_saved_to.
+    Normalize a single CURIE through NodeNorm.
+
+    Parameters
+    ----------
+    curie : str
+        A fully-formed CURIE, e.g. "CHEBI:16236" or "PUBCHEM.COMPOUND:702".
+
+    Returns
+    -------
+    dict with keys: normalized, primary_id, label, description, biolink_type,
+                    equivalent_identifiers
     """
-    candidate = next(
-        (eq["identifier"] for eq in norm_result.get("equivalent_identifiers", [])
-         if eq.get("identifier") and eq["identifier"].split(":")[0] in ALLOWED_VISUALIZATION_NAMESPACES),
-        None
+    raw = _query_node_normalizer(curie)
+    return _parse_node_norm(curie, raw)
+
+
+def lookup(input_value, namespace=None, namespaces=None, hits=10, meta=None):
+    """
+    Unified entry point for chemical lookup.
+
+    Resolves a bare identifier + namespace (ID mode) or a free-text chemical
+    name (name mode), normalizes through NodeNorm, and returns a consistent
+    output dict with the same shape in both modes.
+
+    Parameters
+    ----------
+    input_value : str
+        A chemical name ("ethanol") or bare identifier ("16236").
+    namespace : str | None
+        CURIE prefix (e.g. "CHEBI"). If provided, ID mode is used.
+        If None, name resolution mode is used.
+    namespaces : dict | None
+        Allowed prefix map {input_prefix: canonical_prefix}.
+        Defaults to FALLBACK_NAMESPACES.
+    hits : int
+        Max name-resolver results to include in output (default: 10).
+    meta : dict | None
+        Pre-fetched version/namespace metadata to embed in output.
+
+    Returns
+    -------
+    dict with keys:
+        query               -- input, namespace, curie, mode
+        meta                -- babel/biolink version info + fetch flags
+        name_resolver_hits  -- list of hits (always present; empty in ID mode)
+        result              -- normalized result dict (same shape in both modes)
+    """
+    if namespaces is None:
+        namespaces = FALLBACK_NAMESPACES
+
+    name_resolver_hits = []
+    results            = []
+
+    if namespace is not None:
+        # ── ID mode ──
+        canonical_ns = namespaces.get(namespace) or namespaces.get(namespace.upper())
+        if canonical_ns is None:
+            raise ValueError(
+                "Namespace '{}' is not in the allowed list.\nAllowed: {}".format(
+                    namespace, sorted(set(namespaces.values()))
+                )
+            )
+        curie  = "{}:{}".format(canonical_ns, input_value)
+        result = normalize_curie(curie)
+        results = [result] if result["normalized"] else []
+        query  = {"input": input_value, "namespace": canonical_ns, "curie": curie, "mode": "id"}
+
+    else:
+        # ── Name mode ──
+        # Collect valid CURIEs from all name-resolver hits, then normalize in
+        # one batch call so we surface multiple distinct candidates.
+        hits_list          = _query_name_resolver(input_value, limit=hits)
+        name_resolver_hits = hits_list
+        result             = _empty_result()
+        resolved_curie     = None
+
+        if hits_list:
+            valid_curies = []
+            for hit in hits_list:
+                curie = hit.get("curie", "")
+                if ":" in curie:
+                    raw_ns, cid  = curie.split(":", 1)
+                    canonical_ns = namespaces.get(raw_ns) or namespaces.get(raw_ns.upper())
+                    if canonical_ns:
+                        valid_curies.append("{}:{}".format(canonical_ns, cid))
+
+            if valid_curies:
+                resolved_curie = valid_curies[0]
+                raw_norm       = _query_node_normalizer(valid_curies)
+                seen_primary   = set()
+                for curie in valid_curies:
+                    r   = _parse_node_norm(curie, raw_norm)
+                    pid = r.get("primary_id")
+                    if r["normalized"] and pid and pid not in seen_primary:
+                        seen_primary.add(pid)
+                        results.append(r)
+                if results:
+                    result = results[0]
+
+        query = {"input": input_value, "namespace": None, "curie": resolved_curie, "mode": "name"}
+
+    return {
+        "query":              query,
+        "meta":               meta or {},
+        "name_resolver_hits": name_resolver_hits,
+        "result":             result,
+        "results":            results,
+    }
+
+# ── Visualization ──────────────────────────────────────────────────────────────
+
+def find_visualizable_curie(equivalent_identifiers):
+    """
+    Return the first CURIE from a list of equivalent identifiers whose namespace
+    is supported for PubChem visualization (PUBCHEM.COMPOUND, SMILES, INCHIKEY).
+    Returns None if none are found.
+    """
+    return next(
+        (
+            eq["identifier"]
+            for eq in equivalent_identifiers
+            if eq.get("identifier")
+            and eq["identifier"].split(":")[0] in VISUALIZATION_NAMESPACES
+        ),
+        None,
     )
 
-    if not candidate:
-        return {"available": False, "reason": "No visualizable identifier in equivalent_identifiers"}
 
-    nspace, val = candidate.split(":", 1)
-    results = pcp.get_compounds(val, namespace=ALLOWED_VISUALIZATION_NAMESPACES[nspace])
+def visualize_chemical(curie, save_path=None):
+    """
+    Fetch structure data for a CURIE from PubChem and optionally save a PNG image.
 
-    if not results:
+    Accepts any CURIE whose namespace is in VISUALIZATION_NAMESPACES.
+    The CURIE is typically obtained from find_visualizable_curie() applied to
+    a lookup() result, or passed directly (e.g. from --visualize CLI mode).
+
+    Parameters
+    ----------
+    curie : str
+        A visualizable CURIE, e.g. "PUBCHEM.COMPOUND:702".
+    save_path : str | None
+        File path to write a 400x400 structure PNG. Skipped if None.
+
+    Returns
+    -------
+    dict with keys: available, iupac_name, cid, smiles, inchi, image_saved_to
+    On failure: available=False plus a reason string.
+    """
+    ns, _, val = curie.partition(":")
+    if ns not in VISUALIZATION_NAMESPACES:
+        return {
+            "available": False,
+            "reason":    "Namespace '{}' is not visualizable. Supported: {}".format(
+                ns, list(VISUALIZATION_NAMESPACES)
+            ),
+        }
+
+    compounds = pcp.get_compounds(val, namespace=VISUALIZATION_NAMESPACES[ns])
+    if not compounds:
         return {"available": False, "reason": "Compound not found in PubChem"}
 
-    # Try to visualize using smiles first, then inchi if smiles is not available. Take the first result if multiple are returned.
-    # Take the first result and try to get a structure from its isomeric_smiles or canonical_smiles
-    c = results[0]
+    c      = compounds[0]
     smiles = next(
         (s for s in [getattr(c, "isomeric_smiles", None), getattr(c, "canonical_smiles", None)]
          if isinstance(s, str) and s.strip()),
-        None
+        None,
     )
+    mol   = Chem.MolFromSmiles(smiles) if smiles else None
+    inchi = getattr(c, "inchi", None)
 
-    mol, mol_repr, mol_value = Chem.MolFromSmiles(smiles) if smiles else None, "smiles", smiles
+    if mol is None and isinstance(inchi, str) and inchi.strip():
+        mol = Chem.MolFromInchi(inchi)
 
-    # Assumes no smiles id so we try inchi next
-    if mol is None:
-        inchi = getattr(c, "inchi", None)
-        if isinstance(inchi, str) and inchi.strip():
-            mol, mol_repr, mol_value = Chem.MolFromInchi(inchi), "inchi", inchi
-
-    # If mol is present, we can save an image if requested
     image_saved_to = None
     if mol is not None and save_path:
         Draw.MolToImage(mol, size=(400, 400), legend=getattr(c, "iupac_name", None) or "").save(save_path)
@@ -261,180 +390,98 @@ def get_visualization_data(norm_result, save_path=None):
         "available":      mol is not None,
         "iupac_name":     getattr(c, "iupac_name", None),
         "cid":            getattr(c, "cid", None),
-        "repr":           mol_repr if mol else None,
-        "value":          mol_value if mol else None,
+        "smiles":         smiles,
+        "inchi":          inchi,
         "image_saved_to": image_saved_to,
     }
 
-# ---------------------------------------------------------------------------
-# Main normalization entry points
-# ---------------------------------------------------------------------------
 
-def normalize_chemical(chemical_id, namespace, allowed_namespaces=None, version_info=None, save_image=None):
+def draw_chemical(curie, size=(600, 600)):
     """
-    Normalize a single chemical identifier and optionally produce a structure image.
+    Return a PIL Image of a chemical structure for a given CURIE.
+
+    Designed for direct interactive use — works with IPython display() or
+    as the last expression in a Jupyter cell:
+
+        display(draw_chemical("PUBCHEM.COMPOUND:702"))
+        draw_chemical("PUBCHEM.COMPOUND:702")   # last cell expression also works
 
     Parameters
     ----------
-    chemical_id : str
-        The identifier value without the namespace prefix (e.g. "16236").
-    namespace : str
-        The CURIE prefix (e.g. "CHEBI").
-    allowed_namespaces : dict | None
-        Maps accepted prefixes -> canonical prefix. Uses FALLBACK_NAMESPACES if None.
-    version_info : dict | None
-        Pre-fetched version info dict; omitted from output if None.
-    save_image : str | None
-        File path to save a structure PNG. Skipped if None.
+    curie : str
+        A visualizable CURIE, e.g. "PUBCHEM.COMPOUND:702".
+    size : tuple
+        Pixel dimensions (width, height). Default (600, 600).
 
     Returns
     -------
-    dict -- the full output object ready for JSON serialisation.
+    PIL.Image | None
+        None if the compound cannot be found or visualized.
     """
-    if allowed_namespaces is None:
-        allowed_namespaces = FALLBACK_NAMESPACES
+    vis = visualize_chemical(curie)
+    if not vis.get("available"):
+        return None
+    mol = Chem.MolFromSmiles(vis["smiles"]) if vis.get("smiles") else None
+    if mol is None and vis.get("inchi"):
+        mol = Chem.MolFromInchi(vis["inchi"])
+    if mol is None:
+        return None
+    return Draw.MolToImage(mol, size=size, legend=vis.get("iupac_name") or "")
 
-    # Resolve to canonical casing (e.g. DRUGCENTRAL -> DrugCentral)
-    canonical_ns = allowed_namespaces.get(namespace) or allowed_namespaces.get(namespace.upper())
-    if canonical_ns is None:
-        print(
-            "ERROR: namespace '{}' is not in the allowed list.\nAllowed: {}".format(
-                namespace, sorted(set(allowed_namespaces.values()))
-            ),
-            file=sys.stderr,
-        )
-        sys.exit(1)
+# ── Output formatting ──────────────────────────────────────────────────────────
 
-    curie  = "{}:{}".format(canonical_ns, chemical_id)
-    raw    = query_node_normalizer(curie)
-    result = parse_norm_result(curie, raw)
-
-    vis = {}
-    if result["normalized"]:
-        vis = get_visualization_data(result, save_path=save_image)
-
-    return {
-        "query": {
-            "input_id":  chemical_id,
-            "namespace": canonical_ns,
-            "curie":     curie,
-        },
-        "node_norm_meta": version_info or {},
-        "result":         result,
-        "visualization":  vis,
-    }
+def _flatten(data, prefix=""):
+    """Recursively flatten a nested dict to [(dotted.key, value)] pairs."""
+    items = []
+    for k, v in data.items():
+        key = "{}.{}".format(prefix, k) if prefix else k
+        if isinstance(v, dict):
+            items.extend(_flatten(v, key))
+        elif isinstance(v, list):
+            items.append((key, json.dumps(v)))
+        else:
+            items.append((key, "" if v is None else v))
+    return items
 
 
-def resolve_name(name, allowed_namespaces=None, version_info=None, save_image=None):
+def format_output(data, fmt="json"):
     """
-    Resolve a chemical name via the SRI Name Resolver, then normalize the top hit
-    through NodeNorm.
+    Serialize output data to a string.
 
     Parameters
     ----------
-    name : str
-        Human-readable chemical name (e.g. "ethanol", "glycerol").
-    allowed_namespaces : dict | None
-        Maps accepted prefixes -> canonical prefix. Uses FALLBACK_NAMESPACES if None.
-    version_info : dict | None
-        Pre-fetched version info dict; omitted from output if None.
-    save_image : str | None
-        File path to save a structure PNG. Skipped if None.
-
-    Returns
-    -------
-    dict with keys:
-        query               -- input_name, resolved_curie
-        name_resolver_hits  -- full list of hits returned by the name resolver
-        node_norm_meta      -- version info (same as normalize_chemical)
-        result              -- same structure as normalize_chemical
-        visualization       -- same structure as normalize_chemical
+    data : dict
+    fmt  : "json" (default) | "tsv"
+        json -- pretty-printed JSON
+        tsv  -- two-column key/value table; lists are serialized as JSON strings
     """
-    if allowed_namespaces is None:
-        allowed_namespaces = FALLBACK_NAMESPACES
+    if fmt == "json":
+        return json.dumps(data, indent=2)
+    if fmt == "tsv":
+        rows = ["field\tvalue"] + ["{}\t{}".format(k, v) for k, v in _flatten(data)]
+        return "\n".join(rows)
+    raise ValueError("Unknown format: {}".format(fmt))
 
-    hits = query_name_resolver(name)
-
-    _empty_result = {
-        "normalized":             False,
-        "primary_id":             None,
-        "label":                  None,
-        "description":            None,
-        "equivalent_identifiers": [],
-    }
-
-    if not hits:
-        return {
-            "query":              {"input_name": name, "resolved_curie": None},
-            "name_resolver_hits": [],
-            "node_norm_meta":     version_info or {},
-            "result":             _empty_result,
-            "visualization":      {},
-        }
-
-    top_curie = hits[0].get("curie", "")
-
-    # Split curie into namespace and id, then resolve canonical casing
-    if ":" in top_curie:
-        raw_ns, cid = top_curie.split(":", 1)
-        canonical_ns = allowed_namespaces.get(raw_ns) or allowed_namespaces.get(raw_ns.upper())
-    else:
-        canonical_ns, cid = None, top_curie
-
-    if canonical_ns is None:
-        return {
-            "query":              {"input_name": name, "resolved_curie": top_curie},
-            "name_resolver_hits": hits,
-            "node_norm_meta":     version_info or {},
-            "result":             _empty_result,
-            "visualization":      {},
-        }
-
-    norm_output = normalize_chemical(
-        cid, canonical_ns,
-        allowed_namespaces=allowed_namespaces,
-        version_info=version_info,
-        save_image=save_image,
-    )
-
-    return {
-        "query": {
-            "input_name":    name,
-            "resolved_curie": top_curie,
-        },
-        "name_resolver_hits": hits,
-        "node_norm_meta":     norm_output["node_norm_meta"],
-        "result":             norm_output["result"],
-        "visualization":      norm_output["visualization"],
-    }
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
+# ── CLI ────────────────────────────────────────────────────────────────────────
 
 def build_parser():
     p = argparse.ArgumentParser(
-        description="Normalize a chemical identifier or name via the NCATS NodeNorm / SRI Name Resolver APIs.",
+        description="Normalize a chemical identifier or name via NCATS NodeNorm / SRI Name Resolver.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
 
     mode = p.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--name",      dest="name",       help="Chemical name to resolve (e.g. 'ethanol')")
-    mode.add_argument("--id",        dest="chemical_id", help="Chemical identifier value (no prefix), e.g. 16236")
+    mode.add_argument("--name",      dest="name",        help="Chemical name to resolve (e.g. 'ethanol')")
+    mode.add_argument("--id",        dest="chemical_id", help="Chemical identifier value without prefix (e.g. 16236)")
+    mode.add_argument("--visualize", dest="visualize",   help="Visualize a CURIE directly (e.g. PUBCHEM.COMPOUND:702)")
 
-    p.add_argument("--namespace", dest="namespace", help="CURIE namespace prefix (required with --id), e.g. CHEBI, PUBCHEM.COMPOUND, CAS")
-    p.add_argument(
-        "--save-image",
-        dest="save_image",
-        default=None,
-        help="Optional path to save a structure PNG (e.g. ethanol.png)",
-    )
-    p.add_argument(
-        "--skip-prefetch",
-        action="store_true",
-        help="Skip live namespace/version prefetch and use hardcoded fallback (faster for form calls)",
-    )
+    p.add_argument("--namespace",            dest="namespace",  help="CURIE namespace prefix, required with --id (e.g. CHEBI, PUBCHEM.COMPOUND, CAS)")
+    p.add_argument("--hits",                 dest="hits",       type=int, default=10, help="Max name-resolver hits to return (default: 10)")
+    p.add_argument("--format",               dest="fmt",        choices=["json", "tsv"], default="json", help="Output format (default: json)")
+    p.add_argument("--save-image",           dest="save_image", default=None, help="Path to save a structure PNG (e.g. ethanol.png)")
+    p.add_argument("--skip-version",         action="store_true", help="Skip fetching babel/biolink version info from NodeNorm")
+    p.add_argument("--skip-namespace-lookup",action="store_true", help="Skip live namespace prefix fetch; use hardcoded fallback")
     return p
 
 
@@ -445,38 +492,54 @@ def main():
     if args.chemical_id and not args.namespace:
         parser.error("--namespace is required when using --id")
 
-    if args.skip_prefetch:
-        version_info       = {}
-        allowed_namespaces = FALLBACK_NAMESPACES
-    else:
+    # ── Standalone visualize mode ──────────────────────────────────────────────
+    if args.visualize:
         try:
-            version_info       = get_node_norm_version_info()
-            allowed_namespaces = fetch_allowed_namespaces()
-        except requests.RequestException as e:
-            print("ERROR: could not reach NodeNorm API -- {}".format(e), file=sys.stderr)
+            vis = visualize_chemical(args.visualize, save_path=args.save_image)
+        except Exception as e:
+            print("ERROR: {}".format(e), file=sys.stderr)
             sys.exit(2)
+        print(format_output(vis, args.fmt))
+        return
 
+    # ── Prefetch meta ──────────────────────────────────────────────────────────
+    meta = {}
     try:
-        if args.name:
-            output = resolve_name(
-                args.name,
-                allowed_namespaces=allowed_namespaces,
-                version_info=version_info,
-                save_image=args.save_image,
-            )
-        else:
-            output = normalize_chemical(
-                args.chemical_id,
-                args.namespace,
-                allowed_namespaces=allowed_namespaces,
-                version_info=version_info,
-                save_image=args.save_image,
-            )
+        if not args.skip_version:
+            meta.update(fetch_version_info())
+        namespaces = FALLBACK_NAMESPACES if args.skip_namespace_lookup else fetch_namespace_prefixes()
+    except requests.RequestException as e:
+        print("ERROR: could not reach NodeNorm API -- {}".format(e), file=sys.stderr)
+        sys.exit(2)
+
+    meta["namespaces_fetched"] = not args.skip_namespace_lookup
+
+    # ── Normalize ──────────────────────────────────────────────────────────────
+    try:
+        output = lookup(
+            args.name or args.chemical_id,
+            namespace=args.namespace,
+            namespaces=namespaces,
+            hits=args.hits,
+            meta=meta,
+        )
+    except ValueError as e:
+        print("ERROR: {}".format(e), file=sys.stderr)
+        sys.exit(1)
     except requests.RequestException as e:
         print("ERROR: API request failed -- {}".format(e), file=sys.stderr)
         sys.exit(2)
 
-    print(json.dumps(output, indent=2))
+    # ── Optional visualization (auto-selects first visualizable identifier) ────
+    if args.save_image and output["result"]["normalized"]:
+        vis_curie = find_visualizable_curie(output["result"]["equivalent_identifiers"])
+        output["visualization"] = (
+            visualize_chemical(vis_curie, save_path=args.save_image)
+            if vis_curie
+            else {"available": False, "reason": "No visualizable identifier in equivalent_identifiers"}
+        )
+
+    print(format_output(output, args.fmt))
 
 
 if __name__ == "__main__":

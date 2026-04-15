@@ -8,8 +8,6 @@ import type { ZappObservation } from '@/schema';
 import { PATTERN_OPTIONS, STAGE_UNIT_OPTIONS, DURATION_UNIT_OPTIONS } from './constants';
 import SubstanceFields from './SubstanceFields';
 import {
-  EXPOSURE_CONCENTRATION_VALUE,
-  EXPOSURE_CONCENTRATION_UNIT,
   EXPOSURE_ROUTE,
   EXPOSURE_REGIMEN,
   EXPOSURE_PATTERN,
@@ -178,9 +176,6 @@ export default function ExposureSection({
   const type = exposure.type;
   const [showNotes, setShowNotes] = React.useState(false);
 
-  const u = exposure.concentration.unit;
-  const isCustomUnit = u === '' || (u != null && u !== 'uM' && u !== 'mg/L');
-
   return (
     <div className="row">
       <FormSection title="Exposure Event">
@@ -211,85 +206,6 @@ export default function ExposureSection({
           }
         />
 
-        <div className="col-3">
-          <Input
-            label="Substance concentration"
-            tooltip={EXPOSURE_CONCENTRATION_VALUE}
-            type="number"
-            placeholder="e.g., 10"
-            value={exposure.concentration.value ?? ''}
-            onChange={(evt) =>
-              update((e) => ({
-                ...e,
-                concentration: {
-                  ...e.concentration,
-                  value: evt.currentTarget.value === '' ? null : Number(evt.currentTarget.value)
-                }
-              }))
-            }
-          />
-        </div>
-
-        <div className="col-3">
-          <div className="field">
-            <div className="inline">
-              <label>Unit</label>
-              <Tooltip text={EXPOSURE_CONCENTRATION_UNIT} />
-            </div>
-            <div className="inline" role="radiogroup" aria-label="Concentration unit">
-              {[
-                { v: 'uM', label: 'μM' },
-                { v: 'mg/L', label: 'mg/L' },
-                { v: '__other__', label: 'Other' }
-              ].map((opt) => (
-                <label key={opt.v} className="inline" style={{ gap: 4 }}>
-                  <input
-                    type="radio"
-                    name="conc-unit"
-                    value={opt.v}
-                    checked={opt.v === '__other__' ? isCustomUnit : exposure.concentration.unit === opt.v}
-                    onChange={(e) => {
-                      const val = e.currentTarget.value;
-                      update((ex) => {
-                        const KNOWN = ['uM', 'mg/L'];
-                        return {
-                          ...ex,
-                          concentration: {
-                            ...ex.concentration,
-                            unit:
-                              val === '__other__'
-                                ? (ex.concentration.unit && !KNOWN.includes(ex.concentration.unit) ? ex.concentration.unit : '')
-                                : val
-                          }
-                        };
-                      });
-                    }}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-4">
-          {isCustomUnit ? (
-            <Input
-              label="Custom unit"
-              placeholder="Enter unit"
-              value={exposure.concentration.unit || ''}
-              onChange={(e) =>
-                update((ex) => ({
-                  ...ex,
-                  concentration: {
-                    ...ex.concentration,
-                    unit: e.currentTarget.value
-                  }
-                }))
-              }
-            />
-          ) : null}
-        </div>
 
         <div className="col-12">
           <hr />

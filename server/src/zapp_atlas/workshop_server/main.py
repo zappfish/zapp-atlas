@@ -1,4 +1,5 @@
 import base64
+import bisect
 import json
 import os
 import secrets
@@ -20,8 +21,63 @@ SERVER_DIR = Path(__file__).resolve().parent
 REPO_ROOT = Path(__file__).resolve().parents[4]
 DIST_DIR = (REPO_ROOT / "client" / "dist").resolve()
 SCRIPTS_DIR = (REPO_ROOT / "scripts").resolve()
+DATA_DIR = (REPO_ROOT / "zfin_test_data").resolve()
 DEFAULT_UPLOAD_BASE = (SERVER_DIR / "data" / "submissions").resolve()
 DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
+
+# ---------------------------------------------------------------------------
+# ChEBI autocomplete index + precomputed NodeNorm data
+# ---------------------------------------------------------------------------
+_chebi_synonym_map: dict = {}
+_autocomplete_index: list = []  # sorted list of (lowercase_name, original_name)
+_chebi_normalized: dict = {}    # CHEBI ID -> precomputed NodeNorm result
+
+
+def _load_chebi_synonyms() -> None:
+    global _chebi_synonym_map, _autocomplete_index
+    path = DATA_DIR / "chebi_synonym_mapping.json"
+    if not path.exists():
+        return
+    with open(path, encoding="utf-8") as f:
+        _chebi_synonym_map = json.load(f)
+    _autocomplete_index = sorted(
+        [(k.lower(), k) for k in _chebi_synonym_map],
+        key=lambda x: x[0],
+    )
+
+
+def _load_chebi_normalized() -> None:
+    global _chebi_normalized
+    path = DATA_DIR / "chebi_normalized.json"
+    if not path.exists():
+        return
+    with open(path, encoding="utf-8") as f:
+        _chebi_normalized = json.load(f)
+
+
+def _best_normalized(chebi_ids: list) -> dict | None:
+    """
+    Return the best precomputed NodeNorm result for a list of CHEBI IDs.
+
+    Prefers a result whose primary_id matches the queried ID (self-canonical).
+    Falls back to the first normalized result if none are self-canonical.
+    Returns None if no precomputed data is available or no IDs normalize.
+    """
+    if not _chebi_normalized:
+        return None
+    fallback = None
+    for cid in chebi_ids:
+        result = _chebi_normalized.get(cid)
+        if result and result.get("normalized"):
+            if result.get("primary_id") == cid:
+                return result  # self-canonical: best match
+            if fallback is None:
+                fallback = result
+    return fallback
+
+
+_load_chebi_synonyms()
+_load_chebi_normalized()
 
 # Disable Flask's default static handler; we'll serve only from client/dist explicitly
 app = Flask(__name__, static_folder=None)
@@ -125,6 +181,34 @@ def health():
     return jsonify({"status": "ok"}), 200
 
 
+@app.get("/autocomplete-chemical")
+def autocomplete_chemical():
+    q = (request.args.get("q") or "").strip()
+    if len(q) < 2:
+        return jsonify([]), 200
+    try:
+        limit = int(request.args.get("limit") or 5)
+        limit = max(1, min(limit, 50))
+    except (ValueError, TypeError):
+        limit = 5
+    q_lower = q.lower()
+    lo = bisect.bisect_left(_autocomplete_index, (q_lower,))
+    results = []
+    for i in range(lo, len(_autocomplete_index)):
+        lower_name, orig_name = _autocomplete_index[i]
+        if not lower_name.startswith(q_lower):
+            break
+        chebi_ids = list(_chebi_synonym_map[orig_name].keys())
+        results.append({
+            "name": orig_name,
+            "chebi_ids": chebi_ids,
+            "normalized": _best_normalized(chebi_ids),
+        })
+        if len(results) >= limit:
+            break
+    return jsonify(results), 200
+
+
 @app.post("/normalize-chemical")
 def normalize_chemical():
     body = request.get_json(silent=True) or {}
@@ -146,9 +230,9 @@ def normalize_chemical():
 
     try:
         if use_name_resolver:
-            cmd = [sys.executable, str(script), "--name", name, "--skip-prefetch", "--save-image", str(tmp_path)]
+            cmd = [sys.executable, str(script), "--name", name, "--skip-version", "--skip-namespace-lookup", "--save-image", str(tmp_path)]
         else:
-            cmd = [sys.executable, str(script), "--id", chemical_id, "--namespace", namespace, "--skip-prefetch", "--save-image", str(tmp_path)]
+            cmd = [sys.executable, str(script), "--id", chemical_id, "--namespace", namespace, "--skip-version", "--skip-namespace-lookup", "--save-image", str(tmp_path)]
 
         proc = subprocess.run(
             cmd,
