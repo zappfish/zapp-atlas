@@ -12,6 +12,7 @@
       "@/*": ["*"]
     },
 
+    "module": "esnext",
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
@@ -20,6 +21,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "types": ["react", "react-dom"]
+    "types": ["react", "react-dom", "vite/client"]
   }
 }

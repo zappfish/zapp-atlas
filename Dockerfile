@@ -5,6 +5,7 @@ WORKDIR /build
 COPY client/package.json client/package-lock.json ./
 RUN npm ci
 COPY client/ ./
+ARG VITE_DATA_BASE_URL
 RUN npm run build
 
 # Stage 2 — Python runtime
