@@ -15,6 +15,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from server.api.deps import get_session
 from server.api.main import create_app
@@ -26,7 +27,11 @@ def _make_test_app():
     # Schema-provided SQLAlchemy base (assumed to exist)
     from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
 
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     Base.metadata.create_all(engine)
     SessionLocal = sessionmaker(bind=engine)
 
