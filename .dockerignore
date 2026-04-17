@@ -1,0 +1,13 @@
+.git
+node_modules
+client/dist
+client/node_modules
+server/.venv
+server/data
+*.db
+__pycache__
+docs
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
