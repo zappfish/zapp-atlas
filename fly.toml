@@ -1,3 +1,8 @@
+# fly.toml app configuration file generated for zapp-atlas on 2026-04-17T13:24:40-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'zapp-atlas'
 primary_region = 'sjc'
 
@@ -5,6 +10,10 @@ primary_region = 'sjc'
 
 [env]
   ZAPP_DB_PATH = '/data/zapp.db'
+
+[[mounts]]
+  source = 'zapp_data'
+  destination = '/data'
 
 [http_service]
   internal_port = 8080
@@ -18,13 +27,15 @@ primary_region = 'sjc'
     hard_limit = 250
     soft_limit = 200
 
-[[http_service.checks]]
-  grace_period = '10s'
-  interval = '30s'
-  method = 'GET'
-  path = '/health'
-  timeout = '5s'
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health'
 
-[mounts]
-  source = 'zapp_data'
-  destination = '/data'
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024

@@ -73,7 +73,7 @@ def create_app() -> FastAPI:
     # SPA catch-all: serve files from dist/ if they exist, otherwise index.html
     if DIST_DIR.is_dir():
 
-        @app.get("/{full_path:path}")
+        @app.get("/{full_path:path}", include_in_schema=False)
         async def spa_catch_all(full_path: str):
             file = DIST_DIR / full_path
             if full_path and file.is_file():
