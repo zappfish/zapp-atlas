@@ -4,6 +4,12 @@ tsconfig.tsbuildinfo
 __pycache__/
 .env.local
 
+# Playwright
+client/test-results/
+client/playwright-report/
+client/blob-report/
+client/playwright/.cache/
+
 # Server secrets and uploads
 server/credentials.txt
 server/data/

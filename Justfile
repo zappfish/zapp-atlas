@@ -26,6 +26,18 @@ dev:
 test:
     cd server && uv run pytest
 
+# Run UI smoke tests (Playwright, headless)
+smoke:
+    cd client && npx playwright test
+
+# Run UI smoke tests with browser visible
+smoke-headed:
+    cd client && npx playwright test --headed
+
+# Seed the dev database
+seed:
+    cd server && PYTHONPATH=.. uv run python -m server.seed
+
 # Build the Docker image (local/Fly.io)
 build:
     docker build -t zapp-atlas .
