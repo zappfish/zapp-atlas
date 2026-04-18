@@ -137,8 +137,8 @@ export default function ExposureFormPage() {
       <h1>{isEdit ? 'Edit exposure' : 'New exposure'}</h1>
       {error && <p className="error">{error}</p>}
       <form onSubmit={onSubmit} className="stacked-form">
-        <label>
-          Route
+        <div className="field">
+          <label>Route</label>
           <OntologyAutocomplete
             value={route}
             onChange={setRoute}
@@ -146,9 +146,9 @@ export default function ExposureFormPage() {
             placeholder="Start typing a route (e.g. inhalation)…"
             ariaLabel="Route autocomplete"
           />
-        </label>
-        <label>
-          Exposure type
+        </div>
+        <div className="field">
+          <label>Exposure type</label>
           <OntologyAutocomplete
             value={exposureType}
             onChange={setExposureType}
@@ -156,7 +156,7 @@ export default function ExposureFormPage() {
             placeholder="Start typing an ECTO term…"
             ariaLabel="Exposure type autocomplete"
           />
-        </label>
+        </div>
         <div className="field-row">
           <label>
             Start stage

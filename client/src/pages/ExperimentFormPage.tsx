@@ -76,10 +76,10 @@ export default function ExperimentFormPage() {
       <h1>{isEdit ? 'Edit experiment' : 'New experiment'}</h1>
       {error && <p className="error">{error}</p>}
       <form onSubmit={onSubmit} className="stacked-form">
-        <label>
-          Fish
+        <div className="field">
+          <label>Fish</label>
           <FishAutocomplete value={fish} onChange={setFish} />
-        </label>
+        </div>
 
         <label className="inline-check">
           <input
