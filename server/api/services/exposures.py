@@ -10,6 +10,7 @@ from server.api.services.studies import (
     _exposure_event_from_create,
     _quantity_value_from_payload,
     _regimen_from_create,
+    _resolve_ontology_term,
     _stressor_from_create,
 )
 
@@ -54,17 +55,23 @@ def patch_exposure(
         return None
 
     scalar_fields = (
-        "route",
         "exposure_start_stage",
         "exposure_end_stage",
         "comment",
-        "exposure_type",
         "additional_exposure_condition",
     )
     for field in scalar_fields:
         value = getattr(patch, field, None)
         if value is not None:
             setattr(ee, field, value)
+
+    # Ontology-validated relationships.
+    if patch.route is not None:
+        ee.route = _resolve_ontology_term(session, "route", patch.route)
+    if patch.exposure_type is not None:
+        ee.exposure_type = _resolve_ontology_term(
+            session, "exposure_type", patch.exposure_type
+        )
 
     if patch.vehicle is not None:
         ee.vehicle = list(patch.vehicle)

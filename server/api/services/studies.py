@@ -9,9 +9,16 @@ This code assumes LinkML-generated SQLAlchemy ORM classes are available at:
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from sqlalchemy.orm import Session
+
+from server.ontology import (
+    OntologyBackendError,
+    OntologyInvalidTerm,
+    validate_and_fetch,
+)
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ControlCreate,
@@ -30,6 +37,8 @@ from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     ChemicalEntity,
     Control,
     ExposureEvent,
+    ExposureRoute,
+    ExposureType,
     Experiment,
     Fish,
     Phenotype,
@@ -41,6 +50,63 @@ from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Study,
     StudyAnnotator,
 )
+
+
+log = logging.getLogger(__name__)
+
+
+# Validation config for ontology-backed fields. ``required_ancestors=None``
+# means "any term in this ontology is acceptable".
+_ONTOLOGY_FIELDS = {
+    "route": {
+        "ontology": "exo",
+        "required_ancestors": ["ExO:0000055"],  # "exposure route"
+        "orm_class": ExposureRoute,
+    },
+    "exposure_type": {
+        "ontology": "ecto",
+        "required_ancestors": None,
+        "orm_class": ExposureType,
+    },
+}
+
+
+class OntologyValidationError(ValueError):
+    """Raised by resolver when a term is invalid; callers turn into 422."""
+
+
+def _resolve_ontology_term(session: Session, field_name: str, curie: str | None):
+    if not curie:
+        return None
+
+    config = _ONTOLOGY_FIELDS[field_name]
+    orm_cls = config["orm_class"]
+    label = ""
+
+    try:
+        hit = validate_and_fetch(
+            curie,
+            ontology=config["ontology"],
+            required_ancestors=config["required_ancestors"],
+        )
+        label = hit.term_label
+    except OntologyInvalidTerm as exc:
+        raise OntologyValidationError(str(exc)) from exc
+    except OntologyBackendError as exc:
+        # Fail-open: OLS unreachable shouldn't block submissions. Store the
+        # CURIE with an empty label; a later backfill can populate it.
+        log.warning("OLS unreachable while validating %s=%s: %s", field_name, curie, exc)
+
+    existing = (
+        session.query(orm_cls).filter(orm_cls.term_uri == curie).one_or_none()
+    )
+    if existing is not None:
+        if label and not existing.term_label:
+            existing.term_label = label
+        return existing
+    new = orm_cls(term_uri=curie, term_label=label)
+    session.add(new)
+    return new
 
 
 def _get_or_create_by_attrs(session: Session, model, /, **attrs):
@@ -160,11 +226,13 @@ def _regimen_from_create(session: Session, payload: RegimenCreate | None) -> Reg
 
 def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) -> ExposureEvent:
     ee = ExposureEvent(
-        route=payload.route,
+        route=_resolve_ontology_term(session, "route", payload.route),
         exposure_start_stage=payload.exposure_start_stage,
         exposure_end_stage=payload.exposure_end_stage,
         comment=getattr(payload, "comment", None),
-        exposure_type=getattr(payload, "exposure_type", None),
+        exposure_type=_resolve_ontology_term(
+            session, "exposure_type", getattr(payload, "exposure_type", None)
+        ),
         additional_exposure_condition=getattr(payload, "additional_exposure_condition", None),
         regimen=_regimen_from_create(session, getattr(payload, "regimen", None)),
     )

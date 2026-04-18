@@ -8,11 +8,24 @@ from sqlalchemy.pool import StaticPool
 
 from server.api.deps import get_session
 from server.api.main import create_app
+from server.ontology import _reset_caches_for_testing
+
+
+@pytest.fixture(autouse=True)
+def _reset_ontology_caches():
+    """Ontology lookups are cached at module level; reset between tests so
+    respx stubs from one test don't leak into the next."""
+    _reset_caches_for_testing()
+    yield
+    _reset_caches_for_testing()
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
+
+    # Lifespan tries to seed into a real on-disk DB; disable for tests.
+    monkeypatch.setenv("ZAPP_SKIP_SEED", "1")
 
     engine = create_engine(
         "sqlite:///:memory:",

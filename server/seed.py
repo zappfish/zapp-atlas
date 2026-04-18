@@ -88,10 +88,10 @@ def _build_bpa_study(session: Session) -> Study:
     )
 
     water_route = _upsert_exposure_route(
-        session, term_uri="EXO:0000057", term_label="water exposure"
+        session, term_uri="ExO:0000057", term_label="water exposure"
     )
     continuous = _upsert_exposure_type(
-        session, term_uri="EXO:0000109", term_label="continuous exposure"
+        session, term_uri="ExO:0000109", term_label="continuous exposure"
     )
 
     experiment = Experiment(standard_rearing_condition=True, fish=fish)
@@ -147,10 +147,10 @@ def _build_cyclopamine_study(session: Session) -> Study:
     )
 
     water_route = _upsert_exposure_route(
-        session, term_uri="EXO:0000057", term_label="water exposure"
+        session, term_uri="ExO:0000057", term_label="water exposure"
     )
     continuous = _upsert_exposure_type(
-        session, term_uri="EXO:0000109", term_label="continuous exposure"
+        session, term_uri="ExO:0000109", term_label="continuous exposure"
     )
 
     experiment = Experiment(standard_rearing_condition=True, fish=fish)

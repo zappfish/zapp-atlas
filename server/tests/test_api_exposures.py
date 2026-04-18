@@ -1,17 +1,52 @@
 from __future__ import annotations
 
-"""API tests for Exposure event endpoints.
+"""API tests for Exposure event endpoints."""
 
-Note: `route` and `exposure_type` are omitted from payloads here. They're
-typed as bare-str subclasses in the current LinkML output
-(`reachable_from` enums), which Pydantic won't coerce from plain JSON
-strings. Tracked in zappfish/zebrafish-toxicology-atlas-schema#15 —
-converting those enums to `OntologyEntity` classes lazy-populated like
-`Fish` / `PhenotypeTerm`. Once that lands, drop this caveat and add
-round-trip coverage for those fields.
-"""
-
+import httpx
+import respx
 from fastapi.testclient import TestClient
+
+from server.ontology import OLS_BASE_URL
+
+
+def _mock_exo_water_route() -> None:
+    """Stub OLS so ``ExO:0000057`` validates and resolves to a label."""
+    respx.get(f"{OLS_BASE_URL}/ontologies/exo/terms").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "_embedded": {
+                    "terms": [
+                        {
+                            "iri": "http://purl.obolibrary.org/obo/ExO_0000057",
+                            "obo_id": "ExO:0000057",
+                            "label": "inhalation route",
+                        }
+                    ]
+                }
+            },
+        )
+    )
+    # Ancestors include the "exposure route" root so reachability passes.
+    respx.get(
+        f"{OLS_BASE_URL}/ontologies/exo/terms/"
+        "http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FExO_0000057/ancestors"
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "_embedded": {
+                    "terms": [
+                        {
+                            "iri": "http://purl.obolibrary.org/obo/ExO_0000055",
+                            "obo_id": "ExO:0000055",
+                            "label": "exposure route",
+                        }
+                    ]
+                }
+            },
+        )
+    )
 
 
 def _create_study_and_experiment(client: TestClient) -> tuple[int, int]:
@@ -112,3 +147,145 @@ def test_patch_exposure_updates_fields(client: TestClient) -> None:
 
 def test_patch_exposure_missing_404(client: TestClient) -> None:
     assert client.patch("/exposures/999999", json={"comment": "x"}).status_code == 404
+
+
+# -- ontology-validated fields -------------------------------------------------
+
+
+@respx.mock
+def test_create_exposure_with_valid_route_round_trips(client: TestClient) -> None:
+    _mock_exo_water_route()
+    _, exp_id = _create_study_and_experiment(client)
+
+    res = client.post(
+        f"/experiments/{exp_id}/exposures",
+        json={
+            "route": "ExO:0000057",
+            "stressor": [],
+            "phenotype_observation": [],
+        },
+    )
+    assert res.status_code == 201, res.text
+    body = res.json()
+    assert body["route"] == "ExO:0000057"
+
+    # The stored term carries the canonical label fetched from OLS.
+    got = client.get(f"/exposures/{body['id']}").json()
+    assert got["route"] == "ExO:0000057"
+
+
+@respx.mock
+def test_create_exposure_with_unknown_route_is_422(client: TestClient) -> None:
+    respx.get(f"{OLS_BASE_URL}/ontologies/exo/terms").mock(
+        return_value=httpx.Response(200, json={"_embedded": {"terms": []}})
+    )
+    _, exp_id = _create_study_and_experiment(client)
+
+    res = client.post(
+        f"/experiments/{exp_id}/exposures",
+        json={"route": "ExO:9999999", "stressor": [], "phenotype_observation": []},
+    )
+    assert res.status_code == 422
+    assert "ExO:9999999" in res.text
+
+
+@respx.mock
+def test_create_exposure_with_unreachable_route_is_422(client: TestClient) -> None:
+    # Term exists but has no ancestors under ExO:0000055.
+    respx.get(f"{OLS_BASE_URL}/ontologies/exo/terms").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "_embedded": {
+                    "terms": [
+                        {
+                            "iri": "http://purl.obolibrary.org/obo/ExO_0000001",
+                            "obo_id": "ExO:0000001",
+                            "label": "exposure ontology (root)",
+                        }
+                    ]
+                }
+            },
+        )
+    )
+    respx.get(
+        f"{OLS_BASE_URL}/ontologies/exo/terms/"
+        "http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FExO_0000001/ancestors"
+    ).mock(
+        return_value=httpx.Response(200, json={"_embedded": {"terms": []}})
+    )
+    _, exp_id = _create_study_and_experiment(client)
+
+    res = client.post(
+        f"/experiments/{exp_id}/exposures",
+        json={"route": "ExO:0000001", "stressor": [], "phenotype_observation": []},
+    )
+    assert res.status_code == 422
+    assert "reachable" in res.text.lower()
+
+
+@respx.mock
+def test_create_exposure_fails_open_when_ols_down(client: TestClient) -> None:
+    respx.get(f"{OLS_BASE_URL}/ontologies/exo/terms").mock(
+        return_value=httpx.Response(503)
+    )
+    _, exp_id = _create_study_and_experiment(client)
+
+    res = client.post(
+        f"/experiments/{exp_id}/exposures",
+        json={"route": "ExO:0000057", "stressor": [], "phenotype_observation": []},
+    )
+    assert res.status_code == 201, res.text
+    assert res.json()["route"] == "ExO:0000057"
+
+
+@respx.mock
+def test_patch_exposure_replaces_route(client: TestClient) -> None:
+    _mock_exo_water_route()
+    _, exp_id = _create_study_and_experiment(client)
+
+    created = client.post(
+        f"/experiments/{exp_id}/exposures",
+        json={"route": "ExO:0000057", "stressor": [], "phenotype_observation": []},
+    ).json()
+
+    # PATCH back to no-route by setting to a different valid term; stub a
+    # second term.
+    respx.get(f"{OLS_BASE_URL}/ontologies/exo/terms").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "_embedded": {
+                    "terms": [
+                        {
+                            "iri": "http://purl.obolibrary.org/obo/ExO_0000056",
+                            "obo_id": "ExO:0000056",
+                            "label": "dermal route",
+                        }
+                    ]
+                }
+            },
+        )
+    )
+    respx.get(
+        f"{OLS_BASE_URL}/ontologies/exo/terms/"
+        "http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FExO_0000056/ancestors"
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "_embedded": {
+                    "terms": [
+                        {"obo_id": "ExO:0000055", "label": "exposure route"}
+                    ]
+                }
+            },
+        )
+    )
+
+    res = client.patch(
+        f"/exposures/{created['id']}",
+        json={"route": "ExO:0000056"},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["route"] == "ExO:0000056"

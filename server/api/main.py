@@ -12,14 +12,16 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import fastapi._compat.v2 as _fastapi_compat_v2
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request, status
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from server.api.services.studies import OntologyValidationError
 from server.api.routers.experiments import router as experiments_router
 from server.api.routers.exposures import router as exposures_router
 from server.api.routers.images import router as images_router
 from server.api.routers.observations import router as observations_router
+from server.api.routers.ols import router as ols_router
 from server.api.routers.studies import router as studies_router
 from server.api.routers.zfin import router as zfin_router
 from server.db import get_engine, get_session_factory, init_db
@@ -73,12 +75,20 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    @app.exception_handler(OntologyValidationError)
+    async def _on_ontology_invalid(_: Request, exc: OntologyValidationError):
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": str(exc)},
+        )
+
     app.include_router(studies_router)
     app.include_router(experiments_router)
     app.include_router(exposures_router)
     app.include_router(observations_router)
     app.include_router(images_router)
     app.include_router(zfin_router)
+    app.include_router(ols_router)
 
     # Serve Vite's hashed asset bundles (JS/CSS) if the build exists
     assets_dir = DIST_DIR / "assets"
