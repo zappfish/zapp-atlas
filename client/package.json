@@ -16,6 +16,7 @@
     "frogpot": "^2.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^7.14.1",
     "zod": "^4.0.0"
   },
   "devDependencies": {
