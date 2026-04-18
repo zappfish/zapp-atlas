@@ -170,6 +170,150 @@ dd {
   border-radius: 4px;
 }
 
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.button-link {
+  display: inline-block;
+  background: var(--brand-teal);
+  color: #fff;
+  padding: 0.5rem 0.9rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.button-link:hover {
+  background: var(--brand-teal-hover);
+  color: #fff;
+}
+.button-link.small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.stacked-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 640px;
+}
+.stacked-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-weight: 700;
+}
+.stacked-form input,
+.stacked-form textarea {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-weight: 400;
+}
+.stacked-form .inline-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.form-actions button {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--brand-teal);
+  border-radius: 4px;
+  background: var(--brand-teal);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.form-actions button[type='button'] {
+  background: #fff;
+  color: var(--brand-teal);
+}
+.form-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.autocomplete {
+  position: relative;
+}
+.autocomplete input {
+  width: 100%;
+}
+.autocomplete-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-top: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.autocomplete-menu li {
+  padding: 0;
+}
+.autocomplete-menu li.muted {
+  padding: 0.5rem 0.75rem;
+  color: var(--fg-muted);
+}
+.autocomplete-menu button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+}
+.autocomplete-menu button:hover {
+  background: var(--bg-subtle, #f7f7f7);
+}
+
+.selected-fish {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fafafa;
+  font-weight: 400;
+}
+.link-button {
+  background: none;
+  border: none;
+  color: var(--brand-link);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
+
 .container {
   max-width: 1100px;
   margin: 0 auto;

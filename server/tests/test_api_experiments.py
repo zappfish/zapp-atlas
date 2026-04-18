@@ -103,3 +103,43 @@ def test_experiment_get_missing_404():
 
     res = client.get("/experiments/999999")
     assert res.status_code == 404
+
+
+def test_experiment_patch_updates_rearing_and_fish():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    study_id = _create_study(client)
+    exp = client.post(
+        f"/studies/{study_id}/experiments",
+        json={
+            "standard_rearing_condition": True,
+            "rearing_condition_comment": "",
+            "fish": {"zfin_id": "ZFIN:ZDB-GENO-960809-7", "name": "AB"},
+            "control": [],
+            "exposure_event": [],
+        },
+    ).json()
+
+    res = client.patch(
+        f"/experiments/{exp['id']}",
+        json={
+            "standard_rearing_condition": False,
+            "rearing_condition_comment": "temperature 24C",
+            "fish": {"zfin_id": "ZFIN:ZDB-GENO-010112-1", "name": "TU"},
+        },
+    )
+    assert res.status_code == 200, res.text
+    patched = res.json()
+    assert patched["standard_rearing_condition"] is False
+    assert patched["rearing_condition_comment"] == "temperature 24C"
+    assert patched["fish"]["zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
+    assert patched["fish"]["name"] == "TU"
+
+
+def test_experiment_patch_missing_404():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.patch("/experiments/999999", json={"rearing_condition_comment": "x"})
+    assert res.status_code == 404

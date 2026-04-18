@@ -23,11 +23,13 @@ from server.api.services.experiments import (
     create_experiment_for_study,
     get_experiment_by_id,
     list_experiments,
+    patch_experiment,
 )
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExperimentCreate,
     ExperimentRead,
+    ExperimentUpdate,
 )
 
 
@@ -70,6 +72,21 @@ def get_experiment_endpoint(
     session: Annotated[Session, Depends(get_session)],
 ) -> ExperimentRead:
     exp = get_experiment_by_id(session, experiment_id)
+    if exp is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found",
+        )
+    return _as_read(exp)
+
+
+@router.patch("/experiments/{experiment_id}", response_model=ExperimentRead)
+def patch_experiment_endpoint(
+    experiment_id: int,
+    patch: ExperimentUpdate,
+    session: Annotated[Session, Depends(get_session)],
+) -> ExperimentRead:
+    exp = patch_experiment(session, experiment_id, patch)
     if exp is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

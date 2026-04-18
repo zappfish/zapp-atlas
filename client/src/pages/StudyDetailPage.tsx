@@ -112,10 +112,15 @@ function ExposureBlock({ ee }: { ee: ExposureEvent }) {
 function ExperimentBlock({ exp }: { exp: Experiment }) {
   return (
     <div className="experiment-block">
-      <h3>
-        Experiment #{exp.id}
-        {exp.fish?.name && <span className="muted"> — {exp.fish.name}</span>}
-      </h3>
+      <div className="page-head">
+        <h3>
+          Experiment #{exp.id}
+          {exp.fish?.name && <span className="muted"> — {exp.fish.name}</span>}
+        </h3>
+        <Link to={`/experiments/${exp.id}/edit`} className="button-link small">
+          Edit
+        </Link>
+      </div>
       <dl>
         {exp.fish && (
           <>
@@ -171,7 +176,20 @@ export default function StudyDetailPage() {
       <p>
         <Link to="/">← All studies</Link>
       </p>
-      <h1>{study.publication ?? `Study #${study.id}`}</h1>
+      <div className="page-head">
+        <h1>{study.publication ?? `Study #${study.id}`}</h1>
+        <div className="button-row">
+          <Link to={`/studies/${study.id}/edit`} className="button-link">
+            Edit study
+          </Link>
+          <Link
+            to={`/studies/${study.id}/experiments/new`}
+            className="button-link"
+          >
+            Add experiment
+          </Link>
+        </div>
+      </div>
       <dl>
         {study.lab && (
           <>

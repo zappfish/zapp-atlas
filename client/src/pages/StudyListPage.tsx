@@ -27,7 +27,12 @@ export default function StudyListPage() {
 
   return (
     <section>
-      <h1>Studies</h1>
+      <div className="page-head">
+        <h1>Studies</h1>
+        <Link to="/studies/new" className="button-link">
+          New study
+        </Link>
+      </div>
       {studies.length === 0 ? (
         <p>No studies yet.</p>
       ) : (

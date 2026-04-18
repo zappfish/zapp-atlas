@@ -39,6 +39,7 @@ from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Regimen,
     StressorChemical,
     Study,
+    StudyAnnotator,
 )
 
 
@@ -242,9 +243,19 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Optional
     if patch.lab is not None:
         study.lab = patch.lab
     if patch.annotator is not None:
-        study.annotator = patch.annotator
+        # The annotator_rel relationship doesn't have `cascade="all,
+        # delete-orphan"` (generator gap — tracked on the schema repo),
+        # so reassigning the association_proxy triggers a NULLify on the
+        # composite-PK child rows and crashes. Delete the rows at the
+        # SQL layer, expire the relationship, then append the new list.
+        session.query(StudyAnnotator).filter(
+            StudyAnnotator.Study_id == study.id
+        ).delete(synchronize_session="fetch")
+        session.flush()
+        session.expire(study, ["annotator_rel"])
+        for a in patch.annotator:
+            study.annotator.append(a)
 
-    session.add(study)
     session.commit()
     session.refresh(study)
     return study
