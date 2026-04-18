@@ -86,6 +86,90 @@ main.app-main {
   color: var(--fg-muted);
 }
 
+.muted {
+  color: var(--fg-muted);
+}
+
+.study-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.study-table th,
+.study-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.study-table th {
+  background: #fafafa;
+  font-weight: 700;
+  color: var(--brand-teal);
+}
+
+.experiment-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.experiment-block h3 {
+  margin-top: 0;
+}
+
+.exposure-block {
+  background: #fafafa;
+  border-left: 3px solid var(--brand-teal);
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.obs-block {
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+
+.subhead {
+  font-weight: 700;
+  color: var(--brand-teal);
+  margin: 0.5rem 0 0.25rem;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0;
+}
+
+dt {
+  font-weight: 700;
+  color: var(--fg-muted);
+}
+
+dd {
+  margin: 0;
+}
+
+.img-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.thumb {
+  max-width: 180px;
+  max-height: 180px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
 .container {
   max-width: 1100px;
   margin: 0 auto;

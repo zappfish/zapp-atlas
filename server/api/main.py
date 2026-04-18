@@ -7,6 +7,7 @@ Notes
 * The LinkML-generated models are imported from the schema package.
 """
 
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -21,7 +22,8 @@ from server.api.routers.images import router as images_router
 from server.api.routers.observations import router as observations_router
 from server.api.routers.studies import router as studies_router
 from server.api.routers.zfin import router as zfin_router
-from server.db import init_db
+from server.db import get_engine, get_session_factory, init_db
+from server.seed import seed
 
 
 # ---------------------------------------------------------------------------
@@ -51,7 +53,12 @@ DIST_DIR = Path(__file__).resolve().parent.parent.parent / "client" / "dist"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    engine = get_engine()
+    init_db(engine)
+    if os.getenv("ZAPP_SKIP_SEED", "").lower() not in {"1", "true", "yes"}:
+        Session = get_session_factory(engine)
+        with Session() as session:
+            seed(session)
     yield
 
 

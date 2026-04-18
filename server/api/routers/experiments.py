@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.api.deps import get_session
+from server.api.serializers import OrmView
 from server.api.services.experiments import (
     create_experiment_for_study,
     get_experiment_by_id,
@@ -33,6 +34,10 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
 router = APIRouter(tags=["experiments"])
 
 
+def _as_read(exp) -> ExperimentRead:
+    return ExperimentRead.model_validate(OrmView(exp), from_attributes=True)
+
+
 @router.post(
     "/studies/{study_id}/experiments",
     response_model=ExperimentRead,
@@ -46,7 +51,7 @@ def create_experiment_for_study_endpoint(
     exp = create_experiment_for_study(session, study_id=study_id, payload=payload)
     if exp is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
-    return exp  # type: ignore[return-value]
+    return _as_read(exp)
 
 
 @router.get("/experiments", response_model=list[ExperimentRead])
@@ -56,7 +61,7 @@ def list_experiments_endpoint(
     offset: int = 0,
 ) -> list[ExperimentRead]:
     rows = list_experiments(session, limit=limit, offset=offset)
-    return rows  # type: ignore[return-value]
+    return [_as_read(e) for e in rows]
 
 
 @router.get("/experiments/{experiment_id}", response_model=ExperimentRead)
@@ -70,4 +75,4 @@ def get_experiment_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Experiment not found",
         )
-    return exp  # type: ignore[return-value]
+    return _as_read(exp)

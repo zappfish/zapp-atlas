@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.api.deps import get_session
+from server.api.serializers import OrmView
 from server.api.services.studies import (
     create_study,
     get_study_by_id,
@@ -30,14 +31,16 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
 router = APIRouter(prefix="/studies", tags=["studies"])
 
 
+def _as_read(study) -> StudyRead:
+    return StudyRead.model_validate(OrmView(study), from_attributes=True)
+
+
 @router.post("", response_model=StudyRead, status_code=status.HTTP_201_CREATED)
 def create_study_endpoint(
     payload: StudyCreate,
     session: Annotated[Session, Depends(get_session)],
 ) -> StudyRead:
-    study = create_study(session, payload)
-    # We return ORM instances; StudyRead is configured with from_attributes=True.
-    return study  # type: ignore[return-value]
+    return _as_read(create_study(session, payload))
 
 
 @router.get("/{study_id}", response_model=StudyRead)
@@ -48,7 +51,7 @@ def get_study_endpoint(
     study = get_study_by_id(session, study_id)
     if study is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
-    return study  # type: ignore[return-value]
+    return _as_read(study)
 
 
 @router.get("", response_model=list[StudyRead])
@@ -58,7 +61,7 @@ def list_studies_endpoint(
     offset: int = 0,
 ) -> list[StudyRead]:
     rows = list_studies(session, limit=limit, offset=offset)
-    return rows  # type: ignore[return-value]
+    return [_as_read(s) for s in rows]
 
 
 @router.patch("/{study_id}", response_model=StudyRead)
@@ -70,4 +73,4 @@ def patch_study_endpoint(
     study = patch_study(session, study_id, patch)
     if study is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
-    return study  # type: ignore[return-value]
+    return _as_read(study)

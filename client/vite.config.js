@@ -21,6 +21,11 @@ export default defineConfig(({ mode }) => {
         '/health': apiTarget,
         '/studies': apiTarget,
         '/experiments': apiTarget,
+        '/exposures': apiTarget,
+        '/observations': apiTarget,
+        '/images': apiTarget,
+        '/zfin': apiTarget,
+        '/ols': apiTarget,
       },
     },
     build: {
