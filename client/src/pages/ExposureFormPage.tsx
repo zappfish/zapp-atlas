@@ -40,6 +40,15 @@ function fromStressor(s: StressorChemical): StressorWritable {
   };
 }
 
+function hasAnyContent(s: StressorWritable): boolean {
+  const c = s.chemical_id;
+  return !!(
+    (c && (c.chemical_name || c.chebi_id || c.cas_id || c.uri)) ||
+    s.concentration?.numeric_value ||
+    s.manufacturer
+  );
+}
+
 export default function ExposureFormPage() {
   const { experimentId, id } = useParams<{ experimentId: string; id: string }>();
   const nav = useNavigate();
@@ -50,7 +59,7 @@ export default function ExposureFormPage() {
   const [startStage, setStartStage] = useState('');
   const [endStage, setEndStage] = useState('');
   const [comment, setComment] = useState('');
-  const [stressor, setStressor] = useState<StressorWritable>(blankStressor());
+  const [stressors, setStressors] = useState<StressorWritable[]>([blankStressor()]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +76,7 @@ export default function ExposureFormPage() {
         setEndStage(ee.exposure_end_stage ?? '');
         setComment(ee.comment ?? '');
         if (ee.stressor && ee.stressor.length > 0) {
-          setStressor(fromStressor(ee.stressor[0]!));
+          setStressors(ee.stressor.map(fromStressor));
         }
         setLoading(false);
       })
@@ -77,19 +86,20 @@ export default function ExposureFormPage() {
     };
   }, [id, isEdit]);
 
-  function updateChemical<K extends keyof ChemicalEntity>(key: K, value: string) {
-    setStressor((s) => ({
-      ...s,
-      chemical_id: { ...(s.chemical_id ?? {}), [key]: value },
-    }));
+  function patchStressor(i: number, next: StressorWritable) {
+    setStressors((list) => list.map((s, idx) => (idx === i ? next : s)));
   }
-
-  function stressorHasContent(): boolean {
-    const c = stressor.chemical_id;
-    return !!(
-      c &&
-      (c.chemical_name || c.chebi_id || c.cas_id || c.uri)
-    );
+  function updateChemical<K extends keyof ChemicalEntity>(i: number, key: K, value: string) {
+    patchStressor(i, {
+      ...stressors[i]!,
+      chemical_id: { ...(stressors[i]!.chemical_id ?? {}), [key]: value },
+    });
+  }
+  function addStressor() {
+    setStressors((list) => [...list, blankStressor()]);
+  }
+  function removeStressor(i: number) {
+    setStressors((list) => (list.length === 1 ? [blankStressor()] : list.filter((_, idx) => idx !== i)));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -103,7 +113,7 @@ export default function ExposureFormPage() {
       exposure_start_stage: startStage || null,
       exposure_end_stage: endStage || null,
       comment: comment || null,
-      stressor: stressorHasContent() ? [stressor] : [],
+      stressor: stressors.filter(hasAnyContent),
     };
 
     try {
@@ -166,76 +176,91 @@ export default function ExposureFormPage() {
           </label>
         </div>
 
-        <fieldset className="sub-form">
-          <legend>Stressor (optional)</legend>
-          <label>
-            Chemical name
-            <input
-              value={stressor.chemical_id?.chemical_name ?? ''}
-              onChange={(e) => updateChemical('chemical_name', e.target.value)}
-            />
-          </label>
-          <div className="field-row">
+        {stressors.map((s, i) => (
+          <fieldset className="sub-form" key={i}>
+            <legend>
+              Stressor {i + 1}
+              <button
+                type="button"
+                className="link-button sub-form-remove"
+                onClick={() => removeStressor(i)}
+                aria-label={`Remove stressor ${i + 1}`}
+              >
+                remove
+              </button>
+            </legend>
             <label>
-              ChEBI ID
+              Chemical name
               <input
-                value={stressor.chemical_id?.chebi_id ?? ''}
-                onChange={(e) => updateChemical('chebi_id', e.target.value)}
-                placeholder="CHEBI:33216"
+                value={s.chemical_id?.chemical_name ?? ''}
+                onChange={(e) => updateChemical(i, 'chemical_name', e.target.value)}
               />
             </label>
+            <div className="field-row">
+              <label>
+                ChEBI ID
+                <input
+                  value={s.chemical_id?.chebi_id ?? ''}
+                  onChange={(e) => updateChemical(i, 'chebi_id', e.target.value)}
+                  placeholder="CHEBI:33216"
+                />
+              </label>
+              <label>
+                CAS ID
+                <input
+                  value={s.chemical_id?.cas_id ?? ''}
+                  onChange={(e) => updateChemical(i, 'cas_id', e.target.value)}
+                  placeholder="80-05-7"
+                />
+              </label>
+            </div>
             <label>
-              CAS ID
+              URI
               <input
-                value={stressor.chemical_id?.cas_id ?? ''}
-                onChange={(e) => updateChemical('cas_id', e.target.value)}
-                placeholder="80-05-7"
+                value={s.chemical_id?.uri ?? ''}
+                onChange={(e) => updateChemical(i, 'uri', e.target.value)}
+                placeholder="http://purl.obolibrary.org/obo/CHEBI_33216"
               />
             </label>
-          </div>
-          <label>
-            URI
-            <input
-              value={stressor.chemical_id?.uri ?? ''}
-              onChange={(e) => updateChemical('uri', e.target.value)}
-              placeholder="http://purl.obolibrary.org/obo/CHEBI_33216"
-            />
-          </label>
-          <div className="field-row">
+            <div className="field-row">
+              <label>
+                Concentration
+                <input
+                  value={s.concentration?.numeric_value ?? ''}
+                  onChange={(e) =>
+                    patchStressor(i, {
+                      ...s,
+                      concentration: { ...(s.concentration ?? {}), numeric_value: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Unit
+                <input
+                  value={s.concentration?.unit ?? ''}
+                  onChange={(e) =>
+                    patchStressor(i, {
+                      ...s,
+                      concentration: { ...(s.concentration ?? {}), unit: e.target.value },
+                    })
+                  }
+                  placeholder="µg/L"
+                />
+              </label>
+            </div>
             <label>
-              Concentration
+              Manufacturer
               <input
-                value={stressor.concentration?.numeric_value ?? ''}
-                onChange={(e) =>
-                  setStressor((s) => ({
-                    ...s,
-                    concentration: { ...(s.concentration ?? {}), numeric_value: e.target.value },
-                  }))
-                }
+                value={s.manufacturer ?? ''}
+                onChange={(e) => patchStressor(i, { ...s, manufacturer: e.target.value })}
               />
             </label>
-            <label>
-              Unit
-              <input
-                value={stressor.concentration?.unit ?? ''}
-                onChange={(e) =>
-                  setStressor((s) => ({
-                    ...s,
-                    concentration: { ...(s.concentration ?? {}), unit: e.target.value },
-                  }))
-                }
-                placeholder="µg/L"
-              />
-            </label>
-          </div>
-          <label>
-            Manufacturer
-            <input
-              value={stressor.manufacturer ?? ''}
-              onChange={(e) => setStressor((s) => ({ ...s, manufacturer: e.target.value }))}
-            />
-          </label>
-        </fieldset>
+          </fieldset>
+        ))}
+        <button type="button" onClick={addStressor} className="button-link small self-start">
+          + Add stressor
+        </button>
 
         <label>
           Comment

@@ -335,6 +335,18 @@ dd {
   padding: 0 0.25rem;
   font-weight: 700;
   color: var(--brand-teal);
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.sub-form-remove {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.self-start {
+  align-self: flex-start;
 }
 
 .container {

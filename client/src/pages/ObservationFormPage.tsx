@@ -9,22 +9,56 @@ import {
   type PhenotypeWritable,
 } from '@/api/observations';
 import PhenotypeModal from '@/components/PhenotypeModal';
-import type { PhenotypeObservationSet, PhenotypeTerm } from '@/types';
+import type { Phenotype, PhenotypeObservationSet, PhenotypeTerm } from '@/types';
 
 const SEVERITIES = ['mild', 'moderate', 'severe'] as const;
 type Severity = (typeof SEVERITIES)[number];
+
+interface PhenotypeDraft {
+  stage: string;
+  severity: Severity | '';
+  prevalence: string;
+  prevalenceUnit: string;
+  term: PhenotypeTerm | null;
+}
+
+function blankPhenotype(): PhenotypeDraft {
+  return { stage: '', severity: '', prevalence: '', prevalenceUnit: '%', term: null };
+}
+
+function fromPhenotype(p: Phenotype): PhenotypeDraft {
+  return {
+    stage: p.stage ?? '',
+    severity: (p.severity as Severity) ?? '',
+    prevalence: p.prevalence?.numeric_value ?? '',
+    prevalenceUnit: p.prevalence?.unit ?? '%',
+    term: p.phenotype_term_id ?? null,
+  };
+}
+
+function toWritable(draft: PhenotypeDraft): PhenotypeWritable {
+  const prevalence = draft.prevalence
+    ? { numeric_value: draft.prevalence, unit: draft.prevalenceUnit || null }
+    : null;
+  return {
+    stage: draft.stage || null,
+    severity: draft.severity || null,
+    phenotype_term_id: draft.term,
+    ...(prevalence ? { prevalence } : {}),
+  } as PhenotypeWritable;
+}
+
+function hasContent(draft: PhenotypeDraft): boolean {
+  return !!(draft.term || draft.stage || draft.severity || draft.prevalence);
+}
 
 export default function ObservationFormPage() {
   const { exposureId, id } = useParams<{ exposureId: string; id: string }>();
   const nav = useNavigate();
   const isEdit = !!id;
 
-  const [stage, setStage] = useState('');
-  const [severity, setSeverity] = useState<Severity | ''>('');
-  const [prevalence, setPrevalence] = useState('');
-  const [prevalenceUnit, setPrevalenceUnit] = useState('%');
-  const [phenotypeTerm, setPhenotypeTerm] = useState<PhenotypeTerm | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [phenotypes, setPhenotypes] = useState<PhenotypeDraft[]>([blankPhenotype()]);
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [existingObs, setExistingObs] = useState<PhenotypeObservationSet | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -40,13 +74,8 @@ export default function ObservationFormPage() {
       .then((obs) => {
         if (cancelled) return;
         setExistingObs(obs);
-        const first = obs.phenotype?.[0];
-        if (first) {
-          setStage(first.stage ?? '');
-          setSeverity((first.severity as Severity) ?? '');
-          setPrevalence(first.prevalence?.numeric_value ?? '');
-          setPrevalenceUnit(first.prevalence?.unit ?? '%');
-          setPhenotypeTerm(first.phenotype_term_id ?? null);
+        if (obs.phenotype && obs.phenotype.length > 0) {
+          setPhenotypes(obs.phenotype.map(fromPhenotype));
         }
         setLoading(false);
       })
@@ -55,6 +84,16 @@ export default function ObservationFormPage() {
       cancelled = true;
     };
   }, [id, isEdit]);
+
+  function patchRow(i: number, next: Partial<PhenotypeDraft>) {
+    setPhenotypes((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...next } : r)));
+  }
+  function addRow() {
+    setPhenotypes((rows) => [...rows, blankPhenotype()]);
+  }
+  function removeRow(i: number) {
+    setPhenotypes((rows) => (rows.length === 1 ? [blankPhenotype()] : rows.filter((_, idx) => idx !== i)));
+  }
 
   function addFiles(incoming: FileList | File[] | null) {
     if (!incoming) return;
@@ -67,26 +106,15 @@ export default function ObservationFormPage() {
     setSaving(true);
     setError(null);
 
-    const pheno: PhenotypeWritable = {
-      stage: stage || null,
-      severity: severity || null,
-      phenotype_term_id: phenotypeTerm,
-    };
-    const prev = prevalence
-      ? { numeric_value: prevalence, unit: prevalenceUnit || null }
-      : null;
-    const phenoWithPrev = { ...pheno, prevalence: prev };
+    const phenotype = phenotypes.filter(hasContent).map(toWritable);
 
     try {
       let obsId: number;
       if (isEdit) {
-        const payload = { phenotype: phenotypeTerm ? [phenoWithPrev] : [] };
-        const saved = await patchObservation(id!, payload);
+        const saved = await patchObservation(id!, { phenotype });
         obsId = saved.id;
       } else {
-        const saved = await createObservationForExposure(exposureId!, {
-          phenotype: phenotypeTerm ? [phenoWithPrev] : [],
-        });
+        const saved = await createObservationForExposure(exposureId!, { phenotype });
         obsId = saved.id;
       }
 
@@ -108,64 +136,87 @@ export default function ObservationFormPage() {
       <h1>{isEdit ? 'Edit observation' : 'New observation'}</h1>
       {error && <p className="error">{error}</p>}
       <form onSubmit={onSubmit} className="stacked-form">
-        <label>
-          Observation stage
-          <input
-            value={stage}
-            onChange={(e) => setStage(e.target.value)}
-            placeholder="ZFS:0000035"
-          />
-        </label>
-
-        <div className="field-row">
-          <label>
-            Severity
-            <select value={severity} onChange={(e) => setSeverity(e.target.value as Severity | '')}>
-              <option value="">—</option>
-              {SEVERITIES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Prevalence
-            <input
-              value={prevalence}
-              onChange={(e) => setPrevalence(e.target.value)}
-              placeholder="60"
-            />
-          </label>
-          <label>
-            Unit
-            <input
-              value={prevalenceUnit}
-              onChange={(e) => setPrevalenceUnit(e.target.value)}
-            />
-          </label>
-        </div>
-
-        <div className="field">
-          <label htmlFor="phenotype-picker">Phenotype term</label>
-          {phenotypeTerm ? (
-            <div className="selected-fish">
-              <strong>{phenotypeTerm.term_label || '—'}</strong>
-              <span className="muted"> ({phenotypeTerm.term_uri})</span>
-              <button type="button" className="link-button" onClick={() => setPhenotypeTerm(null)}>
-                change
+        {phenotypes.map((row, i) => (
+          <fieldset className="sub-form" key={i}>
+            <legend>
+              Phenotype {i + 1}
+              <button
+                type="button"
+                className="link-button sub-form-remove"
+                onClick={() => removeRow(i)}
+                aria-label={`Remove phenotype ${i + 1}`}
+              >
+                remove
               </button>
+            </legend>
+
+            <div className="field">
+              <label>Phenotype term</label>
+              {row.term ? (
+                <div className="selected-fish">
+                  <strong>{row.term.term_label || '—'}</strong>
+                  <span className="muted"> ({row.term.term_uri})</span>
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => patchRow(i, { term: null })}
+                  >
+                    change
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setPickerFor(i)}>
+                  Pick a phenotype
+                </button>
+              )}
             </div>
-          ) : (
-            <button
-              type="button"
-              id="phenotype-picker"
-              onClick={() => setPickerOpen(true)}
-            >
-              Pick a phenotype
-            </button>
-          )}
-        </div>
+
+            <label>
+              Observation stage
+              <input
+                value={row.stage}
+                onChange={(e) => patchRow(i, { stage: e.target.value })}
+                placeholder="ZFS:0000035"
+                aria-label={`Observation stage ${i + 1}`}
+              />
+            </label>
+
+            <div className="field-row">
+              <label>
+                Severity
+                <select
+                  value={row.severity}
+                  onChange={(e) => patchRow(i, { severity: e.target.value as Severity | '' })}
+                >
+                  <option value="">—</option>
+                  {SEVERITIES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Prevalence
+                <input
+                  value={row.prevalence}
+                  onChange={(e) => patchRow(i, { prevalence: e.target.value })}
+                  placeholder="60"
+                />
+              </label>
+              <label>
+                Unit
+                <input
+                  value={row.prevalenceUnit}
+                  onChange={(e) => patchRow(i, { prevalenceUnit: e.target.value })}
+                />
+              </label>
+            </div>
+          </fieldset>
+        ))}
+        <button type="button" onClick={addRow} className="button-link small self-start">
+          + Add phenotype
+        </button>
 
         <div className="field">
           <label>Images</label>
@@ -225,9 +276,11 @@ export default function ObservationFormPage() {
         </div>
       </form>
       <PhenotypeModal
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        onSelect={(t) => setPhenotypeTerm(t)}
+        open={pickerFor !== null}
+        onClose={() => setPickerFor(null)}
+        onSelect={(t) => {
+          if (pickerFor !== null) patchRow(pickerFor, { term: t });
+        }}
       />
     </section>
   );
