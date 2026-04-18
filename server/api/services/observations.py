@@ -1,0 +1,64 @@
+"""PhenotypeObservationSet persistence + mapping."""
+
+from __future__ import annotations
+
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
+from server.api.services.studies import (
+    _obs_set_from_create,
+    _phenotype_from_create,
+)
+
+from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
+    PhenotypeObservationSetCreate,
+    PhenotypeObservationSetUpdate,
+)
+
+from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
+    ExposureEvent,
+    PhenotypeObservationSet,
+)
+
+
+def create_observation_for_exposure(
+    session: Session,
+    *,
+    exposure_id: int,
+    payload: PhenotypeObservationSetCreate,
+) -> Optional[PhenotypeObservationSet]:
+    exposure = session.get(ExposureEvent, exposure_id)
+    if exposure is None:
+        return None
+
+    obs = _obs_set_from_create(session, payload)
+    exposure.phenotype_observation.append(obs)
+    session.add(exposure)
+    session.commit()
+    session.refresh(obs)
+    return obs
+
+
+def get_observation_by_id(
+    session: Session, observation_id: int
+) -> Optional[PhenotypeObservationSet]:
+    return session.get(PhenotypeObservationSet, observation_id)
+
+
+def patch_observation(
+    session: Session,
+    observation_id: int,
+    patch: PhenotypeObservationSetUpdate,
+) -> Optional[PhenotypeObservationSet]:
+    obs = get_observation_by_id(session, observation_id)
+    if obs is None:
+        return None
+
+    if patch.phenotype is not None:
+        obs.phenotype = [_phenotype_from_create(session, p) for p in patch.phenotype]
+
+    session.add(obs)
+    session.commit()
+    session.refresh(obs)
+    return obs

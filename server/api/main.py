@@ -16,7 +16,10 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from server.api.routers.experiments import router as experiments_router
+from server.api.routers.exposures import router as exposures_router
+from server.api.routers.observations import router as observations_router
 from server.api.routers.studies import router as studies_router
+from server.api.routers.zfin import router as zfin_router
 from server.db import init_db
 
 
@@ -64,6 +67,9 @@ def create_app() -> FastAPI:
 
     app.include_router(studies_router)
     app.include_router(experiments_router)
+    app.include_router(exposures_router)
+    app.include_router(observations_router)
+    app.include_router(zfin_router)
 
     # Serve Vite's hashed asset bundles (JS/CSS) if the build exists
     assets_dir = DIST_DIR / "assets"

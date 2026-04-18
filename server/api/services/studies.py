@@ -159,7 +159,6 @@ def _regimen_from_create(session: Session, payload: RegimenCreate | None) -> Reg
 
 def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) -> ExposureEvent:
     ee = ExposureEvent(
-        vehicle=payload.vehicle,
         route=payload.route,
         exposure_start_stage=payload.exposure_start_stage,
         exposure_end_stage=payload.exposure_end_stage,
@@ -168,6 +167,8 @@ def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) 
         additional_exposure_condition=getattr(payload, "additional_exposure_condition", None),
         regimen=_regimen_from_create(session, getattr(payload, "regimen", None)),
     )
+    if payload.vehicle:
+        ee.vehicle = list(payload.vehicle)
     for s in payload.stressor or []:
         ee.stressor.append(_stressor_from_create(session, s))
     for obs in payload.phenotype_observation or []:

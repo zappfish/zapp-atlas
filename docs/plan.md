@@ -62,6 +62,32 @@ cabinet/tank come in a later pass.
 - **Tests:** pytest for each new/changed endpoint; `respx` mocks zfin.
 - **Gate:** `just test` green.
 
+### Phase 1.5 — Schema: reachable_from enums → classes *(in-flight, separate session)*
+
+Tracked in
+[zappfish/zebrafish-toxicology-atlas-schema#15](https://github.com/zappfish/zebrafish-toxicology-atlas-schema/issues/15).
+Branch `reachable-from-enums-to-classes` on the schema repo — two
+commits landed: the enum→class conversion, and a linkml bump for
+`sqla-2x-fk-relationships`.
+
+`ExposureRouteEnum` / `ExposureTypeEnum` are now `ExposureRoute` /
+`ExposureType` classes (`OntologyEntity` subclasses), handled like
+`Fish` / `PhenotypeTerm` / `ChemicalEntity` — lazy FK-table rows
+populated via `get_or_create` at insert time, with `reachable_from`
+demoted to a class description + application-layer validation.
+
+Zapp-atlas side (done): schema dep switched to
+`@reachable-from-enums-to-classes`; seed constructs `ExposureRoute` /
+`ExposureType` instances. `_exposure_event_from_create` still passes
+`None` for `route`/`exposure_type` — proper handling lands in Phase 3.
+
+Note: both new classes have composite PKs `(term_uri, term_label)`
+because `slot_usage.term_label.required: true` made the generator
+treat label as an identifier component (same behavior as
+`ChemicalEntity`'s composite PK). The FK column on `ExposureEvent` is
+only `*_term_uri`, which is fine on SQLite but worth revisiting if we
+move to Postgres.
+
 ### Phase 2 — API: Image storage
 
 - `Storage` abstraction. Local filesystem backend when
@@ -73,7 +99,41 @@ cabinet/tank come in a later pass.
   observation → image linkage persists.
 - **Gate:** pytest green.
 
-### Phase 3 — FE: scaffold, routing, layout
+### Phase 3 — API: Ontology-term validation + OLS autocomplete proxies
+
+*Depends on Phase 1.5 (already landed on the schema side).*
+
+Enforce `reachable_from` constraints at insert time via an external
+source of truth (OLS over HTTP for now; oaklib/local cache is a later
+consideration). Same pattern as how we already handle `Fish` via
+`/zfin/fish-autocomplete` — external trusted source, proxy on our side,
+store what the user picked.
+
+- New `server/ontology.py` — thin OLS HTTP client with a module-level
+  LRU cache. Functions: `ols_search(vocab, q)`, `ols_fetch_term(term_uri)`,
+  `is_reachable_from(term_uri, source_ontology, root_nodes)`.
+- New autocomplete proxies (shape mirrors `/zfin/fish-autocomplete`):
+  - `GET /ols/exposure-route-autocomplete?q=...`
+  - `GET /ols/exposure-type-autocomplete?q=...`
+- Rework `_exposure_event_from_create` + exposure PATCH: when `route`
+  / `exposure_type` present in the payload (as a CURIE string), call
+  `is_reachable_from(...)`, fetch the label, and
+  `get_or_create(ExposureRoute|ExposureType, term_uri=..., term_label=...)`.
+  Assign the ORM instance to the relationship.
+- Policy decisions (tentative; revisit if surprising in practice):
+  - Unknown / not-reachable term → **422** with a clear message.
+  - OLS unreachable → **fail-open** with a warning log; store the CURIE
+    with a placeholder label, backfill later. A sick OLS shouldn't
+    block submissions.
+  - Cache hits are free; cold POSTs pay one OLS round trip.
+- **Tests:** `respx`-mock OLS. Cover: happy path (`route="EXO:0000057"`
+  round-trips through POST → GET), invalid term → 422, OLS 5xx →
+  fail-open with warning, cache reuse. Drop the "avoid route/vehicle"
+  caveats in `test_api_exposures.py`.
+- **Gate:** `just test` green with `route` and `exposure_type` set
+  end-to-end. `_LenientJsonSchema` shim removed from `server/api/main.py`.
+
+### Phase 4 — FE: scaffold, routing, layout
 
 - React Router. Top-level layout with `<Header>` (nav only; no user
   affordance).
@@ -82,7 +142,7 @@ cabinet/tank come in a later pass.
 - **Smoke:** visit `/`, page renders, nav links work, 404 page works.
 - **Gate:** smoke green. Manual: hot reload works.
 
-### Phase 4 — FE: Study list + detail (read-only)
+### Phase 5 — FE: Study list + detail (read-only)
 
 - `StudyListPage` paginated; columns: publication, lab, annotator(s),
   # experiments. Click row → detail.
@@ -92,7 +152,7 @@ cabinet/tank come in a later pass.
   including an image.
 - **Gate:** smoke green.
 
-### Phase 5 — FE: Study + Experiment forms
+### Phase 6 — FE: Study + Experiment forms
 
 - `/studies/new`, `/studies/:id/edit` — publication, lab, annotator(s).
 - `/studies/:id/experiments/new`, `/experiments/:id/edit` — fish
@@ -103,20 +163,21 @@ cabinet/tank come in a later pass.
   with a ZFIN-picked fish, see it appear; edit a field, it persists.
 - **Gate:** smoke green.
 
-### Phase 6 — FE: Exposure + Observation forms (+ image upload)
+### Phase 7 — FE: Exposure + Observation forms (+ image upload)
 
 - `/experiments/:id/exposures/new`, `/exposures/:id/edit` — chemical
-  (manual for now, autocomplete-ready hook), concentration, route,
+  (manual for now, autocomplete-ready hook), concentration, route
+  (OLS autocomplete-adds), exposure_type (OLS autocomplete-adds),
   vehicle, regimen, stages.
 - `/exposures/:id/observations/new`, `/observations/:id/edit` —
   observation stage, phenotype items (frogpot picker), prevalence,
   severity, image drag-and-drop.
-- **Smoke:** from an experiment, add an exposure and then an
-  observation with an uploaded image; all appear on the study detail
-  page.
+- **Smoke:** from an experiment, add an exposure (with ontology-picked
+  route) and then an observation with an uploaded image; all appear on
+  the study detail page.
 - **Gate:** smoke green.
 
-### Phase 7 — Release prep
+### Phase 8 — Release prep
 
 - Delete `docs/plan-connect-form-to-api.md` and
   `docs/ui-rework-poc-spec.md` (replaced by this plan).

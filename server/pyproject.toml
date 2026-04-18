@@ -9,7 +9,7 @@ dependencies = [
     "httpx>=0.27.0",
     "sqlalchemy>=2.0",
     "uvicorn>=0.30.0",
-    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@pydantic-crud-models",
+    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@reachable-from-enums-to-classes",
 ]
 
 [dependency-groups]
