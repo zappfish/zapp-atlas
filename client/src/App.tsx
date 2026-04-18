@@ -3,7 +3,9 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import Layout from '@/components/Layout';
 import ExperimentFormPage from '@/pages/ExperimentFormPage';
+import ExposureFormPage from '@/pages/ExposureFormPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import ObservationFormPage from '@/pages/ObservationFormPage';
 import StudyDetailPage from '@/pages/StudyDetailPage';
 import StudyFormPage from '@/pages/StudyFormPage';
 import StudyListPage from '@/pages/StudyListPage';
@@ -22,6 +24,16 @@ export default function App() {
             element={<ExperimentFormPage />}
           />
           <Route path="experiments/:id/edit" element={<ExperimentFormPage />} />
+          <Route
+            path="experiments/:experimentId/exposures/new"
+            element={<ExposureFormPage />}
+          />
+          <Route path="exposures/:id/edit" element={<ExposureFormPage />} />
+          <Route
+            path="exposures/:exposureId/observations/new"
+            element={<ObservationFormPage />}
+          />
+          <Route path="observations/:id/edit" element={<ObservationFormPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

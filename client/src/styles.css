@@ -314,6 +314,29 @@ dd {
   text-decoration: underline;
 }
 
+.field-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.field-row > label {
+  flex: 1 1 160px;
+}
+
+.sub-form {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.sub-form legend {
+  padding: 0 0.25rem;
+  font-weight: 700;
+  color: var(--brand-teal);
+}
+
 .container {
   max-width: 1100px;
   margin: 0 auto;

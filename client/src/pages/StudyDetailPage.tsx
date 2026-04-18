@@ -33,7 +33,12 @@ function PhenotypeLine({ p }: { p: Phenotype }) {
 function ObservationBlock({ obs }: { obs: PhenotypeObservationSet }) {
   return (
     <div className="obs-block">
-      <div className="subhead">Observation #{obs.id}</div>
+      <div className="page-head">
+        <div className="subhead">Observation #{obs.id}</div>
+        <Link to={`/observations/${obs.id}/edit`} className="button-link small">
+          Edit
+        </Link>
+      </div>
       {(obs.phenotype ?? []).length === 0 ? (
         <p className="muted">No phenotypes recorded.</p>
       ) : (
@@ -62,7 +67,20 @@ function ObservationBlock({ obs }: { obs: PhenotypeObservationSet }) {
 function ExposureBlock({ ee }: { ee: ExposureEvent }) {
   return (
     <div className="exposure-block">
-      <div className="subhead">Exposure #{ee.id}</div>
+      <div className="page-head">
+        <div className="subhead">Exposure #{ee.id}</div>
+        <div className="button-row">
+          <Link to={`/exposures/${ee.id}/edit`} className="button-link small">
+            Edit
+          </Link>
+          <Link
+            to={`/exposures/${ee.id}/observations/new`}
+            className="button-link small"
+          >
+            Add observation
+          </Link>
+        </div>
+      </div>
       <dl>
         {ee.route && (
           <>
@@ -117,9 +135,17 @@ function ExperimentBlock({ exp }: { exp: Experiment }) {
           Experiment #{exp.id}
           {exp.fish?.name && <span className="muted"> — {exp.fish.name}</span>}
         </h3>
-        <Link to={`/experiments/${exp.id}/edit`} className="button-link small">
-          Edit
-        </Link>
+        <div className="button-row">
+          <Link to={`/experiments/${exp.id}/edit`} className="button-link small">
+            Edit
+          </Link>
+          <Link
+            to={`/experiments/${exp.id}/exposures/new`}
+            className="button-link small"
+          >
+            Add exposure
+          </Link>
+        </div>
       </div>
       <dl>
         {exp.fish && (
