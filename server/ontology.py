@@ -63,15 +63,18 @@ def _get(path: str, params: dict | None = None) -> httpx.Response:
 
 
 def ols_search(q: str, *, ontology: str, rows: int = 10) -> list[OntologyHit]:
-    # ``isDefiningOntology=true`` drops imported-term hits — e.g. ECTO imports
-    # ChEBI, so without this flag a search for "ethanol" on the ECTO endpoint
-    # returns CHEBI terms first.
+    # ``isDefiningOntology=true`` drops some imported-term hits, but not all —
+    # OLS still considers (e.g.) ENVO terms "defined" by ECTO when ECTO
+    # re-asserts axioms on them. We post-filter to CURIEs whose prefix
+    # actually matches the requested ontology so route autocomplete returns
+    # only EXO terms and exposure-type autocomplete returns only ECTO terms.
+    # Over-fetch up-front so the filter has material to narrow from.
     resp = _get(
         "/search",
         {
             "q": q,
             "ontology": ontology,
-            "rows": rows,
+            "rows": rows * 3,
             "type": "class",
             "isDefiningOntology": "true",
         },
@@ -80,12 +83,19 @@ def ols_search(q: str, *, ontology: str, rows: int = 10) -> list[OntologyHit]:
         raise OntologyBackendError(f"OLS search returned {resp.status_code}")
     body = resp.json()
     hits = body.get("response", {}).get("docs", [])
+    ontology_lc = ontology.lower()
     results: list[OntologyHit] = []
     for h in hits:
         term_uri = h.get("obo_id")
         term_label = h.get("label")
-        if term_uri and term_label:
-            results.append(OntologyHit(term_uri=term_uri, term_label=term_label))
+        if not term_uri or not term_label:
+            continue
+        prefix = term_uri.split(":", 1)[0].lower() if ":" in term_uri else ""
+        if prefix != ontology_lc:
+            continue
+        results.append(OntologyHit(term_uri=term_uri, term_label=term_label))
+        if len(results) >= rows:
+            break
     return results
 
 
