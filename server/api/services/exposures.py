@@ -6,6 +6,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from server.api.services.observations import delete_observation_row
 from server.api.services.studies import (
     _exposure_event_from_create,
     _quantity_value_from_payload,
@@ -13,6 +14,7 @@ from server.api.services.studies import (
     _resolve_ontology_term,
     _stressor_from_create,
 )
+from server.storage import Storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExposureEventCreate,
@@ -22,6 +24,7 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Experiment,
     ExposureEvent,
+    ExposureEventVehicle,
 )
 
 
@@ -86,3 +89,31 @@ def patch_exposure(
     session.commit()
     session.refresh(ee)
     return ee
+
+
+def delete_exposure_row(
+    session: Session, ee: ExposureEvent, *, storage: Storage
+) -> None:
+    for obs in list(ee.phenotype_observation or []):
+        delete_observation_row(session, obs, storage=storage)
+    for stressor in list(ee.stressor or []):
+        session.delete(stressor)
+    # Vehicle assoc rows — no cascade on the generated relationship, so
+    # remove by FK directly.
+    session.query(ExposureEventVehicle).filter_by(
+        ExposureEvent_id=ee.id
+    ).delete(synchronize_session="fetch")
+    if ee.regimen is not None:
+        session.delete(ee.regimen)
+    session.delete(ee)
+
+
+def delete_exposure(
+    session: Session, exposure_id: int, *, storage: Storage
+) -> bool:
+    ee = get_exposure_by_id(session, exposure_id)
+    if ee is None:
+        return False
+    delete_exposure_row(session, ee, storage=storage)
+    session.commit()
+    return True

@@ -6,10 +6,12 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from server.api.services.images import delete_image_row
 from server.api.services.studies import (
     _obs_set_from_create,
     _phenotype_from_create,
 )
+from server.storage import Storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     PhenotypeObservationSetCreate,
@@ -62,3 +64,27 @@ def patch_observation(
     session.commit()
     session.refresh(obs)
     return obs
+
+
+def delete_observation_row(
+    session: Session, obs: PhenotypeObservationSet, *, storage: Storage
+) -> None:
+    """Delete an observation set and all of its owned rows + image blobs."""
+    for phenotype in list(obs.phenotype or []):
+        session.delete(phenotype)
+    for image in list(obs.image or []):
+        delete_image_row(session, image, storage=storage)
+    for ci in list(obs.control_image or []):
+        session.delete(ci)
+    session.delete(obs)
+
+
+def delete_observation(
+    session: Session, observation_id: int, *, storage: Storage
+) -> bool:
+    obs = get_observation_by_id(session, observation_id)
+    if obs is None:
+        return False
+    delete_observation_row(session, obs, storage=storage)
+    session.commit()
+    return True

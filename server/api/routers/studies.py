@@ -12,23 +12,26 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.api.deps import get_session
+from server.api.read_models import StudyReadWithLabels
 from server.api.serializers import OrmView
 from server.api.services.studies import (
     create_study,
+    delete_study,
     get_study_by_id,
     list_studies,
     patch_study,
 )
+from server.storage import Storage, get_storage
 
 # LinkML-generated Pydantic CRUD models
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     StudyCreate,
-    StudyRead,
     StudyUpdate,
 )
 
 
 router = APIRouter(prefix="/studies", tags=["studies"])
+StudyRead = StudyReadWithLabels
 
 
 def _as_read(study) -> StudyRead:
@@ -74,3 +77,15 @@ def patch_study_endpoint(
     if study is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
     return _as_read(study)
+
+
+@router.delete("/{study_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_study_endpoint(
+    study_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    storage: Annotated[Storage, Depends(get_storage)],
+) -> None:
+    if not delete_study(session, study_id, storage=storage):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Study not found"
+        )

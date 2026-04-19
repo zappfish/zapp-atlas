@@ -10,7 +10,9 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from server.api.services.exposures import delete_exposure_row
 from server.api.services.studies import _experiment_from_create, _fish_from_payload
+from server.storage import Storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExperimentCreate,
@@ -74,3 +76,24 @@ def patch_experiment(
     session.commit()
     session.refresh(exp)
     return exp
+
+
+def delete_experiment_row(
+    session: Session, exp: Experiment, *, storage: Storage
+) -> None:
+    for exposure in list(exp.exposure_event or []):
+        delete_exposure_row(session, exposure, storage=storage)
+    for control in list(exp.control or []):
+        session.delete(control)
+    session.delete(exp)
+
+
+def delete_experiment(
+    session: Session, experiment_id: int, *, storage: Storage
+) -> bool:
+    exp = get_experiment_by_id(session, experiment_id)
+    if exp is None:
+        return False
+    delete_experiment_row(session, exp, storage=storage)
+    session.commit()
+    return True

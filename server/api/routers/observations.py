@@ -15,9 +15,11 @@ from sqlalchemy.orm import Session
 from server.api.deps import get_session
 from server.api.services.observations import (
     create_observation_for_exposure,
+    delete_observation,
     get_observation_by_id,
     patch_observation,
 )
+from server.storage import Storage, get_storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     PhenotypeObservationSetCreate,
@@ -76,3 +78,17 @@ def patch_observation_endpoint(
             status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found"
         )
     return obs  # type: ignore[return-value]
+
+
+@router.delete(
+    "/observations/{observation_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_observation_endpoint(
+    observation_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    storage: Annotated[Storage, Depends(get_storage)],
+) -> None:
+    if not delete_observation(session, observation_id, storage=storage):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found"
+        )

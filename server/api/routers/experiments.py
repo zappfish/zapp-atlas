@@ -18,22 +18,25 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.api.deps import get_session
+from server.api.read_models import ExperimentReadWithLabels
 from server.api.serializers import OrmView
 from server.api.services.experiments import (
     create_experiment_for_study,
+    delete_experiment,
     get_experiment_by_id,
     list_experiments,
     patch_experiment,
 )
+from server.storage import Storage, get_storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExperimentCreate,
-    ExperimentRead,
     ExperimentUpdate,
 )
 
 
 router = APIRouter(tags=["experiments"])
+ExperimentRead = ExperimentReadWithLabels
 
 
 def _as_read(exp) -> ExperimentRead:
@@ -93,3 +96,16 @@ def patch_experiment_endpoint(
             detail="Experiment not found",
         )
     return _as_read(exp)
+
+
+@router.delete("/experiments/{experiment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_experiment_endpoint(
+    experiment_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    storage: Annotated[Storage, Depends(get_storage)],
+) -> None:
+    if not delete_experiment(session, experiment_id, storage=storage):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found",
+        )

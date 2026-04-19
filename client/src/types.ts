@@ -61,9 +61,11 @@ export interface OntologyTerm {
 export interface ExposureEvent {
   id: number;
   route?: string | null;
+  route_label?: string | null;
   exposure_start_stage?: string | null;
   exposure_end_stage?: string | null;
   exposure_type?: string | null;
+  exposure_type_label?: string | null;
   comment?: string | null;
   stressor?: StressorChemical[] | null;
   phenotype_observation?: PhenotypeObservationSet[] | null;

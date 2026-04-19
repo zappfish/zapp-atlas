@@ -6,7 +6,7 @@ import {
   getExperiment,
   patchExperiment,
 } from '@/api/experiments';
-import FishAutocomplete from '@/components/FishAutocomplete';
+import FishPicker from '@/components/FishPicker';
 import type { Experiment, Fish } from '@/types';
 
 export default function ExperimentFormPage() {
@@ -78,7 +78,7 @@ export default function ExperimentFormPage() {
       <form onSubmit={onSubmit} className="stacked-form">
         <div className="field">
           <label>Fish</label>
-          <FishAutocomplete value={fish} onChange={setFish} />
+          <FishPicker value={fish} onChange={setFish} />
         </div>
 
         <label className="inline-check">

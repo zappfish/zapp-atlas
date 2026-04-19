@@ -72,3 +72,18 @@ def load_image_bytes(image_id: int, storage: Storage):
 
 def image_url(image_id: int, storage: Storage) -> str | None:
     return storage.url_for(_storage_key(image_id))
+
+
+def delete_image_row(session: Session, image, *, storage: Storage) -> None:
+    """Delete an Image ORM row and its stored blob. Caller commits."""
+    storage.delete(_storage_key(image.id))
+    session.delete(image)
+
+
+def delete_image(session: Session, image_id: int, *, storage: Storage) -> bool:
+    image = get_image_by_id(session, image_id)
+    if image is None:
+        return False
+    delete_image_row(session, image, storage=storage)
+    session.commit()
+    return True

@@ -32,6 +32,14 @@ _COERCE_TO_TERM_URI: set[tuple[type, str]] = {
     (ExposureEvent, "exposure_type"),
 }
 
+# Synthetic ``<field>_label`` attributes we expose on ``OrmView`` so the
+# extended Pydantic Read models can pick up the human label alongside the
+# CURIE without changing the schema.
+_LABEL_SYNONYMS: dict[tuple[type, str], str] = {
+    (ExposureEvent, "route_label"): "route",
+    (ExposureEvent, "exposure_type_label"): "exposure_type",
+}
+
 
 def _is_orm(value: Any) -> bool:
     return hasattr(value, "__table__")
@@ -47,6 +55,11 @@ class OrmView:
         self._obj = obj
 
     def __getattr__(self, name: str) -> Any:
+        source_attr = _LABEL_SYNONYMS.get((type(self._obj), name))
+        if source_attr is not None:
+            ref = getattr(self._obj, source_attr)
+            return getattr(ref, "term_label", None) if ref is not None else None
+
         value = getattr(self._obj, name)
 
         if (type(self._obj), name) in _COERCE_TO_TERM_URI:

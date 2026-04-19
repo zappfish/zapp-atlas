@@ -37,6 +37,10 @@ export function patchExposure(
   return api<ExposureEvent>(`/exposures/${id}`, { method: 'PATCH', body: payload });
 }
 
+export async function deleteExposure(id: number | string): Promise<void> {
+  await api<void>(`/exposures/${id}`, { method: 'DELETE' });
+}
+
 export interface OntologyHit {
   term_uri: string;
   term_label: string;

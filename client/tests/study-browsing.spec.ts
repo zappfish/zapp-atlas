@@ -19,8 +19,10 @@ test('click-through to study detail renders full graph', async ({ page }) => {
   await expect(page.getByText('AB', { exact: false }).first()).toBeVisible();
   await expect(page.getByText('ZFIN:ZDB-GENO-960809-7')).toBeVisible();
 
-  // Stressor → chemical name + chebi
-  await expect(page.getByText('bisphenol A')).toBeVisible();
+  // Stressor → chemical name + chebi (exact match since "bisphenol A" also
+  // appears in the Type row "exposure to bisphenol A" now that the Read
+  // response carries labels).
+  await expect(page.getByText('bisphenol A', { exact: true })).toBeVisible();
   await expect(page.getByText('CHEBI:33216')).toBeVisible();
 
   // Phenotype observation

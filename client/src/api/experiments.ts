@@ -28,6 +28,10 @@ export function patchExperiment(
   return api<Experiment>(`/experiments/${id}`, { method: 'PATCH', body: payload });
 }
 
+export async function deleteExperiment(id: number | string): Promise<void> {
+  await api<void>(`/experiments/${id}`, { method: 'DELETE' });
+}
+
 export interface ZfinHit {
   id: string;
   name: string;
@@ -38,4 +42,8 @@ export interface ZfinHit {
 
 export function fishAutocomplete(q: string): Promise<ZfinHit[]> {
   return api<ZfinHit[]>('/zfin/fish-autocomplete', { query: { q } });
+}
+
+export function wildtypeList(q?: string): Promise<{ zfin_id: string; name: string }[]> {
+  return api('/zfin/wildtypes', { query: q ? { q } : undefined });
 }

@@ -27,3 +27,7 @@ export function createStudy(payload: StudyWritable): Promise<Study> {
 export function patchStudy(id: number | string, payload: StudyWritable): Promise<Study> {
   return api<Study>(`/studies/${id}`, { method: 'PATCH', body: payload });
 }
+
+export async function deleteStudy(id: number | string): Promise<void> {
+  await api<void>(`/studies/${id}`, { method: 'DELETE' });
+}

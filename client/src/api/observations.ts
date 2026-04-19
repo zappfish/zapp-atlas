@@ -35,6 +35,14 @@ export function patchObservation(
   });
 }
 
+export async function deleteObservation(id: number | string): Promise<void> {
+  await api<void>(`/observations/${id}`, { method: 'DELETE' });
+}
+
+export async function deleteObservationImage(id: number | string): Promise<void> {
+  await api<void>(`/images/${id}`, { method: 'DELETE' });
+}
+
 export function uploadObservationImage(
   observationId: number | string,
   file: File,

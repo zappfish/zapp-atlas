@@ -70,8 +70,8 @@ export default function ExposureFormPage() {
     getExposure(id!)
       .then((ee) => {
         if (cancelled) return;
-        setRoute(toHit(ee.route, null));
-        setExposureType(toHit(ee.exposure_type, null));
+        setRoute(toHit(ee.route, ee.route_label));
+        setExposureType(toHit(ee.exposure_type, ee.exposure_type_label));
         setStartStage(ee.exposure_start_stage ?? '');
         setEndStage(ee.exposure_end_stage ?? '');
         setComment(ee.comment ?? '');

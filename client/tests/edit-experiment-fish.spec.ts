@@ -47,6 +47,7 @@ test('swap fish on an edit-experiment page and save', async ({ page }) => {
   await page.getByRole('button', { name: 'Create study' }).click();
 
   await page.getByRole('link', { name: 'Add experiment' }).click();
+  await page.getByRole('radio', { name: /Specific strain/ }).check();
   await page.getByLabel('Fish autocomplete').fill('AB');
   await page.getByRole('button', { name: /AB\b/ }).click();
   await page.getByRole('button', { name: 'Create experiment' }).click();
@@ -56,6 +57,9 @@ test('swap fish on an edit-experiment page and save', async ({ page }) => {
   await page.getByRole('link', { name: 'Edit', exact: true }).first().click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Edit experiment');
 
+  // Re-enter specific-strain mode (edit starts in wild-type mode by default
+  // unless the loaded fish is a known wild-type).
+  await page.getByRole('radio', { name: /Specific strain/ }).check();
   await page.getByRole('button', { name: 'change' }).click();
   await page.getByLabel('Fish autocomplete').fill('TU');
   await page.getByRole('button', { name: /TU\b/ }).click();

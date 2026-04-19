@@ -49,10 +49,12 @@ test('create study, add experiment via ZFIN autocomplete, then edit the study', 
   await expect(page).toHaveURL(/\/studies\/\d+$/);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(publication);
 
-  // Add experiment via ZFIN autocomplete
+  // Add experiment — use the ZFIN autocomplete mode rather than the default
+  // wild-type dropdown so we keep coverage for the specific-strain path.
   await page.getByRole('link', { name: 'Add experiment' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('New experiment');
 
+  await page.getByRole('radio', { name: /Specific strain/ }).check();
   await page.getByLabel('Fish autocomplete').fill('AB');
   await page.getByRole('button', { name: /AB\b/ }).click();
   await expect(page.getByText('ZFIN:ZDB-FISH-150901-27842')).toBeVisible();

@@ -13,21 +13,24 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.api.deps import get_session
+from server.api.read_models import ExposureEventReadWithLabels
 from server.api.serializers import OrmView
 from server.api.services.exposures import (
     create_exposure_for_experiment,
+    delete_exposure,
     get_exposure_by_id,
     patch_exposure,
 )
+from server.storage import Storage, get_storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExposureEventCreate,
-    ExposureEventRead,
     ExposureEventUpdate,
 )
 
 
 router = APIRouter(tags=["exposures"])
+ExposureEventRead = ExposureEventReadWithLabels
 
 
 def _as_read(ee) -> ExposureEventRead:
@@ -79,3 +82,15 @@ def patch_exposure_endpoint(
             status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found"
         )
     return _as_read(ee)
+
+
+@router.delete("/exposures/{exposure_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_exposure_endpoint(
+    exposure_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    storage: Annotated[Storage, Depends(get_storage)],
+) -> None:
+    if not delete_exposure(session, exposure_id, storage=storage):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found"
+        )

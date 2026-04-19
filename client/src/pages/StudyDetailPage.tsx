@@ -1,8 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { imageUrl } from '@/api';
-import { getStudy } from '@/api/studies';
+import { deleteExperiment } from '@/api/experiments';
+import { deleteExposure } from '@/api/exposures';
+import { deleteObservation, deleteObservationImage } from '@/api/observations';
+import { deleteStudy, getStudy } from '@/api/studies';
+import ImageOverlay from '@/components/ImageOverlay';
 import ZfinLabel from '@/components/ZfinLabel';
 import type {
   ExposureEvent,
@@ -11,6 +15,11 @@ import type {
   PhenotypeObservationSet,
   Study,
 } from '@/types';
+
+interface ViewActions {
+  reload: () => void;
+  openImage: (src: string, alt: string) => void;
+}
 
 function fmtQuantity(q: { numeric_value?: string | null; unit?: string | null } | null | undefined) {
   if (!q) return null;
@@ -32,14 +41,39 @@ function PhenotypeLine({ p }: { p: Phenotype }) {
   );
 }
 
-function ObservationBlock({ obs }: { obs: PhenotypeObservationSet }) {
+async function confirmAndDelete(message: string, run: () => Promise<void>, after: () => void) {
+  if (!window.confirm(message)) return;
+  try {
+    await run();
+    after();
+  } catch (err) {
+    window.alert(`Delete failed: ${(err as Error).message}`);
+  }
+}
+
+function ObservationBlock({ obs, actions }: { obs: PhenotypeObservationSet; actions: ViewActions }) {
   return (
     <div className="obs-block">
       <div className="page-head">
         <div className="subhead">Observation #{obs.id}</div>
-        <Link to={`/observations/${obs.id}/edit`} className="button-link small">
-          Edit
-        </Link>
+        <div className="button-row">
+          <Link to={`/observations/${obs.id}/edit`} className="button-link small">
+            Edit
+          </Link>
+          <button
+            type="button"
+            className="button-link small danger"
+            onClick={() =>
+              confirmAndDelete(
+                `Delete Observation #${obs.id} and its images?`,
+                () => deleteObservation(obs.id),
+                actions.reload,
+              )
+            }
+          >
+            Delete
+          </button>
+        </div>
       </div>
       {(obs.phenotype ?? []).length === 0 ? (
         <p className="muted">No phenotypes recorded.</p>
@@ -52,21 +86,43 @@ function ObservationBlock({ obs }: { obs: PhenotypeObservationSet }) {
       )}
       {(obs.image ?? []).length > 0 && (
         <div className="img-row">
-          {obs.image!.map((img) => (
-            <img
-              key={img.id}
-              src={imageUrl(img.id)}
-              alt={`observation ${obs.id} image ${img.id}`}
-              className="thumb"
-            />
-          ))}
+          {obs.image!.map((img) => {
+            const src = imageUrl(img.id);
+            const alt = `observation ${obs.id} image ${img.id}`;
+            return (
+              <div key={img.id} className="thumb-wrapper">
+                <button
+                  type="button"
+                  className="thumb-button"
+                  onClick={() => actions.openImage(src, alt)}
+                  aria-label={`Enlarge ${alt}`}
+                >
+                  <img src={src} alt={alt} className="thumb" />
+                </button>
+                <button
+                  type="button"
+                  className="thumb-delete"
+                  aria-label={`Delete ${alt}`}
+                  onClick={() =>
+                    confirmAndDelete(
+                      `Delete image #${img.id}?`,
+                      () => deleteObservationImage(img.id),
+                      actions.reload,
+                    )
+                  }
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-function ExposureBlock({ ee }: { ee: ExposureEvent }) {
+function ExposureBlock({ ee, actions }: { ee: ExposureEvent; actions: ViewActions }) {
   return (
     <div className="exposure-block">
       <div className="page-head">
@@ -81,19 +137,49 @@ function ExposureBlock({ ee }: { ee: ExposureEvent }) {
           >
             Add observation
           </Link>
+          <button
+            type="button"
+            className="button-link small danger"
+            onClick={() =>
+              confirmAndDelete(
+                `Delete Exposure #${ee.id} and everything under it?`,
+                () => deleteExposure(ee.id),
+                actions.reload,
+              )
+            }
+          >
+            Delete
+          </button>
         </div>
       </div>
       <dl>
         {ee.route && (
           <>
             <dt>Route</dt>
-            <dd>{ee.route}</dd>
+            <dd>
+              {ee.route_label ? (
+                <>
+                  {ee.route_label} <span className="muted">({ee.route})</span>
+                </>
+              ) : (
+                ee.route
+              )}
+            </dd>
           </>
         )}
         {ee.exposure_type && (
           <>
             <dt>Type</dt>
-            <dd>{ee.exposure_type}</dd>
+            <dd>
+              {ee.exposure_type_label ? (
+                <>
+                  {ee.exposure_type_label}{' '}
+                  <span className="muted">({ee.exposure_type})</span>
+                </>
+              ) : (
+                ee.exposure_type
+              )}
+            </dd>
           </>
         )}
         {(ee.exposure_start_stage || ee.exposure_end_stage) && (
@@ -123,13 +209,13 @@ function ExposureBlock({ ee }: { ee: ExposureEvent }) {
         </>
       )}
       {(ee.phenotype_observation ?? []).map((obs) => (
-        <ObservationBlock key={obs.id} obs={obs} />
+        <ObservationBlock key={obs.id} obs={obs} actions={actions} />
       ))}
     </div>
   );
 }
 
-function ExperimentBlock({ exp }: { exp: Experiment }) {
+function ExperimentBlock({ exp, actions }: { exp: Experiment; actions: ViewActions }) {
   return (
     <div className="experiment-block">
       <div className="page-head">
@@ -152,6 +238,19 @@ function ExperimentBlock({ exp }: { exp: Experiment }) {
           >
             Add exposure
           </Link>
+          <button
+            type="button"
+            className="button-link small danger"
+            onClick={() =>
+              confirmAndDelete(
+                `Delete Experiment #${exp.id} and everything under it?`,
+                () => deleteExperiment(exp.id),
+                actions.reload,
+              )
+            }
+          >
+            Delete
+          </button>
         </div>
       </div>
       <dl>
@@ -174,7 +273,7 @@ function ExperimentBlock({ exp }: { exp: Experiment }) {
         )}
       </dl>
       {(exp.exposure_event ?? []).map((ee) => (
-        <ExposureBlock key={ee.id} ee={ee} />
+        <ExposureBlock key={ee.id} ee={ee} actions={actions} />
       ))}
     </div>
   );
@@ -182,8 +281,11 @@ function ExperimentBlock({ exp }: { exp: Experiment }) {
 
 export default function StudyDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const nav = useNavigate();
   const [study, setStudy] = useState<Study | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reloadCounter, setReloadCounter] = useState(0);
+  const [overlay, setOverlay] = useState<{ src: string; alt: string } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -200,7 +302,14 @@ export default function StudyDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, reloadCounter]);
+
+  const reload = useCallback(() => setReloadCounter((n) => n + 1), []);
+  const openImage = useCallback(
+    (src: string, alt: string) => setOverlay({ src, alt }),
+    [],
+  );
+  const actions: ViewActions = { reload, openImage };
 
   if (error) return <p className="error">Failed to load study: {error}</p>;
   if (!study) return <p>Loading…</p>;
@@ -222,6 +331,19 @@ export default function StudyDetailPage() {
           >
             Add experiment
           </Link>
+          <button
+            type="button"
+            className="button-link danger"
+            onClick={() =>
+              confirmAndDelete(
+                `Delete this study and all of its experiments, exposures, observations, and images? This cannot be undone.`,
+                () => deleteStudy(study.id),
+                () => nav('/'),
+              )
+            }
+          >
+            Delete study
+          </button>
         </div>
       </div>
       <dl>
@@ -242,7 +364,16 @@ export default function StudyDetailPage() {
       {(study.experiment ?? []).length === 0 ? (
         <p className="muted">No experiments.</p>
       ) : (
-        study.experiment!.map((e) => <ExperimentBlock key={e.id} exp={e} />)
+        study.experiment!.map((e) => (
+          <ExperimentBlock key={e.id} exp={e} actions={actions} />
+        ))
+      )}
+      {overlay && (
+        <ImageOverlay
+          src={overlay.src}
+          alt={overlay.alt}
+          onClose={() => setOverlay(null)}
+        />
       )}
     </section>
   );

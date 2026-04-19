@@ -25,6 +25,7 @@ from server.api.services.images import (
     ImageTooLargeError,
     UnsupportedImageTypeError,
     create_image_for_observation,
+    delete_image,
     get_image_by_id,
     image_url,
     load_image_bytes,
@@ -111,3 +112,15 @@ def fetch_image_endpoint(
             status_code=status.HTTP_404_NOT_FOUND, detail="Image blob missing"
         )
     return Response(content=stored.data, media_type=stored.content_type)
+
+
+@router.delete("/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_image_endpoint(
+    image_id: int,
+    session: SessionDep,
+    storage: StorageDep,
+) -> None:
+    if not delete_image(session, image_id, storage=storage):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
+        )

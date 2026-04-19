@@ -300,6 +300,24 @@ def list_studies(session: Session, *, limit: int = 50, offset: int = 0) -> list[
     return list(q)
 
 
+def delete_study(session: Session, study_id: int, *, storage) -> bool:
+    # Lazy import to avoid a cycle with experiments → studies.
+    from server.api.services.experiments import delete_experiment_row
+
+    study = get_study_by_id(session, study_id)
+    if study is None:
+        return False
+    for experiment in list(study.experiment or []):
+        delete_experiment_row(session, experiment, storage=storage)
+    # Study_annotator assoc rows (no cascade on the generated relationship)
+    session.query(StudyAnnotator).filter_by(
+        Study_id=study.id
+    ).delete(synchronize_session="fetch")
+    session.delete(study)
+    session.commit()
+    return True
+
+
 def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Optional[Study]:
     study = get_study_by_id(session, study_id)
     if study is None:

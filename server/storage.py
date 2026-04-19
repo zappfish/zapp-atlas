@@ -38,6 +38,10 @@ class Storage(ABC):
     def get(self, key: str) -> StoredObject | None: ...
 
     @abstractmethod
+    def delete(self, key: str) -> None:
+        """Remove the object at ``key``. Silent no-op if it doesn't exist."""
+
+    @abstractmethod
     def url_for(self, key: str) -> str | None:
         """Return a URL clients can fetch directly, or None to force streaming."""
 
@@ -71,6 +75,12 @@ class LocalFilesystemStorage(Storage):
         )
         return StoredObject(data=path.read_bytes(), content_type=content_type)
 
+    def delete(self, key: str) -> None:
+        path = self._path(key)
+        type_path = path.with_suffix(path.suffix + ".type")
+        path.unlink(missing_ok=True)
+        type_path.unlink(missing_ok=True)
+
     def url_for(self, key: str) -> str | None:
         return None  # force streaming via the app
 
@@ -101,6 +111,12 @@ class BucketStorage(Storage):
             data=resp["Body"].read(),
             content_type=resp.get("ContentType", "application/octet-stream"),
         )
+
+    def delete(self, key: str) -> None:
+        try:
+            self._client.delete_object(Bucket=self._bucket, Key=key)
+        except self._client.exceptions.NoSuchKey:
+            pass
 
     def url_for(self, key: str) -> str | None:
         if self._public_url_prefix:
