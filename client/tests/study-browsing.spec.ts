@@ -4,7 +4,7 @@ test('study list shows seeded studies', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Studies');
   await expect(page.getByRole('link', { name: 'PMID:22194820' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /DOI:10\.1234\/seed\.example\.002/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'PMID:40359302' })).toBeVisible();
 });
 
 test('click-through to study detail renders full graph', async ({ page }) => {
