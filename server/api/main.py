@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import fastapi._compat.v2 as _fastapi_compat_v2
-from fastapi import FastAPI, Request, status
+from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -82,13 +82,18 @@ def create_app() -> FastAPI:
             content={"detail": str(exc)},
         )
 
-    app.include_router(studies_router)
-    app.include_router(experiments_router)
-    app.include_router(exposures_router)
-    app.include_router(observations_router)
-    app.include_router(images_router)
-    app.include_router(zfin_router)
-    app.include_router(ols_router)
+    # All API routes live under /api/ so the SPA owns every other URL path.
+    # Without this, deep-linking to e.g. /studies/1 would hit the studies
+    # router and return JSON instead of the HTML app.
+    api = APIRouter(prefix="/api")
+    api.include_router(studies_router)
+    api.include_router(experiments_router)
+    api.include_router(exposures_router)
+    api.include_router(observations_router)
+    api.include_router(images_router)
+    api.include_router(zfin_router)
+    api.include_router(ols_router)
+    app.include_router(api)
 
     # Serve Vite's hashed asset bundles (JS/CSS) if the build exists
     assets_dir = DIST_DIR / "assets"

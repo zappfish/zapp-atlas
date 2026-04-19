@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const ZFIN_AUTOCOMPLETE_PATH = '**/zfin/fish-autocomplete**';
+const ZFIN_AUTOCOMPLETE_PATH = '**/api/zfin/fish-autocomplete**';
 
 test.beforeEach(async ({ page }) => {
   // Stub the ZFIN proxy so smoke runs are deterministic and offline-safe.

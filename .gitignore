@@ -14,3 +14,4 @@ client/playwright/.cache/
 server/credentials.txt
 server/data/
 *.db
+.rodney/

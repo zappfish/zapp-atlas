@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { fishAutocomplete, type ZfinHit } from '@/api/experiments';
+import ZfinLabel from '@/components/ZfinLabel';
 import type { Fish } from '@/types';
 
 interface Props {
@@ -61,7 +62,7 @@ export default function FishAutocomplete({ value, onChange }: Props) {
     <div className="autocomplete" ref={boxRef}>
       {value ? (
         <div className="selected-fish">
-          <strong>{value.name}</strong>
+          <ZfinLabel text={value.name} className="fish-label" />
           <span className="muted"> ({value.zfin_id})</span>
           <button type="button" className="link-button" onClick={() => onChange(null)}>
             change
@@ -87,7 +88,7 @@ export default function FishAutocomplete({ value, onChange }: Props) {
                 hits.map((h) => (
                   <li key={h.id}>
                     <button type="button" onClick={() => pick(h)}>
-                      <strong>{h.name}</strong>
+                      <ZfinLabel text={h.name} className="fish-label" />
                       <span className="muted"> ({h.id})</span>
                     </button>
                   </li>

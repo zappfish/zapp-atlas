@@ -51,7 +51,7 @@ def _mock_exo_water_route() -> None:
 
 def _create_study_and_experiment(client: TestClient) -> tuple[int, int]:
     study = client.post(
-        "/studies",
+        "/api/studies",
         json={
             "publication": "PMID:111",
             "lab": "ZFIN:ZDB-LAB-1-1",
@@ -60,7 +60,7 @@ def _create_study_and_experiment(client: TestClient) -> tuple[int, int]:
         },
     ).json()
     exp = client.post(
-        f"/studies/{study['id']}/experiments",
+        f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-1", "name": "AB"},
@@ -91,7 +91,7 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
         "phenotype_observation": [],
     }
 
-    res = client.post(f"/experiments/{exp_id}/exposures", json=payload)
+    res = client.post(f"/api/experiments/{exp_id}/exposures", json=payload)
     assert res.status_code == 201, res.text
     created = res.json()
     assert "id" in created
@@ -101,7 +101,7 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
 
 def test_create_exposure_missing_experiment_404(client: TestClient) -> None:
     res = client.post(
-        "/experiments/999999/exposures",
+        "/api/experiments/999999/exposures",
         json={"stressor": [], "phenotype_observation": []},
     )
     assert res.status_code == 404
@@ -110,23 +110,23 @@ def test_create_exposure_missing_experiment_404(client: TestClient) -> None:
 def test_get_exposure(client: TestClient) -> None:
     _, exp_id = _create_study_and_experiment(client)
     created = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={"stressor": [], "phenotype_observation": []},
     ).json()
 
-    res = client.get(f"/exposures/{created['id']}")
+    res = client.get(f"/api/exposures/{created['id']}")
     assert res.status_code == 200
     assert res.json()["id"] == created["id"]
 
 
 def test_get_exposure_missing_404(client: TestClient) -> None:
-    assert client.get("/exposures/999999").status_code == 404
+    assert client.get("/api/exposures/999999").status_code == 404
 
 
 def test_patch_exposure_updates_fields(client: TestClient) -> None:
     _, exp_id = _create_study_and_experiment(client)
     created = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={
             "comment": "",
             "exposure_start_stage": "ZFS:0000011",
@@ -136,7 +136,7 @@ def test_patch_exposure_updates_fields(client: TestClient) -> None:
     ).json()
 
     res = client.patch(
-        f"/exposures/{created['id']}",
+        f"/api/exposures/{created['id']}",
         json={"comment": "revised note", "exposure_start_stage": "ZFS:0000012"},
     )
     assert res.status_code == 200, res.text
@@ -146,7 +146,7 @@ def test_patch_exposure_updates_fields(client: TestClient) -> None:
 
 
 def test_patch_exposure_missing_404(client: TestClient) -> None:
-    assert client.patch("/exposures/999999", json={"comment": "x"}).status_code == 404
+    assert client.patch("/api/exposures/999999", json={"comment": "x"}).status_code == 404
 
 
 # -- ontology-validated fields -------------------------------------------------
@@ -158,7 +158,7 @@ def test_create_exposure_with_valid_route_round_trips(client: TestClient) -> Non
     _, exp_id = _create_study_and_experiment(client)
 
     res = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={
             "route": "ExO:0000057",
             "stressor": [],
@@ -170,7 +170,7 @@ def test_create_exposure_with_valid_route_round_trips(client: TestClient) -> Non
     assert body["route"] == "ExO:0000057"
 
     # The stored term carries the canonical label fetched from OLS.
-    got = client.get(f"/exposures/{body['id']}").json()
+    got = client.get(f"/api/exposures/{body['id']}").json()
     assert got["route"] == "ExO:0000057"
 
 
@@ -182,7 +182,7 @@ def test_create_exposure_with_unknown_route_is_422(client: TestClient) -> None:
     _, exp_id = _create_study_and_experiment(client)
 
     res = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={"route": "ExO:9999999", "stressor": [], "phenotype_observation": []},
     )
     assert res.status_code == 422
@@ -217,7 +217,7 @@ def test_create_exposure_with_unreachable_route_is_422(client: TestClient) -> No
     _, exp_id = _create_study_and_experiment(client)
 
     res = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={"route": "ExO:0000001", "stressor": [], "phenotype_observation": []},
     )
     assert res.status_code == 422
@@ -232,7 +232,7 @@ def test_create_exposure_fails_open_when_ols_down(client: TestClient) -> None:
     _, exp_id = _create_study_and_experiment(client)
 
     res = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={"route": "ExO:0000057", "stressor": [], "phenotype_observation": []},
     )
     assert res.status_code == 201, res.text
@@ -245,7 +245,7 @@ def test_patch_exposure_replaces_route(client: TestClient) -> None:
     _, exp_id = _create_study_and_experiment(client)
 
     created = client.post(
-        f"/experiments/{exp_id}/exposures",
+        f"/api/experiments/{exp_id}/exposures",
         json={"route": "ExO:0000057", "stressor": [], "phenotype_observation": []},
     ).json()
 
@@ -284,7 +284,7 @@ def test_patch_exposure_replaces_route(client: TestClient) -> None:
     )
 
     res = client.patch(
-        f"/exposures/{created['id']}",
+        f"/api/exposures/{created['id']}",
         json={"route": "ExO:0000056"},
     )
     assert res.status_code == 200, res.text

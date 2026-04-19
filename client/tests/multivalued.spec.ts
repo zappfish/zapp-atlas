@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   // Stub OLS so the exposure form can render even without a network.
-  await page.route('**/ols/**', async (route) => {
+  await page.route('**/api/ols/**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

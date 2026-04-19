@@ -9,7 +9,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
     client: TestClient,
 ) -> None:
     study = client.post(
-        "/studies",
+        "/api/studies",
         json={
             "publication": "PMID:333",
             "lab": "ZFIN:ZDB-LAB-1-1",
@@ -19,7 +19,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
     ).json()
 
     exp = client.post(
-        f"/studies/{study['id']}/experiments",
+        f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-3", "name": "AB"},
@@ -29,7 +29,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
     ).json()
 
     exposure = client.post(
-        f"/experiments/{exp['id']}/exposures",
+        f"/api/experiments/{exp['id']}/exposures",
         json={
             "exposure_start_stage": "ZFS:0000011",
             "exposure_end_stage": "ZFS:0000039",
@@ -49,7 +49,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
     ).json()
 
     client.post(
-        f"/exposures/{exposure['id']}/observations",
+        f"/api/exposures/{exposure['id']}/observations",
         json={
             "phenotype": [
                 {
@@ -66,7 +66,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
         },
     )
 
-    res = client.get(f"/studies/{study['id']}")
+    res = client.get(f"/api/studies/{study['id']}")
     assert res.status_code == 200, res.text
     body = res.json()
 

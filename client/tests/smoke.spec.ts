@@ -24,3 +24,13 @@ test('unknown route renders not found', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Not found');
   await expect(page.getByRole('link', { name: /back to studies/i })).toBeVisible();
 });
+
+test('deep-link navigation serves the SPA, not API JSON', async ({ page }) => {
+  // Direct navigation (not client-side routing) to any SPA path should
+  // render the app, not the FastAPI router's JSON/422.
+  await page.goto('/studies/1');
+  await expect(page.getByRole('link', { name: 'ZAPP Atlas' })).toBeVisible();
+
+  await page.goto('/studies/new');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('New study');
+});

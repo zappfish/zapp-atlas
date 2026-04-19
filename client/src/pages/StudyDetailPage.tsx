@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { imageUrl } from '@/api';
 import { getStudy } from '@/api/studies';
+import ZfinLabel from '@/components/ZfinLabel';
 import type {
   ExposureEvent,
   Experiment,
@@ -53,7 +55,7 @@ function ObservationBlock({ obs }: { obs: PhenotypeObservationSet }) {
           {obs.image!.map((img) => (
             <img
               key={img.id}
-              src={`/images/${img.id}`}
+              src={imageUrl(img.id)}
               alt={`observation ${obs.id} image ${img.id}`}
               className="thumb"
             />
@@ -133,7 +135,12 @@ function ExperimentBlock({ exp }: { exp: Experiment }) {
       <div className="page-head">
         <h3>
           Experiment #{exp.id}
-          {exp.fish?.name && <span className="muted"> — {exp.fish.name}</span>}
+          {exp.fish?.name && (
+            <span className="muted">
+              {' — '}
+              <ZfinLabel text={exp.fish.name} />
+            </span>
+          )}
         </h3>
         <div className="button-row">
           <Link to={`/experiments/${exp.id}/edit`} className="button-link small">
@@ -152,7 +159,8 @@ function ExperimentBlock({ exp }: { exp: Experiment }) {
           <>
             <dt>Fish</dt>
             <dd>
-              {exp.fish.name} <span className="muted">({exp.fish.zfin_id})</span>
+              <ZfinLabel text={exp.fish.name} />{' '}
+              <span className="muted">({exp.fish.zfin_id})</span>
             </dd>
           </>
         )}

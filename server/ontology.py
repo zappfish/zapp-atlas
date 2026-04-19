@@ -63,9 +63,18 @@ def _get(path: str, params: dict | None = None) -> httpx.Response:
 
 
 def ols_search(q: str, *, ontology: str, rows: int = 10) -> list[OntologyHit]:
+    # ``isDefiningOntology=true`` drops imported-term hits — e.g. ECTO imports
+    # ChEBI, so without this flag a search for "ethanol" on the ECTO endpoint
+    # returns CHEBI terms first.
     resp = _get(
         "/search",
-        {"q": q, "ontology": ontology, "rows": rows, "type": "class"},
+        {
+            "q": q,
+            "ontology": ontology,
+            "rows": rows,
+            "type": "class",
+            "isDefiningOntology": "true",
+        },
     )
     if resp.status_code != 200:
         raise OntologyBackendError(f"OLS search returned {resp.status_code}")

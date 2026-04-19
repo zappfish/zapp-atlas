@@ -18,14 +18,11 @@ export default defineConfig(({ mode }) => {
     server: {
       port: env.DEV_PORT ? Number(env.DEV_PORT) : 5173,
       proxy: {
+        // One prefix for every API call. Keeps SPA routes (/studies/:id,
+        // /studies/new, /experiments/:id/edit, …) from being intercepted
+        // by path-based proxy matching.
+        '/api': apiTarget,
         '/health': apiTarget,
-        '/studies': apiTarget,
-        '/experiments': apiTarget,
-        '/exposures': apiTarget,
-        '/observations': apiTarget,
-        '/images': apiTarget,
-        '/zfin': apiTarget,
-        '/ols': apiTarget,
       },
     },
     build: {

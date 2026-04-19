@@ -27,7 +27,7 @@ def test_zfin_autocomplete_proxies_and_returns_results(client: TestClient) -> No
         )
     )
 
-    res = client.get("/zfin/fish-autocomplete", params={"q": "AB"})
+    res = client.get("/api/zfin/fish-autocomplete", params={"q": "AB"})
     assert res.status_code == 200
     body = res.json()
     assert isinstance(body, list)
@@ -42,12 +42,12 @@ def test_zfin_autocomplete_proxies_and_returns_results(client: TestClient) -> No
 
 @respx.mock
 def test_zfin_autocomplete_requires_q(client: TestClient) -> None:
-    res = client.get("/zfin/fish-autocomplete")
+    res = client.get("/api/zfin/fish-autocomplete")
     assert res.status_code == 422
 
 
 @respx.mock
 def test_zfin_autocomplete_upstream_error_is_502(client: TestClient) -> None:
     respx.get(ZFIN_URL).mock(return_value=httpx.Response(500))
-    res = client.get("/zfin/fish-autocomplete", params={"q": "AB"})
+    res = client.get("/api/zfin/fish-autocomplete", params={"q": "AB"})
     assert res.status_code == 502

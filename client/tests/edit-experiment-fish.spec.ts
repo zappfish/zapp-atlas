@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 // for the swap on the Edit page.
 test.beforeEach(async ({ page }) => {
   let hitCount = 0;
-  await page.route('**/zfin/fish-autocomplete**', async (route) => {
+  await page.route('**/api/zfin/fish-autocomplete**', async (route) => {
     hitCount += 1;
     const body =
       hitCount === 1

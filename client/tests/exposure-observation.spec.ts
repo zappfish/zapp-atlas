@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.route('**/ols/exposure-route-autocomplete**', async (route) => {
+  await page.route('**/api/ols/exposure-route-autocomplete**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
       ]),
     });
   });
-  await page.route('**/ols/exposure-type-autocomplete**', async (route) => {
+  await page.route('**/api/ols/exposure-type-autocomplete**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

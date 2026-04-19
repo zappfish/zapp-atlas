@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { imageUrl } from '@/api';
 import {
   createObservationForExposure,
   getObservation,
@@ -225,7 +226,7 @@ export default function ObservationFormPage() {
               {existingObs.image.map((img) => (
                 <img
                   key={img.id}
-                  src={`/images/${img.id}`}
+                  src={imageUrl(img.id)}
                   alt={`image ${img.id}`}
                   className="thumb"
                 />

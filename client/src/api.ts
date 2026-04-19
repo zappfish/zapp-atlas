@@ -1,10 +1,18 @@
 /**
  * Fetch wrapper for the ZAPP Atlas API.
  *
- * All calls go through `api()`. Vite proxies the same-origin paths in dev
- * (see vite.config.js); in prod the API is served from the same origin as
- * the SPA, so relative URLs work without configuration.
+ * All calls go through `api()`, which mounts under ``/api/`` so the API
+ * routes never collide with SPA routes (e.g. ``/studies/:id`` is a page).
+ * Vite proxies ``/api`` in dev; in prod the API is served from the same
+ * origin as the SPA under the same prefix.
  */
+
+export const API_BASE = '/api';
+
+/** Absolute URL for an image blob the server stores on behalf of the SPA. */
+export function imageUrl(id: number | string): string {
+  return `${API_BASE}/images/${id}`;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -34,7 +42,8 @@ export async function api<T = unknown>(
   path: string,
   { body, query, headers, ...rest }: ApiOptions = {},
 ): Promise<T> {
-  const url = new URL(path, window.location.origin);
+  const prefixed = path.startsWith(API_BASE) ? path : `${API_BASE}${path}`;
+  const url = new URL(prefixed, window.location.origin);
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v !== undefined) url.searchParams.set(k, String(v));

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 def _create_exposure(client: TestClient) -> int:
     study = client.post(
-        "/studies",
+        "/api/studies",
         json={
             "publication": "PMID:222",
             "lab": "ZFIN:ZDB-LAB-1-1",
@@ -16,7 +16,7 @@ def _create_exposure(client: TestClient) -> int:
         },
     ).json()
     exp = client.post(
-        f"/studies/{study['id']}/experiments",
+        f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-2", "name": "AB"},
@@ -25,7 +25,7 @@ def _create_exposure(client: TestClient) -> int:
         },
     ).json()
     exposure = client.post(
-        f"/experiments/{exp['id']}/exposures",
+        f"/api/experiments/{exp['id']}/exposures",
         json={"stressor": [], "phenotype_observation": []},
     ).json()
     return exposure["id"]
@@ -49,7 +49,7 @@ def test_create_observation_for_exposure(client: TestClient) -> None:
         "control_image": [],
     }
 
-    res = client.post(f"/exposures/{exposure_id}/observations", json=payload)
+    res = client.post(f"/api/exposures/{exposure_id}/observations", json=payload)
     assert res.status_code == 201, res.text
     created = res.json()
     assert "id" in created
@@ -58,7 +58,7 @@ def test_create_observation_for_exposure(client: TestClient) -> None:
 
 def test_create_observation_missing_exposure_404(client: TestClient) -> None:
     res = client.post(
-        "/exposures/999999/observations",
+        "/api/exposures/999999/observations",
         json={"phenotype": [], "image": [], "control_image": []},
     )
     assert res.status_code == 404
@@ -67,23 +67,23 @@ def test_create_observation_missing_exposure_404(client: TestClient) -> None:
 def test_get_observation(client: TestClient) -> None:
     exposure_id = _create_exposure(client)
     created = client.post(
-        f"/exposures/{exposure_id}/observations",
+        f"/api/exposures/{exposure_id}/observations",
         json={"phenotype": [], "image": [], "control_image": []},
     ).json()
 
-    res = client.get(f"/observations/{created['id']}")
+    res = client.get(f"/api/observations/{created['id']}")
     assert res.status_code == 200
     assert res.json()["id"] == created["id"]
 
 
 def test_get_observation_missing_404(client: TestClient) -> None:
-    assert client.get("/observations/999999").status_code == 404
+    assert client.get("/api/observations/999999").status_code == 404
 
 
 def test_patch_observation_replaces_phenotype(client: TestClient) -> None:
     exposure_id = _create_exposure(client)
     created = client.post(
-        f"/exposures/{exposure_id}/observations",
+        f"/api/exposures/{exposure_id}/observations",
         json={
             "phenotype": [
                 {
@@ -101,7 +101,7 @@ def test_patch_observation_replaces_phenotype(client: TestClient) -> None:
     ).json()
 
     res = client.patch(
-        f"/observations/{created['id']}",
+        f"/api/observations/{created['id']}",
         json={
             "phenotype": [
                 {
@@ -124,7 +124,7 @@ def test_patch_observation_replaces_phenotype(client: TestClient) -> None:
 
 def test_patch_observation_missing_404(client: TestClient) -> None:
     res = client.patch(
-        "/observations/999999",
+        "/api/observations/999999",
         json={"phenotype": [], "image": [], "control_image": []},
     )
     assert res.status_code == 404

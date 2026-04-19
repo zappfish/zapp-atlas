@@ -29,7 +29,7 @@ def test_exposure_route_autocomplete_proxies_to_ols_exo(client: TestClient) -> N
         )
     )
 
-    res = client.get("/ols/exposure-route-autocomplete", params={"q": "inhalation"})
+    res = client.get("/api/ols/exposure-route-autocomplete", params={"q": "inhalation"})
     assert res.status_code == 200
     body = res.json()
     assert body == [{"term_uri": "ExO:0000057", "term_label": "inhalation route"}]
@@ -60,7 +60,7 @@ def test_exposure_type_autocomplete_proxies_to_ols_ecto(client: TestClient) -> N
         )
     )
 
-    res = client.get("/ols/exposure-type-autocomplete", params={"q": "stressor"})
+    res = client.get("/api/ols/exposure-type-autocomplete", params={"q": "stressor"})
     assert res.status_code == 200
     assert res.json() == [{"term_uri": "ECTO:0000001", "term_label": "exposure to stressor"}]
     assert upstream.calls[0].request.url.params["ontology"] == "ecto"
@@ -68,11 +68,11 @@ def test_exposure_type_autocomplete_proxies_to_ols_ecto(client: TestClient) -> N
 
 @respx.mock
 def test_autocomplete_requires_q(client: TestClient) -> None:
-    assert client.get("/ols/exposure-route-autocomplete").status_code == 422
+    assert client.get("/api/ols/exposure-route-autocomplete").status_code == 422
 
 
 @respx.mock
 def test_autocomplete_upstream_error_is_502(client: TestClient) -> None:
     respx.get(f"{OLS_BASE_URL}/search").mock(return_value=httpx.Response(500))
-    res = client.get("/ols/exposure-route-autocomplete", params={"q": "x"})
+    res = client.get("/api/ols/exposure-route-autocomplete", params={"q": "x"})
     assert res.status_code == 502

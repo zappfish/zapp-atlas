@@ -60,8 +60,14 @@ export default function OntologyAutocomplete({
     <div className="autocomplete" ref={boxRef}>
       {value ? (
         <div className="selected-fish">
-          <strong>{value.term_label || '—'}</strong>
-          <span className="muted"> ({value.term_uri})</span>
+          {value.term_label ? (
+            <>
+              <strong>{value.term_label}</strong>
+              <span className="muted"> ({value.term_uri})</span>
+            </>
+          ) : (
+            <strong>{value.term_uri}</strong>
+          )}
           <button type="button" className="link-button" onClick={() => onChange(null)}>
             change
           </button>
