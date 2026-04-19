@@ -11,6 +11,10 @@ Currently seeded:
 * **Lam et al. 2011** (PMID:22194820) — BPA embryotoxicity in AB.
 * **Nishi et al. 2025** (PMID:40359302) — BPA + retinoic acid co-exposure
   potentiates neural crest + hindbrain defects; AB background.
+* **Moreira et al. 2025** (PMID:41812223) — guanitoxin + organophosphate
+  co-exposure amplifies pericardial edema; generated end-to-end by
+  ``tests/curations/moreira-guanitoxin.spec.ts`` and exported via
+  ``just export-seed``.
 """
 
 from __future__ import annotations
@@ -37,6 +41,7 @@ from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
 SEEDED_PUBLICATIONS = {
     "PMID:22194820",
     "PMID:40359302",
+    "PMID:41812223",
 }
 
 
@@ -277,6 +282,91 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     return study
 
 
+def _build_moreira_guanitoxin_study(session: Session) -> Study:
+    """Moreira et al. 2025 — `Environmental Mixture Toxicity of Guanitoxin
+    and Organophosphates in Zebrafish` (Env. Sci. Technol., PMID:41812223,
+    DOI:10.1021/acs.est.5c16673). Trichlorfon + guanitoxin potentiates
+    pericardial edema beyond either OP alone; AB embryos exposed from
+    segmentation through protruding-mouth larva. Stressor values in this
+    seed are simplified representative concentrations.
+    """
+
+    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    malathion = _upsert_chemical(
+        session,
+        uri="http://purl.obolibrary.org/obo/CHEBI_6651",
+        chebi_id="CHEBI:6651",
+        cas_id="121-75-5",
+        chemical_name="malathion",
+    )
+    trichlorfon = _upsert_chemical(
+        session,
+        uri="http://purl.obolibrary.org/obo/CHEBI_9747",
+        chebi_id="CHEBI:9747",
+        cas_id="52-68-6",
+        chemical_name="trichlorfon",
+    )
+    pericardial_edema = _upsert_phenotype_term(
+        session,
+        term_uri="ZP:0105827",
+        term_label="pericardial region edematous, abnormal",
+    )
+
+    study = Study(
+        publication="PMID:41812223",
+        lab="ZFIN:ZDB-LAB-0004-01",
+        annotator=["ORCID:0000-0004-0404-0404"],
+    )
+
+    route = _aquatic_route(session)
+    exposure_type = _upsert_exposure_type(
+        session,
+        term_uri="ECTO:9001150",
+        term_label="exposure to malathion",
+    )
+
+    experiment = Experiment(standard_rearing_condition=True, fish=fish)
+    study.experiment.append(experiment)
+
+    exposure = ExposureEvent(
+        route=route,
+        exposure_start_stage="ZFS:0000016",
+        exposure_end_stage="ZFS:0000050",
+        exposure_type=exposure_type,
+        comment=(
+            "Trichlorfon + guanitoxin co-exposure potentiated pericardial "
+            "edema beyond either alone (Moreira et al. 2025 Fig. 2)."
+        ),
+    )
+    experiment.exposure_event.append(exposure)
+
+    exposure.stressor.append(
+        StressorChemical(
+            chemical_id=malathion,
+            concentration=QuantityValue(unit="µM", numeric_value="5"),
+        )
+    )
+    exposure.stressor.append(
+        StressorChemical(
+            chemical_id=trichlorfon,
+            concentration=QuantityValue(unit="µM", numeric_value="1"),
+        )
+    )
+
+    obs = PhenotypeObservationSet()
+    exposure.phenotype_observation.append(obs)
+    obs.phenotype.append(
+        Phenotype(
+            stage="ZFS:0000050",
+            severity="severe",
+            phenotype_term_id=pericardial_edema,
+            prevalence=QuantityValue(unit="%", numeric_value="100"),
+        )
+    )
+
+    return study
+
+
 # ---------------------------------------------------------------------------
 # Entry points
 # ---------------------------------------------------------------------------
@@ -295,6 +385,7 @@ def seed(session: Session) -> None:
     builders = {
         "PMID:22194820": _build_bpa_study,
         "PMID:40359302": _build_nishi_bpa_ra_study,
+        "PMID:41812223": _build_moreira_guanitoxin_study,
     }
 
     for pub, builder in builders.items():

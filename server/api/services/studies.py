@@ -149,15 +149,23 @@ def _fish_from_payload(session: Session, payload: Fish | None) -> Fish | None:
 def _phenotype_term_from_payload(session: Session, payload: PhenotypeTerm | None) -> PhenotypeTerm | None:
     if payload is None:
         return None
-    try:
-        return _get_or_create_by_attrs(
-            session,
-            PhenotypeTerm,
-            term_uri=payload.term_uri,
-            term_label=getattr(payload, "term_label", None),
-        )
-    except Exception:
-        return PhenotypeTerm(term_uri=payload.term_uri, term_label=getattr(payload, "term_label", None))
+    # ``PhenotypeTerm`` has a composite PK ``(term_uri, term_label)`` but
+    # ``Phenotype.phenotype_term_id`` FKs to ``term_uri`` only. If we naïvely
+    # created a second row with the same ``term_uri`` and a different label
+    # (e.g. a curator pasting just the CURIE) existing FKs become ambiguous
+    # and SQLAlchemy's relationship resolver picks one at random. Always
+    # reuse an existing row keyed on ``term_uri`` — upgrade its label only
+    # if the current one is empty and the payload carries something real.
+    incoming_label = getattr(payload, "term_label", None) or ""
+    existing = (
+        session.query(PhenotypeTerm)
+        .filter(PhenotypeTerm.term_uri == payload.term_uri)
+        .first()
+    )
+    if existing is not None:
+        return existing
+    label = incoming_label or payload.term_uri  # term_label is NOT NULL
+    return PhenotypeTerm(term_uri=payload.term_uri, term_label=label)
 
 
 def _chemical_entity_from_payload(session: Session, payload: ChemicalEntity | None) -> ChemicalEntity | None:

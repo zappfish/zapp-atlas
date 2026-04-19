@@ -266,6 +266,20 @@ dd {
   font-weight: 400;
 }
 
+.phenotype-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.phenotype-entry input {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  flex: 1 1 200px;
+}
+
 .stacked-form {
   display: flex;
   flex-direction: column;

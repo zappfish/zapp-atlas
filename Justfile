@@ -38,6 +38,11 @@ smoke-headed:
 seed:
     cd server && PYTHONPATH=.. uv run python -m server.seed
 
+# Export the dev DB's study graphs as seed.py builder stubs.
+# Example: just export-seed PMID:41812223
+export-seed *PUBLICATIONS:
+    cd server && PYTHONPATH=.. uv run python -m scripts.export_seed {{PUBLICATIONS}}
+
 # Build the Docker image (local/Fly.io)
 build:
     docker build -t zapp-atlas .

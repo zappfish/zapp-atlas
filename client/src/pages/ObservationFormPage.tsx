@@ -166,9 +166,28 @@ export default function ObservationFormPage() {
                   </button>
                 </div>
               ) : (
-                <button type="button" onClick={() => setPickerFor(i)}>
-                  Pick a phenotype
-                </button>
+                <div className="phenotype-entry">
+                  <button type="button" onClick={() => setPickerFor(i)}>
+                    Pick a phenotype
+                  </button>
+                  <span className="muted">or paste a CURIE:</span>
+                  <input
+                    aria-label={`Phenotype CURIE ${i + 1}`}
+                    placeholder="ZP:0105827"
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter') return;
+                      e.preventDefault();
+                      const curie = (e.currentTarget.value || '').trim();
+                      if (!curie) return;
+                      // PhenotypeTerm has term_label as part of its composite
+                      // primary key on the server, so we can't send null.
+                      // Seed with the CURIE as a placeholder label; curators
+                      // can replace via the picker when OLS/frogpot is up.
+                      patchRow(i, { term: { term_uri: curie, term_label: curie } });
+                      e.currentTarget.value = '';
+                    }}
+                  />
+                </div>
               )}
             </div>
 
