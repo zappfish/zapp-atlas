@@ -43,7 +43,7 @@ gcp-deploy:
       --region {{gcp_region}} \
       --execution-environment gen2 \
       --max-instances 1 \
-      --set-env-vars ZAPP_DB_PATH=/data/zapp.db,PYTHONPATH=/app \
+      --set-env-vars ZAPP_DB_PATH=/data/zapp.db,ZAPP_UPLOAD_DIR=/data/uploads,PYTHONPATH=/app \
       --add-volume name=data,type=cloud-storage,bucket={{gcp_bucket}} \
       --add-volume-mount volume=data,mount-path=/data
 
