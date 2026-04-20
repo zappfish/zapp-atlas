@@ -26,13 +26,19 @@ dev:
 test:
     cd server && uv run pytest
 
-# Run UI smoke tests (Playwright, headless)
+# Run UI smoke tests (Playwright, headless). Excludes the curation specs
+# because they drive the real frogpot picker (multi-MB ontology JSON).
 smoke:
     cd client && npx playwright test
 
 # Run UI smoke tests with browser visible
 smoke-headed:
     cd client && npx playwright test --headed
+
+# Run paper-curation specs. Slow because the phenotype picker loads the
+# full ZP/ZFA graphs. Each spec lives in client/tests/curations/.
+curate *ARGS:
+    cd client && INCLUDE_CURATIONS=1 npx playwright test tests/curations {{ARGS}}
 
 # Seed the dev database
 seed:

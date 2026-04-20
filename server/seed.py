@@ -151,7 +151,7 @@ def _build_bpa_study(session: Session) -> Study:
     pericardial_edema = _upsert_phenotype_term(
         session,
         term_uri="ZP:0105827",
-        term_label="pericardial region edematous, abnormal",
+        term_label="edematous pericardial region",
     )
 
     study = Study(
@@ -227,7 +227,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     head_abnormal = _upsert_phenotype_term(
         session,
         term_uri="ZP:0001609",
-        term_label="head morphology, abnormal",
+        term_label="abnormal head morphology",
     )
 
     study = Study(
@@ -309,7 +309,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     pericardial_edema = _upsert_phenotype_term(
         session,
         term_uri="ZP:0105827",
-        term_label="pericardial region edematous, abnormal",
+        term_label="edematous pericardial region",
     )
 
     study = Study(

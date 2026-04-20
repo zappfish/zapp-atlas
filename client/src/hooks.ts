@@ -37,7 +37,10 @@ const zpCache: {
   data: null,
 };
 
-const DATA_BASE = import.meta.env.VITE_DATA_BASE_URL || "data";
+// Absolute so deep-linked pages (e.g. /observations/:id/new) resolve
+// the ontology JSON correctly — relative "data/…" would otherwise get
+// re-rooted at the current route's parent.
+const DATA_BASE = import.meta.env.VITE_DATA_BASE_URL || "/data";
 
 async function loadZPData(): Promise<ZPData> {
   const loader = new OBOGraphLoader();

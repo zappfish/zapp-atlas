@@ -231,3 +231,37 @@ export async function fillStressor(
   if (s.unit) await inputs.nth(5).fill(s.unit);
   if (s.manufacturer) await inputs.nth(6).fill(s.manufacturer);
 }
+
+/**
+ * Drive the frogpot-backed phenotype picker modal for the N-th phenotype
+ * fieldset on an observation form (1-based — matches the visible legend).
+ *
+ * Types ``query`` into the ZP search input and clicks the first matching
+ * result. The picker caches its graph module-level, so the first call in
+ * a session is slow (loads ~40 MB of ZP JSON) and later calls are fast.
+ */
+export async function pickPhenotype(
+  page: Page,
+  index: number,
+  query: string,
+): Promise<void> {
+  const fieldset = page.locator('fieldset.sub-form').nth(index - 1);
+  await fieldset.getByRole('button', { name: 'Pick a phenotype' }).click();
+
+  const modal = page.locator('.phenotype-modal');
+  await expect(modal).toBeVisible();
+
+  // Wait for the ontology graph to finish loading. Generous timeout on
+  // first open — subsequent opens in the same page reuse the cache.
+  const zpSearch = modal.getByPlaceholder('Search for Zebrafish phenotypes');
+  await expect(zpSearch).toBeVisible({ timeout: 60_000 });
+
+  await zpSearch.fill(query);
+  await modal
+    .locator('.phenotype-item')
+    .filter({ hasText: query })
+    .first()
+    .click();
+
+  await expect(modal).toBeHidden();
+}

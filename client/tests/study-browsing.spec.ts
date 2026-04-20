@@ -26,7 +26,7 @@ test('click-through to study detail renders full graph', async ({ page }) => {
   await expect(page.getByText('CHEBI:33216')).toBeVisible();
 
   // Phenotype observation
-  await expect(page.getByText('pericardial region edematous, abnormal')).toBeVisible();
+  await expect(page.getByText('edematous pericardial region')).toBeVisible();
 
   // Back-link works
   await page.getByRole('link', { name: /all studies/i }).click();

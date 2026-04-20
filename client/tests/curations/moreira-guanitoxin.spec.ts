@@ -20,6 +20,7 @@ import {
   createStudyViaForm,
   fillStressor,
   pickWildType,
+  pickPhenotype,
   stubOlsAutocomplete,
   stubOlsValidation,
 } from './_helpers';
@@ -30,6 +31,10 @@ const FIGURE_PATH = resolve(
   '../../..',
   'docs/curation-fixtures/moreira-guanitoxin-fig2.jpg',
 );
+
+// Curation specs load the full ZFA/ZP ontology graphs to drive the real
+// phenotype picker; default 30s isn't enough.
+test.setTimeout(120_000);
 
 test('curate Moreira et al. 2025 guanitoxin + OP mixture study', async ({ page }) => {
   // ---- stubs ----------------------------------------------------------
@@ -115,11 +120,9 @@ test('curate Moreira et al. 2025 guanitoxin + OP mixture study', async ({ page }
   await page.getByLabel('Severity').selectOption('severe');
   await page.getByLabel('Prevalence').fill('100');
 
-  // CURIE input (not the picker) for deterministic runs.
-  const curieInput = page.getByLabel('Phenotype CURIE 1');
-  await curieInput.fill('ZP:0105827');
-  await curieInput.press('Enter');
-  await expect(page.getByText('ZP:0105827', { exact: true })).toBeVisible();
+  // Canonical ZP label (what's in ZP:0105827 from zp-zapp.json).
+  await pickPhenotype(page, 1, 'edematous pericardial region');
+  await expect(page.getByText('ZP:0105827', { exact: false }).first()).toBeVisible();
 
   // Attach Figure 2 if present on disk (the spec works without it; the
   // image upload is exercised in exposure-observation.spec.ts separately).

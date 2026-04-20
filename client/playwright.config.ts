@@ -5,6 +5,10 @@ const devPort = process.env.DEV_PORT || '5173';
 
 export default defineConfig({
   testDir: './tests',
+  // Curation specs drive the real frogpot phenotype picker, which
+  // pulls down multi-MB ZFA/ZP ontology JSON — too slow for the smoke
+  // suite. They're gated behind their own ``just curate`` recipe.
+  testIgnore: process.env.INCLUDE_CURATIONS ? [] : ['**/curations/**'],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
