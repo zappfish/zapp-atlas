@@ -42,7 +42,7 @@ def _create_study(client: TestClient) -> int:
         "annotator": ["ORCID:0000-0000-0000-0000"],
         "experiment": [],
     }
-    res = client.post("/studies", json=payload)
+    res = client.post("/api/studies", json=payload)
     assert res.status_code == 201, res.text
     return res.json()["id"]
 
@@ -64,17 +64,17 @@ def test_experiment_create_for_study_then_get_and_list():
         "exposure_event": [],
     }
 
-    create_res = client.post(f"/studies/{study_id}/experiments", json=exp_payload)
+    create_res = client.post(f"/api/studies/{study_id}/experiments", json=exp_payload)
     assert create_res.status_code == 201, create_res.text
     created = create_res.json()
     assert "id" in created
 
-    get_res = client.get(f"/experiments/{created['id']}")
+    get_res = client.get(f"/api/experiments/{created['id']}")
     assert get_res.status_code == 200, get_res.text
     got = get_res.json()
     assert got["id"] == created["id"]
 
-    list_res = client.get("/experiments")
+    list_res = client.get("/api/experiments")
     assert list_res.status_code == 200, list_res.text
     rows = list_res.json()
     assert any(r["id"] == created["id"] for r in rows)
@@ -93,7 +93,7 @@ def test_experiment_create_missing_study_404():
         "control": [],
         "exposure_event": [],
     }
-    res = client.post("/studies/999999/experiments", json=exp_payload)
+    res = client.post("/api/studies/999999/experiments", json=exp_payload)
     assert res.status_code == 404
 
 
@@ -101,5 +101,45 @@ def test_experiment_get_missing_404():
     app = _make_test_app()
     client = TestClient(app)
 
-    res = client.get("/experiments/999999")
+    res = client.get("/api/experiments/999999")
+    assert res.status_code == 404
+
+
+def test_experiment_patch_updates_rearing_and_fish():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    study_id = _create_study(client)
+    exp = client.post(
+        f"/api/studies/{study_id}/experiments",
+        json={
+            "standard_rearing_condition": True,
+            "rearing_condition_comment": "",
+            "fish": {"zfin_id": "ZFIN:ZDB-GENO-960809-7", "name": "AB"},
+            "control": [],
+            "exposure_event": [],
+        },
+    ).json()
+
+    res = client.patch(
+        f"/api/experiments/{exp['id']}",
+        json={
+            "standard_rearing_condition": False,
+            "rearing_condition_comment": "temperature 24C",
+            "fish": {"zfin_id": "ZFIN:ZDB-GENO-010112-1", "name": "TU"},
+        },
+    )
+    assert res.status_code == 200, res.text
+    patched = res.json()
+    assert patched["standard_rearing_condition"] is False
+    assert patched["rearing_condition_comment"] == "temperature 24C"
+    assert patched["fish"]["zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
+    assert patched["fish"]["name"] == "TU"
+
+
+def test_experiment_patch_missing_404():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.patch("/api/experiments/999999", json={"rearing_condition_comment": "x"})
     assert res.status_code == 404
