@@ -1,7 +1,6 @@
 .git
+legacy
 node_modules
-client/dist
-client/node_modules
 server/.venv
 server/data
 *.db
