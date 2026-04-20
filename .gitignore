@@ -8,3 +8,6 @@ __pycache__/
 server/credentials.txt
 server/data/
 *.db
+
+# Local planning / scratch notes
+docs/
