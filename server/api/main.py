@@ -9,7 +9,6 @@ Notes
 import os
 from contextlib import asynccontextmanager
 
-import fastapi._compat.v2 as _fastapi_compat_v2
 from fastapi import APIRouter, FastAPI
 
 from server.api.routers.experiments import router as experiments_router
@@ -19,29 +18,6 @@ from server.api.routers.observations import router as observations_router
 from server.api.routers.studies import router as studies_router
 from server.db import get_engine, get_session_factory, init_db
 from server.seed import seed
-
-
-# ---------------------------------------------------------------------------
-# Patch FastAPI's JSON-schema generator for LinkML-generated "enum" classes.
-#
-# LinkML sometimes emits bare ``str`` subclasses (e.g. ExposureRouteEnum)
-# instead of proper ``enum.Enum`` types.  Pydantic validates them with
-# ``core_schema.is_instance_schema()``, which has no JSON Schema mapping and
-# raises ``PydanticInvalidForJsonSchema``.
-#
-# We subclass FastAPI's own ``GenerateJsonSchema`` (in ``fastapi._compat.v2``)
-# so that any str subclass is emitted as ``{"type": "string"}``, then replace
-# the module-level reference that ``get_definitions`` uses.
-# ---------------------------------------------------------------------------
-class _LenientJsonSchema(_fastapi_compat_v2.GenerateJsonSchema):
-    def is_instance_schema(self, schema: dict) -> dict:  # type: ignore[override]
-        cls = schema.get("cls")
-        if cls is not None and issubclass(cls, str):
-            return {"type": "string"}
-        return super().is_instance_schema(schema)
-
-
-_fastapi_compat_v2.GenerateJsonSchema = _LenientJsonSchema  # type: ignore[misc]
 
 
 @asynccontextmanager
