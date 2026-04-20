@@ -35,12 +35,9 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
         "exposure_end_stage": "ZFS:0000039",
         "stressor": [
             {
-                "chemical_id": {
-                    "uri": "http://purl.obolibrary.org/obo/CHEBI_33216",
-                    "chebi_id": "CHEBI:33216",
-                    "cas_id": "80-05-7",
-                    "chemical_name": "bisphenol A",
-                },
+                "chemical_id": "CHEBI:33216",
+                "cas_id": "80-05-7",
+                "chemical_name": "bisphenol A",
                 "concentration": {"unit": "µg/L", "numeric_value": "100"},
             }
         ],
@@ -52,7 +49,7 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
     created = res.json()
     assert "id" in created
     assert created["exposure_start_stage"] == "ZFS:0000011"
-    assert created["stressor"][0]["chemical_id"]["chebi_id"] == "CHEBI:33216"
+    assert created["stressor"][0]["chemical_id"] == "CHEBI:33216"
 
 
 def test_create_exposure_missing_experiment_404(client: TestClient) -> None:

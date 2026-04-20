@@ -28,7 +28,6 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
 
 # LinkML-generated SQLAlchemy models (present on another branch per user).
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
-    ChemicalEntity,
     Control,
     ExposureEvent,
     ExposureRoute,
@@ -43,6 +42,7 @@ from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     StressorChemical,
     Study,
     StudyAnnotator,
+    VehicleOfTransmission,
 )
 
 
@@ -139,31 +139,29 @@ def _phenotype_term_from_payload(session: Session, payload: PhenotypeTerm | None
     return PhenotypeTerm(term_uri=payload.term_uri, term_label=label)
 
 
-def _chemical_entity_from_payload(session: Session, payload: ChemicalEntity | None) -> ChemicalEntity | None:
-    if payload is None:
-        return None
-
-    # NOTE: Depending on the ORM primary key definition, this may need
-    # adjustment. This is intentionally best-effort.
-    attrs = {
-        "uri": payload.uri,
-        "chebi_id": getattr(payload, "chebi_id", None),
-        "cas_id": getattr(payload, "cas_id", None),
-        "chemical_name": getattr(payload, "chemical_name", None),
-    }
-    try:
-        return _get_or_create_by_attrs(session, ChemicalEntity, **attrs)
-    except Exception:
-        return ChemicalEntity(**attrs)
-
-
 def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> StressorChemical:
-    chemical = _chemical_entity_from_payload(session, payload.chemical_id)
     concentration = _quantity_value_from_payload(payload.concentration)
-    return StressorChemical(
-        chemical_id=chemical,
+    stressor = StressorChemical(
+        chemical_id=payload.chemical_id,
+        cas_id=getattr(payload, "cas_id", None),
+        chemical_name=getattr(payload, "chemical_name", None),
         concentration=concentration,
         manufacturer=payload.manufacturer,
+        comment=getattr(payload, "comment", None),
+    )
+    synonyms = getattr(payload, "synonym", None)
+    if synonyms:
+        stressor.synonym = list(synonyms)
+    return stressor
+
+
+def _vehicle_from_payload(payload) -> VehicleOfTransmission | None:
+    if payload is None:
+        return None
+    return VehicleOfTransmission(
+        vehicle_type=payload.vehicle_type,
+        manufacturer=getattr(payload, "manufacturer", None),
+        concentration=_quantity_value_from_payload(getattr(payload, "concentration", None)),
         comment=getattr(payload, "comment", None),
     )
 
@@ -216,7 +214,7 @@ def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) 
         regimen=_regimen_from_create(session, getattr(payload, "regimen", None)),
     )
     if payload.vehicle:
-        ee.vehicle = list(payload.vehicle)
+        ee.vehicle = [_vehicle_from_payload(v) for v in payload.vehicle]
     for s in payload.stressor or []:
         ee.stressor.append(_stressor_from_create(session, s))
     for obs in payload.phenotype_observation or []:
@@ -227,7 +225,7 @@ def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) 
 def _control_from_create(payload: ControlCreate) -> Control:
     return Control(
         control_type=payload.control_type,
-        vehicle_if_treated=getattr(payload, "vehicle_if_treated", None),
+        vehicle_if_treated=_vehicle_from_payload(getattr(payload, "vehicle_if_treated", None)),
         comment=getattr(payload, "comment", None),
     )
 

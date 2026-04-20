@@ -23,7 +23,6 @@ from sqlalchemy.orm import Session
 
 from server.db import get_engine, get_session_factory, init_db
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
-    ChemicalEntity,
     ExposureEvent,
     ExposureRoute,
     ExposureType,
@@ -48,36 +47,6 @@ SEEDED_PUBLICATIONS = {
 # ---------------------------------------------------------------------------
 # Upsert helpers
 # ---------------------------------------------------------------------------
-
-
-def _upsert_chemical(
-    session: Session,
-    *,
-    uri: str,
-    chebi_id: str,
-    cas_id: str,
-    chemical_name: str,
-) -> ChemicalEntity:
-    existing = (
-        session.query(ChemicalEntity)
-        .filter_by(
-            uri=uri,
-            chebi_id=chebi_id,
-            cas_id=cas_id,
-            chemical_name=chemical_name,
-        )
-        .one_or_none()
-    )
-    if existing is not None:
-        return existing
-    chemical = ChemicalEntity(
-        uri=uri,
-        chebi_id=chebi_id,
-        cas_id=cas_id,
-        chemical_name=chemical_name,
-    )
-    session.add(chemical)
-    return chemical
 
 
 def _upsert_fish(session: Session, *, zfin_id: str, name: str) -> Fish:
@@ -141,10 +110,8 @@ def _build_bpa_study(session: Session) -> Study:
     """
 
     fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
-    bpa = _upsert_chemical(
-        session,
-        uri="http://purl.obolibrary.org/obo/CHEBI_33216",
-        chebi_id="CHEBI:33216",
+    bpa = dict(
+        chemical_id="CHEBI:33216",
         cas_id="80-05-7",
         chemical_name="bisphenol A",
     )
@@ -180,9 +147,9 @@ def _build_bpa_study(session: Session) -> Study:
 
     exposure.stressor.append(
         StressorChemical(
-            chemical_id=bpa,
+            **bpa,
             concentration=QuantityValue(unit="µg/L", numeric_value="100"),
-            manufacturer="Sigma-Aldrich",
+            manufacturer="sigma_aldrich",
         )
     )
 
@@ -209,17 +176,13 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     """
 
     fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
-    bpa = _upsert_chemical(
-        session,
-        uri="http://purl.obolibrary.org/obo/CHEBI_33216",
-        chebi_id="CHEBI:33216",
+    bpa = dict(
+        chemical_id="CHEBI:33216",
         cas_id="80-05-7",
         chemical_name="bisphenol A",
     )
-    retinoic_acid = _upsert_chemical(
-        session,
-        uri="http://purl.obolibrary.org/obo/CHEBI_15367",
-        chebi_id="CHEBI:15367",
+    retinoic_acid = dict(
+        chemical_id="CHEBI:15367",
         cas_id="302-79-4",
         chemical_name="all-trans-retinoic acid",
     )
@@ -257,13 +220,13 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
 
     exposure.stressor.append(
         StressorChemical(
-            chemical_id=bpa,
+            **bpa,
             concentration=QuantityValue(unit="µM", numeric_value="10"),
         )
     )
     exposure.stressor.append(
         StressorChemical(
-            chemical_id=retinoic_acid,
+            **retinoic_acid,
             concentration=QuantityValue(unit="µM", numeric_value="0.1"),
         )
     )
@@ -292,17 +255,13 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     """
 
     fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
-    malathion = _upsert_chemical(
-        session,
-        uri="http://purl.obolibrary.org/obo/CHEBI_6651",
-        chebi_id="CHEBI:6651",
+    malathion = dict(
+        chemical_id="CHEBI:6651",
         cas_id="121-75-5",
         chemical_name="malathion",
     )
-    trichlorfon = _upsert_chemical(
-        session,
-        uri="http://purl.obolibrary.org/obo/CHEBI_9747",
-        chebi_id="CHEBI:9747",
+    trichlorfon = dict(
+        chemical_id="CHEBI:9747",
         cas_id="52-68-6",
         chemical_name="trichlorfon",
     )
@@ -342,13 +301,13 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
 
     exposure.stressor.append(
         StressorChemical(
-            chemical_id=malathion,
+            **malathion,
             concentration=QuantityValue(unit="µM", numeric_value="5"),
         )
     )
     exposure.stressor.append(
         StressorChemical(
-            chemical_id=trichlorfon,
+            **trichlorfon,
             concentration=QuantityValue(unit="µM", numeric_value="1"),
         )
     )

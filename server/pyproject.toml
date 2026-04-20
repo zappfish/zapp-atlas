@@ -10,7 +10,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "sqlalchemy>=2.0",
     "uvicorn>=0.30.0",
-    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@reachable-from-enums-to-classes",
+    "zebrafish-toxicology-atlas-schema @ git+https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git@main",
 ]
 
 [dependency-groups]

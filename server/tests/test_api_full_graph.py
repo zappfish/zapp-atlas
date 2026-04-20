@@ -35,12 +35,9 @@ def test_get_study_returns_nested_experiments_exposures_observations(
             "exposure_end_stage": "ZFS:0000039",
             "stressor": [
                 {
-                    "chemical_id": {
-                        "uri": "http://purl.obolibrary.org/obo/CHEBI_33216",
-                        "chebi_id": "CHEBI:33216",
-                        "cas_id": "80-05-7",
-                        "chemical_name": "bisphenol A",
-                    },
+                    "chemical_id": "CHEBI:33216",
+                    "cas_id": "80-05-7",
+                    "chemical_name": "bisphenol A",
                     "concentration": {"unit": "µg/L", "numeric_value": "100"},
                 }
             ],
@@ -77,7 +74,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
     assert len(got_exp["exposure_event"]) == 1
     [got_ee] = got_exp["exposure_event"]
     assert got_ee["exposure_start_stage"] == "ZFS:0000011"
-    assert got_ee["stressor"][0]["chemical_id"]["chebi_id"] == "CHEBI:33216"
+    assert got_ee["stressor"][0]["chemical_id"] == "CHEBI:33216"
     assert len(got_ee["phenotype_observation"]) == 1
     [got_obs] = got_ee["phenotype_observation"]
     assert got_obs["phenotype"][0]["severity"] == "moderate"

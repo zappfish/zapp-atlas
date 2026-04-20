@@ -513,7 +513,7 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "sqlalchemy", specifier = ">=2.0" },
     { name = "uvicorn", specifier = ">=0.30.0" },
-    { name = "zebrafish-toxicology-atlas-schema", git = "https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git?rev=reachable-from-enums-to-classes" },
+    { name = "zebrafish-toxicology-atlas-schema", git = "https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git?rev=main" },
 ]
 
 [package.metadata.requires-dev]
@@ -525,7 +525,7 @@ dev = [
 [[package]]
 name = "zebrafish-toxicology-atlas-schema"
 version = "0.1.0"
-source = { git = "https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git?rev=reachable-from-enums-to-classes#100e42260dd842ebe2749a44ff8f778c48ddfa1c" }
+source = { git = "https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git?rev=main#618fea3c690c9c0ee5a8d23ce26a440ba3ff08b1" }
 dependencies = [
     { name = "pydantic" },
     { name = "sqlalchemy" },

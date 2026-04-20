@@ -13,6 +13,7 @@ from server.api.services.studies import (
     _regimen_from_create,
     _resolve_ontology_term,
     _stressor_from_create,
+    _vehicle_from_payload,
 )
 from server.storage import Storage
 
@@ -24,7 +25,7 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Experiment,
     ExposureEvent,
-    ExposureEventVehicle,
+    VehicleOfTransmission,
 )
 
 
@@ -77,7 +78,7 @@ def patch_exposure(
         )
 
     if patch.vehicle is not None:
-        ee.vehicle = list(patch.vehicle)
+        ee.vehicle = [_vehicle_from_payload(v) for v in patch.vehicle]
 
     if patch.regimen is not None:
         ee.regimen = _regimen_from_create(session, patch.regimen)
@@ -98,9 +99,7 @@ def delete_exposure_row(
         delete_observation_row(session, obs, storage=storage)
     for stressor in list(ee.stressor or []):
         session.delete(stressor)
-    # Vehicle assoc rows — no cascade on the generated relationship, so
-    # remove by FK directly.
-    session.query(ExposureEventVehicle).filter_by(
+    session.query(VehicleOfTransmission).filter_by(
         ExposureEvent_id=ee.id
     ).delete(synchronize_session="fetch")
     if ee.regimen is not None:
