@@ -525,7 +525,7 @@ dev = [
 [[package]]
 name = "zebrafish-toxicology-atlas-schema"
 version = "0.1.0"
-source = { git = "https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git?rev=reachable-from-enums-to-classes#a2a7750618d98dc0c43cf45d1470eb52819ebec2" }
+source = { git = "https://github.com/zappfish/zebrafish-toxicology-atlas-schema.git?rev=reachable-from-enums-to-classes#100e42260dd842ebe2749a44ff8f778c48ddfa1c" }
 dependencies = [
     { name = "pydantic" },
     { name = "sqlalchemy" },
