@@ -9,6 +9,7 @@ This code assumes LinkML-generated SQLAlchemy ORM classes are available at:
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -27,9 +28,10 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
 
 # LinkML-generated SQLAlchemy models (present on another branch per user).
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
-    ChemicalEntity,
     Control,
     ExposureEvent,
+    ExposureRoute,
+    ExposureType,
     Experiment,
     Fish,
     Phenotype,
@@ -39,7 +41,43 @@ from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Regimen,
     StressorChemical,
     Study,
+    StudyAnnotator,
+    VehicleOfTransmission,
 )
+
+
+log = logging.getLogger(__name__)
+
+
+# ExposureRoute / ExposureType rows are get-or-created from the incoming
+# {term_uri, term_label} payload. No server-side ontology validation in
+# this pass — the client is expected to submit a term it picked via an
+# autocomplete against the relevant ontology.
+_ONTOLOGY_FIELD_ORM = {
+    "route": ExposureRoute,
+    "exposure_type": ExposureType,
+}
+
+
+def _resolve_ontology_term(session: Session, field_name: str, payload):
+    if payload is None:
+        return None
+
+    orm_cls = _ONTOLOGY_FIELD_ORM[field_name]
+    term_uri = payload.term_uri
+    term_label = payload.term_label
+
+    existing = (
+        session.query(orm_cls).filter(orm_cls.term_uri == term_uri).one_or_none()
+    )
+    if existing is not None:
+        # Backfill label if the stored row was created with a placeholder.
+        if term_label and existing.term_label != term_label:
+            existing.term_label = term_label
+        return existing
+    new = orm_cls(term_uri=term_uri, term_label=term_label)
+    session.add(new)
+    return new
 
 
 def _get_or_create_by_attrs(session: Session, model, /, **attrs):
@@ -82,42 +120,48 @@ def _fish_from_payload(session: Session, payload: Fish | None) -> Fish | None:
 def _phenotype_term_from_payload(session: Session, payload: PhenotypeTerm | None) -> PhenotypeTerm | None:
     if payload is None:
         return None
-    try:
-        return _get_or_create_by_attrs(
-            session,
-            PhenotypeTerm,
-            term_uri=payload.term_uri,
-            term_label=getattr(payload, "term_label", None),
-        )
-    except Exception:
-        return PhenotypeTerm(term_uri=payload.term_uri, term_label=getattr(payload, "term_label", None))
-
-
-def _chemical_entity_from_payload(session: Session, payload: ChemicalEntity | None) -> ChemicalEntity | None:
-    if payload is None:
-        return None
-
-    # NOTE: Depending on the ORM primary key definition, this may need
-    # adjustment. This is intentionally best-effort.
-    attrs = {
-        "uri": payload.uri,
-        "chebi_id": getattr(payload, "chebi_id", None),
-        "cas_id": getattr(payload, "cas_id", None),
-        "chemical_name": getattr(payload, "chemical_name", None),
-    }
-    try:
-        return _get_or_create_by_attrs(session, ChemicalEntity, **attrs)
-    except Exception:
-        return ChemicalEntity(**attrs)
+    # ``PhenotypeTerm`` has a composite PK ``(term_uri, term_label)`` but
+    # ``Phenotype.phenotype_term_id`` FKs to ``term_uri`` only. If we naïvely
+    # created a second row with the same ``term_uri`` and a different label
+    # (e.g. a curator pasting just the CURIE) existing FKs become ambiguous
+    # and SQLAlchemy's relationship resolver picks one at random. Always
+    # reuse an existing row keyed on ``term_uri`` — upgrade its label only
+    # if the current one is empty and the payload carries something real.
+    incoming_label = getattr(payload, "term_label", None) or ""
+    existing = (
+        session.query(PhenotypeTerm)
+        .filter(PhenotypeTerm.term_uri == payload.term_uri)
+        .first()
+    )
+    if existing is not None:
+        return existing
+    label = incoming_label or payload.term_uri  # term_label is NOT NULL
+    return PhenotypeTerm(term_uri=payload.term_uri, term_label=label)
 
 
 def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> StressorChemical:
-    chemical = _chemical_entity_from_payload(session, payload.chemical_id)
     concentration = _quantity_value_from_payload(payload.concentration)
-    return StressorChemical(
-        chemical_id=chemical,
+    stressor = StressorChemical(
+        chemical_id=payload.chemical_id,
+        cas_id=getattr(payload, "cas_id", None),
+        chemical_name=getattr(payload, "chemical_name", None),
         concentration=concentration,
         manufacturer=payload.manufacturer,
+        comment=getattr(payload, "comment", None),
+    )
+    synonyms = getattr(payload, "synonym", None)
+    if synonyms:
+        stressor.synonym = list(synonyms)
+    return stressor
+
+
+def _vehicle_from_payload(payload) -> VehicleOfTransmission | None:
+    if payload is None:
+        return None
+    return VehicleOfTransmission(
+        vehicle_type=payload.vehicle_type,
+        manufacturer=getattr(payload, "manufacturer", None),
+        concentration=_quantity_value_from_payload(getattr(payload, "concentration", None)),
         comment=getattr(payload, "comment", None),
     )
 
@@ -159,15 +203,18 @@ def _regimen_from_create(session: Session, payload: RegimenCreate | None) -> Reg
 
 def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) -> ExposureEvent:
     ee = ExposureEvent(
-        vehicle=payload.vehicle,
-        route=payload.route,
+        route=_resolve_ontology_term(session, "route", payload.route),
         exposure_start_stage=payload.exposure_start_stage,
         exposure_end_stage=payload.exposure_end_stage,
         comment=getattr(payload, "comment", None),
-        exposure_type=getattr(payload, "exposure_type", None),
+        exposure_type=_resolve_ontology_term(
+            session, "exposure_type", getattr(payload, "exposure_type", None)
+        ),
         additional_exposure_condition=getattr(payload, "additional_exposure_condition", None),
         regimen=_regimen_from_create(session, getattr(payload, "regimen", None)),
     )
+    if payload.vehicle:
+        ee.vehicle = [_vehicle_from_payload(v) for v in payload.vehicle]
     for s in payload.stressor or []:
         ee.stressor.append(_stressor_from_create(session, s))
     for obs in payload.phenotype_observation or []:
@@ -178,7 +225,7 @@ def _exposure_event_from_create(session: Session, payload: ExposureEventCreate) 
 def _control_from_create(payload: ControlCreate) -> Control:
     return Control(
         control_type=payload.control_type,
-        vehicle_if_treated=getattr(payload, "vehicle_if_treated", None),
+        vehicle_if_treated=_vehicle_from_payload(getattr(payload, "vehicle_if_treated", None)),
         comment=getattr(payload, "comment", None),
     )
 
@@ -230,6 +277,24 @@ def list_studies(session: Session, *, limit: int = 50, offset: int = 0) -> list[
     return list(q)
 
 
+def delete_study(session: Session, study_id: int, *, storage) -> bool:
+    # Lazy import to avoid a cycle with experiments → studies.
+    from server.api.services.experiments import delete_experiment_row
+
+    study = get_study_by_id(session, study_id)
+    if study is None:
+        return False
+    for experiment in list(study.experiment or []):
+        delete_experiment_row(session, experiment, storage=storage)
+    # Study_annotator assoc rows (no cascade on the generated relationship)
+    session.query(StudyAnnotator).filter_by(
+        Study_id=study.id
+    ).delete(synchronize_session="fetch")
+    session.delete(study)
+    session.commit()
+    return True
+
+
 def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Optional[Study]:
     study = get_study_by_id(session, study_id)
     if study is None:
@@ -241,9 +306,19 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Optional
     if patch.lab is not None:
         study.lab = patch.lab
     if patch.annotator is not None:
-        study.annotator = patch.annotator
+        # The annotator_rel relationship doesn't have `cascade="all,
+        # delete-orphan"` (generator gap — tracked on the schema repo),
+        # so reassigning the association_proxy triggers a NULLify on the
+        # composite-PK child rows and crashes. Delete the rows at the
+        # SQL layer, expire the relationship, then append the new list.
+        session.query(StudyAnnotator).filter(
+            StudyAnnotator.Study_id == study.id
+        ).delete(synchronize_session="fetch")
+        session.flush()
+        session.expire(study, ["annotator_rel"])
+        for a in patch.annotator:
+            study.annotator.append(a)
 
-    session.add(study)
     session.commit()
     session.refresh(study)
     return study

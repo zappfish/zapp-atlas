@@ -1,14 +1,6 @@
-# Stage 1 — Build the React frontend
-FROM node:20-slim AS frontend
+# Python runtime — API only. The frontend lived in client/ and is now
+# archived under legacy/; this image serves JSON from FastAPI.
 
-WORKDIR /build
-COPY client/package.json client/package-lock.json ./
-RUN npm ci
-COPY client/ ./
-ARG VITE_DATA_BASE_URL
-RUN npm run build
-
-# Stage 2 — Python runtime
 FROM python:3.12-slim AS runtime
 
 # git is required for the git-based schema dependency
@@ -25,9 +17,6 @@ RUN cd server && uv sync --frozen --no-dev
 
 # Copy server source code
 COPY server/ ./server/
-
-# Copy built frontend from stage 1
-COPY --from=frontend /build/dist/ ./client/dist/
 
 ENV PYTHONPATH=/app
 

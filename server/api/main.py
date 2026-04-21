@@ -2,52 +2,32 @@
 
 Notes
 -----
-* This is intended to replace the legacy Flask server in `server/main.py`.
-* For now this module focuses on the "LinkML-first" JSON API (e.g. /studies).
+* Replaces the legacy Flask server archived under ``legacy/server/main.py``.
 * The LinkML-generated models are imported from the schema package.
 """
 
+import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 
-import fastapi._compat.v2 as _fastapi_compat_v2
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import APIRouter, FastAPI
 
 from server.api.routers.experiments import router as experiments_router
+from server.api.routers.exposures import router as exposures_router
+from server.api.routers.images import router as images_router
+from server.api.routers.observations import router as observations_router
 from server.api.routers.studies import router as studies_router
-from server.db import init_db
-
-
-# ---------------------------------------------------------------------------
-# Patch FastAPI's JSON-schema generator for LinkML-generated "enum" classes.
-#
-# LinkML sometimes emits bare ``str`` subclasses (e.g. ExposureRouteEnum)
-# instead of proper ``enum.Enum`` types.  Pydantic validates them with
-# ``core_schema.is_instance_schema()``, which has no JSON Schema mapping and
-# raises ``PydanticInvalidForJsonSchema``.
-#
-# We subclass FastAPI's own ``GenerateJsonSchema`` (in ``fastapi._compat.v2``)
-# so that any str subclass is emitted as ``{"type": "string"}``, then replace
-# the module-level reference that ``get_definitions`` uses.
-# ---------------------------------------------------------------------------
-class _LenientJsonSchema(_fastapi_compat_v2.GenerateJsonSchema):
-    def is_instance_schema(self, schema: dict) -> dict:  # type: ignore[override]
-        cls = schema.get("cls")
-        if cls is not None and issubclass(cls, str):
-            return {"type": "string"}
-        return super().is_instance_schema(schema)
-
-
-_fastapi_compat_v2.GenerateJsonSchema = _LenientJsonSchema  # type: ignore[misc]
-
-DIST_DIR = Path(__file__).resolve().parent.parent.parent / "client" / "dist"
+from server.db import get_engine, get_session_factory, init_db
+from server.seed import seed
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    engine = get_engine()
+    init_db(engine)
+    if os.getenv("ZAPP_SKIP_SEED", "").lower() not in {"1", "true", "yes"}:
+        Session = get_session_factory(engine)
+        with Session() as session:
+            seed(session)
     yield
 
 
@@ -62,26 +42,16 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    app.include_router(studies_router)
-    app.include_router(experiments_router)
-
-    # Serve Vite's hashed asset bundles (JS/CSS) if the build exists
-    assets_dir = DIST_DIR / "assets"
-    if assets_dir.is_dir():
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
-    # SPA catch-all: serve files from dist/ if they exist, otherwise index.html
-    if DIST_DIR.is_dir():
-
-        @app.get("/{full_path:path}", include_in_schema=False)
-        async def spa_catch_all(full_path: str):
-            file = DIST_DIR / full_path
-            if full_path and file.is_file():
-                return FileResponse(file)
-            return FileResponse(DIST_DIR / "index.html")
+    api = APIRouter(prefix="/api")
+    api.include_router(studies_router)
+    api.include_router(experiments_router)
+    api.include_router(exposures_router)
+    api.include_router(observations_router)
+    api.include_router(images_router)
+    app.include_router(api)
 
     return app
 
 
-# Uvicorn entrypoint (once wired): `uvicorn server.api.main:app --reload`
+# Uvicorn entrypoint: `uvicorn server.api.main:app --reload`
 app = create_app()

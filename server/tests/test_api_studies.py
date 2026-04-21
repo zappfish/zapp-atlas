@@ -58,12 +58,12 @@ def test_study_create_then_get_round_trip_minimal():
         "annotator": ["ORCID:0000-0000-0000-0000"],
         "experiment": [],
     }
-    create_res = client.post("/studies", json=payload)
+    create_res = client.post("/api/studies", json=payload)
     assert create_res.status_code == 201, create_res.text
     created = create_res.json()
     assert "id" in created
 
-    get_res = client.get(f"/studies/{created['id']}")
+    get_res = client.get(f"/api/studies/{created['id']}")
     assert get_res.status_code == 200, get_res.text
     got = get_res.json()
     assert got["id"] == created["id"]
@@ -73,7 +73,7 @@ def test_study_get_missing_404():
     app = _make_test_app()
     client = TestClient(app)
 
-    res = client.get("/studies/999999")
+    res = client.get("/api/studies/999999")
     assert res.status_code == 404
 
 
@@ -87,12 +87,12 @@ def test_study_patch_updates_top_level_fields():
         "annotator": ["ORCID:0000-0000-0000-0000"],
         "experiment": [],
     }
-    created = client.post("/studies", json=create_payload).json()
+    created = client.post("/api/studies", json=create_payload).json()
 
     patch_payload = {
         "publication": "PMID:654321",
     }
-    patch_res = client.patch(f"/studies/{created['id']}", json=patch_payload)
+    patch_res = client.patch(f"/api/studies/{created['id']}", json=patch_payload)
     assert patch_res.status_code == 200, patch_res.text
     patched = patch_res.json()
     assert patched["publication"] == "PMID:654321"

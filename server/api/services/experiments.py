@@ -10,9 +10,14 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from server.api.services.studies import _experiment_from_create
+from server.api.services.exposures import delete_exposure_row
+from server.api.services.studies import _experiment_from_create, _fish_from_payload
+from server.storage import Storage
 
-from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import ExperimentCreate
+from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
+    ExperimentCreate,
+    ExperimentUpdate,
+)
 
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Experiment,
@@ -43,12 +48,52 @@ def create_experiment_for_study(
 
 
 def get_experiment_by_id(session: Session, experiment_id: int) -> Optional[Experiment]:
-    try:
-        return session.get(Experiment, experiment_id)
-    except Exception:
-        return session.query(Experiment).filter(Experiment.id == experiment_id).one_or_none()
+    return session.get(Experiment, experiment_id)
 
 
 def list_experiments(session: Session, *, limit: int = 50, offset: int = 0) -> list[Experiment]:
     q = session.query(Experiment).order_by(Experiment.id).offset(offset).limit(limit)
     return list(q)
+
+
+def patch_experiment(
+    session: Session, experiment_id: int, patch: ExperimentUpdate
+) -> Optional[Experiment]:
+    exp = get_experiment_by_id(session, experiment_id)
+    if exp is None:
+        return None
+
+    if patch.standard_rearing_condition is not None:
+        exp.standard_rearing_condition = patch.standard_rearing_condition
+    if patch.rearing_condition_comment is not None:
+        exp.rearing_condition_comment = patch.rearing_condition_comment
+    if patch.fish is not None:
+        exp.fish = _fish_from_payload(session, patch.fish)
+    # control / exposure_event lists are intentionally not replaced on PATCH —
+    # those have their own nested routes.
+
+    session.add(exp)
+    session.commit()
+    session.refresh(exp)
+    return exp
+
+
+def delete_experiment_row(
+    session: Session, exp: Experiment, *, storage: Storage
+) -> None:
+    for exposure in list(exp.exposure_event or []):
+        delete_exposure_row(session, exposure, storage=storage)
+    for control in list(exp.control or []):
+        session.delete(control)
+    session.delete(exp)
+
+
+def delete_experiment(
+    session: Session, experiment_id: int, *, storage: Storage
+) -> bool:
+    exp = get_experiment_by_id(session, experiment_id)
+    if exp is None:
+        return False
+    delete_experiment_row(session, exp, storage=storage)
+    session.commit()
+    return True
