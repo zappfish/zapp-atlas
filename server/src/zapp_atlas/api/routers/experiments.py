@@ -17,15 +17,15 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from server.api.deps import get_session
-from server.api.services.experiments import (
+from zapp_atlas.api.deps import get_session
+from zapp_atlas.api.services.experiments import (
     create_experiment_for_study,
     delete_experiment,
     get_experiment_by_id,
     list_experiments,
     patch_experiment,
 )
-from server.storage import Storage, get_storage
+from zapp_atlas.db.image_storage import Storage, get_storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExperimentCreate,

@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, inspect, text
 
-from server.db import init_db, get_session_factory
+from zapp_atlas.db import init_db, get_session_factory
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (
     Experiment,
     ExposureEvent,

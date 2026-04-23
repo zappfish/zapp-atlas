@@ -6,8 +6,8 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from server.db import init_db
-from server.seed import seed
+from zapp_atlas.db import init_db
+from zapp_atlas.seed import seed
 
 
 def _session_factory():

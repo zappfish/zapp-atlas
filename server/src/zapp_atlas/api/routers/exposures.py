@@ -12,14 +12,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from server.api.deps import get_session
-from server.api.services.exposures import (
+from zapp_atlas.api.deps import get_session
+from zapp_atlas.api.services.exposures import (
     create_exposure_for_experiment,
     delete_exposure,
     get_exposure_by_id,
     patch_exposure,
 )
-from server.storage import Storage, get_storage
+from zapp_atlas.db.image_storage import Storage, get_storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExposureEventCreate,

@@ -6,7 +6,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from server.storage import Storage, max_upload_bytes
+from zapp_atlas.db.image_storage import Storage, max_upload_bytes
 
 from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
     Image,

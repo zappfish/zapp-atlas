@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from server.api.main import create_app
+from zapp_atlas.main import create_app
 
 
 def test_health():

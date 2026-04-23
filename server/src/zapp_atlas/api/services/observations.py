@@ -6,12 +6,12 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from server.api.services.images import delete_image_row
-from server.api.services.studies import (
+from zapp_atlas.api.services.images import delete_image_row
+from zapp_atlas.api.services.studies import (
     _obs_set_from_create,
     _phenotype_from_create,
 )
-from server.storage import Storage
+from zapp_atlas.db.image_storage import Storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     PhenotypeObservationSetCreate,

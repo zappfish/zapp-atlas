@@ -10,9 +10,9 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from server.api.services.exposures import delete_exposure_row
-from server.api.services.studies import _experiment_from_create, _fish_from_payload
-from server.storage import Storage
+from zapp_atlas.api.services.exposures import delete_exposure_row
+from zapp_atlas.api.services.studies import _experiment_from_create, _fish_from_payload
+from zapp_atlas.db.image_storage import Storage
 
 from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     ExperimentCreate,

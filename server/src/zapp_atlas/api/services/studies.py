@@ -279,7 +279,7 @@ def list_studies(session: Session, *, limit: int = 50, offset: int = 0) -> list[
 
 def delete_study(session: Session, study_id: int, *, storage) -> bool:
     # Lazy import to avoid a cycle with experiments → studies.
-    from server.api.services.experiments import delete_experiment_row
+    from zapp_atlas.api.services.experiments import delete_experiment_row
 
     study = get_study_by_id(session, study_id)
     if study is None:
