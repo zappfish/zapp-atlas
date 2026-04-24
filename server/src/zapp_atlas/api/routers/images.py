@@ -32,7 +32,7 @@ from zapp_atlas.api.services.images import (
 )
 from zapp_atlas.db.image_storage import Storage, get_storage
 
-from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import ImageRead
+from zapp_atlas.schema.pydantic_crud import ImageRead
 
 
 router = APIRouter(tags=["images"])

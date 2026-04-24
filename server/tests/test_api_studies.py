@@ -25,7 +25,7 @@ def _make_test_app():
     """Create an app instance configured with an in-memory sqlite session."""
 
     # Schema-provided SQLAlchemy base (assumed to exist)
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
+    from zapp_atlas.schema.sqla import Base  # type: ignore
 
     engine = create_engine(
         "sqlite:///:memory:",

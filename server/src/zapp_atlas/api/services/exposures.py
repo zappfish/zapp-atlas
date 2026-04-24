@@ -17,12 +17,12 @@ from zapp_atlas.api.services.studies import (
 )
 from zapp_atlas.db.image_storage import Storage
 
-from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
+from zapp_atlas.schema.pydantic_crud import (
     ExposureEventCreate,
     ExposureEventUpdate,
 )
 
-from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
+from zapp_atlas.schema.sqla import (  # type: ignore
     Experiment,
     ExposureEvent,
     VehicleOfTransmission,

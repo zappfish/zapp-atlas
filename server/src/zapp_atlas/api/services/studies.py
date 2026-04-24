@@ -2,9 +2,6 @@
 
 The intent here is to keep all of the "how do I convert StudyCreate to ORM"
 logic in one place, so the router stays clean.
-
-This code assumes LinkML-generated SQLAlchemy ORM classes are available at:
-`zebrafish_toxicology_atlas_schema.datamodel.sqla`.
 """
 
 from __future__ import annotations
@@ -14,7 +11,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
+from zapp_atlas.schema.pydantic_crud import (
     ControlCreate,
     ExposureEventCreate,
     ExperimentCreate,
@@ -26,8 +23,7 @@ from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
     StudyUpdate,
 )
 
-# LinkML-generated SQLAlchemy models (present on another branch per user).
-from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
+from zapp_atlas.schema.sqla import (  # type: ignore
     Control,
     ExposureEvent,
     ExposureRoute,

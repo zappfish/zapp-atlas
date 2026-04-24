@@ -21,7 +21,7 @@ def _session_factory():
 
 
 def test_seed_creates_studies_with_full_graph() -> None:
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import (
+    from zapp_atlas.schema.sqla import (
         ExposureEvent,
         Experiment,
         Phenotype,
@@ -45,7 +45,7 @@ def test_seed_creates_studies_with_full_graph() -> None:
 
 
 def test_seed_is_idempotent() -> None:
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import Study
+    from zapp_atlas.schema.sqla import Study
 
     Session = _session_factory()
     session = Session()

@@ -12,7 +12,7 @@ from zapp_atlas.main import create_app
 
 
 def _make_test_app():
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
+    from zapp_atlas.schema.sqla import Base  # type: ignore
 
     engine = create_engine(
         "sqlite:///:memory:",

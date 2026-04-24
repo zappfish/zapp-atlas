@@ -12,7 +12,7 @@ from zapp_atlas.main import create_app
 
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
+    from zapp_atlas.schema.sqla import Base  # type: ignore
 
     # Lifespan tries to seed into a real on-disk DB; disable for tests.
     monkeypatch.setenv("ZAPP_SKIP_SEED", "1")
