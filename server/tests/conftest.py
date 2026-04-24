@@ -6,13 +6,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from server.api.deps import get_session
-from server.api.main import create_app
+from zapp_atlas.api.deps import get_session
+from zapp_atlas.main import create_app
 
 
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
+    from zapp_atlas.schema.sqla import Base  # type: ignore
 
     # Lifespan tries to seed into a real on-disk DB; disable for tests.
     monkeypatch.setenv("ZAPP_SKIP_SEED", "1")

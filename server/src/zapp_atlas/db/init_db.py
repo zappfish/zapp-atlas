@@ -1,4 +1,4 @@
-from db import get_db_path, init_db
+from zapp_atlas.db.db import get_db_path, init_db
 
 if __name__ == "__main__":
     db_path = get_db_path()

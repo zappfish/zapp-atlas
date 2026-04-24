@@ -6,8 +6,8 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from server.api.services.observations import delete_observation_row
-from server.api.services.studies import (
+from zapp_atlas.api.services.observations import delete_observation_row
+from zapp_atlas.api.services.studies import (
     _exposure_event_from_create,
     _quantity_value_from_payload,
     _regimen_from_create,
@@ -15,14 +15,14 @@ from server.api.services.studies import (
     _stressor_from_create,
     _vehicle_from_payload,
 )
-from server.storage import Storage
+from zapp_atlas.db.image_storage import Storage
 
-from zebrafish_toxicology_atlas_schema.datamodel.pydanticmodel_v2 import (
+from zapp_atlas.schema.pydantic_crud import (
     ExposureEventCreate,
     ExposureEventUpdate,
 )
 
-from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
+from zapp_atlas.schema.sqla import (  # type: ignore
     Experiment,
     ExposureEvent,
     VehicleOfTransmission,

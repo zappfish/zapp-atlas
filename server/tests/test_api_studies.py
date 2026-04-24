@@ -17,15 +17,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from server.api.deps import get_session
-from server.api.main import create_app
+from zapp_atlas.api.deps import get_session
+from zapp_atlas.main import create_app
 
 
 def _make_test_app():
     """Create an app instance configured with an in-memory sqlite session."""
 
     # Schema-provided SQLAlchemy base (assumed to exist)
-    from zebrafish_toxicology_atlas_schema.datamodel.sqla import Base  # type: ignore
+    from zapp_atlas.schema.sqla import Base  # type: ignore
 
     engine = create_engine(
         "sqlite:///:memory:",

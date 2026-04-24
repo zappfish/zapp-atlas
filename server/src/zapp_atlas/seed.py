@@ -21,8 +21,8 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from server.db import get_engine, get_session_factory, init_db
-from zebrafish_toxicology_atlas_schema.datamodel.sqla import (  # type: ignore
+from zapp_atlas.db import get_engine, get_session_factory, init_db
+from zapp_atlas.schema.sqla import (  # type: ignore
     ExposureEvent,
     ExposureRoute,
     ExposureType,

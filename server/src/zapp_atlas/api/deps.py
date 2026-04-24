@@ -6,7 +6,7 @@ from collections.abc import Generator
 
 from sqlalchemy.orm import Session
 
-from server.db import get_engine, get_session_factory
+from zapp_atlas.db import get_engine, get_session_factory
 
 
 # In production we may want more explicit lifecycle management, but for now
