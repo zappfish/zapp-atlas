@@ -36,11 +36,12 @@ def create_image_for_observation(
     magnification: str | None = None,
     resolution: str | None = None,
     scale_bar: str | None = None,
+    max_bytes: int | None = None,
 ) -> Optional[Image]:
     if not content_type.startswith("image/"):
         raise UnsupportedImageTypeError(content_type)
 
-    limit = max_upload_bytes()
+    limit = max_bytes if max_bytes is not None else max_upload_bytes()
     if len(data) > limit:
         raise ImageTooLargeError(f"{len(data)} > {limit}")
 

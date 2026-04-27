@@ -6,7 +6,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.deps import get_session
+from zapp_atlas.api.deps import get_app_settings, get_session
 from zapp_atlas.auth.services import (
     ORCID_STATE_COOKIE,
     OrcidConfigError,
@@ -19,6 +19,7 @@ from zapp_atlas.auth.services import (
     state_matches,
     store_orcid_token,
 )
+from zapp_atlas.settings import AppSettings
 
 
 router = APIRouter(tags=["auth"])
@@ -54,9 +55,11 @@ def _error_page(message: str, status_code: int = status.HTTP_400_BAD_REQUEST) ->
 
 
 @router.get("/auth/orcid/login")
-def login_with_orcid() -> RedirectResponse:
+def login_with_orcid(
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
+) -> RedirectResponse:
     try:
-        config = get_orcid_config()
+        config = get_orcid_config(settings)
     except OrcidConfigError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -79,6 +82,7 @@ def login_with_orcid() -> RedirectResponse:
 @router.get("/registered", response_class=HTMLResponse)
 def registered_orcid_callback(
     session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
     code: Annotated[str | None, Query()] = None,
     state: Annotated[str | None, Query()] = None,
     error: Annotated[str | None, Query()] = None,
@@ -93,7 +97,7 @@ def registered_orcid_callback(
         return _error_page("ORCID login state did not match. Please try again.")
 
     try:
-        config = get_orcid_config()
+        config = get_orcid_config(settings)
         token_payload = exchange_code_for_token(config, code)
         token = store_orcid_token(session, token_payload)
     except (OrcidConfigError, OrcidTokenExchangeError) as exc:
@@ -122,4 +126,3 @@ def orcid_status(
     return HTMLResponse(
         f"<p><strong>Signed in as {display_name}</strong><br>ORCID iD {orcid_id}</p>"
     )
-

@@ -5,10 +5,8 @@ Two backends:
 * ``LocalFilesystemStorage`` — writes blobs under a local directory.
   Used when no S3-compatible bucket endpoint is configured.
 * ``BucketStorage`` — any S3-compatible object store (Tigris, Cloudflare
-  R2, MinIO, Backblaze B2, ...). Activated when ``AWS_ENDPOINT_URL_S3``
-  and ``BUCKET_NAME`` are both set. Env var names follow the boto3 /
-  AWS SDK convention so they match what ``fly storage create`` and most
-  provider docs emit.
+  R2, MinIO, Backblaze B2, ...). Activated when ``ZAPP_AWS_ENDPOINT_URL_S3``
+  and ``ZAPP_BUCKET_NAME`` are both set.
 
 Callers get a ``Storage`` instance from ``get_storage()``; backends are
 swapped without the caller noticing.
@@ -16,10 +14,11 @@ swapped without the caller noticing.
 
 from __future__ import annotations
 
-import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+
+from zapp_atlas.settings import AppSettings, load_settings
 
 
 @dataclass
@@ -128,25 +127,22 @@ class BucketStorage(Storage):
         )
 
 
-def _default_local_dir() -> Path:
-    env = os.getenv("ZAPP_UPLOAD_DIR")
-    if env:
-        return Path(env)
-    return Path(__file__).resolve().parent / "data" / "uploads"
+def _default_local_dir(settings: AppSettings | None = None) -> Path:
+    return (settings or load_settings()).upload_dir
 
 
-def get_storage() -> Storage:
-    endpoint = os.getenv("AWS_ENDPOINT_URL_S3")
-    bucket = os.getenv("BUCKET_NAME")
+def get_storage(settings: AppSettings | None = None) -> Storage:
+    settings = settings or load_settings()
+    endpoint = settings.aws_endpoint_url_s3
+    bucket = settings.bucket_name
     if endpoint and bucket:
         return BucketStorage(
             endpoint_url=endpoint,
             bucket=bucket,
-            public_url_prefix=os.getenv("ZAPP_BUCKET_PUBLIC_URL_PREFIX"),
+            public_url_prefix=settings.bucket_public_url_prefix,
         )
-    return LocalFilesystemStorage(root=_default_local_dir())
+    return LocalFilesystemStorage(root=_default_local_dir(settings))
 
 
-def max_upload_bytes() -> int:
-    raw = os.getenv("ZAPP_MAX_UPLOAD_BYTES")
-    return int(raw) if raw else 50 * 1024 * 1024
+def max_upload_bytes(settings: AppSettings | None = None) -> int:
+    return (settings or load_settings()).max_upload_bytes

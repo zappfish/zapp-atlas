@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -13,11 +12,10 @@ from urllib.request import Request, urlopen
 from sqlalchemy.orm import Session
 
 from zapp_atlas.auth.models import OrcidAuthToken
+from zapp_atlas.settings import AppSettings, load_settings
 
 
 ORCID_STATE_COOKIE = "zapp_orcid_state"
-DEFAULT_ORCID_BASE_URL = "https://orcid.org"
-DEFAULT_ORCID_REDIRECT_URI = "http://127.0.0.1:8000/registered"
 
 
 class OrcidConfigError(RuntimeError):
@@ -33,7 +31,7 @@ class OrcidConfig:
     client_id: str
     client_secret: str
     redirect_uri: str
-    base_url: str = DEFAULT_ORCID_BASE_URL
+    base_url: str
 
     @property
     def authorize_url(self) -> str:
@@ -44,16 +42,19 @@ class OrcidConfig:
         return f"{self.base_url.rstrip('/')}/oauth/token"
 
 
-def get_orcid_config() -> OrcidConfig:
-    client_id = os.getenv("ORCID_CLIENT_ID", "").strip()
-    client_secret = os.getenv("ORCID_CLIENT_SECRET", "").strip()
+def get_orcid_config(settings: AppSettings | None = None) -> OrcidConfig:
+    settings = settings or load_settings()
+    client_id = settings.orcid_client_id
+    client_secret = settings.orcid_client_secret
     if not client_id or not client_secret:
-        raise OrcidConfigError("ORCID_CLIENT_ID and ORCID_CLIENT_SECRET must be set")
+        raise OrcidConfigError(
+            "ZAPP_ORCID_CLIENT_ID and ZAPP_ORCID_CLIENT_SECRET must be set"
+        )
     return OrcidConfig(
         client_id=client_id,
         client_secret=client_secret,
-        redirect_uri=os.getenv("ORCID_REDIRECT_URI", DEFAULT_ORCID_REDIRECT_URI).strip(),
-        base_url=os.getenv("ORCID_BASE_URL", DEFAULT_ORCID_BASE_URL).strip(),
+        redirect_uri=settings.orcid_redirect_uri,
+        base_url=settings.orcid_base_url,
     )
 
 
@@ -138,4 +139,3 @@ def store_orcid_token(session: Session, payload: dict[str, Any]) -> OrcidAuthTok
 
 def get_orcid_token(session: Session, auth_id: str) -> OrcidAuthToken | None:
     return session.get(OrcidAuthToken, auth_id)
-

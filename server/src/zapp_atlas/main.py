@@ -6,7 +6,6 @@ Notes
 * The LinkML-generated models are imported from the schema package.
 """
 
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
@@ -20,25 +19,30 @@ from zapp_atlas.api.routers.studies import router as studies_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.html.router import router as html_router
 from zapp_atlas.seed import seed
+from zapp_atlas.settings import AppSettings, load_settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    engine = get_engine()
+    settings = app.state.settings
+    engine = get_engine(settings=settings)
+    app.state.engine = engine
+    app.state.session_factory = get_session_factory(engine)
     init_db(engine)
-    if os.getenv("ZAPP_SKIP_SEED", "").lower() not in {"1", "true", "yes"}:
-        Session = get_session_factory(engine)
+    if not settings.skip_seed:
+        Session = app.state.session_factory
         with Session() as session:
             seed(session)
     yield
 
 
-def create_app() -> FastAPI:
+def create_app(settings: AppSettings | None = None) -> FastAPI:
     app = FastAPI(
         title="ZAPP Atlas API",
         version="0.1.0",
         lifespan=lifespan,
     )
+    app.state.settings = settings or load_settings()
 
     @app.get("/health")
     def health() -> dict[str, str]:
