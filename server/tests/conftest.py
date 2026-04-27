@@ -12,7 +12,7 @@ from zapp_atlas.main import create_app
 
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    from zapp_atlas.schema.sqla import Base  # type: ignore
+    from zapp_atlas.db import init_db
 
     # Lifespan tries to seed into a real on-disk DB; disable for tests.
     monkeypatch.setenv("ZAPP_SKIP_SEED", "1")
@@ -22,7 +22,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    Base.metadata.create_all(engine)
+    init_db(engine)
     SessionLocal = sessionmaker(bind=engine)
 
     app = create_app()

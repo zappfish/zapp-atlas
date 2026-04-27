@@ -3,6 +3,7 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from zapp_atlas.schema.sqla import Base
+import zapp_atlas.auth.models  # noqa: F401
 
 SERVER_DIR = Path(__file__).resolve().parent
 DEFAULT_DB_PATH = SERVER_DIR / "data" / "zapp.db"
