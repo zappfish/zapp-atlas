@@ -7,3 +7,7 @@ __pycache__/
 server/credentials.txt
 server/data/
 *.db
+.DS_Store
+
+# Local reference data — large files, not tracked in git
+zfin_test_data/

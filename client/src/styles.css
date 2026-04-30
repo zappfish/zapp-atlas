@@ -64,7 +64,15 @@ label {
   font-weight: 600;
 }
 
-input, select, textarea {
+input, select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 36px;
+}
+
+textarea {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;

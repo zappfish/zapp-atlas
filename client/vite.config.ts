@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === "phenodemo" ? "./" : "/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -15,6 +16,12 @@ export default defineConfig({
       '/normalize-chemical': 'http://localhost:5001',
       '/autocomplete-chemical': 'http://localhost:5001',
     }
-  }
-});
-
+  },
+  build: {
+    rollupOptions: {
+      input: (mode === "phenodemo"
+        ? { phenodemo: path.resolve(__dirname, "phenodemo.html") }
+        : { main: path.resolve(__dirname, "index.html") }) as Record<string, string>,
+    }
+  },
+}));

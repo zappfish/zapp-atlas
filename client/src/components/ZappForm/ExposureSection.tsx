@@ -197,6 +197,7 @@ export default function ExposureSection({
           Vehicle of Transmission
         </div>
         <SubstanceFields
+          mode="vehicle"
           value={exposure.vehicle ?? { name: '', idType: 'None', id: '' }}
           onChange={(vehicle) =>
             update((e) => ({

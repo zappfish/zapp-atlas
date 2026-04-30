@@ -14,7 +14,7 @@ type ExposureEvent = ZappObservation['exposures'][number];
 function emptyExposureEvent(): ExposureEvent {
   return {
     textual_description: null,
-    substance: { name: '', idType: 'CAS', id: '' },
+    substance: { name: '', idType: 'None', id: '' },
     vehicle: { name: '', idType: 'None', id: '' },
     concentration: { value: null, unit: 'uM' },
     route: 'water',

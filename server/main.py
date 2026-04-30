@@ -15,10 +15,8 @@ from werkzeug.utils import secure_filename
 
 
 # Paths relative to repo
-# __file__ is .../server/src/zapp_atlas/workshop_server/main.py
-# parents: [0]=workshop_server, [1]=zapp_atlas, [2]=src, [3]=server, [4]=repo root
 SERVER_DIR = Path(__file__).resolve().parent
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = SERVER_DIR.parent
 DIST_DIR = (REPO_ROOT / "client" / "dist").resolve()
 SCRIPTS_DIR = (REPO_ROOT / "scripts").resolve()
 DATA_DIR = (REPO_ROOT / "zfin_test_data").resolve()

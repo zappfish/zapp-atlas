@@ -38,11 +38,14 @@ export type SubstanceIdType = typeof SUBSTANCE_ID_TYPES[number];
 
 const SubstanceIdSchema = z.object({
   name: z.string().optional(),
+  unrecognized_name: z.string().optional(),
   idType: z.enum(SUBSTANCE_ID_TYPES).default('None'),
   id: z.string().optional(),
   concentration: z.string().optional(),
+  concentration_unit: z.string().optional(),
   cas_number: z.string().optional(),
   manufacturer: z.string().optional(),
+  vehicle_type: z.string().optional(),
   comment: z.string().optional(),
 });
 
