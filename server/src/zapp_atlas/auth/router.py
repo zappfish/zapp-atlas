@@ -20,21 +20,10 @@ from zapp_atlas.auth.services import (
     store_orcid_token,
 )
 from zapp_atlas.settings import AppSettings
+from zapp_atlas.html.router import _escape
 
 
 router = APIRouter(tags=["auth"])
-
-
-def _escape(value: str | None) -> str:
-    if not value:
-        return ""
-    return (
-        value.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-        .replace("'", "&#x27;")
-    )
 
 
 def _error_page(message: str, status_code: int = status.HTTP_400_BAD_REQUEST) -> HTMLResponse:
