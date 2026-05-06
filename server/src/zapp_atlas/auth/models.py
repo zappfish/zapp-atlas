@@ -13,10 +13,10 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-class OrcidAuthToken(Base):
+class OrcidIdentity(Base):
     """Stored ORCID identity for an authenticated researcher."""
 
-    __tablename__ = "OrcidAuthToken"
+    __tablename__ = "OrcidIdentity"
 
     id: Mapped[str] = mapped_column(
         Text(), primary_key=True, default=lambda: str(uuid.uuid4())

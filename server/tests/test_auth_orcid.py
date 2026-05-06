@@ -8,11 +8,11 @@ from sqlalchemy import create_engine, func, inspect, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from zapp_atlas.auth.models import OrcidAuthToken
+from zapp_atlas.auth.models import OrcidIdentity
 from zapp_atlas.auth.services import (
     ORCID_AUTH_COOKIE,
     ORCID_STATE_COOKIE,
-    store_orcid_token,
+    store_orcid_identity,
 )
 from zapp_atlas.db import init_db
 from zapp_atlas.settings import DEFAULT_ORCID_REDIRECT_URI
@@ -111,7 +111,7 @@ def test_orcid_logout_clears_auth_cookie(client: TestClient) -> None:
     assert res.cookies.get(ORCID_AUTH_COOKIE) is None
 
 
-def test_store_orcid_token_updates_existing_identity() -> None:
+def test_store_orcid_identity_updates_existing_identity() -> None:
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -121,7 +121,7 @@ def test_store_orcid_token_updates_existing_identity() -> None:
     Session = sessionmaker(bind=engine)
 
     with Session() as session:
-        first = store_orcid_token(
+        first = store_orcid_identity(
             session,
             {
                 "access_token": "first-access-token",
@@ -133,7 +133,7 @@ def test_store_orcid_token_updates_existing_identity() -> None:
                 "orcid": "0000-0001-2345-6789",
             },
         )
-        second = store_orcid_token(
+        second = store_orcid_identity(
             session,
             {
                 "access_token": "second-access-token",
@@ -146,14 +146,14 @@ def test_store_orcid_token_updates_existing_identity() -> None:
             },
         )
 
-        token_count = session.scalar(select(func.count()).select_from(OrcidAuthToken))
+        identity_count = session.scalar(select(func.count()).select_from(OrcidIdentity))
 
     assert second.id == first.id
-    assert token_count == 1
+    assert identity_count == 1
     assert second.name == "Dr. Sofia Garcia"
 
 
-def test_orcid_table_is_registered_with_init_db() -> None:
+def test_orcid_identity_table_is_registered_with_init_db() -> None:
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -163,10 +163,10 @@ def test_orcid_table_is_registered_with_init_db() -> None:
     init_db(engine)
 
     inspector = inspect(engine)
-    columns = {column["name"] for column in inspector.get_columns("OrcidAuthToken")}
-    indexes = inspector.get_indexes("OrcidAuthToken")
+    columns = {column["name"] for column in inspector.get_columns("OrcidIdentity")}
+    indexes = inspector.get_indexes("OrcidIdentity")
 
-    assert "OrcidAuthToken" in inspector.get_table_names()
+    assert "OrcidIdentity" in inspector.get_table_names()
     assert "orcid_id" in columns
     assert any(index["unique"] and index["column_names"] == ["orcid_id"] for index in indexes)
     assert "access_token" not in columns

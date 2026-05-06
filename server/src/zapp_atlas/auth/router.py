@@ -15,10 +15,10 @@ from zapp_atlas.auth.services import (
     build_authorization_url,
     exchange_code_for_token,
     get_orcid_config,
-    get_orcid_token,
+    get_orcid_identity,
     make_state,
     state_matches,
-    store_orcid_token,
+    store_orcid_identity,
 )
 from zapp_atlas.settings import AppSettings
 from zapp_atlas.html.router import _escape
@@ -89,14 +89,14 @@ def registered_orcid_callback(
     try:
         config = get_orcid_config(settings)
         token_payload = exchange_code_for_token(config, code)
-        token = store_orcid_token(session, token_payload)
+        identity = store_orcid_identity(session, token_payload)
     except (OrcidConfigError, OrcidTokenExchangeError) as exc:
         return _error_page(str(exc), status.HTTP_502_BAD_GATEWAY)
 
     response = RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         ORCID_AUTH_COOKIE,
-        token.id,
+        identity.id,
         httponly=True,
         secure=config.redirect_uri.startswith("https://"),
         samesite="lax",
@@ -115,19 +115,19 @@ def logout_orcid() -> RedirectResponse:
 @router.get("/auth/orcid/status", response_class=HTMLResponse)
 def orcid_status(
     session: Annotated[Session, Depends(get_session)],
-    auth_id: Annotated[str | None, Cookie(alias=ORCID_AUTH_COOKIE)] = None,
+    identity_id: Annotated[str | None, Cookie(alias=ORCID_AUTH_COOKIE)] = None,
 ) -> HTMLResponse:
-    if auth_id is None:
+    if identity_id is None:
         return HTMLResponse("")
 
-    token = get_orcid_token(session, auth_id)
-    if token is None:
+    identity = get_orcid_identity(session, identity_id)
+    if identity is None:
         return HTMLResponse(
             "<p>No ORCID login was found for this browser.</p>",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    display_name = _escape(token.name) or "ORCID user"
-    orcid_id = _escape(token.orcid_id)
+    display_name = _escape(identity.name) or "ORCID user"
+    orcid_id = _escape(identity.orcid_id)
     return HTMLResponse(
         f"<p><strong>Signed in as {display_name}</strong><br>ORCID iD {orcid_id}</p>"
     )

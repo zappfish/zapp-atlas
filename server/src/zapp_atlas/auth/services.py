@@ -11,7 +11,7 @@ from urllib.request import Request, urlopen
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from zapp_atlas.auth.models import OrcidAuthToken
+from zapp_atlas.auth.models import OrcidIdentity
 from zapp_atlas.settings import AppSettings, load_settings
 
 
@@ -111,26 +111,26 @@ def exchange_code_for_token(config: OrcidConfig, code: str) -> dict[str, Any]:
         raise OrcidTokenExchangeError("Could not exchange ORCID authorization code") from exc
 
 
-def store_orcid_token(session: Session, payload: dict[str, Any]) -> OrcidAuthToken:
+def store_orcid_identity(session: Session, payload: dict[str, Any]) -> OrcidIdentity:
     orcid_id = payload.get("orcid")
     if not orcid_id:
         raise OrcidTokenExchangeError("ORCID token response was missing identity")
 
-    row = session.scalar(
-        select(OrcidAuthToken)
-        .where(OrcidAuthToken.orcid_id == orcid_id)
-        .order_by(OrcidAuthToken.created_at)
+    identity = session.scalar(
+        select(OrcidIdentity)
+        .where(OrcidIdentity.orcid_id == orcid_id)
+        .order_by(OrcidIdentity.created_at)
     )
-    if row is None:
-        row = OrcidAuthToken(orcid_id=orcid_id)
-        session.add(row)
+    if identity is None:
+        identity = OrcidIdentity(orcid_id=orcid_id)
+        session.add(identity)
 
-    row.name = payload.get("name")
+    identity.name = payload.get("name")
 
     session.commit()
-    session.refresh(row)
-    return row
+    session.refresh(identity)
+    return identity
 
 
-def get_orcid_token(session: Session, auth_id: str) -> OrcidAuthToken | None:
-    return session.get(OrcidAuthToken, auth_id)
+def get_orcid_identity(session: Session, auth_id: str) -> OrcidIdentity | None:
+    return session.get(OrcidIdentity, auth_id)
