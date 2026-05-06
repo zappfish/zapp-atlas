@@ -2,12 +2,12 @@ node_modules
 dist
 tsconfig.tsbuildinfo
 __pycache__/
+.env.local
 
 # Server secrets and uploads
 server/credentials.txt
 server/data/
 *.db
-.DS_Store
 
-# Local reference data — large files, not tracked in git
-zfin_test_data/
+# Local planning / scratch notes
+docs/

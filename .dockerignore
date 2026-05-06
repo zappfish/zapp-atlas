@@ -1,0 +1,12 @@
+.git
+legacy
+node_modules
+server/.venv
+server/data
+*.db
+__pycache__
+docs
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache

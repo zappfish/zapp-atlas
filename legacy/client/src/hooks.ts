@@ -37,12 +37,14 @@ const zpCache: {
   data: null,
 };
 
+const DATA_BASE = import.meta.env.VITE_DATA_BASE_URL || "data";
+
 async function loadZPData(): Promise<ZPData> {
   const loader = new OBOGraphLoader();
 
   const [zfaGraph, zpGraph] = await Promise.all([
-    loader.fromURI("data/zfa.json"),
-    loader.fromURI("data/zp-zapp.json"),
+    loader.fromURI(`${DATA_BASE}/zfa.json`),
+    loader.fromURI(`${DATA_BASE}/zp-zapp.json`),
   ]);
 
   const zfaHierarchy = zfaGraph.getHierarchy(ZFA_ROOT);

@@ -1,8 +1,7 @@
 from sqlalchemy import create_engine, inspect, text
 
-from db import init_db, get_session_factory
-from zebrafish_toxicology_atlas_schema.datamodel.sqla import (
-    ChemicalEntity,
+from zapp_atlas.db import init_db, get_session_factory
+from zapp_atlas.schema.sqla import (
     Experiment,
     ExposureEvent,
     Fish,
@@ -28,7 +27,6 @@ def test_init_db_creates_expected_tables():
         "PhenotypeObservationSet",
         "Control",
         "Fish",
-        "ChemicalEntity",
         "PhenotypeTerm",
         "QuantityValue",
         "Image",
@@ -65,13 +63,6 @@ def test_study_round_trip():
 
     fish = Fish(zfin_id="ZDB-GENO-960809-7", name="AB")
 
-    bpa = ChemicalEntity(
-        uri="http://purl.obolibrary.org/obo/CHEBI_33216",
-        chebi_id="CHEBI:33216",
-        cas_id="80-05-7",
-        chemical_name="bisphenol A",
-    )
-
     concentration = QuantityValue(unit="µg/L", numeric_value="100")
 
     zp_pericardial_edema = PhenotypeTerm(
@@ -106,9 +97,11 @@ def test_study_round_trip():
     experiment.exposure_event.append(exposure)
 
     stressor = StressorChemical(
-        chemical_id=bpa,
+        chemical_id="CHEBI:33216",
+        cas_id="80-05-7",
+        chemical_name="bisphenol A",
         concentration=concentration,
-        manufacturer="Sigma-Aldrich",
+        manufacturer="sigma_aldrich",
     )
     exposure.stressor.append(stressor)
 
@@ -151,12 +144,12 @@ def test_study_round_trip():
     assert loaded_ee.exposure_end_stage == "ZFS:0000039"
 
     [loaded_stressor] = loaded_ee.stressor
-    assert loaded_stressor.chemical_id.chemical_name == "bisphenol A"
-    assert loaded_stressor.chemical_id.chebi_id == "CHEBI:33216"
-    assert loaded_stressor.chemical_id.cas_id == "80-05-7"
+    assert loaded_stressor.chemical_name == "bisphenol A"
+    assert loaded_stressor.chemical_id == "CHEBI:33216"
+    assert loaded_stressor.cas_id == "80-05-7"
     assert loaded_stressor.concentration.numeric_value == "100"
     assert loaded_stressor.concentration.unit == "µg/L"
-    assert loaded_stressor.manufacturer == "Sigma-Aldrich"
+    assert loaded_stressor.manufacturer == "sigma_aldrich"
 
     [loaded_obs] = loaded_ee.phenotype_observation
     phenotypes = sorted(
