@@ -28,10 +28,26 @@ const RepeatedExposureSchema = z.object({
   total_length: DurationSchema,
 });
 
+export const SUBSTANCE_ID_TYPES = [
+  'None', 'CHEBI', 'PUBCHEM.COMPOUND', 'CAS', 'INCHIKEY', 'HMDB',
+  'CHEMBL.COMPOUND', 'UNII', 'MESH', 'UMLS', 'DrugCentral',
+  'GTOPDB', 'RXCUI', 'DRUGBANK', 'KEGG.COMPOUND', 'UniProtKB', 'ENSEMBL', 'PR',
+] as const;
+
+export type SubstanceIdType = typeof SUBSTANCE_ID_TYPES[number];
+
 const SubstanceIdSchema = z.object({
-  name: z.string().optional(),
-  idType: z.enum(['PubChem', 'CAS', 'ChEBI', 'None']).default('None'),
-  id: z.string().optional()
+  chemical_id: z.string().optional(),
+  unrecognized_chemical_name: z.string().optional(),
+  synonym: z.array(z.string()).optional(),
+  idType: z.enum(SUBSTANCE_ID_TYPES).default('None'),
+  id: z.string().optional(),
+  concentration: z.string().optional(),
+  concentration_unit: z.string().optional(),
+  cas_id: z.string().optional(),
+  manufacturer: z.string().optional(),
+  vehicle_type: z.string().optional(),
+  comment: z.string().optional(),
 });
 
 const PhenotypeItemSchema = z.object({
@@ -45,6 +61,7 @@ const PhenotypeItemSchema = z.object({
 // FIXME: This should really have a `regimen` key.
 const ExposureEventSchema = z.object({
   substance: SubstanceIdSchema,
+  vehicle: SubstanceIdSchema.optional(),
   concentration: z.object({
     value: z.number().nonnegative().nullable(),
     unit: z.string().nullable()

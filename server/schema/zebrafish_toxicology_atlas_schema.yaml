@@ -1,0 +1,630 @@
+---
+id: https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema
+name: zebrafish-toxicology-atlas-schema
+title: zebrafish-toxicology-atlas-schema
+description: |-
+  Schema to represent metadatcha associated with the Zebrafish Toxicology Atlas
+license: MIT
+see_also:
+  - https://sierra-moxon.github.io/zebrafish-toxicology-atlas-schema
+
+prefixes:
+  zebrafish_toxicology_atlas_schema: https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema/
+  linkml: https://w3id.org/linkml/
+  biolink: https://w3id.org/biolink/
+  schema: http://schema.org/
+  PATO: http://purl.obolibrary.org/obo/PATO_
+  example: https://example.org/
+  CHEBI: http://purl.obolibrary.org/obo/CHEBI_
+  CAS: https://commonchemistry.cas.org/detail?cas_rn=
+  ECTO: http://purl.obolibrary.org/obo/ECTO_
+  EXO: http://purl.obolibrary.org/obo/EXO_
+  ZP: http://purl.obolibrary.org/obo/ZP_
+  ORCID: https://orcid.org/
+  ZFIN: https://zfin.org/
+  UMLS: https://uts.nlm.nih.gov/uts/umls/concept/
+  "PUBCHEM.COMPOUND": https://identifiers.org/pubchem.compound/
+  UNII: https://fdasis.nlm.nih.gov/srs/unii/
+default_prefix: zebrafish_toxicology_atlas_schema
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+
+  # Base classes for different ID strategies
+  ZappEntity:
+    description: Internal entities with auto-generated integer IDs.
+    abstract: true
+    slots:
+      - id
+
+  OntologyEntity:
+    description: Entities representing ontology terms with URI identifiers.
+    abstract: true
+
+  ZfinEntity:
+    description: Entities with ZFIN database identifiers.
+    abstract: true
+    slots:
+      - zfin_id
+
+  # Internal entities (integer autoincrement)
+  Study:
+    is_a: ZappEntity
+    description: A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
+    slots:
+      - experiment
+      - publication
+      - annotator
+      - lab
+
+  Experiment:
+    is_a: ZappEntity
+    description: A group of observations (phenotypic outcomes and their control) that are linked by a common exposure event and subject, and that are part of a study.
+    slots:
+      - standard_rearing_condition
+      - rearing_condition_comment
+      - fish
+      - control
+      - exposure_event
+
+  PhenotypeObservationSet:
+    is_a: ZappEntity
+    description: An observation set containing control and phenotypic outcome resulting from an exposure event.
+    slots:
+      - image
+      - phenotype
+      - control_image
+
+  Phenotype:
+    is_a: ZappEntity
+    description: Any measurable or visible trait change in the subject as a result of exposure.
+    slots:
+      - stage
+      - prevalence
+      - severity
+      - phenotype_term_id
+
+  Control:
+    is_a: ZappEntity
+    description: A subject serves as a reference for assessing phenotypic outcome in the phenotype observation set. 
+    slots:
+      - control_type
+      - vehicle_if_treated
+      - comment
+      - control_image
+
+  ExposureEvent:
+    is_a: ZappEntity
+    description: >-
+      An occurrence in a study where a subject is exposed to a stressor under defined conditions.
+    slots:
+      - stressor
+      - vehicle
+      - route
+      - regimen
+      - exposure_start_stage
+      - exposure_end_stage
+      - comment
+      - exposure_type
+      - additional_exposure_condition
+      - phenotype_observation
+    exact_mappings:
+      - biolink:ExposureEvent
+
+  Regimen:
+    is_a: ZappEntity
+    description: The schedule and pattern of an exposure event.
+    slots:
+      - exposure_regimen_type
+      - interval_between_individual_exposures
+      - total_exposure_duration
+      - individual_exposure_duration
+      - number_of_individual_exposure
+
+  StressorChemical:
+    is_a: ZappEntity
+    description: A chemical that elicits a response (a phenotype) in a subject when encountered through exposure.
+    slots:
+      - chemical_id
+      - cas_id
+      - unrecognized_chemical_name
+      - synonym
+      - manufacturer
+      - concentration
+      - comment
+    slot_usage:
+      cas_id:
+        required: false
+      unrecognized_chemical_name:
+        required: false
+      synonym:
+        required: false
+      manufacturer:
+        required: false
+      concentration:
+        required: false
+      comment:
+        required: false
+
+  VehicleOfTransmission:
+    is_a: ZappEntity
+    description: The substance or medium used to deliver a stressor to a subject during an exposure event.
+    slots:
+      - vehicle_type
+      - chemical_id
+      - cas_id
+      - unrecognized_chemical_name
+      - synonym
+      - manufacturer
+      - concentration
+      - comment
+    slot_usage:
+      chemical_id:
+        required: false
+      cas_id:
+        required: false
+      unrecognized_chemical_name:
+        required: false
+      synonym:
+        required: false
+      manufacturer:
+        required: false
+      concentration:
+        required: false
+      comment:
+        required: false
+
+  Image:
+    is_a: ZappEntity
+    description: An image associated with a phenotype observation.
+    slots:
+      - magnification
+      - resolution
+      - scale_bar
+
+  ControlImage:
+    is_a: ZappEntity
+    description: An image associated with a control, taken at the same developmental stage as the corresponding phenotype observation.
+    slots:
+      - phenotype_id
+      - magnification
+      - resolution
+      - scale_bar
+      - phenotype_comments
+
+  # Ontology entities (string URI identifiers)
+  PhenotypeTerm:
+    is_a: OntologyEntity
+    description: A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+    slots:
+      - term_uri
+      - term_label
+    exact_mappings:
+      - biolink:PhenotypicFeature
+
+  ExposureRoute:
+    is_a: OntologyEntity
+    description: |
+      A route-of-exposure term. Term URIs are expected to be reachable from
+      EXO:0000154 (route of exposure) in the EXO ontology.
+    slots:
+      - term_uri
+      - term_label
+    slot_usage:
+      term_label:
+        required: true
+
+  ExposureType:
+    is_a: OntologyEntity
+    description: |
+      An exposure-type term from ECTO.
+    slots:
+      - term_uri
+      - term_label
+    slot_usage:
+      term_label:
+        required: true
+
+  # ZFIN entities (ZFIN database identifiers)
+  Fish:
+    is_a: ZfinEntity
+    description: Zebrafish used as subject in the study.
+    slots:
+      - name
+    slot_usage:
+      name:
+        required: true
+
+  # Value objects (not entities, inlined)
+  QuantityValue:
+    description: >-
+      A value of an attribute that is quantitative and measurable,
+      expressed as a combination of a unit and a numeric value
+    slots:
+      - unit
+      - numeric_value
+
+
+slots:
+  # Identifier slots
+  id:
+    identifier: true
+    description: Auto-generated integer identifier.
+    range: integer
+
+  term_uri:
+    identifier: true
+    description: The URI of the phenotype ontology term.
+    range: uriorcurie
+    required: true
+
+  zfin_id:
+    identifier: true
+    description: ZFIN database identifier.
+    range: string
+    required: true
+    pattern: "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$"
+
+  # Other slots
+  publication:
+    description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
+    range: string
+  synonym:
+    description: Other names for the chemical.
+    range: string
+    multivalued: true
+  name:
+    description: Name or label of an entity.
+  exposure_type:
+    description: An instance of exposure specifying the type of stressor a subject was exposed to.
+    range: ExposureType
+    inlined: true
+    inlined_as_list: true
+  unit:
+    description: The unit of the quantity value.
+  numeric_value:
+    description: The numeric value of the quantity value.
+  experiment:
+    description: The experiment in a study.
+    range: Experiment
+    multivalued: true
+    inlined_as_list: true
+    inlined: true
+  phenotype_observation:
+    description: The phenotype observation resulting from an exposure event.
+    range: PhenotypeObservationSet
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  control:
+    description: An observation that serves as the reference for assessing phenotypic outcome.
+    range: Control
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  fish:
+    description: The fish subject of the experiment.
+    range: Fish
+    inlined_as_list: true
+    inlined: true
+  image:
+    description: Images associated with this observation.
+    range: Image
+    multivalued: true
+    inlined_as_list: true
+    inlined: true
+  phenotype:
+    description: The phenotype observed.
+    range: Phenotype
+    inlined_as_list: true
+    inlined: true
+    multivalued: true
+  stage:
+    description: The developmental stage of fish when the phenotype was observed.
+    range: uriorcurie
+  prevalence:
+    description: The percentage of subject exhibiting this phenotype.
+    range: QuantityValue
+    inlined_as_list: true
+    inlined: true
+  severity:
+    description: The intensity of the observed phenotype.
+    range: SeverityEnum
+  phenotype_term_id:
+    description: The phenotype ontology term.
+    range: PhenotypeTerm
+    inlined: true
+    inlined_as_list: true
+  term_label:
+    description: The human-readable label for the phenotype ontology term.
+    range: string
+  control_type:
+    description: Type of control (e.g., wildtype vs mutant, treated vs untreated).
+    range: string
+  vehicle_type:
+    description: The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary.
+    range: VehicleEnum
+    required: true
+  vehicle_if_treated:
+    description: The vehicle used in a control.
+    range: VehicleOfTransmission
+    inlined: true
+    inlined_as_list: true
+  control_id:
+    description: Identifier for the control, used to link control images to specific controls.
+    range: string
+  control_image:
+    description: Image associated with this control.
+    range: ControlImage
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  phenotype_id:
+    description: Foreign key reference to the PhenotypeObservationSet uuid (for database representation).
+    range: string
+  exposure_event:
+    description: The exposure event in an experiment.
+    range: ExposureEvent
+    multivalued: true
+    inlined_as_list: true
+    inlined: true
+  standard_rearing_condition:
+    description: An indication of whether the subject was maintained under standard conditions, which are the established, consistent environmental and husbandry parameters (such as temperature, lighting, diet, and housing) designed to minimize variability and ensure reproducibility in experiments.
+    range: boolean
+  number_of_individual_exposure:
+    description: Total number of individual exposures.
+    range: integer
+  rearing_condition_comment:
+    description: Comments on rearing conditions, for example, about how conditions deviated from standard parameters.
+    range: string
+  stressor:
+    description: Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.
+    range: StressorChemical
+    multivalued: true
+    inlined_as_list: true
+    inlined: true
+  vehicle:
+    description: The substance or medium used to deliver a stressor.
+    range: VehicleOfTransmission
+    multivalued: true
+    inlined_as_list: true
+    inlined: true
+  route:
+    description: The route of exposure.
+    range: ExposureRoute
+    inlined: true
+    inlined_as_list: true
+  regimen:
+    description: The regimen for the exposure.
+    range: Regimen
+    multivalued: false
+    inlined_as_list: true
+    inlined: true
+  exposure_start_stage:
+    description: The developmental stage of fish when exposure started.
+    range: uriorcurie
+    multivalued: false
+  exposure_end_stage:
+    description: The developmental stage of fish when exposure ended.
+    range: uriorcurie
+    multivalued: false
+  comment:
+    description: Additional comments.
+    range: string
+  additional_exposure_condition:
+    description: Additional information about the conditions under which exposure event occurred.
+    range: string
+  cas_id:
+    description: CAS identifier for the chemical.
+    range: string
+  unrecognized_chemical_name:
+    description: Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.
+    range: string
+  chemical_id:
+    description: Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+    range: uriorcurie
+  manufacturer:
+    description: The manufacturer or supplier of the chemical.
+    range: ManufacturerEnum
+  concentration:
+    description: The dose or concentration of the chemical to which the subject was exposed to.
+    range: QuantityValue
+    required: true
+    inlined_as_list: true
+    inlined: true
+  interval_between_individual_exposures:
+    description: Interval between individual exposures.
+    range: QuantityValue
+    inlined_as_list: true
+    inlined: true
+  total_exposure_duration:
+    description: Time between first and last individual exposure.
+    range: QuantityValue
+    inlined_as_list: true
+    inlined: true
+  individual_exposure_duration:
+    description: Individual exposure duration.
+    range: QuantityValue
+    inlined_as_list: true
+    inlined: true
+  exposure_regimen_type:
+    description: The type of exposure regimen (e.g., continuous or repeated).
+    range: ExposureRegimenTypeEnum
+  magnification:
+    description: The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.
+    range: string
+  resolution:
+    description: The level of detail in the image.
+    range: string
+  scale_bar:
+    description: Scale bar information, including the physical length it represents and the unit of measurement.
+    range: string
+  annotator:
+    description: ORCID identifier of the indidvidual submitting the study data.
+    range: uriorcurie
+    multivalued: true
+    pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
+  lab:
+    description: ZFIN lab identifier of the laboratory that produced the study data.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$"
+  phenotype_comments:
+    description: Comments about the phenotype in the control image.
+    range: string
+
+enums:
+
+  SeverityEnum:
+    description: An enumeration of severity levels for phenotypes.
+    permissible_values:
+      mild:
+        description: Mild severity
+      moderate:
+        description: Moderate severity
+      severe:
+        description: Severe severity
+
+  ExposureRegimenTypeEnum:
+    description: An enumeration of exposure regimen types.
+    permissible_values:
+      continuous:
+        description: Continuous exposure
+        meaning: EXO:0000109
+      repeated:
+        description: Repeated exposure
+        meaning: EXO:0000110
+
+  VehicleEnum:
+    description: An enumeration of vehicles used to deliver stressors in exposure events.
+    permissible_values:
+      acetone:
+        description: Acetone
+        meaning: CHEBI:15347
+      acetonitrile:
+        description: Acetonitrile
+        meaning: CHEBI:38472
+      bsa:
+        description: Bovine serum albumin (BSA)
+        meaning: UMLS:C0036774
+      butanone_mek:
+        description: Butanone (MEK)
+        meaning: CHEBI:28398
+      cyclodextrin_hpbcd:
+        description: Cyclodextrin (HPBCD)
+        meaning: CHEBI:23456
+      dimethyl_formamide:
+        description: Dimethyl formamide (DMF)
+        meaning: CHEBI:17741
+      dmso:
+        description: Dimethyl sulfoxide (DMSO)
+        meaning: CHEBI:28262
+      embryonic_media:
+        description: Embryonic Media (EM/E3)
+      ethanol:
+        description: Ethanol
+        meaning: CHEBI:16236
+      glycerol:
+        description: Glycerol
+        meaning: CHEBI:17754
+      isopropanol:
+        description: Isopropanol
+        meaning: CHEBI:17824
+      methanol:
+        description: Methanol
+        meaning: CHEBI:17790
+      methylcellulose:
+        description: Methylcellulose
+        meaning: CHEBI:53448
+      pbs:
+        description: Phosphate-buffered saline (PBS)
+        meaning: "PUBCHEM.COMPOUND:24978514"
+      polyethylene_glycol:
+        description: Polyethylene glycol
+        meaning: CHEBI:30742
+      propylene_glycol:
+        description: Propylene glycol
+        meaning: CHEBI:16997
+      solketal:
+        description: Solketal
+        meaning: UNII:3XK098O8ZW
+      water:
+        description: Water
+        meaning: CHEBI:15377
+      other_not_listed:
+        description: Other vehicle not in the controlled list
+
+  ManufacturerEnum:
+    description: An enumeration of manufacturers and suppliers of chemicals used in exposure events.
+    permissible_values:
+      # Tier 1: Core global suppliers
+      sigma_aldrich:
+        description: Sigma-Aldrich
+      merck_kgaa:
+        description: Merck KGaA
+      millipore_sigma:
+        description: MilliporeSigma
+      thermo_fisher_scientific:
+        description: Thermo Fisher Scientific
+      fisher_scientific:
+        description: Fisher Scientific
+      avantor:
+        description: Avantor
+      vwr:
+        description: VWR
+      # Tier 2: Molecular biology / life sciences
+      new_england_biolabs:
+        description: New England Biolabs
+      bio_rad_laboratories:
+        description: Bio-Rad Laboratories
+      promega_corporation:
+        description: Promega Corporation
+      corning_life_sciences:
+        description: Corning Life Sciences
+      lonza_group:
+        description: Lonza Group
+      # Tier 3: Chemical libraries / screening
+      tocris_bioscience:
+        description: Tocris Bioscience
+      cayman_chemical_company:
+        description: Cayman Chemical Company
+      selleck_chemicals:
+        description: Selleck Chemicals
+      medchemexpress:
+        description: MedChemExpress
+      enzo_life_sciences:
+        description: Enzo Life Sciences
+      # Tier 4: Zebrafish / aquatic systems
+      aquaneering_inc:
+        description: Aquaneering Inc.
+      pentair_aquatic_eco_systems:
+        description: Pentair Aquatic Eco-Systems
+      tecniplast:
+        description: Tecniplast
+      zebrafish_international_resource_center:
+        description: Zebrafish International Resource Center
+      # Tier 5: Bulk / industrial chemicals
+      tokyo_chemical_industry:
+        description: Tokyo Chemical Industry
+      alfa_aesar:
+        description: Alfa Aesar
+      acros_organics:
+        description: Acros Organics
+      honeywell:
+        description: Honeywell
+      # Tier 6: Specialty biotech
+      abcam:
+        description: Abcam
+      cell_signaling_technology:
+        description: Cell Signaling Technology
+      genscript:
+        description: GenScript
+      addgene:
+        description: Addgene
+      # Tier 7: Distributors
+      thomas_scientific:
+        description: Thomas Scientific
+      cole_parmer:
+        description: Cole-Parmer

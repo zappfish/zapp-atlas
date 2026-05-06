@@ -8,6 +8,8 @@ from flask import Flask, jsonify, request, send_from_directory, abort
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
+from chemicals import chemicals_bp
+
 
 # Paths relative to repo
 SERVER_DIR = Path(__file__).resolve().parent
@@ -18,6 +20,7 @@ DEFAULT_CREDENTIALS_FILE = (SERVER_DIR / "credentials.txt").resolve()
 
 # Disable Flask's default static handler; we'll serve only from client/dist explicitly
 app = Flask(__name__, static_folder=None)
+app.register_blueprint(chemicals_bp)
 
 # 50 MB limit
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024

@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => ({
           '@': path.resolve(__dirname, 'src')
       }
   },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:5000',
+    }
+  },
   build: {
     rollupOptions: {
       input: mode === "phenodemo"
