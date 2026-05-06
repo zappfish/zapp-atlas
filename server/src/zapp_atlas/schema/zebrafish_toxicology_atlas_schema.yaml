@@ -130,22 +130,51 @@ classes:
     slots:
       - chemical_id
       - cas_id
-      - chemical_name
+      - unrecognized_chemical_name
       - synonym
       - manufacturer
       - concentration
       - comment
+    slot_usage:
+      cas_id:
+        required: false
+      unrecognized_chemical_name:
+        required: false
+      synonym:
+        required: false
+      manufacturer:
+        required: false
+      concentration:
+        required: false
+      comment:
+        required: false
 
   VehicleOfTransmission:
     is_a: ZappEntity
     description: The substance or medium used to deliver a stressor to a subject during an exposure event.
     slots:
       - vehicle_type
+      - chemical_id
+      - cas_id
+      - unrecognized_chemical_name
+      - synonym
       - manufacturer
       - concentration
       - comment
     slot_usage:
+      chemical_id:
+        required: false
+      cas_id:
+        required: false
+      unrecognized_chemical_name:
+        required: false
+      synonym:
+        required: false
+      manufacturer:
+        required: false
       concentration:
+        required: false
+      comment:
         required: false
 
   Image:
@@ -391,8 +420,8 @@ slots:
   cas_id:
     description: CAS identifier for the chemical.
     range: string
-  chemical_name:
-    description: Name of the chemical.
+  unrecognized_chemical_name:
+    description: Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.
     range: string
   chemical_id:
     description: Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.

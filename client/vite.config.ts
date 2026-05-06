@@ -1,0 +1,26 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'node:path';
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  base: mode === "phenodemo" ? "./" : "/",
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000',
+    }
+  },
+  build: {
+    rollupOptions: {
+      input: (mode === "phenodemo"
+        ? { phenodemo: path.resolve(__dirname, "phenodemo.html") }
+        : { main: path.resolve(__dirname, "index.html") }) as Record<string, string>,
+    }
+  },
+}));

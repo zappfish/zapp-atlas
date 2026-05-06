@@ -129,28 +129,45 @@ def _db_lookup_by_id(chebi_id: str) -> dict | None:
 
 
 def _db_autocomplete(q: str, limit: int) -> list[dict]:
+    """Return autocomplete hits in the same format as the legacy Flask server:
+    [{"name": str, "chebi_ids": [...], "normalized": NormResult | None}, ...]
+    """
     db = _get_db()
     if db is None:
         return []
+    # Fetch more rows than limit to allow grouping by orig_name
     rows = db.execute(
-        "SELECT s.orig_name, c.primary_id, c.label, c.description, c.equiv_ids, c.smiles "
+        "SELECT s.orig_name, s.chebi_id, c.primary_id, c.label, c.description, c.equiv_ids "
         "FROM synonyms s JOIN chemicals c ON s.chebi_id = c.chebi_id "
         "WHERE s.synonym_lower LIKE ? "
-        "ORDER BY length(s.synonym_lower) LIMIT ?",
-        (f"{q.lower()}%", limit),
+        "ORDER BY length(s.synonym_lower), s.orig_name",
+        (f"{q.lower()}%",),
     ).fetchall()
-    results = []
+
+    # Group by orig_name, preserving insertion order (first occurrence = shortest match)
+    groups: dict[str, dict] = {}
     for row in rows:
-        normalized = {
-            "normalized": True,
-            "primary_id": row["primary_id"],
-            "label": row["label"],
-            "description": row["description"],
-            "biolink_type": None,
-            "equivalent_identifiers": json.loads(row["equiv_ids"] or "[]"),
-        }
-        results.append({"input_name": row["orig_name"], "normalized": normalized})
-    return results
+        name = row["orig_name"]
+        if name not in groups:
+            groups[name] = {"chebi_ids": [], "normalized": None}
+        groups[name]["chebi_ids"].append(row["chebi_id"])
+        # Prefer self-canonical result (chebi_id == primary_id); fall back to first
+        if groups[name]["normalized"] is None or row["chebi_id"] == row["primary_id"]:
+            groups[name]["normalized"] = {
+                "normalized": True,
+                "primary_id": row["primary_id"],
+                "label": row["label"],
+                "description": row["description"],
+                "biolink_type": None,
+                "equivalent_identifiers": json.loads(row["equiv_ids"] or "[]"),
+            }
+        if len(groups) >= limit:
+            break
+
+    return [
+        {"name": name, "chebi_ids": data["chebi_ids"], "normalized": data["normalized"]}
+        for name, data in groups.items()
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +264,7 @@ def normalize_chemical_endpoint(body: NormalizeRequest) -> dict[str, Any]:
 
     try:
         if use_name:
-            data = _chem_lookup(name, hits=1)
+            data = _chem_lookup(name, hits=5)
         else:
             curie = f"{namespace}:{chemical_id}"
             raw = normalize_curie(curie)
