@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.deps import get_app_settings, get_session
 from zapp_atlas.auth.services import (
+    ORCID_AUTH_COOKIE,
     ORCID_STATE_COOKIE,
     OrcidConfigError,
     OrcidTokenExchangeError,
@@ -92,22 +93,37 @@ def registered_orcid_callback(
     except (OrcidConfigError, OrcidTokenExchangeError) as exc:
         return _error_page(str(exc), status.HTTP_502_BAD_GATEWAY)
 
-    response = RedirectResponse(
-        f"/login?auth_id={token.id}", status_code=status.HTTP_303_SEE_OTHER
+    response = RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(
+        ORCID_AUTH_COOKIE,
+        token.id,
+        httponly=True,
+        secure=config.redirect_uri.startswith("https://"),
+        samesite="lax",
     )
     response.delete_cookie(ORCID_STATE_COOKIE)
     return response
 
 
-@router.get("/auth/orcid/status/{auth_id}", response_class=HTMLResponse)
+@router.post("/auth/orcid/logout")
+def logout_orcid() -> RedirectResponse:
+    response = RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
+    response.delete_cookie(ORCID_AUTH_COOKIE)
+    return response
+
+
+@router.get("/auth/orcid/status", response_class=HTMLResponse)
 def orcid_status(
-    auth_id: str,
     session: Annotated[Session, Depends(get_session)],
+    auth_id: Annotated[str | None, Cookie(alias=ORCID_AUTH_COOKIE)] = None,
 ) -> HTMLResponse:
+    if auth_id is None:
+        return HTMLResponse("")
+
     token = get_orcid_token(session, auth_id)
     if token is None:
         return HTMLResponse(
-            "<p>No ORCID login was found for this callback.</p>",
+            "<p>No ORCID login was found for this browser.</p>",
             status_code=status.HTTP_404_NOT_FOUND,
         )
     display_name = _escape(token.name) or "ORCID user"

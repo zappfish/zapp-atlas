@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 
@@ -20,15 +20,7 @@ def _escape(value: str | None) -> str:
 
 
 @router.get("/login", response_class=HTMLResponse)
-def login_page(auth_id: str | None = Query(default=None)) -> HTMLResponse:
-    status_attrs = ""
-    if auth_id:
-        status_attrs = (
-            f' hx-get="/auth/orcid/status/{_escape(auth_id)}"'
-            ' hx-trigger="load"'
-            ' hx-swap="innerHTML"'
-        )
-
+def login_page() -> HTMLResponse:
     return HTMLResponse(
         f"""<!doctype html>
 <html lang="en">
@@ -43,9 +35,11 @@ def login_page(auth_id: str | None = Query(default=None)) -> HTMLResponse:
       <h1>ZAPP Atlas ORCID Login</h1>
       <p>Use ORCID to confirm an authenticated researcher identity for this server.</p>
       <p><a href="/auth/orcid/login">Sign in with ORCID</a></p>
-      <section id="orcid-status"{status_attrs}></section>
+      <form method="post" action="/auth/orcid/logout">
+        <button type="submit">Log out</button>
+      </form>
+      <section id="orcid-status" hx-get="/auth/orcid/status" hx-trigger="load" hx-swap="innerHTML"></section>
     </main>
   </body>
 </html>"""
     )
-

@@ -16,6 +16,7 @@ from zapp_atlas.settings import AppSettings, load_settings
 
 
 ORCID_STATE_COOKIE = "zapp_orcid_state"
+ORCID_AUTH_COOKIE = "zapp_orcid_auth"
 
 
 class OrcidConfigError(RuntimeError):

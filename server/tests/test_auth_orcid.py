@@ -9,7 +9,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from zapp_atlas.auth.models import OrcidAuthToken
-from zapp_atlas.auth.services import ORCID_STATE_COOKIE, store_orcid_token
+from zapp_atlas.auth.services import (
+    ORCID_AUTH_COOKIE,
+    ORCID_STATE_COOKIE,
+    store_orcid_token,
+)
 from zapp_atlas.db import init_db
 from zapp_atlas.settings import DEFAULT_ORCID_REDIRECT_URI
 
@@ -20,6 +24,10 @@ def test_login_page_renders(client: TestClient) -> None:
     assert res.status_code == 200
     assert "Sign in with ORCID" in res.text
     assert "/auth/orcid/login" in res.text
+    assert "/auth/orcid/logout" in res.text
+    assert "Log out" in res.text
+    assert "auth_id=" not in res.text
+    assert 'hx-get="/auth/orcid/status"' in res.text
 
 
 def test_orcid_login_redirects_to_authorize(client: TestClient) -> None:
@@ -69,10 +77,10 @@ def test_registered_callback_stores_token_and_redirects(client: TestClient) -> N
         )
 
     assert res.status_code == 303
-    assert res.headers["location"].startswith("/login?auth_id=")
-    auth_id = parse_qs(urlparse(res.headers["location"]).query)["auth_id"][0]
+    assert res.headers["location"] == "/login"
+    assert ORCID_AUTH_COOKIE in res.cookies
 
-    status_res = client.get(f"/auth/orcid/status/{auth_id}")
+    status_res = client.get("/auth/orcid/status")
     assert status_res.status_code == 200
     assert "Sofia Garcia" in status_res.text
     assert "0000-0001-2345-6789" in status_res.text
@@ -91,6 +99,16 @@ def test_registered_callback_rejects_state_mismatch(
 
     assert res.status_code == 400
     assert "state did not match" in res.text
+
+
+def test_orcid_logout_clears_auth_cookie(client: TestClient) -> None:
+    client.cookies.set(ORCID_AUTH_COOKIE, "auth-id")
+
+    res = client.post("/auth/orcid/logout", follow_redirects=False)
+
+    assert res.status_code == 303
+    assert res.headers["location"] == "/login"
+    assert res.cookies.get(ORCID_AUTH_COOKIE) is None
 
 
 def test_store_orcid_token_updates_existing_identity() -> None:
