@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from zapp_atlas.auth.models import OrcidAuthToken
@@ -112,26 +112,20 @@ def exchange_code_for_token(config: OrcidConfig, code: str) -> dict[str, Any]:
 
 def store_orcid_token(session: Session, payload: dict[str, Any]) -> OrcidAuthToken:
     orcid_id = payload.get("orcid")
-    access_token = payload.get("access_token")
-    if not orcid_id or not access_token:
-        raise OrcidTokenExchangeError("ORCID token response was missing identity or token")
+    if not orcid_id:
+        raise OrcidTokenExchangeError("ORCID token response was missing identity")
 
-    expires_in = payload.get("expires_in")
-    expires_at = None
-    if isinstance(expires_in, int):
-        expires_at = datetime.now(UTC) + timedelta(seconds=expires_in)
-
-    row = OrcidAuthToken(
-        orcid_id=orcid_id,
-        name=payload.get("name"),
-        access_token=access_token,
-        refresh_token=payload.get("refresh_token"),
-        token_type=payload.get("token_type"),
-        scope=payload.get("scope"),
-        expires_in=expires_in if isinstance(expires_in, int) else None,
-        expires_at=expires_at,
+    row = session.scalar(
+        select(OrcidAuthToken)
+        .where(OrcidAuthToken.orcid_id == orcid_id)
+        .order_by(OrcidAuthToken.created_at)
     )
-    session.add(row)
+    if row is None:
+        row = OrcidAuthToken(orcid_id=orcid_id)
+        session.add(row)
+
+    row.name = payload.get("name")
+
     session.commit()
     session.refresh(row)
     return row

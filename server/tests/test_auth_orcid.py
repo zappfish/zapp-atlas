@@ -4,10 +4,12 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, func, inspect, select
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from zapp_atlas.auth.services import ORCID_STATE_COOKIE
+from zapp_atlas.auth.models import OrcidAuthToken
+from zapp_atlas.auth.services import ORCID_STATE_COOKIE, store_orcid_token
 from zapp_atlas.db import init_db
 from zapp_atlas.settings import DEFAULT_ORCID_REDIRECT_URI
 
@@ -91,6 +93,48 @@ def test_registered_callback_rejects_state_mismatch(
     assert "state did not match" in res.text
 
 
+def test_store_orcid_token_updates_existing_identity() -> None:
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    init_db(engine)
+    Session = sessionmaker(bind=engine)
+
+    with Session() as session:
+        first = store_orcid_token(
+            session,
+            {
+                "access_token": "first-access-token",
+                "refresh_token": "first-refresh-token",
+                "token_type": "bearer",
+                "expires_in": 100,
+                "scope": "/authenticate",
+                "name": "Sofia Garcia",
+                "orcid": "0000-0001-2345-6789",
+            },
+        )
+        second = store_orcid_token(
+            session,
+            {
+                "access_token": "second-access-token",
+                "refresh_token": "second-refresh-token",
+                "token_type": "bearer",
+                "expires_in": 200,
+                "scope": "/authenticate",
+                "name": "Dr. Sofia Garcia",
+                "orcid": "0000-0001-2345-6789",
+            },
+        )
+
+        token_count = session.scalar(select(func.count()).select_from(OrcidAuthToken))
+
+    assert second.id == first.id
+    assert token_count == 1
+    assert second.name == "Dr. Sofia Garcia"
+
+
 def test_orcid_table_is_registered_with_init_db() -> None:
     engine = create_engine(
         "sqlite:///:memory:",
@@ -100,4 +144,12 @@ def test_orcid_table_is_registered_with_init_db() -> None:
 
     init_db(engine)
 
-    assert "OrcidAuthToken" in inspect(engine).get_table_names()
+    inspector = inspect(engine)
+    columns = {column["name"] for column in inspector.get_columns("OrcidAuthToken")}
+    indexes = inspector.get_indexes("OrcidAuthToken")
+
+    assert "OrcidAuthToken" in inspector.get_table_names()
+    assert "orcid_id" in columns
+    assert any(index["unique"] and index["column_names"] == ["orcid_id"] for index in indexes)
+    assert "access_token" not in columns
+    assert "refresh_token" not in columns
