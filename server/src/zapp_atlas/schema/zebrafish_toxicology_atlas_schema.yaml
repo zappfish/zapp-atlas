@@ -477,8 +477,8 @@ enums:
       acetonitrile:
         description: Acetonitrile
         meaning: CHEBI:38472
-      albumin_bsa:
-        description: Albumin (BSA)
+      bsa:
+        description: Bovine serum albumin (BSA)
         meaning: UMLS:C0036774
       butanone_mek:
         description: Butanone (MEK)
@@ -524,6 +524,8 @@ enums:
       water:
         description: Water
         meaning: CHEBI:15377
+      other_not_listed:
+        description: Other vehicle not in the controlled list
 
   ManufacturerEnum:
     description: An enumeration of manufacturers and suppliers of chemicals used in exposure events.

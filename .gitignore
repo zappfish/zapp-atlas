@@ -9,5 +9,8 @@ server/credentials.txt
 server/data/
 *.db
 
+# Local test data (large files, spun up locally)
+zfin_test_data/
+
 # Local planning / scratch notes
 docs/

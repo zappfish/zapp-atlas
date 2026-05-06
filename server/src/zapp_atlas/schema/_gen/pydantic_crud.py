@@ -163,9 +163,9 @@ class VehicleEnum(str, Enum):
     """
     Acetonitrile
     """
-    albumin_bsa = "albumin_bsa"
+    bsa = "bsa"
     """
-    Albumin (BSA)
+    Bovine serum albumin (BSA)
     """
     butanone_mek = "butanone_mek"
     """
@@ -226,6 +226,10 @@ class VehicleEnum(str, Enum):
     water = "water"
     """
     Water
+    """
+    other_not_listed = "other_not_listed"
+    """
+    Other vehicle not in the controlled list
     """
 
 

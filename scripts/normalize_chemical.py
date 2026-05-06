@@ -381,6 +381,10 @@ def visualize_chemical(curie, save_path=None):
     if mol is None and isinstance(inchi, str) and inchi.strip():
         mol = Chem.MolFromInchi(inchi)
 
+    # If mol was built from InChI but smiles was not returned by PubChem, derive it
+    if mol is not None and not smiles:
+        smiles = Chem.MolToSmiles(mol)
+
     image_saved_to = None
     if mol is not None and save_path:
         Draw.MolToImage(mol, size=(400, 400), legend=getattr(c, "iupac_name", None) or "").save(save_path)

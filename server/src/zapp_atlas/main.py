@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
+from zapp_atlas.api.routers.chemicals import router as chemicals_router
 from zapp_atlas.api.routers.experiments import router as experiments_router
 from zapp_atlas.api.routers.exposures import router as exposures_router
 from zapp_atlas.api.routers.images import router as images_router
@@ -48,6 +49,7 @@ def create_app() -> FastAPI:
     api.include_router(exposures_router)
     api.include_router(observations_router)
     api.include_router(images_router)
+    api.include_router(chemicals_router)
     app.include_router(api)
 
     return app

@@ -327,7 +327,7 @@ class VehicleOfTransmission(ZappEntity):
 
     __tablename__ = "VehicleOfTransmission"
 
-    vehicle_type: Mapped[str] = mapped_column(Enum('acetone', 'acetonitrile', 'albumin_bsa', 'butanone_mek', 'cyclodextrin_hpbcd', 'dimethyl_formamide', 'dmso', 'embryonic_media', 'ethanol', 'glycerol', 'isopropanol', 'methanol', 'methylcellulose', 'pbs', 'polyethylene_glycol', 'propylene_glycol', 'solketal', 'water', name='VehicleEnum'))
+    vehicle_type: Mapped[str] = mapped_column(Enum('acetone', 'acetonitrile', 'bsa', 'butanone_mek', 'cyclodextrin_hpbcd', 'dimethyl_formamide', 'dmso', 'embryonic_media', 'ethanol', 'glycerol', 'isopropanol', 'methanol', 'methylcellulose', 'pbs', 'polyethylene_glycol', 'propylene_glycol', 'solketal', 'water', 'other_not_listed', name='VehicleEnum'))
     manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', name='ManufacturerEnum'))
     comment: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
