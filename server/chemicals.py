@@ -104,12 +104,17 @@ def _db_autocomplete(q: str, limit: int) -> list[dict]:
     db = _get_db()
     if db is None:
         return []
+    q_lower = q.lower()
+    # BETWEEN range forces idx_syn_lower usage; LIKE with a ? parameter causes a full scan.
+    # Increment the last character to form the exclusive upper bound (chemical names are ASCII).
+    prefix_hi = q_lower[:-1] + chr(ord(q_lower[-1]) + 1)
     rows = db.execute(
         "SELECT s.orig_name, s.chebi_id, c.primary_id, c.label, c.description, c.equiv_ids "
         "FROM synonyms s JOIN chemicals c ON s.chebi_id = c.chebi_id "
-        "WHERE s.synonym_lower LIKE ? "
-        "ORDER BY length(s.synonym_lower), s.orig_name",
-        (f"{q.lower()}%",),
+        "WHERE s.synonym_lower >= ? AND s.synonym_lower < ? "
+        "ORDER BY length(s.synonym_lower), s.orig_name "
+        "LIMIT ?",
+        (q_lower, prefix_hi, limit * 100),
     ).fetchall()
 
     groups: dict[str, dict] = {}

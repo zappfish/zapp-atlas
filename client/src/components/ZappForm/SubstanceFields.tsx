@@ -606,7 +606,7 @@ export default function SubstanceFields({
                       value={otherMfrPending ? '__other__' : mfrSelectVal}
                       onChange={(e) => {
                         const v = e.target.value;
-                        if (v === '__other__') { setOtherMfrPending(true); }
+                        if (v === '__other__') { setOtherMfrPending(true); applyChange({ manufacturer: '' }); }
                         else { setOtherMfrPending(false); applyChange({ manufacturer: v }); }
                       }}
                     >
@@ -622,7 +622,7 @@ export default function SubstanceFields({
                         type="text"
                         placeholder="Enter manufacturer name"
                         value={value.manufacturer || ''}
-                        onChange={(e) => { setOtherMfrPending(false); applyChange({ manufacturer: e.target.value }); }}
+                        onChange={(e) => { applyChange({ manufacturer: e.target.value }); }}
                       />
                     </div>
                   )}
@@ -671,14 +671,14 @@ export default function SubstanceFields({
                 placeholder="Accepted standardized identifier"
                 tooltip={EXPOSURE_SUBSTANCE}
                 value={value.chemical_id || ''}
-                disabled={!!value.chemical_id || vehicleHasNoMeaning}
+                disabled
                 onChange={(e) => applyChange({ chemical_id: e.target.value })}
               />
               <Input
                 label="Unlisted vehicle name"
                 placeholder="Enter vehicle name if not listed"
                 value={value.unrecognized_chemical_name || ''}
-                disabled={!vehicleHasNoMeaning}
+                disabled={!!value.chemical_id}
                 onChange={(e) => applyChange({ unrecognized_chemical_name: e.target.value })}
               />
               <Input
@@ -698,7 +698,7 @@ export default function SubstanceFields({
                     value={otherMfrPending ? '__other__' : mfrSelectVal}
                     onChange={(e) => {
                       const v = e.target.value;
-                      if (v === '__other__') { setOtherMfrPending(true); }
+                      if (v === '__other__') { setOtherMfrPending(true); applyChange({ manufacturer: '' }); }
                       else { setOtherMfrPending(false); applyChange({ manufacturer: v }); }
                     }}
                   >
@@ -714,7 +714,7 @@ export default function SubstanceFields({
                       type="text"
                       placeholder="Enter manufacturer name"
                       value={value.manufacturer || ''}
-                      onChange={(e) => { setOtherMfrPending(false); applyChange({ manufacturer: e.target.value }); }}
+                      onChange={(e) => { applyChange({ manufacturer: e.target.value }); }}
                     />
                   </div>
                 )}
