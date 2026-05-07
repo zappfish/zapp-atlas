@@ -1,10 +1,8 @@
-"""Chemical normalization and lookup Flask blueprint.
+"""Chemical normalization and lookup FastAPI router.
 
-Registers three routes under /api/chemicals:
-
-  GET  /api/chemicals/autocomplete?q=...&limit=5
-  GET  /api/chemicals/vehicle-info?meaning=CHEBI:16236
-  POST /api/chemicals/normalize   body: {namespace, chemical_id} or {name}
+GET  /api/chemicals/autocomplete?q=...&limit=5
+GET  /api/chemicals/vehicle-info?meaning=CHEBI:16236
+POST /api/chemicals/normalize   body: {namespace, chemical_id} or {name}
 """
 
 from __future__ import annotations
@@ -15,15 +13,17 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
+from typing import Any
 
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Path config
+# File lives at server/src/zapp_atlas/api/routers/chemicals.py
 # ---------------------------------------------------------------------------
 
-_SERVER_DIR = Path(__file__).resolve().parent
-_REPO_ROOT = _SERVER_DIR.parent
+_REPO_ROOT = Path(__file__).resolve().parents[5]
 _SCRIPTS_DIR = _REPO_ROOT / "scripts"
 
 _DEFAULT_CACHE = _REPO_ROOT / "zfin_test_data" / "chebi_and_vehicle_cache.db"
@@ -223,33 +223,32 @@ def _local_fallback(namespace: str, chemical_id: str, name: str, error: str | No
 
 
 # ---------------------------------------------------------------------------
-# Blueprint
+# Router
 # ---------------------------------------------------------------------------
 
-chemicals_bp = Blueprint("chemicals", __name__, url_prefix="/api/chemicals")
+router = APIRouter(prefix="/api/chemicals", tags=["chemicals"])
 
 
-@chemicals_bp.get("/autocomplete")
-def autocomplete_chemical():
-    q = request.args.get("q", "").strip()
+@router.get("/autocomplete")
+def autocomplete_chemical(
+    q: str = Query(default=""),
+    limit: int = Query(default=5, ge=1, le=50),
+) -> list[dict[str, Any]]:
+    q = q.strip()
     if len(q) < 2:
-        return jsonify([])
-    try:
-        limit = max(1, min(50, int(request.args.get("limit", 5))))
-    except (ValueError, TypeError):
-        limit = 5
-    return jsonify(_db_autocomplete(q, limit))
+        return []
+    return _db_autocomplete(q, limit)
 
 
-@chemicals_bp.get("/vehicle-info")
-def vehicle_info():
-    meaning = request.args.get("meaning", "").strip()
+@router.get("/vehicle-info")
+def vehicle_info(meaning: str = Query(default="")) -> dict[str, Any]:
+    meaning = meaning.strip()
     if not meaning or ":" not in meaning:
-        return jsonify({"error": "Provide a 'meaning' CURIE, e.g. CHEBI:16236"}), 400
+        raise HTTPException(status_code=400, detail="Provide a 'meaning' CURIE, e.g. CHEBI:16236")
 
     db = _get_db()
     if db is None:
-        return jsonify({"found": False})
+        return {"found": False}
 
     ns = meaning.split(":", 1)[0]
     if ns == "CHEBI":
@@ -266,7 +265,7 @@ def vehicle_info():
         ).fetchone()
 
     if row is None:
-        return jsonify({"found": False})
+        return {"found": False}
 
     result = {
         "normalized": True,
@@ -277,28 +276,39 @@ def vehicle_info():
         "equivalent_identifiers": json.loads(row["equiv_ids"] or "[]"),
     }
     image_b64 = _smiles_to_svg_b64(row["smiles"])
-    return jsonify({
+    return {
         "found": True,
         "result": result,
         "structure_image_b64": image_b64,
         "structure_image_type": "svg" if image_b64 else None,
-    })
+    }
 
 
-@chemicals_bp.post("/normalize")
-def normalize_chemical_endpoint():
-    body = request.get_json(force=True, silent=True) or {}
-    namespace = (body.get("namespace") or "").strip()
-    chemical_id = (body.get("chemical_id") or "").strip()
-    name = (body.get("name") or "").strip()
+class NormalizeRequest(BaseModel):
+    namespace: str = ""
+    chemical_id: str = ""
+    name: str = ""
+
+
+@router.post("/normalize")
+def normalize_chemical_endpoint(body: NormalizeRequest) -> dict[str, Any]:
+    namespace = body.namespace.strip()
+    chemical_id = body.chemical_id.strip()
+    name = body.name.strip()
 
     use_name = bool(name) and not namespace and not chemical_id
 
     if not use_name and (not namespace or not chemical_id):
-        return jsonify({"error": "Provide either 'name' or both 'namespace' and 'chemical_id'"}), 400
+        raise HTTPException(
+            status_code=400,
+            detail="Provide either 'name' or both 'namespace' and 'chemical_id'",
+        )
 
     if not _NORMALIZE_AVAILABLE:
-        return jsonify({"error": "Chemical normalization unavailable: normalize_chemical module not found"}), 503
+        raise HTTPException(
+            status_code=503,
+            detail="Chemical normalization unavailable: normalize_chemical module not found",
+        )
 
     try:
         if use_name:
@@ -313,11 +323,11 @@ def normalize_chemical_endpoint():
                 "results": [raw] if raw.get("normalized") else [],
             }
     except Exception as exc:
-        return jsonify(_local_fallback(namespace, chemical_id, name, error=str(exc)))
+        return _local_fallback(namespace, chemical_id, name, error=str(exc))
 
     result = data.get("result", {})
     if not result.get("normalized"):
-        return jsonify(_local_fallback(namespace, chemical_id, name))
+        return _local_fallback(namespace, chemical_id, name)
 
     image_b64, image_type = _get_image(result)
-    return jsonify({**data, "structure_image_b64": image_b64, "structure_image_type": image_type})
+    return {**data, "structure_image_b64": image_b64, "structure_image_type": image_type}
