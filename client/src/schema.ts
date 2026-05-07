@@ -37,12 +37,16 @@ export const SUBSTANCE_ID_TYPES = [
 export type SubstanceIdType = typeof SUBSTANCE_ID_TYPES[number];
 
 const SubstanceIdSchema = z.object({
-  chemical_id: z.string().optional(),
+  // Must be a CURIE if present, e.g. CHEBI:16236. Human-readable names go in synonym[].
+  chemical_id: z.string().refine(
+    (v) => !v || /^[A-Za-z][A-Za-z0-9._-]*:.+$/.test(v),
+    { message: 'Must be a CURIE (e.g. CHEBI:16236)' }
+  ).optional(),
   unrecognized_chemical_name: z.string().optional(),
   synonym: z.array(z.string()).optional(),
   idType: z.enum(SUBSTANCE_ID_TYPES).default('None'),
   id: z.string().optional(),
-  concentration: z.string().optional(),
+  concentration: z.number().nonnegative().nullable().optional(),
   concentration_unit: z.string().optional(),
   cas_id: z.string().optional(),
   manufacturer: z.string().optional(),
@@ -62,10 +66,6 @@ const PhenotypeItemSchema = z.object({
 const ExposureEventSchema = z.object({
   substance: SubstanceIdSchema,
   vehicle: SubstanceIdSchema.optional(),
-  concentration: z.object({
-    value: z.number().nonnegative().nullable(),
-    unit: z.string().nullable()
-  }),
   route: z.enum(['water', 'injected', 'ingested', 'gavage']).nullable(),
   type: z.enum(['continuous', 'repeated']).nullable(),
   textual_description: z.string().nullable(),

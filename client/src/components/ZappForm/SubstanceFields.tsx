@@ -11,7 +11,7 @@ type Substance = {
   synonym?: string[];
   idType: SubstanceIdType;
   id?: string;
-  concentration?: string;
+  concentration?: number | null;
   concentration_unit?: string;
   cas_id?: string;
   manufacturer?: string;
@@ -297,9 +297,8 @@ export default function SubstanceFields({
         if (data.found && data.result?.normalized) {
           setNorm({ status: 'done', items: [{ queried_id: option.meaning!, result: data.result, imageB64: data.structure_image_b64 ?? null }], mode: 'id' });
           const vSynonyms: string[] = Array.from(new Set(
-            (data.result.equivalent_identifiers ?? [])
-              .map((eq: EqIdentifier) => eq.label)
-              .filter((l: string | null): l is string => !!l && l !== data.result.label)
+            [data.result.label, ...(data.result.equivalent_identifiers ?? []).map((eq: EqIdentifier) => eq.label)]
+              .filter((l: string | null): l is string => !!l)
           ));
           onChange({ ...value, vehicle_type: option.value, chemical_id: data.result.primary_id ?? '', unrecognized_chemical_name: '', synonym: vSynonyms });
         } else {
@@ -386,9 +385,8 @@ export default function SubstanceFields({
   const handleAccept = (item: NormResultItem) => {
     if (item.result.primary_id) {
       const synonyms = Array.from(new Set(
-        item.result.equivalent_identifiers
-          .map((eq) => eq.label)
-          .filter((l): l is string => !!l && l !== item.result.label)
+        [item.result.label, ...item.result.equivalent_identifiers.map((eq) => eq.label)]
+          .filter((l): l is string => !!l)
       ));
       onChange({ ...value, chemical_id: item.result.primary_id, synonym: synonyms });
       setInfoRevealed(true);
@@ -572,8 +570,17 @@ export default function SubstanceFields({
                   placeholder="Accepted standardized identifier"
                   tooltip={EXPOSURE_SUBSTANCE}
                   value={value.chemical_id || ''}
-                  disabled={!!value.unrecognized_chemical_name}
+                  disabled
                   onChange={(e) => applyChange({ chemical_id: e.target.value })}
+                  labelAction={!!value.chemical_id && (
+                    <button
+                      type="button"
+                      onClick={() => applyChange({ chemical_id: undefined, synonym: undefined })}
+                      style={{ fontSize: '0.72rem', color: '#999', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      × Clear selection
+                    </button>
+                  )}
                 />
                 <Input
                   label="Unavailable / unrecognized substance or ID"
@@ -624,8 +631,9 @@ export default function SubstanceFields({
                   <Input
                     label="Concentration"
                     placeholder="e.g. 10"
-                    value={value.concentration || ''}
-                    onChange={(e) => applyChange({ concentration: e.target.value })}
+                    type="number"
+                    value={value.concentration ?? ''}
+                    onChange={(e) => applyChange({ concentration: e.target.value === '' ? null : Number(e.target.value) })}
                   />
                   <Select
                     label="Unit"
@@ -663,7 +671,7 @@ export default function SubstanceFields({
                 placeholder="Accepted standardized identifier"
                 tooltip={EXPOSURE_SUBSTANCE}
                 value={value.chemical_id || ''}
-                disabled={vehicleHasNoMeaning}
+                disabled={!!value.chemical_id || vehicleHasNoMeaning}
                 onChange={(e) => applyChange({ chemical_id: e.target.value })}
               />
               <Input
@@ -715,8 +723,9 @@ export default function SubstanceFields({
                 <Input
                   label="Concentration"
                   placeholder="e.g. 10"
-                  value={value.concentration || ''}
-                  onChange={(e) => applyChange({ concentration: e.target.value })}
+                  type="number"
+                  value={value.concentration ?? ''}
+                  onChange={(e) => applyChange({ concentration: e.target.value === '' ? null : Number(e.target.value) })}
                 />
                 <Select
                   label="Unit"

@@ -16,7 +16,6 @@ function emptyExposureEvent(): ExposureEvent {
     textual_description: null,
     substance: { chemical_id: '', idType: 'None', id: '' },
     vehicle: { chemical_id: '', idType: 'None', id: '' },
-    concentration: { value: null, unit: 'uM' },
     route: 'water',
     type: null,
     pattern: null,
