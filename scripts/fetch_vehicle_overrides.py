@@ -16,15 +16,11 @@ import argparse
 import json
 import shutil
 import sqlite3
-import sys
 from pathlib import Path
 
-# Resolve normalize_chemical from the same scripts/ directory
-_SCRIPTS_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(_SCRIPTS_DIR))
-from normalize_chemical import normalize_curie, find_visualizable_curie, visualize_chemical
+from zapp_atlas.chem.normalize import normalize_curie, find_visualizable_curie, visualize_chemical
 
-_REPO_ROOT = _SCRIPTS_DIR.parent
+_REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = _REPO_ROOT / "zfin_test_data" / "chebi_and_vehicle_cache.db"
 
 # Non-CHEBI vehicle meanings — add new ones here when VehicleEnum gains entries

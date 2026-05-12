@@ -11,21 +11,20 @@ import base64
 import json
 import os
 import sqlite3
-import sys
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-# ---------------------------------------------------------------------------
-# Path config
-# File lives at server/src/zapp_atlas/api/routers/chemicals.py
-# ---------------------------------------------------------------------------
+from zapp_atlas.chem.normalize import (
+    find_visualizable_curie,
+    lookup as _chem_lookup,
+    normalize_curie,
+    visualize_chemical,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
-_SCRIPTS_DIR = _REPO_ROOT / "scripts"
-
 _DEFAULT_CACHE = _REPO_ROOT / "zfin_test_data" / "chebi_and_vehicle_cache.db"
 
 
@@ -52,29 +51,6 @@ def _get_db() -> sqlite3.Connection | None:
     _chebi_db.row_factory = sqlite3.Row
     return _chebi_db
 
-
-# ---------------------------------------------------------------------------
-# Import normalize_chemical helpers from scripts/
-# ---------------------------------------------------------------------------
-
-if str(_SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_DIR))
-
-try:
-    from normalize_chemical import (  # type: ignore[import]
-        find_visualizable_curie,
-        lookup as _chem_lookup,
-        normalize_curie,
-        visualize_chemical,
-    )
-    _NORMALIZE_AVAILABLE = True
-except ImportError:
-    _NORMALIZE_AVAILABLE = False
-
-
-# ---------------------------------------------------------------------------
-# SMILES → SVG helper
-# ---------------------------------------------------------------------------
 
 def _smiles_to_svg_b64(smiles: str | None) -> str | None:
     if not smiles:
@@ -159,7 +135,7 @@ def _get_image(result: dict) -> tuple[str | None, str | None]:
             return b64, "svg"
 
     equiv = result.get("equivalent_identifiers", [])
-    if _NORMALIZE_AVAILABLE and equiv:
+    if equiv:
         vis = find_visualizable_curie(equiv)
         if vis:
             try:
@@ -302,12 +278,6 @@ def normalize_chemical_endpoint(body: NormalizeRequest) -> dict[str, Any]:
         raise HTTPException(
             status_code=400,
             detail="Provide either 'name' or both 'namespace' and 'chemical_id'",
-        )
-
-    if not _NORMALIZE_AVAILABLE:
-        raise HTTPException(
-            status_code=503,
-            detail="Chemical normalization unavailable: normalize_chemical module not found",
         )
 
     try:

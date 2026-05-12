@@ -38,7 +38,7 @@ import sys
 import time
 from pathlib import Path
 
-from normalize_chemical import _query_node_normalizer, _parse_node_norm
+from zapp_atlas.chem.normalize import _query_node_normalizer, _parse_node_norm
 
 _REPO_ROOT          = Path(__file__).resolve().parents[1]
 DEFAULT_CHEBI_NAMES = _REPO_ROOT / "zfin_test_data" / "chebi_names.tsv.gz"

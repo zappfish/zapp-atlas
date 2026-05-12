@@ -25,12 +25,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-import sys
-
-# normalize_chemical lives in the same scripts/ directory
-_SCRIPTS_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(_SCRIPTS_DIR))
-from normalize_chemical import normalize_curie, find_visualizable_curie, visualize_chemical
+from zapp_atlas.chem.normalize import normalize_curie, find_visualizable_curie, visualize_chemical
 
 _HTML_TAG = re.compile(r'<[^>]+>')
 
