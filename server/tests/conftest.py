@@ -8,24 +8,22 @@ from sqlalchemy.pool import StaticPool
 
 from zapp_atlas.api.deps import get_session
 from zapp_atlas.main import create_app
+from zapp_atlas.settings import AppSettings
 
 
 @pytest.fixture
-def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    from zapp_atlas.schema.sqla import Base  # type: ignore
-
-    # Lifespan tries to seed into a real on-disk DB; disable for tests.
-    monkeypatch.setenv("ZAPP_SKIP_SEED", "1")
+def client(tmp_path) -> TestClient:
+    from zapp_atlas.db import init_db
 
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    Base.metadata.create_all(engine)
+    init_db(engine)
     SessionLocal = sessionmaker(bind=engine)
 
-    app = create_app()
+    app = create_app(AppSettings(skip_seed=True, upload_dir=tmp_path))
 
     def _override_get_session():
         session = SessionLocal()

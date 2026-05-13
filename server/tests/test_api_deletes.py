@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -13,13 +12,6 @@ _PNG_1X1_RED = bytes.fromhex(
     "00907753DE0000000C4944415408D76368F8FF1F0000040100017F3F"
     "8F180000000049454E44AE426082"
 )
-
-
-@pytest.fixture(autouse=True)
-def _tmp_upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    monkeypatch.setenv("ZAPP_UPLOAD_DIR", str(tmp_path))
-    monkeypatch.delenv("AWS_ENDPOINT_URL_S3", raising=False)
-    return tmp_path
 
 
 def _build_study_graph(client: TestClient) -> dict:

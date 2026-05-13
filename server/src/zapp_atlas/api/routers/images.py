@@ -20,7 +20,7 @@ from fastapi import (
 from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.deps import get_session
+from zapp_atlas.api.deps import get_app_settings, get_session
 from zapp_atlas.api.services.images import (
     ImageTooLargeError,
     UnsupportedImageTypeError,
@@ -31,6 +31,7 @@ from zapp_atlas.api.services.images import (
     load_image_bytes,
 )
 from zapp_atlas.db.image_storage import Storage, get_storage
+from zapp_atlas.settings import AppSettings
 
 from zapp_atlas.schema.pydantic_crud import ImageRead
 
@@ -38,11 +39,14 @@ from zapp_atlas.schema.pydantic_crud import ImageRead
 router = APIRouter(tags=["images"])
 
 
-def get_storage_dep() -> Storage:
-    return get_storage()
+def get_storage_dep(
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
+) -> Storage:
+    return get_storage(settings)
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+SettingsDep = Annotated[AppSettings, Depends(get_app_settings)]
 StorageDep = Annotated[Storage, Depends(get_storage_dep)]
 
 
@@ -54,6 +58,7 @@ StorageDep = Annotated[Storage, Depends(get_storage_dep)]
 async def upload_image_endpoint(
     observation_id: int,
     session: SessionDep,
+    settings: SettingsDep,
     storage: StorageDep,
     file: Annotated[UploadFile, File()],
     magnification: Annotated[str | None, Form()] = None,
@@ -69,6 +74,7 @@ async def upload_image_endpoint(
             data=data,
             content_type=file.content_type or "application/octet-stream",
             storage=storage,
+            max_bytes=settings.max_upload_bytes,
             magnification=magnification,
             resolution=resolution,
             scale_bar=scale_bar,

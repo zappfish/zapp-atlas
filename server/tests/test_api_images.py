@@ -6,9 +6,6 @@ Local-filesystem backend only; S3/Tigris path is env-gated and not
 exercised here.
 """
 
-from pathlib import Path
-
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -18,14 +15,6 @@ _PNG_1X1_RED = bytes.fromhex(
     "00907753DE0000000C4944415408D76368F8FF1F0000040100017F3F"
     "8F180000000049454E44AE426082"
 )
-
-
-@pytest.fixture(autouse=True)
-def _tmp_upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Point the local storage backend at a per-test tmp dir."""
-    monkeypatch.setenv("ZAPP_UPLOAD_DIR", str(tmp_path))
-    monkeypatch.delenv("AWS_ENDPOINT_URL_S3", raising=False)
-    return tmp_path
 
 
 def _create_observation(client: TestClient) -> int:
@@ -98,10 +87,8 @@ def test_upload_rejects_non_image_content_type(client: TestClient) -> None:
     assert res.status_code == 415
 
 
-def test_upload_rejects_oversized(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("ZAPP_MAX_UPLOAD_BYTES", "64")
+def test_upload_rejects_oversized(client: TestClient) -> None:
+    client.app.state.settings.max_upload_bytes = 64
 
     obs_id = _create_observation(client)
     big = b"\x89PNG\r\n\x1a\n" + (b"\x00" * 1024)
