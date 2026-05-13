@@ -229,6 +229,17 @@ def build_synonyms(conn: sqlite3.Connection,
     elapsed = time.monotonic() - t0
     print(f"[synonyms] Done — {done:,} rows inserted ({_fmt(elapsed)})")
 
+    # chebi_names.tsv.gz only contains SYNONYM/IUPAC NAME/BRAND rows — never the
+    # canonical compound name. Index each chemical's primary label as a synonym
+    # so the autocomplete query (which only searches synonyms) can find it.
+    print("[synonyms] Indexing primary labels from chemicals table ...")
+    label_inserted = conn.execute(
+        "INSERT OR IGNORE INTO synonyms (synonym_lower, orig_name, chebi_id) "
+        "SELECT lower(label), label, chebi_id FROM chemicals WHERE label IS NOT NULL AND label != ''"
+    ).rowcount
+    conn.commit()
+    print(f"[synonyms] Indexed {label_inserted:,} primary labels")
+
 
 # ---------------------------------------------------------------------------
 # Vehicle override section (uses normalize_chemical pipeline, requires internet)
