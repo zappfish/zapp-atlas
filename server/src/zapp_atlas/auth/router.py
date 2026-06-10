@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from html import escape
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, status
@@ -21,7 +22,6 @@ from zapp_atlas.auth.services import (
     store_orcid_identity,
 )
 from zapp_atlas.settings import AppSettings
-from zapp_atlas.html.router import _escape
 
 
 router = APIRouter(tags=["auth"])
@@ -35,7 +35,7 @@ def _error_page(message: str, status_code: int = status.HTTP_400_BAD_REQUEST) ->
   <body>
     <main>
       <h1>ORCID login failed</h1>
-      <p>{_escape(message)}</p>
+      <p>{escape(message)}</p>
       <p><a href="/login">Return to login</a></p>
     </main>
   </body>
@@ -126,8 +126,8 @@ def orcid_status(
             "<p>No ORCID login was found for this browser.</p>",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    display_name = _escape(identity.name) or "ORCID user"
-    orcid_id = _escape(identity.orcid_id)
+    display_name = escape(identity.name or "") or "ORCID user"
+    orcid_id = escape(identity.orcid_id or "")
     return HTMLResponse(
         f"<p><strong>Signed in as {display_name}</strong><br>ORCID iD {orcid_id}</p>"
     )

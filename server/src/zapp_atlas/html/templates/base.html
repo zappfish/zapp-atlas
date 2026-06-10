@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ZAPP Atlas{% endblock %}</title>
+    {# styles.css is the single place styling edits happen #}
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/htmx.min.js"></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    {# ---- Header: site-wide navigation lives here ---- #}
+    <header>
+      <a href="/">ZAPP Atlas</a>
+      <nav>
+        <a href="/edit">Edit</a>
+        <a href="/login">Login</a>
+      </nav>
+    </header>
+
+    {# ---- Content: per-page markup goes in the `content` block ---- #}
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    {# ---- Footer ---- #}
+    <footer>
+      <p>ZAPP Atlas &mdash; zebrafish toxicological phenotype observations.</p>
+    </footer>
+  </body>
+</html>

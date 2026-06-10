@@ -6,9 +6,12 @@ Notes
 * The LinkML-generated models are imported from the schema package.
 """
 
+import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import APIRouter, FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.api.routers.experiments import router as experiments_router
@@ -20,6 +23,15 @@ from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.html.router import router as html_router
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
+
+
+logger = logging.getLogger(__name__)
+
+PACKAGE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = PACKAGE_DIR / "html" / "static"
+# Built React editing client. Lives at the repo-root `client/` (sibling of
+# `server/`); served at `/edit` once it has been built (`npm run build`).
+CLIENT_DIST_DIR = PACKAGE_DIR.parents[2] / "client" / "dist"
 
 
 @asynccontextmanager
@@ -58,6 +70,21 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     api.include_router(observations_router)
     api.include_router(images_router)
     app.include_router(api)
+
+    # Static assets for the server-rendered (HTMX) viewing app.
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    # The React editing client, served under /edit in production. In
+    # development it is run from the Vite dev server instead. Mount only when a
+    # build exists so the server still boots before the client is built.
+    if CLIENT_DIST_DIR.is_dir():
+        app.mount("/edit", StaticFiles(directory=CLIENT_DIST_DIR, html=True), name="edit")
+    else:
+        logger.warning(
+            "React client build not found at %s; /edit will not be served. "
+            "Run `npm run build` in the client/ directory.",
+            CLIENT_DIST_DIR,
+        )
 
     return app
 

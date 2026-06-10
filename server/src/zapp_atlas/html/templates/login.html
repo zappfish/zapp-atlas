@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}ZAPP Atlas ORCID Login{% endblock %}
+
+{% block content %}
+  <h1>ZAPP Atlas ORCID Login</h1>
+  <p><a href="/auth/orcid/login">Sign in with ORCID</a></p>
+  <form method="post" action="/auth/orcid/logout">
+    <button type="submit">Log out</button>
+  </form>
+  <section id="orcid-status" hx-get="/auth/orcid/status" hx-trigger="load" hx-swap="innerHTML"></section>
+{% endblock %}
