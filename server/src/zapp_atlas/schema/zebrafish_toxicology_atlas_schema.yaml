@@ -59,6 +59,7 @@ classes:
       - publication
       - annotator
       - lab
+      - group
 
   Experiment:
     is_a: ZappEntity
