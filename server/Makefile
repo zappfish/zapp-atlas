@@ -4,9 +4,10 @@ PYDANTIC_OUTPUT := $(SCHEMA_DIR)/_gen/pydantic.py
 PYDANTIC_CRUD_OUTPUT := $(SCHEMA_DIR)/_gen/pydantic_crud.py
 SQLA_OUTPUT := $(SCHEMA_DIR)/_gen/sqla.py
 TS_OUTPUT := ../client/src/schema/index.ts
+JSON_SCHEMA_OUTPUT := ../client/src/schema/schema.json
 
 .PHONY: schema
-schema: $(PYDANTIC_OUTPUT) $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT)
+schema: $(PYDANTIC_OUTPUT) $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
 
 $(PYDANTIC_OUTPUT): $(LINKML_SCHEMA)
 	mkdir -p $(@D)
@@ -30,3 +31,11 @@ $(TS_OUTPUT): $(LINKML_SCHEMA)
 	echo "*/" >> $@
 	echo "" >> $@
 	uv run gen-typescript $< >>$@
+
+# JSON Schema for the client: runtime validation (Ajv) + type-safe unmarshalling.
+# JSON has no comments, so the "do not edit" notice rides in the standard JSON Schema
+# `$$comment` keyword, injected as the first key. ($$ escapes $ for Make.)
+$(JSON_SCHEMA_OUTPUT): $(LINKML_SCHEMA)
+	mkdir -p $(@D)
+	uv run gen-json-schema $< \
+		| jq '{"$$comment": "GENERATED FILE. DO NOT EDIT. Regenerate with `make schema`."} + .' > $@
