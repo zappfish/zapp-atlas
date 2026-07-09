@@ -12,7 +12,7 @@
  * We ship ONE reference validator here (Study, a top-level container). Because
  * JSON Schema resolves `$ref`s, validating a Study validates its whole nested
  * tree. Add more entities the same way, as components need them — see
- * `client/docs/schema-toolkit.md`.
+ * `client/src/schema/README.md`.
  */
 
 import Ajv2019 from "ajv/dist/2019";
