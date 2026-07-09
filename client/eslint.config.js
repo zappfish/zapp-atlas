@@ -5,7 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  // `dist` is build output; `src/schema/index.ts` is generated from the LinkML
+  // schema (`make schema`) and can't be hand-fixed, so don't lint them.
+  { ignores: ['dist', 'src/schema/index.ts'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
