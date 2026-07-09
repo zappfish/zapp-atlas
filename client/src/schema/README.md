@@ -314,6 +314,11 @@ Two processes in development (see `ARCHITECTURE.md`):
   `react-hook-form` (and others) via their JSON-Schema resolver if one is adopted.
 - **`id` is server-assigned.** Build create payloads with `Create<T>` / `makeEmpty`; never
   invent an `id` client-side.
+- **Feed validators `schemaDocument`, not raw `schema.json`.** `schemaDocument` applies a
+  normalization (`normalizeNullableRefs`) that repairs a LinkML quirk — optional enum slots
+  are emitted non-nullable, but the API returns `null` for unset optionals. The raw
+  `schema.json` will reject real responses (e.g. `manufacturer: null`); the normalized
+  document accepts them.
 
 ## Open questions
 
