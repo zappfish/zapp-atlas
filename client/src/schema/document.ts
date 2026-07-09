@@ -1,12 +1,17 @@
 /**
  * The generated read JSON Schema (`./schema.json`), typed once as a
- * `JSONSchemaDocument` so callers don't each re-cast the raw import.
+ * `JSONSchemaDocument` and normalised so callers don't each re-cast/repair the
+ * raw import.
  *
- * Pass it to `makeEmpty`, `compile`, or the `toInputSchema`/`toDraftSchema`
- * transforms.
+ * `normalizeNullableRefs` compensates for a LinkML generator quirk (optional
+ * enum slots emitted non-nullable); see `./variants`. Pass this to `makeEmpty`,
+ * `compile`, or the `toInputSchema`/`toDraftSchema` transforms — not the raw
+ * `schema.json`.
  */
 
 import rawSchema from "./schema.json";
-import type { JSONSchemaDocument } from "./variants";
+import { normalizeNullableRefs, type JSONSchemaDocument } from "./variants";
 
-export const schemaDocument = rawSchema as unknown as JSONSchemaDocument;
+export const schemaDocument = normalizeNullableRefs(
+  rawSchema as unknown as JSONSchemaDocument,
+);
