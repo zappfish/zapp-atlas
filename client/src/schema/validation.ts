@@ -18,12 +18,10 @@
 import Ajv2019 from "ajv/dist/2019";
 import type { ErrorObject, ValidateFunction } from "ajv";
 
+import { schemaDocument } from "./document";
 import type { Study } from "./index";
-import rawSchema from "./schema.json";
 import type { Create } from "./types";
 import { toInputSchema, type JSONSchemaDocument } from "./variants";
-
-const schema = rawSchema as unknown as JSONSchemaDocument;
 
 // strict:false — the LinkML output carries annotation keywords ($comment, title,
 // version, metamodel_version) and multi-type ("array"|"null") slots that Ajv's
@@ -66,11 +64,11 @@ export function parseAs<T>(validate: ValidateFunction<T>, data: unknown): T {
 
 /** Validate a Study read from the API (`id` present); narrows `unknown → Study`. */
 export const validateStudy: ValidateFunction<Study> = compile<Study>(
-  schema,
+  schemaDocument,
   "Study",
 );
 
 /** Validate a Study create payload (`id`s omitted) before POSTing. */
 export const validateStudyInput: ValidateFunction<Create<Study>> = compile<
   Create<Study>
->(toInputSchema(schema), "Study");
+>(toInputSchema(schemaDocument), "Study");
