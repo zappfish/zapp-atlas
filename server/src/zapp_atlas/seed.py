@@ -113,7 +113,7 @@ def _build_bpa_study(session: Session) -> Study:
     bpa = dict(
         chemical_id="CHEBI:33216",
         cas_id="80-05-7",
-        chemical_name="bisphenol A",
+        synonym=["bisphenol A"],
     )
     pericardial_edema = _upsert_phenotype_term(
         session,
@@ -179,12 +179,12 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     bpa = dict(
         chemical_id="CHEBI:33216",
         cas_id="80-05-7",
-        chemical_name="bisphenol A",
+        synonym=["bisphenol A"],
     )
     retinoic_acid = dict(
         chemical_id="CHEBI:15367",
         cas_id="302-79-4",
-        chemical_name="all-trans-retinoic acid",
+        synonym=["all-trans-retinoic acid"],
     )
 
     head_abnormal = _upsert_phenotype_term(
@@ -258,12 +258,12 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     malathion = dict(
         chemical_id="CHEBI:6651",
         cas_id="121-75-5",
-        chemical_name="malathion",
+        synonym=["malathion"],
     )
     trichlorfon = dict(
         chemical_id="CHEBI:9747",
         cas_id="52-68-6",
-        chemical_name="trichlorfon",
+        synonym=["trichlorfon"],
     )
     pericardial_edema = _upsert_phenotype_term(
         session,

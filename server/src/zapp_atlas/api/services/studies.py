@@ -136,13 +136,21 @@ def _phenotype_term_from_payload(session: Session, payload: PhenotypeTerm | None
 
 
 def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> StressorChemical:
+    # Schema declares this as a class-level rule, but LinkML's pydanticgen does
+    # not turn class-level rules into validators, so enforce it here.
+    if not (payload.chemical_id or getattr(payload, "unrecognized_chemical_name", None)):
+        raise ValueError(
+            "A stressor chemical must have either a chemical_id (CURIE) or an "
+            "unrecognized_chemical_name."
+        )
     concentration = _quantity_value_from_payload(payload.concentration)
     stressor = StressorChemical(
         chemical_id=payload.chemical_id,
         cas_id=getattr(payload, "cas_id", None),
-        chemical_name=getattr(payload, "chemical_name", None),
+        unrecognized_chemical_name=getattr(payload, "unrecognized_chemical_name", None),
         concentration=concentration,
         manufacturer=payload.manufacturer,
+        unrecognized_manufacturer_name=getattr(payload, "unrecognized_manufacturer_name", None),
         comment=getattr(payload, "comment", None),
     )
     synonyms = getattr(payload, "synonym", None)
@@ -154,12 +162,20 @@ def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> 
 def _vehicle_from_payload(payload) -> VehicleOfTransmission | None:
     if payload is None:
         return None
-    return VehicleOfTransmission(
+    vehicle = VehicleOfTransmission(
         vehicle_type=payload.vehicle_type,
+        chemical_id=getattr(payload, "chemical_id", None),
+        cas_id=getattr(payload, "cas_id", None),
+        unrecognized_chemical_name=getattr(payload, "unrecognized_chemical_name", None),
         manufacturer=getattr(payload, "manufacturer", None),
+        unrecognized_manufacturer_name=getattr(payload, "unrecognized_manufacturer_name", None),
         concentration=_quantity_value_from_payload(getattr(payload, "concentration", None)),
         comment=getattr(payload, "comment", None),
     )
+    synonyms = getattr(payload, "synonym", None)
+    if synonyms:
+        vehicle.synonym = list(synonyms)
+    return vehicle
 
 
 def _phenotype_from_create(session: Session, payload: PhenotypeCreate) -> Phenotype:
