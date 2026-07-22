@@ -3,6 +3,15 @@ legacy
 node_modules
 server/.venv
 server/data
+
+# Local environment files. `COPY server/ ./server/` would otherwise bake a
+# developer's .env — ORCID secrets, ZAPP_DEV_AUTH — into the image, where the
+# app would actually read it (CWD is /app/server). Deployments configure
+# themselves through real environment variables instead.
+.env
+.env.local
+server/.env
+client/dist
 *.db
 __pycache__
 docs
