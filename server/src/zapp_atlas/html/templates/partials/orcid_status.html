@@ -1,0 +1,18 @@
+{#
+  HTMX fragment: current ORCID sign-in status.
+
+  Swapped into #orcid-status on the login page. Returned bare (no base
+  layout) so htmx can drop it straight in. Three states:
+
+    identity        -> signed in; show who
+    missing         -> a stale/unknown auth cookie is present
+    (neither)       -> signed out; render nothing
+#}
+{%- if identity -%}
+  <p>
+    <strong>Signed in as {{ identity.name or "ORCID user" }}</strong><br>
+    ORCID iD {{ identity.orcid_id }}
+  </p>
+{%- elif missing -%}
+  <p>No ORCID login was found for this browser.</p>
+{%- endif -%}
