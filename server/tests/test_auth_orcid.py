@@ -101,6 +101,37 @@ def test_registered_callback_rejects_state_mismatch(
     assert "state did not match" in res.text
 
 
+def test_dev_login_is_absent_by_default(client: TestClient) -> None:
+    assert client.app.state.settings.dev_auth is False
+
+    assert "/auth/dev/login" not in client.get("/login").text
+
+    res = client.post("/auth/dev/login", follow_redirects=False)
+    assert res.status_code == 404
+    assert ORCID_AUTH_COOKIE not in res.cookies
+
+
+def test_dev_login_signs_in_when_enabled(client: TestClient) -> None:
+    client.app.state.settings.dev_auth = True
+
+    assert "/auth/dev/login" in client.get("/login").text
+
+    res = client.post(
+        "/auth/dev/login",
+        data={"name": "Josiah Carberry", "orcid_id": "0000-0002-1825-0097"},
+        follow_redirects=False,
+    )
+
+    assert res.status_code == 303
+    assert res.headers["location"] == "/login"
+    assert ORCID_AUTH_COOKIE in res.cookies
+
+    status_res = client.get("/auth/orcid/status")
+    assert status_res.status_code == 200
+    assert "Josiah Carberry" in status_res.text
+    assert "0000-0002-1825-0097" in status_res.text
+
+
 def test_orcid_logout_clears_auth_cookie(client: TestClient) -> None:
     client.cookies.set(ORCID_AUTH_COOKIE, "auth-id")
 

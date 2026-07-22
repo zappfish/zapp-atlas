@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 
+from zapp_atlas.api.deps import get_app_settings
 from zapp_atlas.html.templating import templates
+from zapp_atlas.settings import AppSettings
 
 
 router = APIRouter(tags=["html"])
@@ -15,8 +19,13 @@ def index_page(request: Request) -> HTMLResponse:
 
 
 @router.get("/login", response_class=HTMLResponse)
-def login_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "login.html")
+def login_page(
+    request: Request,
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
+) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request, "login.html", {"dev_auth": settings.dev_auth}
+    )
 
 
 @router.get("/partials/hello", response_class=HTMLResponse)

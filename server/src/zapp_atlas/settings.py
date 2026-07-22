@@ -37,6 +37,11 @@ class AppSettings(BaseSettings):
     orcid_redirect_uri: str = DEFAULT_ORCID_REDIRECT_URI
     orcid_base_url: str = DEFAULT_ORCID_BASE_URL
 
+    # Local development only: enables /auth/dev/login, which signs in a fake
+    # identity without contacting ORCID. MUST stay false in any deployment —
+    # it is an unauthenticated way to obtain a session cookie.
+    dev_auth: bool = False
+
 
 def load_settings(**overrides) -> AppSettings:
     return AppSettings(**overrides)

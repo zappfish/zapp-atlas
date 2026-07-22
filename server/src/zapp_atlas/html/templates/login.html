@@ -9,4 +9,23 @@
     <button type="submit">Log out</button>
   </form>
   <section id="orcid-status" hx-get="/auth/orcid/status" hx-trigger="load" hx-swap="innerHTML"></section>
+
+  {#
+    Local development only, shown when ZAPP_DEV_AUTH=true. Signs in a fake
+    identity so the signed-in state can be worked on without ORCID
+    credentials. Never rendered in a deployment.
+  #}
+  {% if dev_auth %}
+    <section>
+      <h2>Development sign-in</h2>
+      <p>ORCID is bypassed because <code>ZAPP_DEV_AUTH</code> is enabled.</p>
+      <form method="post" action="/auth/dev/login">
+        <label for="dev-name">Name</label>
+        <input id="dev-name" name="name" value="Josiah Carberry">
+        <label for="dev-orcid">ORCID iD</label>
+        <input id="dev-orcid" name="orcid_id" value="0000-0002-1825-0097">
+        <button type="submit">Sign in as this user</button>
+      </form>
+    </section>
+  {% endif %}
 {% endblock %}
