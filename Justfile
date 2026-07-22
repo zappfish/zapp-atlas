@@ -7,9 +7,26 @@ api_port := env("API_PORT", "8000")
 default:
     @just --list
 
-# Run the FastAPI backend
+vite_port := env("DEV_PORT", "5173")
+
+# Run the FastAPI backend (serves the HTML pages, the API, and /edit)
 dev-api:
-    cd server && PYTHONPATH=.. uv run uvicorn server.api.main:app --reload --port {{api_port}}
+    cd server && uv run uvicorn zapp_atlas.main:app --reload --port {{api_port}}
+
+# Run the backend against the Vite dev server, so the React client hot-reloads
+dev-api-hmr:
+    # Run `just dev-client` alongside this, then open /edit on the API port —
+    # not the Vite port. FastAPI serves the page; Vite only serves its modules.
+    cd server && ZAPP_VITE_DEV_SERVER=http://localhost:{{vite_port}} \
+        uv run uvicorn zapp_atlas.main:app --reload --port {{api_port}}
+
+# Run the Vite dev server for the React editing client
+dev-client:
+    cd client && npm run dev
+
+# Build the React editing client into client/dist
+build-client:
+    cd client && npm run build
 
 # Run Python tests
 test:
@@ -17,7 +34,7 @@ test:
 
 # Seed the dev database
 seed:
-    cd server && PYTHONPATH=.. uv run python -m server.seed
+    cd server && uv run python -m zapp_atlas.seed
 
 # Build the Docker image (local/Fly.io)
 build:
