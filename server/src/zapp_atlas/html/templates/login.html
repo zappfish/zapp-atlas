@@ -1,0 +1,58 @@
+{#
+  The two states of this page are rendered server-side from `identity`:
+  signed out (offer ORCID) and signed in (say who, offer sign out).
+
+  The same states are also available as an htmx fragment at
+  /auth/orcid/status, for showing sign-in state on pages that aren't this
+  one — a header indicator, for instance. This page doesn't use it: it
+  already knows the answer at render time, and fetching it would cost a
+  round trip and flash empty first.
+#}
+{% extends "base.html" %}
+
+{% block title %}
+  {% if identity %}Your account{% else %}Sign in{% endif %} &mdash; ZAPP Atlas
+{% endblock %}
+
+{% block content %}
+  {% if identity %}
+    <h1>Your account</h1>
+
+    <p>
+      <strong>Signed in as {{ identity.name or "ORCID user" }}</strong><br>
+      ORCID iD {{ identity.orcid_id }}
+    </p>
+
+    <form method="post" action="/auth/orcid/logout">
+      <button type="submit">Sign out</button>
+    </form>
+  {% else %}
+    <h1>Sign in</h1>
+
+    <p>
+      ZAPP Atlas uses <a href="https://orcid.org">ORCID</a> to identify
+      researchers who contribute observations.
+    </p>
+
+    <p><a href="/auth/orcid/login">Sign in with ORCID</a></p>
+  {% endif %}
+
+  {#
+    Local development only, shown when ZAPP_DEV_AUTH=true. Signs in a fake
+    identity so the signed-in state can be worked on without ORCID
+    credentials. Never rendered in a deployment.
+  #}
+  {% if dev_auth and not identity %}
+    <section>
+      <h2>Development sign-in</h2>
+      <p>ORCID is bypassed because <code>ZAPP_DEV_AUTH</code> is enabled.</p>
+      <form method="post" action="/auth/dev/login">
+        <label for="dev-name">Name</label>
+        <input id="dev-name" name="name" value="Josiah Carberry">
+        <label for="dev-orcid">ORCID iD</label>
+        <input id="dev-orcid" name="orcid_id" value="0000-0002-1825-0097">
+        <button type="submit">Sign in as this user</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}
