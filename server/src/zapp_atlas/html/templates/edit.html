@@ -1,0 +1,29 @@
+{#
+  Host document for the React editing client.
+
+  The SPA mounts into #root *inside* the normal site shell, so it inherits
+  the header, nav, footer, and stylesheet from base.html. React owns the
+  content region only — not the page.
+
+  The script tags are resolved by html/vite.py: straight from the Vite dev
+  server when ZAPP_VITE_DEV_SERVER is set, otherwise from the build manifest.
+#}
+{% extends "base.html" %}
+
+{% block title %}Edit &mdash; ZAPP Atlas{% endblock %}
+
+{% block head %}
+  {% for href in vite.stylesheets %}
+    <link rel="stylesheet" href="{{ href }}">
+  {% endfor %}
+  {% if vite.dev_client %}
+    <script type="module" src="{{ vite.dev_client }}"></script>
+  {% endif %}
+  {% for src in vite.scripts %}
+    <script type="module" src="{{ src }}"></script>
+  {% endfor %}
+{% endblock %}
+
+{% block content %}
+  <div id="root"></div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{#
+  Shown at /edit when the React client has neither been built nor pointed at
+  a running Vite dev server. Previously the route simply did not exist, which
+  looked like a 404 bug rather than a missing build step.
+#}
+{% extends "base.html" %}
+
+{% block title %}Editing client unavailable &mdash; ZAPP Atlas{% endblock %}
+
+{% block content %}
+  <h1>The editing client is not available</h1>
+  <p>{{ message }}</p>
+  <p>
+    For development with hot reloading, run <code>npm run dev</code> in
+    <code>client/</code> and start the server with
+    <code>ZAPP_VITE_DEV_SERVER=http://localhost:5173</code>.
+  </p>
+{% endblock %}
