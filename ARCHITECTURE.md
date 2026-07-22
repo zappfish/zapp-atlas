@@ -224,10 +224,8 @@ client's JS/CSS changes. `html/vite.py` decides which:
 ## Dev workflow
 
 ```sh
-# One-time setup
-cd server && uv sync
-cd client && npm install
-cp server/.env.default server/.env     # then edit as needed
+# One-time setup: installs both halves and creates server/.env
+just install
 
 # Working on the HTML pages only
 just dev-api                           # http://localhost:8000

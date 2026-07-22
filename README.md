@@ -11,8 +11,8 @@ current build.
 ## Dev quickstart
 
 ```sh
-cd server && uv sync
-cd client && npm install && npm run build
+just install
+just build-client
 just dev-api           # http://localhost:8000
 ```
 

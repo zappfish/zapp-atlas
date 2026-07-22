@@ -2,12 +2,17 @@ set dotenv-load := true
 set dotenv-filename := ".env.local"
 
 api_port := env("API_PORT", "8000")
+vite_port := env("DEV_PORT", "5173")
 
 # List available recipes
 default:
     @just --list
 
-vite_port := env("DEV_PORT", "5173")
+# Install server and client dependencies; creates server/.env if absent
+install:
+    cd server && uv sync
+    cd client && npm install
+    @test -f server/.env || cp server/.env.default server/.env
 
 # Run the FastAPI backend (serves the HTML pages, the API, and /edit)
 dev-api:

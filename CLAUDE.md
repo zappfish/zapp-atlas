@@ -7,6 +7,7 @@ This file is only the things that are easy to get wrong.
 ## Commands
 
 ```sh
+just install       # deps for both halves; creates server/.env if absent
 just dev-api       # everything on :8000 (HTML, /api, /edit) — Python and
                    # templates hot-reload; the React client does not
 just dev-client    # Vite module server on :5173, for React work
