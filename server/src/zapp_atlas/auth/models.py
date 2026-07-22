@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, Text, Integer, Enum
+from sqlalchemy import DateTime, ForeignKey, Text, Integer, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from zapp_atlas.schema._gen.sqla import Base
@@ -30,15 +30,23 @@ class OrcidIdentity(Base):
 
 class ResearchGroup(Base):
     """ A named collection of users that have shared editing access """
+
+    __tablename__ = "ResearchGroup"
+
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(Text())
 
 class ResearchGroupMember(Base):
     """ A join class between users and research groups that specifies the relationship permissions """
+
+    __tablename__ = "ResearchGroupMember"
+
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    user: Mapped[str] = relationship(foreign_keys="[OrcidIdentity.id]")
-    role: Mapped[str] = mapped_column(Enum('admin','member'))
-    group: Mapped[int] = relationship(foreign_keys=['ResearchGroup.id'])
+    user_id: Mapped[str] = mapped_column(ForeignKey("OrcidIdentity.id"))
+    group_id: Mapped[int] = mapped_column(ForeignKey("ResearchGroup.id"))
+    role: Mapped[str] = mapped_column(Enum('admin', 'member', name="research_group_role"))
+    user: Mapped[OrcidIdentity] = relationship()
+    group: Mapped[ResearchGroup] = relationship()
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
