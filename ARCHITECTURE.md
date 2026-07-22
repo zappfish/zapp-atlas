@@ -245,15 +245,20 @@ Schema regeneration after editing the LinkML YAML: `cd server && make schema`.
 ### Signing in locally
 
 ORCID login needs client credentials, which `.env.default` leaves blank. For UI
-work you usually don't want to register an app at all — set `ZAPP_DEV_AUTH=true`
-and `/login` grows a form that signs in a fake identity via
-`POST /auth/dev/login`, so the signed-in states can be built and inspected
-without ORCID.
+work you usually don't want to register an app at all, so **`just install`
+leaves you signed-in-capable out of the box**: the `server/.env` it creates sets
+`ZAPP_DEV_AUTH=true`, and `/login` grows a form that signs in a fake identity
+via `POST /auth/dev/login`.
 
-`ZAPP_DEV_AUTH` is off by default, the route 404s when it is off, and it
-**must never be enabled in a deployment** — it hands a session cookie to anyone
-who asks. To exercise the real flow, register a sandbox app at
-`sandbox.orcid.org` and point `ZAPP_ORCID_BASE_URL` at it.
+The *application* default is `false`, and the route 404s when it is off. It is
+enabled only in `.env.default`, which becomes `server/.env` — gitignored,
+excluded from the Docker image, and never present in a deployment, which
+configures itself through real environment variables. It **must never be
+enabled in a deployment**: it hands a session cookie to anyone who asks.
+
+To exercise the real flow instead, register a sandbox app at
+`sandbox.orcid.org`, fill in the client id/secret, and point
+`ZAPP_ORCID_BASE_URL` at it.
 
 ## Deployment
 

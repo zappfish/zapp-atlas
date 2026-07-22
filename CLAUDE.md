@@ -52,11 +52,13 @@ manifest, which `html/vite.py` reads. Consequences worth remembering:
 
 ## Signing in locally
 
-ORCID needs client credentials. For UI work, set `ZAPP_DEV_AUTH=true` instead:
-`/login` grows a form that signs in a fake identity via `POST /auth/dev/login`,
-so signed-in states can be built without registering an app. It is off by
-default, 404s when off, and **must never be enabled in a deployment** — it hands
-a session cookie to anyone who asks.
+ORCID needs client credentials, so `just install` writes a `server/.env` with
+`ZAPP_DEV_AUTH=true`: `/login` grows a form that signs in a fake identity via
+`POST /auth/dev/login`, and signed-in pages work without registering an app.
+
+The application default is `false` and the route 404s when off. It is on only in
+`server/.env`, which is gitignored and excluded from the Docker image. It **must
+never be enabled in a deployment** — it hands a session cookie to anyone.
 
 Pages that need to know who is signed in should depend on `get_current_identity`
 (`auth/deps.py`) rather than reading the cookie directly.
