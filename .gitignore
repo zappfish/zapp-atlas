@@ -12,3 +12,6 @@ server/data/
 
 # Local planning / scratch notes
 docs/
+
+# macOS
+.DS_Store
