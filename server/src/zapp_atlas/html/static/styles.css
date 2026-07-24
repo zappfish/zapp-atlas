@@ -55,7 +55,7 @@ main {
 .site-brand {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+
   text-decoration: none;
 }
 
@@ -186,12 +186,17 @@ main {
 .site-footer__brand-row {
   display: flex;
   align-items: center;
-  gap: 7px;
   margin-bottom: 1rem;
 }
 
 .site-footer__brand p {
   max-width: 280px;
+}
+
+.site-footer__email {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .site-footer__logo {
@@ -218,10 +223,10 @@ main {
 
 .site-footer h2 {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0 0 0.6rem;
 }
 
