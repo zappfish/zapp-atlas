@@ -1,9 +1,6 @@
 /*
- * ZAPP Atlas — global styles.
- *
- * This is the single place where styling for the server-rendered (HTMX)
- * viewing application lives. The shell is intentionally unstyled; add rules
- * here as the design develops.
+ * ZAPP Atlas — global styles for the server-rendered (htmx) surface.
+ * Loaded by base.html, so rules here apply site-wide across both surfaces.
  */
 
 :root {
@@ -51,7 +48,7 @@ main {
   color: var(--white);
 }
 
-/* Logo + wordmark are one unit; the gap between them is controlled here. */
+
 .site-brand {
   display: inline-flex;
   align-items: center;
@@ -94,8 +91,7 @@ main {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Header buttons: a prominent filled primary (Submit Data) and a subtle
-   outlined secondary (Login). */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -255,7 +251,6 @@ main {
 
 /* ---- Mobile menu (hamburger) -------------------------------------------- */
 
-/* Hidden on desktop, where the full nav shows inline. */
 .site-nav__burger {
   display: none;
 }
@@ -331,7 +326,6 @@ main {
     display: none;
   }
 
-  /* Buttons sit below the links, sized to their content (not full-width). */
   .site-nav .btn {
     align-self: flex-start;
     margin-top: 0.5rem;
