@@ -262,6 +262,10 @@ main {
     position: relative;
   }
 
+  .site-brand__logo {
+    height: 42px;
+  }
+
   /* Hamburger button: three stacked bars that fold into an X when open. */
   .site-nav__burger {
     display: flex;
