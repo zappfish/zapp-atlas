@@ -263,7 +263,7 @@ main {
   }
 
   .site-brand__logo {
-    height: 42px;
+    height: 38px;
   }
 
   /* Hamburger button: three stacked bars that fold into an X when open. */
@@ -330,13 +330,22 @@ main {
     display: none;
   }
 
+  /* Both buttons the same width, centered, stacked with clear spacing. */
   .site-nav .btn {
-    align-self: flex-start;
-    margin-top: 0.5rem;
+    align-self: center;
+    justify-content: center;
+    width: 180px;
+    padding: 0.65rem 1rem;
   }
 
   .site-nav .btn--primary {
+    margin-top: 1rem;
+  }
+
+  .site-nav .btn--outline {
     margin-top: 0.75rem;
+    /* Brighten the border so it reads against the teal panel. */
+    border-color: var(--white);
   }
 
   .site-footer {
@@ -345,5 +354,25 @@ main {
 
   .site-footer__cols {
     gap: 2.5rem;
+  }
+}
+
+/* Once the footer columns stack into a single column, center them. */
+@media (max-width: 560px) {
+  .site-footer__cols {
+    text-align: center;
+  }
+
+  .site-footer__brand-row {
+    justify-content: center;
+  }
+
+  .site-footer__brand p {
+    max-width: none;
+  }
+
+  .site-footer__links,
+  .site-footer__contact {
+    align-items: center;
   }
 }
