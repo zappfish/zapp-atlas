@@ -1,0 +1,8 @@
+<svg class="icon icon--upload" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.8"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  {# Arrow rising out of an open-top rounded box (upload / share). #}
+  <path d="M12 15V3.5"/>
+  <path d="M7.5 8L12 3.5L16.5 8"/>
+  <path d="M6 12H4.8A1.8 1.8 0 0 0 3 13.8v4.9A1.8 1.8 0 0 0 4.8 20.5h14.4a1.8 1.8 0 0 0 1.8-1.8v-4.9A1.8 1.8 0 0 0 19.2 12H18"/>
+</svg>

@@ -7,13 +7,12 @@
  */
 
 :root {
-  --teal: #3e8199;
-  --teal-dark: #0f4c5c;
-  --teal-darker: #0b3a47;
+  --teal: #357084;
   --ink: #1f2937;
   --muted: #6b7280;
-  --line: #e5e7eb;
   --bg: #ffffff;
+  --white: #ffffff;
+  --btn-bg: #eef3f1;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -49,7 +48,7 @@ main {
   height: 84px;
   padding: 0 2rem;
   background: var(--teal);
-  color: #fff;
+  color: var(--white);
 }
 
 /* Logo + wordmark are one unit; the gap between them is controlled here. */
@@ -61,17 +60,13 @@ main {
 }
 
 .site-brand__name {
-  color: #fff;
+  color: var(--white);
   font-weight: 600;
   font-size: 1.5rem; /* ~24px */
   letter-spacing: 0.02em;
 }
 
 .site-brand__logo {
-  /* The logo file has wide transparent margins baked in, which pushes the
-     wordmark away. A fixed box + object-fit: cover zooms the artwork to fill
-     the box, clipping those empty margins — no file edit needed. Tune the box
-     size and object-position until the crop frames the art. */
   height: 50px;
   width: 35px;
   object-fit: cover;
@@ -86,7 +81,7 @@ main {
 }
 
 .site-nav a {
-  color: #fff;
+  color: var(--white);
   text-decoration: none;
   font-size: 0.95rem;
 }
@@ -101,22 +96,48 @@ main {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Outlined pill buttons (Submit Data, Login) */
+/* Header buttons: a prominent filled primary (Submit Data) and a subtle
+   outlined secondary (Login). */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.45rem 1rem;
+  border: 1px solid transparent;
   border-radius: 6px;
   font-size: 0.95rem;
   text-decoration: none;
   cursor: pointer;
 }
 
-.btn--outline {
-  border: 1px solid rgba(255, 255, 255, 0.8);
+/* Inline SVG icons (from templates/icons/) inherit the text color via
+   currentColor. Sized relative to the surrounding text. */
+.icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.btn .icon {
+  width: 1.05em;
+  height: 1.05em;
+}
+
+/* Scoped to .site-nav so these win over `.site-nav a` white text. */
+.site-nav .btn--primary {
+  background: var(--btn-bg);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.site-nav .btn--primary:hover {
+  background: var(--white);
+}
+
+.site-nav .btn--outline {
+  border-color: rgba(255, 255, 255, 0.8);
   background: transparent;
-  color: #fff;
+  color: var(--white);
 }
 
 .btn--outline:hover {
@@ -144,9 +165,9 @@ main {
 /* ---- Footer ------------------------------------------------------------- */
 
 .site-footer {
-  background: var(--teal-dark);
+  background: var(--teal);
   color: rgba(255, 255, 255, 0.85);
-  padding: 3rem 2rem 1.5rem;
+  padding: 2.25rem 2rem 1rem;
   font-size: 0.9rem;
 }
 
@@ -157,7 +178,7 @@ main {
   gap: 4rem;
   max-width: 1100px;
   margin: 0 auto;
-  padding-bottom: 2.5rem;
+  padding-bottom: 2rem;
 }
 
 .site-footer__brand {
@@ -172,13 +193,13 @@ main {
 }
 
 .site-footer__brand p {
-  max-width: 260px;
+  max-width: 280px;
 }
 
 /* Same tight crop treatment as the header logo. */
 .site-footer__logo {
-  height: 40px;
-  width: 28px;
+  height: 44px;
+  width: 31px;
   object-fit: cover;
   object-position: center;
   display: block;
@@ -187,7 +208,7 @@ main {
 .site-footer__wordmark {
   font-weight: 600;
   font-size: 1.2rem;
-  color: #fff;
+  color: var(--white);
 }
 
 .site-footer__links,
@@ -205,7 +226,7 @@ main {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.72);
   margin: 0 0 0.6rem;
 }
 
@@ -215,7 +236,7 @@ main {
 }
 
 .site-footer a:hover {
-  color: #fff;
+  color: var(--white);
   text-decoration: underline;
 }
 
