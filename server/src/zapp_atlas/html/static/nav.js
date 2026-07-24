@@ -1,4 +1,4 @@
-// Mobile nav toggle: plain client-side JS, not htmx, since opening/closing the
+// Mobile nav toggle: plain client-side JS, since opening/closing the
 // menu is pure UI state with no server round trip (and needs outside-click/Esc).
 (function () {
   const burger = document.querySelector(".site-nav__burger");

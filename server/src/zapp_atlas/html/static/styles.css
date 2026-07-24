@@ -121,7 +121,6 @@ main {
   height: 0.7em;
 }
 
-/* Scoped to .site-nav so these win over `.site-nav a` white text. */
 .site-nav .btn--primary {
   background: var(--btn-bg);
   color: var(--teal);
@@ -217,7 +216,6 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  /* Nudge column tops so their headings line up with the brand wordmark. */
   padding-top: 0.5rem;
 }
 
