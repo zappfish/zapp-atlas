@@ -16,7 +16,15 @@
         <img class="site-brand__logo" src="/static/logo-white.svg" alt="">
         <span class="site-brand__name">ZAPP</span>
       </a>
-      <nav class="site-nav">
+
+      {# Mobile menu button; toggled by the script at the end of the body.
+         Shows a hamburger, becomes an X while the menu is open. #}
+      <button class="site-nav__burger" type="button"
+              aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav">
         <a href="#">Resources</a>
         <a href="#">FAQ</a>
         <a href="#">Contact us</a>
@@ -68,5 +76,7 @@
         Advancing a community-led zebrafish toxicology phenotype atlas.
       </p>
     </footer>
+
+    <script src="/static/nav.js"></script>
   </body>
 </html>

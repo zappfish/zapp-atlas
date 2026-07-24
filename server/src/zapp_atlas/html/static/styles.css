@@ -75,7 +75,7 @@ main {
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
+  gap: 1.25rem;
 }
 
 .site-nav a {
@@ -250,26 +250,92 @@ main {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+/* ---- Mobile menu (hamburger) -------------------------------------------- */
+
+/* Hidden on desktop, where the full nav shows inline. */
+.site-nav__burger {
+  display: none;
+}
+
 /* ---- Responsive --------------------------------------------------------- */
 
-/* Below this width the header's single row can't hold the brand and full nav,
-   so the header stacks and the nav wraps onto its own line(s). */
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .site-header {
-    height: auto;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem;
+    position: relative;
   }
 
+  /* Hamburger button: three stacked bars that fold into an X when open. */
+  .site-nav__burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .site-nav__burger span {
+    display: block;
+    height: 2px;
+    width: 26px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .is-nav-open .site-nav__burger span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .is-nav-open .site-nav__burger span:nth-child(2) {
+    opacity: 0;
+  }
+  .is-nav-open .site-nav__burger span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* Collapsed by default: a drop-down panel below the header, shown when the
+     header has .is-nav-open (set by nav.js). */
   .site-nav {
-    flex-wrap: wrap;
-    gap: 1rem 1.25rem;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.5rem 1.25rem 1.25rem;
+    background: var(--teal);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+
+  .is-nav-open .site-nav {
+    display: flex;
+  }
+
+  .site-nav a:not(.btn) {
+    padding: 0.7rem 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .site-nav__divider {
     display: none;
+  }
+
+  /* Buttons sit below the links, sized to their content (not full-width). */
+  .site-nav .btn {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+  }
+
+  .site-nav .btn--primary {
+    margin-top: 0.75rem;
   }
 
   .site-footer {
