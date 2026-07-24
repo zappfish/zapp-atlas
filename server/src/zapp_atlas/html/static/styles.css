@@ -68,9 +68,7 @@ main {
 
 .site-brand__logo {
   height: 50px;
-  width: 35px;
-  object-fit: cover;
-  object-position: center;
+  width: auto;
   display: block;
 }
 
@@ -119,8 +117,8 @@ main {
 }
 
 .btn .icon {
-  width: 1.05em;
-  height: 1.05em;
+  width: 0.7em;
+  height: 0.7em;
 }
 
 /* Scoped to .site-nav so these win over `.site-nav a` white text. */
@@ -196,12 +194,9 @@ main {
   max-width: 280px;
 }
 
-/* Same tight crop treatment as the header logo. */
 .site-footer__logo {
   height: 44px;
-  width: 31px;
-  object-fit: cover;
-  object-position: center;
+  width: auto;
   display: block;
 }
 
@@ -253,4 +248,35 @@ main {
   margin: 4rem 0 0;
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+
+/* Below this width the header's single row can't hold the brand and full nav,
+   so the header stacks and the nav wraps onto its own line(s). */
+@media (max-width: 720px) {
+  .site-header {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
+    gap: 1rem 1.25rem;
+  }
+
+  .site-nav__divider {
+    display: none;
+  }
+
+  .site-footer {
+    padding: 2rem 1.25rem 1rem;
+  }
+
+  .site-footer__cols {
+    gap: 2.5rem;
+  }
 }

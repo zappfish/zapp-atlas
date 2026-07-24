@@ -1,8 +1,9 @@
-<svg class="icon icon--upload" viewBox="0 0 24 24" fill="none"
-     stroke="currentColor" stroke-width="1.8"
-     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  {# Arrow rising out of an open-top rounded box (upload / share). #}
-  <path d="M12 15V3.5"/>
-  <path d="M7.5 8L12 3.5L16.5 8"/>
-  <path d="M6 12H4.8A1.8 1.8 0 0 0 3 13.8v4.9A1.8 1.8 0 0 0 4.8 20.5h14.4a1.8 1.8 0 0 0 1.8-1.8v-4.9A1.8 1.8 0 0 0 19.2 12H18"/>
+{#
+  Icon: "arrow-up-from-bracket" (upload) from Font Awesome Free 6, CC BY 4.0.
+  https://fontawesome.com/icons/arrow-up-from-bracket
+  SVG copied inline (not the font/library) so it renders reliably and inherits
+  color via currentColor. Add new icons the same way under templates/icons/.
+#}
+<svg class="icon icon--upload" viewBox="0 0 448 512" aria-hidden="true">
+  <path fill="currentColor" d="M246.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 109.3V320c0 17.7 14.3 32 32 32s32-14.3 32-32V109.3l73.4 73.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-128-128zM64 352c0-17.7-14.3-32-32-32S0 334.3 0 352v64c0 53 43 96 96 96H352c53 0 96-43 96-96V352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V352z"/>
 </svg>
