@@ -1,13 +1,5 @@
-// Mobile nav toggle.
-//
-// This is deliberately plain client-side JavaScript rather than htmx: opening
-// and closing the menu is pure UI state with no server round trip, which is
-// outside htmx's remit (htmx swaps server-rendered HTML). A CSS-only checkbox
-// hack was the other option, but it can't close on outside-click or Escape, so
-// a few lines of vanilla JS is the simplest correct tool here.
-//
-// The header ships with the full document (never htmx-swapped), so wiring up
-// once on load is sufficient; there is no swapped-in copy to re-bind.
+// Mobile nav toggle: plain client-side JS, not htmx, since opening/closing the
+// menu is pure UI state with no server round trip (and needs outside-click/Esc).
 (function () {
   const burger = document.querySelector(".site-nav__burger");
   const nav = document.querySelector(".site-nav");
