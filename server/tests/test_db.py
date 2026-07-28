@@ -99,7 +99,7 @@ def test_study_round_trip():
     stressor = StressorChemical(
         chemical_id="CHEBI:33216",
         cas_id="80-05-7",
-        chemical_name="bisphenol A",
+        synonym=["bisphenol A"],
         concentration=concentration,
         manufacturer="sigma_aldrich",
     )
@@ -144,7 +144,7 @@ def test_study_round_trip():
     assert loaded_ee.exposure_end_stage == "ZFS:0000039"
 
     [loaded_stressor] = loaded_ee.stressor
-    assert loaded_stressor.chemical_name == "bisphenol A"
+    assert list(loaded_stressor.synonym) == ["bisphenol A"]
     assert loaded_stressor.chemical_id == "CHEBI:33216"
     assert loaded_stressor.cas_id == "80-05-7"
     assert loaded_stressor.concentration.numeric_value == "100"

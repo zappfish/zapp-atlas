@@ -6,20 +6,23 @@ SQLA_OUTPUT := $(SCHEMA_DIR)/_gen/sqla.py
 TS_OUTPUT := ../client/src/schema/index.ts
 JSON_SCHEMA_OUTPUT := ../client/src/schema/schema.json
 
+# Files imported by the main schema — a change here must also trigger regen.
+SCHEMA_IMPORTS := $(SCHEMA_DIR)/chemical_enums.yaml
+
 .PHONY: schema
 schema: $(PYDANTIC_OUTPUT) $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
 
-$(PYDANTIC_OUTPUT): $(LINKML_SCHEMA)
+$(PYDANTIC_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-pydantic $< >> $@
 
-$(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA)
+$(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run python -m zapp_atlas.schema.crud_pydanticgen $< >> $@
 
-$(SQLA_OUTPUT): $(LINKML_SCHEMA)
+$(SQLA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-sqla --declarative --sqla-style 2 $< >> $@
