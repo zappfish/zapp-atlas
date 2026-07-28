@@ -3,18 +3,8 @@
 {% block title %}ZAPP Atlas{% endblock %}
 
 {% block content %}
-  <h1>ZAPP Atlas</h1>
-  <p>Viewing application (HTMX-driven). Read-only content goes here.</p>
-
-  {#
-    Example of HTMX-driven content. On load, this container fetches a partial
-    from the server and swaps it in. New viewing content is wired up the same
-    way: render a partial route and point an `hx-get`/`hx-trigger` at it.
-  #}
-  <section id="content"
-           hx-get="/partials/hello"
-           hx-trigger="load"
-           hx-swap="innerHTML">
-    <p>Loading&hellip;</p>
+  <section class="coming-soon">
+    <h1>Coming soon</h1>
+    <p>The Zebrafish Toxicology Phenotype Atlas is on its way.</p>
   </section>
 {% endblock %}

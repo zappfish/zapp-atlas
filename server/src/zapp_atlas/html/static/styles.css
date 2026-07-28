@@ -1,7 +1,378 @@
 /*
- * ZAPP Atlas — global styles.
- *
- * This is the single place where styling for the server-rendered (HTMX)
- * viewing application lives. The shell is intentionally unstyled; add rules
- * here as the design develops.
+ * ZAPP Atlas — global styles for the server-rendered (htmx) surface.
+ * Loaded by base.html, so rules here apply site-wide across both surfaces.
  */
+
+:root {
+  --teal: #357084;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --bg: #ffffff;
+  --white: #ffffff;
+  --btn-bg: #eef3f1;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+main {
+  flex: 1;
+}
+
+/* ---- Header ------------------------------------------------------------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 84px;
+  padding: 0 2rem;
+  background: var(--teal);
+  color: var(--white);
+}
+
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+
+  text-decoration: none;
+}
+
+.site-brand__name {
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1.5rem; /* ~24px */
+  letter-spacing: 0.02em;
+}
+
+.site-brand__logo {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.site-nav a {
+  color: var(--white);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.site-nav a:hover {
+  text-decoration: underline;
+}
+
+.site-nav__divider {
+  width: 1px;
+  height: 1.5rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Inline SVG icons (from templates/icons/) inherit the text color via
+   currentColor. Sized relative to the surrounding text. */
+.icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.btn .icon {
+  width: 0.7em;
+  height: 0.7em;
+}
+
+.site-nav .btn--primary {
+  background: var(--btn-bg);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.site-nav .btn--primary:hover {
+  background: var(--white);
+}
+
+.site-nav .btn--outline {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: transparent;
+  color: var(--white);
+}
+
+.btn--outline:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Coming soon placeholder ------------------------------------------- */
+
+.coming-soon {
+  text-align: center;
+  padding: 6rem 1.5rem;
+}
+
+.coming-soon h1 {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.coming-soon p {
+  color: var(--muted);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* ---- Footer ------------------------------------------------------------- */
+
+.site-footer {
+  background: var(--teal);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 2.25rem 2rem 1rem;
+  font-size: 0.9rem;
+}
+
+.site-footer__cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.site-footer__brand {
+  flex: 1 1 260px;
+}
+
+.site-footer__brand-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.site-footer__brand p {
+  max-width: 280px;
+}
+
+.site-footer__email {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.site-footer__logo {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.site-footer__wordmark {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--white);
+}
+
+.site-footer__links,
+.site-footer__contact {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.5rem;
+}
+
+.site-footer h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 0.6rem;
+}
+
+.site-footer a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--white);
+  text-decoration: underline;
+}
+
+.site-footer p {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.site-footer__note {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.8rem;
+  margin: 4rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Mobile menu (hamburger) -------------------------------------------- */
+
+.site-nav__burger {
+  display: none;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .site-header {
+    position: relative;
+  }
+
+  .site-brand__logo {
+    height: 34px;
+  }
+
+  /* Hamburger button: three stacked bars that fold into an X when open. */
+  .site-nav__burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .site-nav__burger span {
+    display: block;
+    height: 2px;
+    width: 26px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .is-nav-open .site-nav__burger span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .is-nav-open .site-nav__burger span:nth-child(2) {
+    opacity: 0;
+  }
+  .is-nav-open .site-nav__burger span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* Collapsed by default: a drop-down panel below the header, shown when the
+     header has .is-nav-open (set by nav.js). */
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.5rem 1.25rem 1.25rem;
+    background: var(--teal);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+
+  .is-nav-open .site-nav {
+    display: flex;
+  }
+
+  .site-nav a:not(.btn) {
+    padding: 0.7rem 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .site-nav__divider {
+    display: none;
+  }
+
+  /* Both buttons the same width, centered, stacked with clear spacing. */
+  .site-nav .btn {
+    align-self: center;
+    justify-content: center;
+    width: 180px;
+    padding: 0.65rem 1rem;
+  }
+
+  .site-nav .btn--primary {
+    margin-top: 1rem;
+  }
+
+  .site-nav .btn--outline {
+    margin-top: 0.75rem;
+    /* Brighten the border so it reads against the teal panel. */
+    border-color: var(--white);
+  }
+
+  .site-footer {
+    padding: 2rem 1.25rem 1rem;
+  }
+
+  .site-footer__cols {
+    gap: 2.5rem;
+  }
+}
+
+/* Once the footer columns stack into a single column, center them. */
+@media (max-width: 560px) {
+  .site-footer__cols {
+    text-align: center;
+  }
+
+  .site-footer__brand-row {
+    justify-content: center;
+  }
+
+  .site-footer__brand p {
+    max-width: none;
+  }
+
+  .site-footer__links,
+  .site-footer__contact {
+    align-items: center;
+  }
+}
