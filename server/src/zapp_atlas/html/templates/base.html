@@ -25,6 +25,7 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
+        {% block nav %}
         <a href="#">Resources</a>
         <a href="#">FAQ</a>
         <a href="#">Contact us</a>
@@ -68,6 +69,7 @@
         {% else %}
           <a class="btn btn--outline" href="/login">Login</a>
         {% endif %}
+        {% endblock %}
       </nav>
     </header>
 
