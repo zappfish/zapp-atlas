@@ -30,10 +30,19 @@
         <a href="#">Contact us</a>
         <a href="#">Downloads</a>
         <span class="site-nav__divider" aria-hidden="true"></span>
-        <a class="btn btn--primary" href="/edit">
-          {% include "icons/upload.svg" %}
-          Submit Data
-        </a>
+        {% if current_identity %}
+          <a class="btn btn--primary" href="/edit">
+            {% include "icons/upload.svg" %}
+            Submit Data
+          </a>
+        {% else %}
+          <span class="tooltip" data-tooltip="Please log in to submit data">
+            <a class="btn btn--primary" href="/login">
+              {% include "icons/upload.svg" %}
+              Submit Data
+            </a>
+          </span>
+        {% endif %}
 
         {% if current_identity %}
           {% set _parts = (current_identity.name or "").split() %}
@@ -65,7 +74,9 @@
               </form>
             </div>
           </div>
-        {% else %}
+        {% elif request.url.path != "/login" %}
+          {# Hide the Login button on the login page itself — it would just
+             link back here. #}
           <a class="btn btn--outline" href="/login">Login</a>
         {% endif %}
       </nav>
