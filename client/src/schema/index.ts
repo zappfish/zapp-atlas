@@ -19,6 +19,20 @@ export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishZfinId = string;
+export type ResearchGroupId = string;
+export type ResearchGroupMemberId = string;
+export type ChemicalCabinetEntryId = string;
+export type FishTankEntryId = string;
+/**
+* An enumeration of permission levels within a research group.
+*/
+export enum ResearchGroupRoleEnum {
+    
+    /** Can manage group membership as well as the group's data. */
+    admin = "admin",
+    /** Can edit the group's data. */
+    member = "member",
+};
 /**
 * An enumeration of severity levels for phenotypes.
 */
@@ -405,6 +419,50 @@ export interface ExposureType extends OntologyEntity {
 export interface Fish extends ZfinEntity {
     /** Name or label of an entity. */
     name: string,
+}
+
+
+/**
+ * A named collection of users that have shared editing access.
+ */
+export interface ResearchGroup extends ZappEntity {
+    /** Name or label of an entity. */
+    name: string,
+}
+
+
+/**
+ * Membership of an ORCID identity in a research group.
+ */
+export interface ResearchGroupMember extends ZappEntity {
+    /** The research group an entry belongs to. */
+    research_group: ResearchGroupId,
+    /** ORCID identifier of a research group member. */
+    member: string,
+    /** A member's permission level within a research group. */
+    role: string,
+}
+
+
+/**
+ * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+ */
+export interface ChemicalCabinetEntry extends ZappEntity {
+    /** The research group an entry belongs to. */
+    research_group: ResearchGroupId,
+    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    chemical_id: string,
+}
+
+
+/**
+ * A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+ */
+export interface FishTankEntry extends ZappEntity {
+    /** The research group an entry belongs to. */
+    research_group: ResearchGroupId,
+    /** The fish line the group maintains. */
+    fish: Fish,
 }
 
 

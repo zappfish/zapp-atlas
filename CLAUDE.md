@@ -27,6 +27,20 @@ single source of truth for the Pydantic models, the SQLAlchemy tables, the
 client's TypeScript types, and the client's JSON Schema. Edit the YAML and run
 `cd server && make schema`. Generated files carry a `DO NOT EDIT` header.
 
+Two things about that codegen are easy to get wrong:
+
+- **Keep it runnable from a bare `uv sync`.** It once shelled out to `jq`, which
+  is not a declared dependency: on a machine without it the recipe truncated the
+  client's JSON Schema to zero bytes, and every later run reported "Nothing to be
+  done". `.DELETE_ON_ERROR` now removes a half-written target so the next run
+  rebuilds it, but the better protection is not reaching for outside tools.
+- **`unique_keys` and timestamps are applied after generation.** `gen-sqla`
+  renders neither, so `schema/constraints.py` reads them back out of the YAML at
+  import and attaches them to the generated tables. Declare them in the schema as
+  usual; nothing needs restating in Python. Note that a slot does not always
+  become a column of the same name — an inlined slot whose range has an
+  identifier becomes `<slot>_<identifier>` (`fish` → `fish_zfin_id`).
+
 **All HTML lives in Jinja templates.** Every document and fragment the app
 returns — pages, htmx partials, error states, and the React client's host
 document — renders through the shared environment in `html/templating.py`, from
