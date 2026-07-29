@@ -9,14 +9,6 @@
   {% if identity %}Your account{% else %}Sign in{% endif %} &mdash; ZAPP Atlas
 {% endblock %}
 
-{# Reduced header on the auth page: informational links only, no Submit
-   Data / Login / user menu. #}
-{% block nav %}
-  <a href="#">Resources</a>
-  <a href="#">FAQ</a>
-  <a href="#">Contact us</a>
-{% endblock %}
-
 {% block content %}
   <div class="login">
     {% if identity %}
