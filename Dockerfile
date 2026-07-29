@@ -11,12 +11,14 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# Install Python dependencies (cached layer)
+# Install Python dependencies (cached layer) — deps only, not the local project,
+# so this layer stays cached when only server source changes.
 COPY server/pyproject.toml server/uv.lock ./server/
-RUN cd server && uv sync --frozen --no-dev
+RUN cd server && uv sync --frozen --no-dev --no-install-project
 
-# Copy server source code
+# Copy server source code, then install the local project itself
 COPY server/ ./server/
+RUN cd server && uv sync --frozen --no-dev
 
 ENV PYTHONPATH=/app
 
