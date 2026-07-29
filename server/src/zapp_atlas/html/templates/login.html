@@ -36,24 +36,32 @@
       <section class="login-card">
         <header class="login-card__head">
           <h1 class="login-card__title">Researcher Sign In</h1>
-          <span class="login-card__badge">Secure</span>
+          <span class="login-card__badge">
+            <span class="login-card__badge-dot" aria-hidden="true"></span>Secure
+          </span>
         </header>
 
-        <p class="login-card__lead">
-          Sign in with your ORCID iD to access personalized search history,
-          research groups, and to contribute phenotype annotations.
-        </p>
+        <div class="login-card__body">
+          <p class="login-card__lead">
+            Sign in with your ORCID iD to access personalized search history,
+            research groups, and to contribute phenotype annotations.
+          </p>
 
-        <a class="btn btn--orcid login-card__submit" href="/auth/orcid/login">
+          <a class="btn btn--orcid login-card__submit" href="/auth/orcid/login">
+            {% include "icons/orcid.svg" %}
+            Sign in with ORCID iD
+          </a>
+        </div>
+
+        <div class="login-card__note">
           {% include "icons/orcid.svg" %}
-          Sign in with ORCID iD
-        </a>
-
-        <p class="login-card__note">
-          ORCID provides a persistent researcher identifier. We never store your
-          password. <a href="https://orcid.org/register" target="_blank"
-            rel="noopener">Register for an ORCID iD</a>.
-        </p>
+          <p>
+            ORCID provides a persistent researcher identifier. We never store
+            your password.
+            <a class="login-card__register" href="https://orcid.org/register"
+               target="_blank" rel="noopener">Register for an ORCID iD{% include "icons/external.svg" %}</a>
+          </p>
+        </div>
       </section>
 
       <p class="login__terms">
