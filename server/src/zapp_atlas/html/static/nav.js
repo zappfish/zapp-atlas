@@ -16,17 +16,37 @@
     setOpen(!header.classList.contains("is-nav-open"));
   });
 
-  // Close when a nav link is tapped.
   nav.addEventListener("click", function (e) {
     if (e.target.closest("a")) setOpen(false);
   });
-
-  // Close on click outside the header.
   document.addEventListener("click", function (e) {
     if (!header.contains(e.target)) setOpen(false);
   });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setOpen(false);
+  });
+})();
 
-  // Close on Escape.
+// Signed-in user menu: same toggle / outside-click / Escape pattern.
+(function () {
+  const menu = document.querySelector(".user-menu");
+  const chip = menu && menu.querySelector(".user-chip");
+  if (!menu || !chip) return;
+
+  function setOpen(open) {
+    menu.classList.toggle("is-user-open", open);
+    chip.setAttribute("aria-expanded", String(open));
+  }
+
+  chip.addEventListener("click", function (e) {
+    e.stopPropagation();
+    setOpen(!menu.classList.contains("is-user-open"));
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!menu.contains(e.target)) setOpen(false);
+  });
+
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setOpen(false);
   });

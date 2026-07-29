@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
+from contextlib import contextmanager
 
 from fastapi import Request
 from sqlalchemy.orm import Session
@@ -22,14 +23,22 @@ def _get_session_factory(request: Request):
     return session_factory
 
 
-def get_session(request: Request) -> Generator[Session, None, None]:
-    """Yield a SQLAlchemy session and ensure it is closed."""
+@contextmanager
+def open_session(request: Request) -> Iterator[Session]:
+    """Provide a self-closing database session to code that runs outside a route."""
 
     session: Session = _get_session_factory(request)()
     try:
         yield session
     finally:
         session.close()
+
+
+def get_session(request: Request) -> Generator[Session, None, None]:
+    """Yield a SQLAlchemy session and ensure it is closed."""
+
+    with open_session(request) as session:
+        yield session
 
 
 def get_app_settings(request: Request) -> AppSettings:
