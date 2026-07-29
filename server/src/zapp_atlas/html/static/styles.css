@@ -378,7 +378,7 @@ main {
   text-align: center;
 }
 
-/* Brand stacked above the wordmark, matching the login mockup. */
+/* Logo stacked above the wordmark. */
 .login__brand {
   display: flex;
   flex-direction: column;
@@ -514,7 +514,7 @@ main {
   vertical-align: -0.1em;
 }
 
-/* ORCID-branded sign-in button — dark text, per the design. */
+/* ORCID-branded sign-in button. */
 .btn--orcid {
   background: #a6ce39;
   color: var(--ink);
