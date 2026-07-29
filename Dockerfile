@@ -47,4 +47,4 @@ ENV PYTHONPATH=/app
 EXPOSE 8080
 
 CMD ["uv", "run", "--no-sync", "--directory", "server", \
-     "uvicorn", "server.api.main:app", "--host", "0.0.0.0", "--port", "8080"]
+     "uvicorn", "zapp_atlas.main:app", "--host", "0.0.0.0", "--port", "8080"]
