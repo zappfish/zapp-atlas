@@ -61,6 +61,12 @@ a {
   border-radius: 4px;
 }
 
+/* On the teal header/footer a teal ring would be invisible; use white there. */
+.site-header :focus-visible,
+.site-footer :focus-visible {
+  outline-color: var(--white);
+}
+
 main {
   flex: 1;
   display: flex;
