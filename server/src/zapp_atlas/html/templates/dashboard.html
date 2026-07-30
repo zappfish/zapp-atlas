@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} &mdash; ZAPP Atlas{% endblock %}
+
+{% block content %}
+  <div class="dashboard">
+    {# ---- Sidebar: the researcher's groups ---- #}
+    <aside class="dash-sidebar">
+      <h2 class="dash-sidebar__heading">My Research Groups</h2>
+      <ul class="dash-groups">
+        {% for g in groups %}
+          <li class="dash-group{% if g.name == group.name %} is-active{% endif %}">
+            <span class="dash-group__name">{{ g.name }}</span>
+            <span class="dash-group__kind">
+              {{ g.kind }}{% if g.is_default %} &middot; Default{% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+      <button class="dash-new-group" type="button">+ New Group</button>
+    </aside>
+
+    {# ---- Main: group detail ---- #}
+    <div class="dash-main">
+      <header class="dash-header">
+        <div>
+          <h1 class="dash-header__title">
+            {{ group.name }}
+            {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
+          </h1>
+          <p class="dash-header__meta">
+            {{ group.kind }} &middot; {{ group.chemical_count }} chemicals &middot;
+            {{ group.fish_line_count }} fish lines &middot;
+            {{ group.submission_count }} submissions
+          </p>
+        </div>
+        <button class="dash-members" type="button">Members</button>
+      </header>
+
+      <div class="dash-cols">
+        {# ---- Fish Tank ---- #}
+        <section class="dash-card">
+          <header class="dash-card__head">
+            <h2 class="dash-card__title">Fish Tank</h2>
+            <button class="dash-card__add" type="button">+ Add</button>
+          </header>
+
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Genotype</th>
+                <th class="dash-table__actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fish in fish_tank %}
+                <tr>
+                  <td class="dash-fish__name">
+                    {{ fish.name }}
+                    <span class="dash-fish__id">{{ fish.zfin_id }}</span>
+                  </td>
+                  <td class="dash-genotype">
+                    {# Each part renders only when the fish has it, so a bare
+                       name + id fish still looks clean. #}
+                    {% if fish.background %}
+                      <span class="dash-geno-line">
+                        <span class="dash-geno-tag">bg</span>{{ fish.background }}
+                      </span>
+                    {% endif %}
+                    {% for m in fish.mutations %}
+                      <span class="dash-geno-line">
+                        <span class="dash-geno-tag dash-geno-tag--mut">MUT</span>
+                        {{ m.allele }} {{ m.zygosity }} gene:{{ m.gene }}
+                      </span>
+                    {% endfor %}
+                    {% for t in fish.transgenes %}
+                      <span class="dash-geno-line">
+                        <span class="dash-geno-tag dash-geno-tag--tg">TG</span>
+                        {{ t.allele }} {{ t.zygosity }} {{ t.construct }}
+                      </span>
+                    {% endfor %}
+                    {% if not fish.background and not fish.mutations and not fish.transgenes %}
+                      <span class="dash-geno-empty">&mdash;</span>
+                    {% endif %}
+                  </td>
+                  <td class="dash-table__actions">
+                    <button class="dash-icon-btn" type="button" aria-label="View">
+                      {% include "icons/eye.svg" %}
+                    </button>
+                    <button class="dash-icon-btn dash-icon-btn--danger" type="button"
+                            aria-label="Remove">
+                      {% include "icons/trash.svg" %}
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+
+        {# ---- Chemical Cabinet ---- #}
+        <section class="dash-card">
+          <header class="dash-card__head">
+            <h2 class="dash-card__title">Chemical Cabinet</h2>
+            <button class="dash-card__add" type="button">+ Add</button>
+          </header>
+
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Chemical ID</th>
+                <th class="dash-table__actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in cabinet %}
+                <tr>
+                  <td><code>{{ c.chemical_id }}</code></td>
+                  <td class="dash-table__actions">
+                    <button class="dash-icon-btn dash-icon-btn--danger" type="button"
+                            aria-label="Remove">
+                      {% include "icons/trash.svg" %}
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      {# ---- Submissions ---- #}
+      <section class="dash-card dash-submissions">
+        <header class="dash-card__head">
+          <h2 class="dash-card__title">
+            {{ group.name }} &mdash; Submissions
+            <span class="dash-count">{{ submissions | length }}</span>
+          </h2>
+          <button class="btn btn--primary" type="button">
+            {% include "icons/upload.svg" %}
+            New Submission
+          </button>
+        </header>
+
+        <div class="dash-filters">
+          <button class="dash-filter is-active" type="button">All</button>
+          <button class="dash-filter" type="button">Published</button>
+          <button class="dash-filter" type="button">In Progress</button>
+          <button class="dash-filter" type="button">On Hold</button>
+          <button class="dash-filter" type="button">Retracted</button>
+        </div>
+
+        <ul class="dash-sub-list">
+          {% for s in submissions %}
+            <li class="dash-sub">
+              <div class="dash-sub__info">
+                <span class="dash-sub__title">{{ s.title }}</span>
+                <span class="dash-sub__status dash-sub__status--{{ s.status | lower | replace(' ', '-') }}">
+                  {{ s.status }}
+                </span>
+              </div>
+              <span class="dash-sub__date">{{ s.date }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+  </div>
+{% endblock %}
