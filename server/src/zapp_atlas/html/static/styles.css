@@ -28,7 +28,8 @@
   box-sizing: border-box;
 }
 
-/* Respect users who prefer reduced motion: drop transitions and animations. */
+/* Near-zero (not 0) keeps animationend/transitionend events firing for any
+   JS that depends on them, while removing perceptible motion. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

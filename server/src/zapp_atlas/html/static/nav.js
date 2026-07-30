@@ -1,53 +1,43 @@
-// Mobile nav toggle: plain client-side JS, since opening/closing the
-// menu is pure UI state with no server round trip (and needs outside-click/Esc).
-(function () {
-  const burger = document.querySelector(".site-nav__burger");
-  const nav = document.querySelector(".site-nav");
-  const header = document.querySelector(".site-header");
-  if (!burger || !nav || !header) return;
+// Toggle a menu open/closed with a button, closing on outside-click and Escape.
+// Plain client-side JS, since this is pure UI state with no server round trip.
+const wireToggle = (root, trigger, openClass) => {
+  if (!root || !trigger) return;
 
-  function setOpen(open) {
-    header.classList.toggle("is-nav-open", open);
-    burger.setAttribute("aria-expanded", String(open));
-  }
+  const setOpen = (open) => {
+    root.classList.toggle(openClass, open);
+    trigger.setAttribute("aria-expanded", String(open));
+  };
 
-  burger.addEventListener("click", function (e) {
+  trigger.addEventListener("click", (e) => {
     e.stopPropagation();
-    setOpen(!header.classList.contains("is-nav-open"));
+    setOpen(!root.classList.contains(openClass));
   });
-
-  nav.addEventListener("click", function (e) {
-    if (e.target.closest("a")) setOpen(false);
+  document.addEventListener("click", (e) => {
+    if (!root.contains(e.target)) setOpen(false);
   });
-  document.addEventListener("click", function (e) {
-    if (!header.contains(e.target)) setOpen(false);
-  });
-  document.addEventListener("keydown", function (e) {
+  document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setOpen(false);
   });
-})();
 
-// Signed-in user menu: same toggle / outside-click / Escape pattern.
-(function () {
-  const menu = document.querySelector(".user-menu");
-  const chip = menu && menu.querySelector(".user-chip");
-  if (!menu || !chip) return;
+  return setOpen;
+};
 
-  function setOpen(open) {
-    menu.classList.toggle("is-user-open", open);
-    chip.setAttribute("aria-expanded", String(open));
-  }
-
-  chip.addEventListener("click", function (e) {
-    e.stopPropagation();
-    setOpen(!menu.classList.contains("is-user-open"));
+// Mobile nav: also close when a link inside it is tapped.
+const closeNav = wireToggle(
+  document.querySelector(".site-header"),
+  document.querySelector(".site-nav__burger"),
+  "is-nav-open",
+);
+const nav = document.querySelector(".site-nav");
+if (nav && closeNav) {
+  nav.addEventListener("click", (e) => {
+    if (e.target.closest("a")) closeNav(false);
   });
+}
 
-  document.addEventListener("click", function (e) {
-    if (!menu.contains(e.target)) setOpen(false);
-  });
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") setOpen(false);
-  });
-})();
+// Signed-in user menu.
+wireToggle(
+  document.querySelector(".user-menu"),
+  document.querySelector(".user-chip"),
+  "is-user-open",
+);
