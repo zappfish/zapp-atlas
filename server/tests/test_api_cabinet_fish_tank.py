@@ -99,6 +99,43 @@ def test_duplicate_member_is_conflict(client: TestClient) -> None:
     assert res.status_code == 409
 
 
+def _member_id(client: TestClient, group_id: int, orcid: str) -> int:
+    signin(client, ADMIN)
+    members = client.get(f"/api/research-groups/{group_id}/members").json()
+    return next(m["id"] for m in members if m["member"] == f"ORCID:{orcid}")
+
+
+def test_admin_can_remove_member(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    assert (
+        client.delete(
+            f"/api/research-groups/{group_id}/members/{member_id}"
+        ).status_code
+        == 204
+    )
+    remaining = client.get(f"/api/research-groups/{group_id}/members").json()
+    assert all(m["id"] != member_id for m in remaining)
+
+
+def test_remove_unknown_member_is_404(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    res = client.delete(f"/api/research-groups/{group_id}/members/99999")
+    assert res.status_code == 404
+
+
+def test_only_admin_can_remove_members(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, MEMBER)  # a plain member may not remove anyone
+    res = client.delete(f"/api/research-groups/{group_id}/members/{member_id}")
+    assert res.status_code == 403
+
+
 # --------------------------------------------------------------------------- #
 # Authorization matrix (exercised through the cabinet)
 # --------------------------------------------------------------------------- #
@@ -111,11 +148,13 @@ def test_cabinet_requires_authentication(client: TestClient) -> None:
     assert res.status_code == 401
 
 
-def test_cabinet_forbidden_for_non_members(client: TestClient) -> None:
+def test_cabinet_hidden_from_non_members(client: TestClient) -> None:
+    # Non-members get the same 404 as a missing group — group membership is
+    # private, so existence isn't revealed to outsiders.
     group_id = make_group(client)
     signin(client, OUTSIDER)
     res = client.get(f"/api/research-groups/{group_id}/chemical-cabinet")
-    assert res.status_code == 403
+    assert res.status_code == 404
 
 
 def test_unknown_group_is_404(client: TestClient) -> None:
@@ -158,41 +197,9 @@ def test_cabinet_grain_conflict(client: TestClient) -> None:
     assert client.post(url, json={"chemical_id": ETHANOL}).status_code == 409
 
 
-def test_research_group_in_body_is_ignored(client: TestClient) -> None:
-    group_id = make_group(client)
-    signin(client, ADMIN)
-    created = client.post(
-        f"/api/research-groups/{group_id}/chemical-cabinet",
-        json={"chemical_id": BPA, "research_group": 99999},
-    )
-    assert created.status_code == 201
-    entry_id = created.json()["id"]
-    # The entry lives under the path group, not the bogus body value.
-    assert (
-        client.get(
-            f"/api/research-groups/{group_id}/chemical-cabinet/{entry_id}"
-        ).status_code
-        == 200
-    )
-
-
 def test_cabinet_entry_isolated_across_groups(client: TestClient) -> None:
     group_a = make_group(client, "Lab A")
     group_b = make_group(client, "Lab B")  # ADMIN is in both
-    signin(client, ADMIN)
-    created = client.post(
-        f"/api/research-groups/{group_a}/chemical-cabinet",
-        json={"chemical_id": ETHANOL},
-    )
-    entry_id = created.json()["id"]
-    # Same id, wrong group → 404, not a peek into Lab A.
-    res = client.get(f"/api/research-groups/{group_b}/chemical-cabinet/{entry_id}")
-    assert res.status_code == 404
-
-
-def test_two_groups_may_stock_the_same_chemical(client: TestClient) -> None:
-    group_a = make_group(client, "Lab A")
-    group_b = make_group(client, "Lab B")
     signin(client, ADMIN)
     a = client.post(
         f"/api/research-groups/{group_a}/chemical-cabinet", json={"chemical_id": ETHANOL}
@@ -200,7 +207,43 @@ def test_two_groups_may_stock_the_same_chemical(client: TestClient) -> None:
     b = client.post(
         f"/api/research-groups/{group_b}/chemical-cabinet", json={"chemical_id": ETHANOL}
     )
+    # The grain is (group, chemical), so two groups may both stock ethanol.
     assert a.status_code == 201 and b.status_code == 201
+    # But group B can't read group A's entry by id — 404, not a peek.
+    entry_id = a.json()["id"]
+    res = client.get(f"/api/research-groups/{group_b}/chemical-cabinet/{entry_id}")
+    assert res.status_code == 404
+
+
+def test_cabinet_patch_updates_chemical(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    entry_id = client.post(url, json={"chemical_id": ETHANOL}).json()["id"]
+    res = client.patch(f"{url}/{entry_id}", json={"chemical_id": BPA})
+    assert res.status_code == 200
+    assert res.json()["chemical_id"] == BPA
+
+
+def test_cabinet_patch_unknown_entry_is_404(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/chemical-cabinet/99999",
+        json={"chemical_id": BPA},
+    )
+    assert res.status_code == 404
+
+
+def test_cabinet_patch_into_existing_grain_conflicts(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    client.post(url, json={"chemical_id": ETHANOL})
+    bpa_id = client.post(url, json={"chemical_id": BPA}).json()["id"]
+    # Patching BPA -> ETHANOL collides with the existing (group, ethanol) row.
+    res = client.patch(f"{url}/{bpa_id}", json={"chemical_id": ETHANOL})
+    assert res.status_code == 409
 
 
 def test_cabinet_delete(client: TestClient) -> None:
@@ -247,3 +290,14 @@ def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
         json={"fish": {"zfin_id": "not-a-zfin", "name": "Mystery"}},
     )
     assert res.status_code == 422
+
+
+def test_two_groups_may_tank_the_same_fish(client: TestClient) -> None:
+    # The second entry reuses the existing Fish row rather than re-creating it.
+    group_a = make_group(client, "Lab A")
+    group_b = make_group(client, "Lab B")
+    signin(client, ADMIN)
+    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
+    a = client.post(f"/api/research-groups/{group_a}/fish-tank", json=fish)
+    b = client.post(f"/api/research-groups/{group_b}/fish-tank", json=fish)
+    assert a.status_code == 201 and b.status_code == 201

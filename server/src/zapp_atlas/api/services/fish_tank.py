@@ -10,7 +10,13 @@ from zapp_atlas.schema.sqla import Fish, FishTankEntry
 
 
 def _get_or_create_fish(session: Session, ref: FishRef) -> Fish:
-    """Fish is a shared, ZFIN-keyed entity; reuse the row if it exists."""
+    """Fish is a shared, ZFIN-keyed entity; reuse the row if it exists.
+
+    When the row already exists its stored ``name`` wins — a payload ``name``
+    is not written back, so the response echoes the canonical name rather than
+    the submitted one. Names are a property of the shared Fish, not the tank
+    entry.
+    """
     fish = session.get(Fish, ref.zfin_id)
     if fish is None:
         fish = Fish(zfin_id=ref.zfin_id, name=ref.name)

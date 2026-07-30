@@ -89,13 +89,17 @@ def require_group_member(
     session: Annotated[Session, Depends(get_session)],
     identity: Annotated[OrcidIdentity, Depends(require_current_identity)],
 ) -> GroupContext:
-    """Caller must be a member of ``group_id``. 404 if the group is unknown."""
+    """Caller must be a member of ``group_id``.
+
+    A non-member gets the *same* 404 as a missing group: group membership is
+    private, so we don't reveal which ids exist to people outside the group.
+    """
     _load_group(session, group_id)
     membership = _find_membership(session, group_id, identity)
     if membership is None:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a member of this research group",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Research group not found",
         )
     return GroupContext(identity=identity, membership=membership)
 
