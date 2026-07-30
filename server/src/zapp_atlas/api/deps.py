@@ -23,29 +23,11 @@ def _get_session_factory(request: Request):
     return session_factory
 
 
-def _make_session(request: Request) -> Session:
-    return _get_session_factory(request)()
-
-
 @contextmanager
 def open_session(request: Request) -> Iterator[Session]:
-    """Provide a self-closing database session to code that runs outside a route.
+    """Provide a self-closing database session to code that runs outside a route."""
 
-    Honors ``get_session`` dependency overrides so overridden code paths (e.g.
-    tests pointing at an in-memory database) reach the same session.
-    """
-
-    override = request.app.dependency_overrides.get(get_session)
-    if override is not None:
-        gen = override()
-        session = next(gen)
-        try:
-            yield session
-        finally:
-            gen.close()
-        return
-
-    session = _make_session(request)
+    session: Session = _get_session_factory(request)()
     try:
         yield session
     finally:
@@ -55,11 +37,8 @@ def open_session(request: Request) -> Iterator[Session]:
 def get_session(request: Request) -> Generator[Session, None, None]:
     """Yield a SQLAlchemy session and ensure it is closed."""
 
-    session = _make_session(request)
-    try:
+    with open_session(request) as session:
         yield session
-    finally:
-        session.close()
 
 
 def get_app_settings(request: Request) -> AppSettings:
