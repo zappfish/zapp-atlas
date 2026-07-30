@@ -1,8 +1,5 @@
-"""Accessibility checks for the shared header, footer, and login page.
-
-These assert on the rendered markup — the ARIA hooks, labels, and alt text
-that assistive technology relies on — so a refactor can't quietly drop them.
-"""
+"""Assert the rendered markup keeps its accessibility hooks — ARIA
+attributes, form labels, and image alt text — so they survive refactors."""
 
 from __future__ import annotations
 
