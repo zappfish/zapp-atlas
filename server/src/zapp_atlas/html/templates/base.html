@@ -4,8 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ZAPP Atlas{% endblock %}</title>
-    {# styles.css is the single place styling edits happen #}
-    <link rel="stylesheet" href="/static/styles.css">
+    {# Split by concern. base.css defines the tokens the others use, so it
+       loads first. #}
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/login.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="/static/htmx.min.js"></script>
     {% block head %}{% endblock %}
   </head>
