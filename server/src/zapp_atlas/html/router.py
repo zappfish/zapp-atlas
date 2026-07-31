@@ -52,8 +52,7 @@ def my_submissions_page(request: Request) -> HTMLResponse:
 
 @router.get("/research-groups/{group_id}", response_class=HTMLResponse)
 def research_group_page(request: Request, group_id: int) -> HTMLResponse:
-    # Placeholder data until the group-scoped endpoints (#130) are wired in;
-    # the shapes match those responses so only this import changes later.
+    # Static data shaped like the group-scoped API responses.
     from zapp_atlas.html import dashboard_placeholder as data
 
     view = data.get_group_view(group_id)

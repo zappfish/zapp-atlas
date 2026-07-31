@@ -1,14 +1,7 @@
-"""Placeholder data for the research group dashboard.
+"""Static data for the research group dashboard.
 
-The group-scoped endpoints (research groups, fish tank, chemical cabinet,
-submissions) are not wired into this page yet — see the API in #130. This
-module supplies stand-in data shaped like those responses so the dashboard
-can be built and reviewed; swap these calls for the real services when the
-endpoints land, leaving the template unchanged.
-
-Data is keyed by group id, mirroring the group-scoped endpoints
-(``/research-groups/{id}/fish-tank`` etc.): each group has its own tank,
-cabinet, and submissions.
+Data is keyed by group id, shaped like the group-scoped API responses:
+each group has its own fish tank, chemical cabinet, and submissions.
 """
 
 from __future__ import annotations
