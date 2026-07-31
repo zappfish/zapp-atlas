@@ -4,49 +4,43 @@
 
 {% block content %}
   <div class="dashboard">
-    {# ---- Sidebar: the researcher's groups ---- #}
-    <aside class="dash-sidebar">
-      <h2 class="dash-sidebar__heading">My Research Groups</h2>
-      <ul class="dash-groups">
-        {% for g in groups %}
-          <li class="dash-group{% if g.name == group.name %} is-active{% endif %}">
-            <span class="dash-group__name">{{ g.name }}</span>
-            <span class="dash-group__kind">
-              {{ g.kind }}{% if g.is_default %} &middot; Default{% endif %}
-            </span>
-          </li>
-        {% endfor %}
-      </ul>
-      <button class="dash-new-group" type="button">+ New Group</button>
-    </aside>
+    {% set active = group.id %}
+    {% include "partials/dash_sidebar.html" %}
 
-    {# ---- Main: group detail ---- #}
+    {# ---- Main ---- #}
     <div class="dash-main">
       <header class="dash-header">
-        <div>
-          <h1 class="dash-header__title">
-            {{ group.name }}
-            {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
-          </h1>
-          <p class="dash-header__meta">
-            {{ group.kind }} &middot; {{ group.chemical_count }} chemicals &middot;
-            {{ group.fish_line_count }} fish lines &middot;
-            {{ group.submission_count }} submissions
-          </p>
+        <div class="dash-header__left">
+          {% include "icons/user.svg" %}
+          <div>
+            <h1 class="dash-header__title">
+              {{ group.name }}
+              {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
+            </h1>
+            <p class="dash-header__meta">
+              {{ group.owner }} &middot; {{ group.kind }} &middot;
+              {{ group.chemical_count }} chemicals &middot;
+              {{ group.fish_line_count }} fish lines &middot;
+              {{ group.submission_count }} submissions
+            </p>
+          </div>
         </div>
-        <button class="dash-members" type="button">Members</button>
+        <button class="dash-members" type="button">
+          {% include "icons/users.svg" %}
+          Members
+        </button>
       </header>
 
       <div class="dash-cols">
         {# ---- Fish Tank ---- #}
         <section class="dash-card">
           <header class="dash-card__head">
-            <h2 class="dash-card__title">Fish Tank</h2>
+            <h2 class="dash-card__title">{% include "icons/fish.svg" %} Fish Tank</h2>
             <button class="dash-card__add" type="button">+ Add</button>
           </header>
 
           <table class="dash-table">
-            <thead>
+            <thead class="dash-thead">
               <tr>
                 <th>Name</th>
                 <th>Genotype</th>
@@ -54,30 +48,39 @@
               </tr>
             </thead>
             <tbody>
+              <tr class="dash-searchrow">
+                <td colspan="3">
+                  <input class="dash-search" type="search" placeholder="Search …"
+                         aria-label="Search fish">
+                </td>
+              </tr>
               {% for fish in fish_tank %}
                 <tr>
                   <td class="dash-fish__name">
                     {{ fish.name }}
-                    <span class="dash-fish__id">{{ fish.zfin_id }}</span>
+                    <span class="dash-fish__id">{{ fish.zf_id }}</span>
                   </td>
                   <td class="dash-genotype">
-                    {# Each part renders only when the fish has it, so a bare
-                       name + id fish still looks clean. #}
                     {% if fish.background %}
                       <span class="dash-geno-line">
-                        <span class="dash-geno-tag">bg</span>{{ fish.background }}
+                        <span class="dash-geno-label">bg:</span>
+                        <span class="dash-tag">{{ fish.background }}</span>
                       </span>
                     {% endif %}
                     {% for m in fish.mutations %}
                       <span class="dash-geno-line">
-                        <span class="dash-geno-tag dash-geno-tag--mut">MUT</span>
-                        {{ m.allele }} {{ m.zygosity }} gene:{{ m.gene }}
+                        <span class="dash-geno-label dash-geno-label--mut">MUT:</span>
+                        {{ m.allele }}
+                        <span class="dash-tag dash-tag--zyg">{{ m.zygosity }}</span>
+                        gene:{{ m.gene }}
                       </span>
                     {% endfor %}
                     {% for t in fish.transgenes %}
                       <span class="dash-geno-line">
-                        <span class="dash-geno-tag dash-geno-tag--tg">TG</span>
-                        {{ t.allele }} {{ t.zygosity }} {{ t.construct }}
+                        <span class="dash-geno-label dash-geno-label--tg">TG:</span>
+                        {{ t.allele }}
+                        <span class="dash-tag dash-tag--zyg">{{ t.zygosity }}</span>
+                        ({{ t.construct }})
                       </span>
                     {% endfor %}
                     {% if not fish.background and not fish.mutations and not fish.transgenes %}
@@ -94,34 +97,69 @@
                     </button>
                   </td>
                 </tr>
+              {% else %}
+                <tr>
+                  <td colspan="3">
+                    <div class="dash-empty">
+                      {% include "icons/fish.svg" %}
+                      <p class="dash-empty__title">No fish lines yet</p>
+                      <p class="dash-empty__text">
+                        Add a fish line to start building this group's tank.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
+
+          {# Only when more fish exist than are shown. #}
+          {% if fish_tank | length < group.fish_line_count %}
+            <footer class="dash-card__foot">
+              <span>Showing {{ fish_tank | length }} of {{ group.fish_line_count }}</span>
+              <a href="#">View all {{ group.fish_line_count }} &rarr;</a>
+            </footer>
+          {% endif %}
         </section>
 
         {# ---- Chemical Cabinet ---- #}
         <section class="dash-card">
           <header class="dash-card__head">
-            <h2 class="dash-card__title">Chemical Cabinet</h2>
+            <h2 class="dash-card__title">{% include "icons/flask.svg" %} Chemical Cabinet</h2>
             <button class="dash-card__add" type="button">+ Add</button>
           </header>
 
           <table class="dash-table">
-            <thead>
+            <thead class="dash-thead">
               <tr>
-                <th>Chemical ID</th>
-                <th class="dash-table__actions">Actions</th>
+                <th>Chemical</th>
+                <th class="dash-table__actions">ID</th>
               </tr>
             </thead>
             <tbody>
+              <tr class="dash-searchrow">
+                <td colspan="2">
+                  <input class="dash-search" type="search" placeholder="Search …"
+                         aria-label="Search chemicals">
+                </td>
+              </tr>
               {% for c in cabinet %}
                 <tr>
-                  <td><code>{{ c.chemical_id }}</code></td>
-                  <td class="dash-table__actions">
-                    <button class="dash-icon-btn dash-icon-btn--danger" type="button"
-                            aria-label="Remove">
-                      {% include "icons/trash.svg" %}
-                    </button>
+                  <td class="dash-chem">
+                    <span class="dash-chem__abbr">{{ c.abbr }}</span>
+                    <span class="dash-chem__name">{{ c.name }}</span>
+                    <span class="dash-chem__maker">{{ c.manufacturer }}</span>
+                  </td>
+                  <td class="dash-table__actions dash-chem__id">{{ c.chemical_id }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="2">
+                    <div class="dash-empty">
+                      {% include "icons/flask.svg" %}
+                      <p class="dash-empty__title">No chemicals yet</p>
+                      <p class="dash-empty__text">Add a chemical to this group's cabinet.</p>
+                    </div>
                   </td>
                 </tr>
               {% endfor %}
@@ -131,29 +169,43 @@
       </div>
 
       {# ---- Submissions ---- #}
-      <section class="dash-card dash-submissions">
-        <header class="dash-card__head">
+      <section class="dash-submissions">
+        <header class="dash-submissions__head">
           <h2 class="dash-card__title">
+            {% include "icons/doc.svg" %}
             {{ group.name }} &mdash; Submissions
             <span class="dash-count">{{ submissions | length }}</span>
           </h2>
-          <button class="btn btn--primary" type="button">
+        </header>
+
+        <div class="dash-subtools">
+          <div class="dash-searchbox">
+            {% include "icons/search.svg" %}
+            <input type="search" placeholder="Search by submissions …"
+                   aria-label="Search submissions">
+          </div>
+          <button class="btn btn--primary dash-newsub" type="button">
             {% include "icons/upload.svg" %}
             New Submission
           </button>
-        </header>
+        </div>
 
         <div class="dash-filters">
-          <button class="dash-filter is-active" type="button">All</button>
-          <button class="dash-filter" type="button">Published</button>
-          <button class="dash-filter" type="button">In Progress</button>
+          <button class="dash-filter is-active" type="button">
+            All <span class="dash-filter__n">{{ submissions | length }}</span>
+          </button>
+          <button class="dash-filter" type="button">Study Id &#9662;</button>
+          <button class="dash-filter" type="button">Published <span class="dash-filter__n">1</span></button>
+          <button class="dash-filter" type="button">In Progress <span class="dash-filter__n">1</span></button>
           <button class="dash-filter" type="button">On Hold</button>
           <button class="dash-filter" type="button">Retracted</button>
+          <button class="dash-filter" type="button">My submissions</button>
         </div>
 
         <ul class="dash-sub-list">
           {% for s in submissions %}
             <li class="dash-sub">
+              <span class="dash-sub__icon">{% include "icons/fish.svg" %}</span>
               <div class="dash-sub__info">
                 <span class="dash-sub__title">{{ s.title }}</span>
                 <span class="dash-sub__status dash-sub__status--{{ s.status | lower | replace(' ', '-') }}">
@@ -161,6 +213,14 @@
                 </span>
               </div>
               <span class="dash-sub__date">{{ s.date }}</span>
+            </li>
+          {% else %}
+            <li class="dash-empty dash-empty--panel">
+              {% include "icons/doc.svg" %}
+              <p class="dash-empty__title">No submissions yet</p>
+              <p class="dash-empty__text">
+                Create a submission to share this group's observations.
+              </p>
             </li>
           {% endfor %}
         </ul>

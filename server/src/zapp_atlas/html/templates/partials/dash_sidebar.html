@@ -1,0 +1,35 @@
+{# Shared dashboard sidebar. `active` is "my-submissions" or a group id;
+   `groups` is the list; `my_submissions_count` the global count. #}
+<aside class="dash-sidebar">
+  <a class="dash-mysubs{% if active == 'my-submissions' %} is-active{% endif %}"
+     href="/my-submissions">
+    {% include "icons/folder.svg" %}
+    My Submissions
+    {% if my_submissions_count %}
+      <span class="dash-mysubs__count">{{ my_submissions_count }}</span>
+    {% endif %}
+  </a>
+
+  <h2 class="dash-sidebar__heading">My Research Groups</h2>
+  <ul class="dash-groups">
+    {% for g in groups %}
+      <li>
+        <a class="dash-group{% if g.id == active %} is-active{% endif %}"
+           href="/research-groups/{{ g.id }}">
+          {% include "icons/user.svg" %}
+          <span class="dash-group__text">
+            <span class="dash-group__name">{{ g.name }}</span>
+            <span class="dash-group__kind">
+              {% if g.is_default %}Default &middot; {% endif %}{{ g.kind }}
+            </span>
+            <span class="dash-group__dots">
+              {% for dot in g.dots %}<span class="dot dot--{{ dot }}"></span>{% endfor %}
+            </span>
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <button class="dash-new-group" type="button">+ New Group</button>
+</aside>

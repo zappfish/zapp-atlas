@@ -15,9 +15,9 @@
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Type scale — use these instead of ad-hoc font sizes. */
-  --text-xs: 0.75rem;
-  --text-sm: 0.85rem;
-  --text-base: 1rem;
+  --text-xs: 0.8125rem;  /* 13px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
   --text-md: 1.15rem;
   --text-lg: 1.5rem;
   --text-2xl: 2rem;
@@ -120,3 +120,27 @@ main {
   opacity: 1;
 }
 
+
+/* ---- Placeholder page (unbuilt sections) -------------------------------- */
+.placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 4rem 1.5rem;
+}
+.placeholder .icon { width: 2.5rem; height: 2.5rem; color: var(--teal); opacity: 0.6; margin-bottom: 0.5rem; }
+.placeholder__title { margin: 0; font-size: var(--text-lg); }
+.placeholder__text { margin: 0; color: var(--muted); }
+.placeholder__hint { margin: 0.5rem 0 0; font-size: var(--text-sm); color: var(--muted); }
+.placeholder__hint a { color: var(--teal); font-weight: 600; }
+
+/* Placeholder inside a dashboard main area (bordered panel). */
+.placeholder--panel {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+}
