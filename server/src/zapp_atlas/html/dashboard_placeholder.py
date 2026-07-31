@@ -111,8 +111,9 @@ def get_group(group_id):
 
 
 def get_group_view(group_id):
-    """Everything the dashboard needs for one group: the group, its counts, and
-    its tank / cabinet / submissions. Returns None for an unknown group.
+    """One group with its counts and its tank, cabinet, and submissions.
+
+    Returns None for an unknown group.
     """
     group = get_group(group_id)
     if group is None:

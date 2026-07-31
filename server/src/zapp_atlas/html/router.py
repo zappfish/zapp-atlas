@@ -36,8 +36,7 @@ def login_page(
 
 @router.get("/my-submissions", response_class=HTMLResponse)
 def my_submissions_page(request: Request) -> HTMLResponse:
-    # Post-login landing. The submissions list itself isn't built yet, but the
-    # shared sidebar still needs the group list and the total count.
+    # Post-login landing. The sidebar renders the group list and total count.
     from zapp_atlas.html import dashboard_placeholder as data
 
     return templates.TemplateResponse(
