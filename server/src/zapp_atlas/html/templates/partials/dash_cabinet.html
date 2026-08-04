@@ -1,0 +1,47 @@
+{#
+  Chemical Cabinet card. The including page provides:
+    - cabinet:  list of chemicals, each with abbr, name, manufacturer, chemical_id
+#}
+<section class="dash-card">
+  <header class="dash-card__head">
+    <h2 class="dash-card__title">{% include "icons/flask.svg" %} Chemical Cabinet</h2>
+    <button class="dash-card__add" type="button">+ Add</button>
+  </header>
+
+  <table class="dash-table">
+    <thead class="dash-thead">
+      <tr>
+        <th>Chemical</th>
+        <th class="dash-table__actions">ID</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="dash-searchrow">
+        <td colspan="2">
+          <input class="dash-search" type="search" placeholder="Search …"
+                 aria-label="Search chemicals">
+        </td>
+      </tr>
+      {% for c in cabinet %}
+        <tr>
+          <td class="dash-chem">
+            <span class="dash-chem__abbr">{{ c.abbr }}</span>
+            <span class="dash-chem__name">{{ c.name }}</span>
+            <span class="dash-chem__maker">{{ c.manufacturer }}</span>
+          </td>
+          <td class="dash-table__actions dash-chem__id">{{ c.chemical_id }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="2">
+            <div class="dash-empty">
+              {% include "icons/flask.svg" %}
+              <p class="dash-empty__title">No chemicals yet</p>
+              <p class="dash-empty__text">Add a chemical to this group's cabinet.</p>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>

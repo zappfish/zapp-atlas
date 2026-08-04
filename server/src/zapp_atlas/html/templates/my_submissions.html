@@ -34,19 +34,7 @@
 
         <ul class="dash-sub-list">
           {% for s in submissions %}
-            <li class="dash-sub">
-              <span class="dash-sub__icon">{% include "icons/fish.svg" %}</span>
-              <div class="dash-sub__info">
-                <span class="dash-sub__title">{{ s.title }}</span>
-                <span class="dash-sub__meta">
-                  <a href="/research-groups/{{ s.group_id }}">{{ s.group_name }}</a>
-                  <span class="dash-sub__status dash-sub__status--{{ s.status | lower | replace(' ', '-') }}">
-                    {{ s.status }}
-                  </span>
-                </span>
-              </div>
-              <span class="dash-sub__date">{{ s.date }}</span>
-            </li>
+            {% include "partials/dash_sub_item.html" %}
           {% else %}
             <li class="dash-empty dash-empty--panel">
               {% include "icons/doc.svg" %}

@@ -1,5 +1,11 @@
-{# Shared dashboard sidebar. `active` is "my-submissions" or a group id;
-   `groups` is the list; `my_submissions_count` the global count. #}
+{#
+  Dashboard sidebar, shared by the My Submissions and research group pages.
+  The including page provides:
+    - groups:               list of the user's research groups
+    - my_submissions_count: number on the "My Submissions" badge
+    - active:               which item is highlighted — "my-submissions"
+                            or a research group id
+#}
 <aside class="dash-sidebar">
   <a class="dash-mysubs{% if active == 'my-submissions' %} is-active{% endif %}"
      href="/my-submissions">
