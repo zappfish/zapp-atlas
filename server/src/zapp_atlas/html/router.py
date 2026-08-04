@@ -15,8 +15,30 @@ router = APIRouter(tags=["html"])
 
 
 @router.get("/", response_class=HTMLResponse)
-def index_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "index.html")
+def index_page(request: Request, view: str = "grid", page: int = 1) -> HTMLResponse:
+    # Public phenotype atlas. Static data shaped like the search API response.
+    # `view` toggles the results layout between the card grid and a list; the
+    # filter UI is presentational — the search endpoint owns the actual query.
+    from zapp_atlas.html import home_placeholder as data
+
+    page_view = data.page(page)
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "view": "list" if view == "list" else "grid",
+            "title": data.TITLE,
+            "description": data.DESCRIPTION,
+            "stats": data.ATLAS_STATS,
+            "records": page_view["records"],
+            "total_results": data.TOTAL_RESULTS,
+            "current_page": page_view["current_page"],
+            "total_pages": page_view["total_pages"],
+            "facets": data.FACETS,
+            "active_filters": data.ACTIVE_FILTERS,
+            "sort_options": data.SORT_OPTIONS,
+        },
+    )
 
 
 @router.get("/login", response_class=HTMLResponse)

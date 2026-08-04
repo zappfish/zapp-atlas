@@ -3,8 +3,132 @@
 {% block title %}ZAPP Atlas{% endblock %}
 
 {% block content %}
-  <section class="coming-soon">
-    <h1>Coming soon</h1>
-    <p>The Zebrafish Toxicology Phenotype Atlas is on its way.</p>
+  {# ---- Banner ---- #}
+  <section class="atlas-banner">
+    <div class="atlas-banner__inner">
+      <p class="atlas-banner__eyebrow">Phenotype Atlas</p>
+      <h1 class="atlas-banner__title">{{ title }}</h1>
+      <p class="atlas-banner__desc">{{ description }}</p>
+
+      <div class="atlas-search">
+        {% include "icons/search.svg" %}
+        <input type="search" class="atlas-search__input"
+               placeholder="Search phenotypes, chemicals, fish lines …"
+               aria-label="Search the atlas">
+        <button class="btn btn--primary atlas-search__btn" type="button">Search</button>
+      </div>
+
+      <dl class="atlas-stats">
+        <div><dt>Records</dt><dd>{{ stats.records }}</dd></div>
+        <div><dt>Contributors</dt><dd>{{ stats.contributors }}</dd></div>
+        <div><dt>Last updated</dt><dd>{{ stats.last_updated }}</dd></div>
+        <div><dt>License</dt><dd>{{ stats.license }}</dd></div>
+      </dl>
+    </div>
   </section>
+
+  {# ---- Results ---- #}
+  <div class="atlas">
+    {# ---- Filter sidebar ---- #}
+    <aside class="atlas-sidebar">
+      <header class="atlas-sidebar__head">
+        <h2 class="atlas-sidebar__title">
+          {% include "icons/sliders.svg" %}
+          Filters
+        </h2>
+        <button class="atlas-sidebar__clear" type="button">Clear all</button>
+      </header>
+
+      {% for facet in facets %}
+        {% include "partials/atlas_facet.html" %}
+      {% endfor %}
+    </aside>
+
+    {# ---- Results column ---- #}
+    <div class="atlas-results">
+      <div class="atlas-toolbar">
+        <p class="atlas-toolbar__count">
+          <strong>{{ total_results }}</strong> records
+        </p>
+
+        <div class="atlas-toolbar__right">
+          <label class="atlas-sort">
+            Sort by
+            <select aria-label="Sort results">
+              {% for opt in sort_options %}
+                <option>{{ opt }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          {# View toggle: plain links so the choice survives in the URL and
+             needs no script. #}
+          <div class="atlas-view" role="group" aria-label="View">
+            <a class="atlas-view__btn {{ 'is-active' if view == 'grid' }}"
+               href="/?view=grid&page={{ current_page }}" aria-label="Grid view"
+               {{ 'aria-current=true' if view == 'grid' }}>
+              {% include "icons/grid.svg" %}
+            </a>
+            <a class="atlas-view__btn {{ 'is-active' if view == 'list' }}"
+               href="/?view=list&page={{ current_page }}" aria-label="List view"
+               {{ 'aria-current=true' if view == 'list' }}>
+              {% include "icons/list.svg" %}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {% if active_filters %}
+        <div class="atlas-chips">
+          {% for f in active_filters %}
+            <span class="atlas-chip">
+              {{ f }}
+              <button type="button" class="atlas-chip__x" aria-label="Remove {{ f }}">
+                {% include "icons/xmark.svg" %}
+              </button>
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if view == "list" %}
+        <ul class="atlas-list">
+          {% for r in records %}
+            {% include "partials/atlas_row.html" %}
+          {% else %}
+            {% include "partials/atlas_empty.html" %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="atlas-grid">
+          {% for r in records %}
+            {% include "partials/atlas_card.html" %}
+          {% else %}
+            {% include "partials/atlas_empty.html" %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {# ---- Pagination ---- #}
+      {% if total_pages > 1 %}
+        <nav class="atlas-pager" aria-label="Results pages">
+          {% set prev = current_page - 1 if current_page > 1 else 1 %}
+          {% set next = current_page + 1 if current_page < total_pages else total_pages %}
+          <a class="atlas-pager__btn {{ 'is-disabled' if current_page == 1 }}"
+             href="/?view={{ view }}&page={{ prev }}" aria-label="Previous page">
+            {% include "icons/angle-left.svg" %}
+          </a>
+          {% for n in range(1, total_pages + 1) %}
+            <a class="atlas-pager__page {{ 'is-active' if n == current_page }}"
+               href="/?view={{ view }}&page={{ n }}"
+               {{ 'aria-current=page' if n == current_page }}>{{ n }}</a>
+          {% endfor %}
+          <a class="atlas-pager__btn {{ 'is-disabled' if current_page == total_pages }}"
+             href="/?view={{ view }}&page={{ next }}" aria-label="Next page">
+            {% include "icons/angle-right.svg" %}
+          </a>
+        </nav>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

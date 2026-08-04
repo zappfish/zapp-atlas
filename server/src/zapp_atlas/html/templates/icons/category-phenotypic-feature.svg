@@ -1,0 +1,13 @@
+{#
+  Icon: "phenotypic feature" category mark (the P glyph). Bare inline SVG (no
+  library) so it inherits color via currentColor. A stroke icon, so it sets
+  its own stroke-width rather than filling.
+#}
+<svg class="icon icon--phenotype" viewBox="0 0 100 100" fill="none"
+     stroke="currentColor" stroke-width="6" stroke-linecap="round"
+     stroke-linejoin="round" aria-hidden="true">
+  <circle cx="50" cy="42" r="18" />
+  <path d="M32 42v41" />
+  <path d="M32 21s7-7 18-7 18 7 18 7" />
+  <path d="M55 43v-2h2v2h-2z" />
+</svg>
