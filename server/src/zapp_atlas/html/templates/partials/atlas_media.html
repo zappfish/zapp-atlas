@@ -1,0 +1,13 @@
+{#
+  Record thumbnail. Renders the record's image when present, otherwise a
+  neutral placeholder that preserves the media area's dimensions.
+  The including markup provides:
+    - r: the record (uses r.image)
+#}
+{% if r.image %}
+  <img src="{{ r.image }}" alt="" loading="lazy">
+{% else %}
+  <span class="atlas-media__ph" aria-hidden="true">
+    {% include "icons/fish.svg" %}
+  </span>
+{% endif %}
