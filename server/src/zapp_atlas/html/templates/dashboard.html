@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ group.name }} &mdash; ZAPP Atlas{% endblock %}
+{% block title %}{{ group.name }} - ZAPP Atlas{% endblock %}
 
 {% block content %}
   <div class="dashboard">
@@ -41,8 +41,10 @@
         <header class="dash-submissions__head">
           <h2 class="dash-card__title">
             {% include "icons/doc.svg" %}
-            {{ group.name }} &mdash; Submissions
-            <span class="dash-count">{{ submissions | length }}</span>
+            {{ group.name }} - Submissions
+            {% if submissions %}
+              <span class="dash-count">{{ submissions | length }}</span>
+            {% endif %}
           </h2>
         </header>
 
@@ -60,11 +62,20 @@
 
         <div class="dash-filters">
           <button class="dash-filter is-active" type="button">
-            All <span class="dash-filter__n">{{ submissions | length }}</span>
+            All
+            {% if submissions %}<span class="dash-filter__n">{{ submissions | length }}</span>{% endif %}
           </button>
           <button class="dash-filter" type="button">Study Id &#9662;</button>
-          <button class="dash-filter" type="button">Published <span class="dash-filter__n">1</span></button>
-          <button class="dash-filter" type="button">In Progress <span class="dash-filter__n">1</span></button>
+          {% set published = submissions | selectattr("status", "equalto", "Published") | list | length %}
+          {% set in_progress = submissions | selectattr("status", "equalto", "In Progress") | list | length %}
+          <button class="dash-filter" type="button">
+            Published
+            {% if published %}<span class="dash-filter__n">{{ published }}</span>{% endif %}
+          </button>
+          <button class="dash-filter" type="button">
+            In Progress
+            {% if in_progress %}<span class="dash-filter__n">{{ in_progress }}</span>{% endif %}
+          </button>
           <button class="dash-filter" type="button">On Hold</button>
           <button class="dash-filter" type="button">Retracted</button>
           <button class="dash-filter" type="button">My submissions</button>
