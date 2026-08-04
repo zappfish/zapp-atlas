@@ -1,0 +1,217 @@
+/* ZAPP Atlas — login styles. Part of the split from base.css. */
+
+/* ---- Coming soon placeholder ------------------------------------------- */
+
+.coming-soon {
+  text-align: center;
+  padding: 6rem 1.5rem;
+}
+
+.coming-soon h1 {
+  font-size: var(--text-xl);
+  margin: 0 0 0.5rem;
+}
+
+.coming-soon p {
+  color: var(--muted);
+  font-size: var(--text-md);
+  margin: 0;
+}
+
+/* ---- Login -------------------------------------------------------------- */
+
+.login {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+/* Logo stacked above the wordmark. */
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.login__logo {
+  height: 56px;
+  width: auto;
+  display: block;
+}
+
+.login__wordmark {
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.login__tagline {
+  margin: 0 0 2rem;
+  color: var(--muted);
+}
+
+.login-card {
+  align-self: stretch;
+  text-align: left;
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(15, 76, 92, 0.12);
+}
+
+/* Dark header strip at the top of the card. */
+.login-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-dark);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+}
+
+.login-card__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 22.5px;
+  margin: 0;
+  color: var(--white);
+}
+
+.login-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+}
+
+.login-card__badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a6ce39;
+}
+
+.login-card__body {
+  padding: 2rem 2rem 1.75rem;
+}
+
+.login-card__lead {
+  font-size: var(--text-sm);
+  line-height: 21.45px;
+  color: #5c7d8a;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.login-card__submit {
+  width: 100%;
+  justify-content: center;
+  font-size: var(--text-base);
+  padding: 0.85rem 1rem;
+}
+
+/* Lower note section with a tinted background and ORCID badge. */
+.login-card__note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px 24px;
+  background: rgba(0, 122, 140, 0.04);
+  border-top: 1px solid rgba(0, 80, 100, 0.13);
+}
+
+.login-card__note p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 21.45px;
+  color: #5c7d8a;
+}
+
+.login-card__note .icon--orcid {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: 0.1rem;
+}
+
+.login-card__register {
+  color: var(--teal);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.login-card__register:hover {
+  text-decoration: underline;
+}
+
+.login-card__note .icon--external {
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.25rem;
+  vertical-align: -0.1em;
+}
+
+/* ORCID-branded sign-in button. */
+.btn--orcid {
+  background: #a6ce39;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.btn--orcid:hover {
+  background: #9ac42f;
+}
+
+.btn--orcid .icon--orcid {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.login__terms {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  margin: 1.5rem 0 0;
+}
+
+.login-card--dev {
+  margin-top: 2rem;
+  background: #fafafa;
+}
+
+.login-dev-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.login-dev-form label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.login-dev-form input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+

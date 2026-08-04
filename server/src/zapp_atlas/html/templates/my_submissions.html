@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}My Submissions - ZAPP Atlas{% endblock %}
+
+{% block content %}
+  <div class="dashboard">
+    {% set active = "my-submissions" %}
+    {% include "partials/dash_sidebar.html" %}
+
+    <div class="dash-main">
+      <header class="dash-header">
+        <div class="dash-header__left">
+          {% include "icons/folder.svg" %}
+          <div>
+            <h1 class="dash-header__title">
+              My Submissions
+              <span class="dash-count">{{ submissions | length }}</span>
+            </h1>
+            <p class="dash-header__meta">
+              Your submissions across all research groups.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section class="dash-submissions">
+        <div class="dash-subtools">
+          <div class="dash-searchbox">
+            {% include "icons/search.svg" %}
+            <input type="search" placeholder="Search by submissions …"
+                   aria-label="Search submissions">
+          </div>
+        </div>
+
+        <ul class="dash-sub-list">
+          {% for s in submissions %}
+            {% include "partials/dash_sub_item.html" %}
+          {% else %}
+            <li class="dash-empty dash-empty--panel">
+              {% include "icons/doc.svg" %}
+              <p class="dash-empty__title">No submissions yet</p>
+              <p class="dash-empty__text">
+                Create a submission from one of your research groups.
+              </p>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+  </div>
+{% endblock %}
