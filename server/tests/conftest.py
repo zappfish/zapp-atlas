@@ -33,4 +33,8 @@ def client(tmp_path) -> TestClient:
             session.close()
 
     app.dependency_overrides[get_session] = _override_get_session
+    # open_session (used outside routes, e.g. the templating context processor)
+    # resolves through app.state.session_factory rather than get_session, so
+    # point it at the same test database.
+    app.state.session_factory = SessionLocal
     return TestClient(app)

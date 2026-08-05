@@ -30,11 +30,55 @@
         <a href="#">Contact us</a>
         <a href="#">Downloads</a>
         <span class="site-nav__divider" aria-hidden="true"></span>
-        <a class="btn btn--primary" href="/edit">
-          {% include "icons/upload.svg" %}
-          Submit Data
-        </a>
-        <a class="btn btn--outline" href="/login">Login</a>
+        {% if current_identity %}
+          <a class="btn btn--primary" href="/edit">
+            {% include "icons/upload.svg" %}
+            Submit Data
+          </a>
+        {% else %}
+          <span class="tooltip" data-tooltip="Please log in to submit data">
+            <a class="btn btn--primary" href="/login">
+              {% include "icons/upload.svg" %}
+              Submit Data
+            </a>
+          </span>
+        {% endif %}
+
+        {% if current_identity %}
+          {% set _parts = (current_identity.name or "").split() %}
+          {% set _initials = (_parts[0][:1] ~ (_parts[-1][:1] if _parts|length > 1 else "")) | upper or "?" %}
+          <div class="user-menu">
+            <button class="user-chip" type="button"
+                    aria-expanded="false" aria-controls="user-dropdown">
+              <span class="user-chip__avatar">{{ _initials }}</span>
+              <span class="user-chip__text">
+                <span class="user-chip__greeting">Hello,</span>
+                <span class="user-chip__name">{{ _parts[0] if _parts else "there" }}</span>
+              </span>
+              <span class="user-chip__caret" aria-hidden="true">&#9662;</span>
+            </button>
+
+            <div class="user-dropdown" id="user-dropdown">
+              <div class="user-dropdown__info">
+                <span class="user-dropdown__label">Signed in as</span>
+                <span class="user-dropdown__value">
+                  {{ current_identity.name or "ORCID user" }}
+                </span>
+              </div>
+              <div class="user-dropdown__info">
+                <span class="user-dropdown__label">ORCID iD</span>
+                <span class="user-dropdown__value">{{ current_identity.orcid_id }}</span>
+              </div>
+              <form method="post" action="/auth/orcid/logout">
+                <button type="submit" class="user-dropdown__item">Sign out</button>
+              </form>
+            </div>
+          </div>
+        {% elif request.url.path != "/login" %}
+          {# Hide the Login button on the login page itself — it would just
+             link back here. #}
+          <a class="btn btn--outline" href="/login">Login</a>
+        {% endif %}
       </nav>
     </header>
 
