@@ -1,0 +1,24 @@
+name: QC
+
+on:
+  pull_request:
+
+jobs:
+  ruff:
+    name: Lint & format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+          working-directory: server
+      - name: Install dependencies
+        working-directory: server
+        run: uv sync --frozen
+      - name: Ruff lint
+        working-directory: server
+        run: uv run --no-sync ruff check
+      - name: Ruff format check
+        working-directory: server
+        run: uv run --no-sync ruff format --check
