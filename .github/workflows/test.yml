@@ -16,6 +16,18 @@ jobs:
       - name: Install dependencies
         working-directory: server
         run: uv sync --frozen
+      # The /edit tests hit routes that render the built React client, so the
+      # client must be built before pytest runs (mirrors the Docker image).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Build client
+        working-directory: client
+        run: |
+          npm ci
+          npm run build
       - name: Run tests
         working-directory: server
         run: uv run --no-sync pytest
