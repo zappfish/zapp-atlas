@@ -13,6 +13,8 @@ just dev-api       # everything on :8000 (HTML, /api, /edit) — Python and
 just dev-client    # Vite module server on :5173, for React work
 just dev-api-hmr   # run alongside dev-client, then open :8000/edit/ — NOT :5173
 just test          # pytest
+just lint          # ruff check + ruff format --check (no changes written)
+just fix           # ruff check --fix + ruff format (applies changes)
 just build-client  # emit client/dist
 just seed          # reseed the dev database
 ```
@@ -63,6 +65,15 @@ manifest, which `html/vite.py` reads. Consequences worth remembering:
 `/api`.
 
 **`legacy/` is archived** and not part of the build. Don't take patterns from it.
+
+**Lint and format before committing.** Run `just fix` (or at least `just lint`)
+before every commit and **read the ruff output** — don't wave it through. Ruff
+uses its full default ruleset (see `server/pyproject.toml` `[tool.ruff]`), so a
+warning usually points at a real issue (unused import, blind `except`, a bug
+ruff can see); fix the cause rather than reaching for `# noqa`. The QC workflow
+runs `ruff check` and `ruff format --check` on every PR and is a required merge
+check, so anything you skip locally blocks the PR anyway. Generated `_gen/` code
+is excluded and exempt.
 
 ## Signing in locally
 
