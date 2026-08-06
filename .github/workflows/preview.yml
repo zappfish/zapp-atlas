@@ -42,8 +42,12 @@ jobs:
       - name: Create the app if it does not exist
         run: flyctl apps create "$APP" --org "$FLY_ORG" || true
 
+      # --ha=false: flyctl creates two machines on an app's first deploy for
+      # high availability. A preview does not need zero-downtime deploys, and
+      # min_machines_running does not prevent it — that only sets how many stay
+      # running once idle, not how many get created.
       - name: Deploy
-        run: flyctl deploy --app "$APP" --config fly.preview.toml --remote-only
+        run: flyctl deploy --app "$APP" --config fly.preview.toml --remote-only --ha=false
 
       - name: Comment the preview URL
         env:
