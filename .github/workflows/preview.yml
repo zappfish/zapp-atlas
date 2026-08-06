@@ -1,0 +1,95 @@
+name: Preview
+
+# Per-PR preview apps on Fly.io, opt-in via the `preview` label.
+#
+# Label a PR -> a `zapp-atlas-pr-<n>` app is created and deployed from
+# fly.preview.toml. Remove the label or close the PR -> the app is destroyed.
+# Pushes to a labelled PR redeploy the same app, so the URL never changes.
+#
+# Needs the FLY_PREVIEW_TOKEN secret: an *org*-scoped token, because creating
+# apps is beyond what the app-scoped FLY_API_TOKEN used by fly-deploy.yml can
+# do. Production deploys are unaffected by anything here.
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, synchronize, reopened, closed]
+
+env:
+  FLY_ORG: sabrina-toro
+  FLY_API_TOKEN: ${{ secrets.FLY_PREVIEW_TOKEN }}
+  APP: zapp-atlas-pr-${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    name: Deploy preview
+    # Fork PRs never receive secrets, so a preview could not be deployed for
+    # them; skip rather than fail. Closing is handled by the destroy job.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.action != 'closed'
+      && github.event.action != 'unlabeled'
+      && contains(github.event.pull_request.labels.*.name, 'preview')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6
+
+      - name: Create the app if it does not exist
+        run: flyctl apps create "$APP" --org "$FLY_ORG" || true
+
+      - name: Deploy
+        run: flyctl deploy --app "$APP" --config fly.preview.toml --remote-only
+
+      - name: Comment the preview URL
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          BODY: |
+            ### Preview deployed
+
+            https://zapp-atlas-pr-${{ github.event.pull_request.number }}.fly.dev
+
+            Sign in with the **Development sign-in** button on `/login` — it
+            signs you in as the fake ORCID identity so the editing UI is
+            usable. The "Sign in with ORCID iD" button does not work here.
+
+            This app has no volume: the database resets to seed data whenever
+            it redeploys or the machine idles down. It is destroyed when the PR
+            closes or the `preview` label is removed.
+        run: gh pr comment "$PR" --edit-last --create-if-none --body "$BODY"
+
+  destroy:
+    name: Destroy preview
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && (github.event.action == 'closed'
+          || (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6
+
+      # `|| true` so closing a PR that never had a preview is not a failure.
+      - name: Destroy the app
+        run: flyctl apps destroy "$APP" --yes || true
+
+      # No --create-if-none: if this PR never had a preview there is nothing to
+      # announce, and `|| true` keeps that from failing the job.
+      - name: Update the comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          BODY: |
+            ### Preview destroyed
+
+            The preview app for this PR has been torn down. Re-add the
+            `preview` label to bring it back.
+        run: gh pr comment "$PR" --edit-last --body "$BODY" || true

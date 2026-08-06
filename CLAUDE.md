@@ -78,10 +78,19 @@ is excluded and exempt.
 ## Signing in locally
 
 ORCID needs client credentials. For UI work, set `ZAPP_DEV_AUTH=true` instead:
-`/login` grows a form that signs in a fake identity via `POST /auth/dev/login`,
+`/login` grows a button that signs in a fake identity via `POST /auth/dev/login`,
 so signed-in states can be built without registering an app. It is off by
-default, 404s when off, and **must never be enabled in a deployment** — it hands
-a session cookie to anyone who asks.
+default and 404s when off.
+
+**It must never be enabled in production** — it hands a session cookie to anyone
+who asks. It *is* enabled deliberately in `fly.preview.toml`, which drives the
+per-PR preview apps: ORCID only redirects to pre-registered URIs, so it cannot
+work on a per-PR hostname, and a preview is worthless if reviewers have to
+bootstrap data by hand before seeing anything. Those apps hold nothing but
+throwaway seed data and are destroyed with the PR. Don't "fix" that config.
+
+The fake identity is Josiah Carberry (`0000-0002-1825-0097`) — ORCID's own
+canonical sample record, not an invention. Leave it be.
 
 Pages that need to know who is signed in should depend on `get_current_identity`
 (`auth/deps.py`) rather than reading the cookie directly.
