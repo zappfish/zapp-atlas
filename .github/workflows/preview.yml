@@ -60,6 +60,8 @@ jobs:
 
             https://zapp-atlas-pr-${{ github.event.pull_request.number }}.fly.dev
 
+            Built from ${{ github.event.pull_request.head.sha }}. If that isn't the head of this branch, the preview is mid-deploy or the last deploy failed — this comment is edited in place on every push, so it always names what is actually running.
+
             Sign in with the **Development sign-in** button on `/login` — it signs you in as the fake ORCID identity so the editing UI is usable. The "Sign in with ORCID iD" button does not work here.
 
             This app has no volume: the database resets to seed data whenever it redeploys or the machine idles down. It is destroyed when the PR closes or the `preview` label is removed.
