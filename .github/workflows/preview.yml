@@ -24,8 +24,13 @@ jobs:
     name: Deploy preview
     # Fork PRs never receive secrets, so a preview could not be deployed for
     # them; skip rather than fail. Closing is handled by the destroy job.
+    #
+    # The state check matters: `labeled` fires on closed PRs too, so without it
+    # labelling a merged PR would deploy an app that nothing ever destroys —
+    # `closed` has already fired and won't fire again.
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.state == 'open'
       && github.event.action != 'closed'
       && github.event.action != 'unlabeled'
       && contains(github.event.pull_request.labels.*.name, 'preview')
@@ -96,5 +101,5 @@ jobs:
           BODY: |
             ### Preview destroyed
 
-            The preview app for this PR has been torn down. Re-add the `preview` label to bring it back.
+            The preview app for this PR has been torn down. While the PR is open, re-adding the `preview` label will bring it back.
         run: gh pr comment "$PR" --edit-last --body "$BODY" || true
