@@ -53,18 +53,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
+          # One line per paragraph: GitHub renders single newlines in comments
+          # as hard breaks, so wrapping the source wraps the rendered comment.
           BODY: |
             ### Preview deployed
 
             https://zapp-atlas-pr-${{ github.event.pull_request.number }}.fly.dev
 
-            Sign in with the **Development sign-in** button on `/login` — it
-            signs you in as the fake ORCID identity so the editing UI is
-            usable. The "Sign in with ORCID iD" button does not work here.
+            Sign in with the **Development sign-in** button on `/login` — it signs you in as the fake ORCID identity so the editing UI is usable. The "Sign in with ORCID iD" button does not work here.
 
-            This app has no volume: the database resets to seed data whenever
-            it redeploys or the machine idles down. It is destroyed when the PR
-            closes or the `preview` label is removed.
+            This app has no volume: the database resets to seed data whenever it redeploys or the machine idles down. It is destroyed when the PR closes or the `preview` label is removed.
         run: gh pr comment "$PR" --edit-last --create-if-none --body "$BODY"
 
   destroy:
@@ -94,6 +92,5 @@ jobs:
           BODY: |
             ### Preview destroyed
 
-            The preview app for this PR has been torn down. Re-add the
-            `preview` label to bring it back.
+            The preview app for this PR has been torn down. Re-add the `preview` label to bring it back.
         run: gh pr comment "$PR" --edit-last --body "$BODY" || true
