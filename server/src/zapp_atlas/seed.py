@@ -12,9 +12,7 @@ Currently seeded:
 * **Nishi et al. 2025** (PMID:40359302) — BPA + retinoic acid co-exposure
   potentiates neural crest + hindbrain defects; AB background.
 * **Moreira et al. 2025** (PMID:41812223) — guanitoxin + organophosphate
-  co-exposure amplifies pericardial edema; generated end-to-end by
-  ``tests/curations/moreira-guanitoxin.spec.ts`` and exported via
-  ``just export-seed``.
+  co-exposure amplifies pericardial edema.
 """
 
 from __future__ import annotations
