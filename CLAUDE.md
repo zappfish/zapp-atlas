@@ -57,9 +57,12 @@ manifest, which `html/vite.py` reads. Consequences worth remembering:
 
 - In `create_app`, the `/edit/assets` mount **must** stay registered before the
   `/edit/{path:path}` catch-all, or the catch-all swallows the asset files.
-- Shared design tokens and typography go in `html/static/styles.css` (loaded by
-  `base.html`, so it applies to both surfaces). `client/src/styles.css` is for
-  editor-specific rules only.
+- Server-rendered styles live in `html/static/css/`, split by concern and
+  linked from `base.html`: `base.css` (design tokens, reset, shared bits —
+  loads first), `layout.css` (header, nav, footer), and per-page files
+  (`login.css`, `dashboard.css`). Add a new page's styles as its own file and
+  link it in `base.html`. `client/src/styles.css` is for editor-specific rules
+  only.
 
 **`html/` renders documents, `api/` is read-write JSON.** Keep mutations behind
 `/api`.
@@ -95,7 +98,10 @@ per-entity form code is written by hand.
 
 ## Current state
 
-The UI is deliberately unstyled: both stylesheets are empty placeholders and the
-templates carry no design. The HTML surface has a homepage and a login page; the
-submission portal and the data form are not built yet. ORCID establishes an
-identity but does **not** yet gate `/api` writes.
+The HTML surface is styled (design tokens, header, footer, login page, and a
+signed-in header chip). A shared template context processor exposes the
+signed-in identity as `current_identity` to every page. Pages so far: homepage,
+login, and a research group dashboard whose fish tank / chemical cabinet /
+submissions render from placeholder data (`html/dashboard_placeholder.py`)
+until the group-scoped endpoints are wired in. The data form is not built yet.
+ORCID establishes an identity but does **not** yet gate `/api` writes.

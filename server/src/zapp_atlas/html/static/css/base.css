@@ -1,0 +1,122 @@
+/*
+ * ZAPP Atlas — global styles for the server-rendered (htmx) surface.
+ * Loaded by base.html, so rules here apply site-wide across both surfaces.
+ */
+
+:root {
+  --teal: #357084;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --bg: #ffffff;
+  --white: #ffffff;
+  --line: #e5e7eb;
+  --btn-bg: #eef3f1;
+  --card-dark: #16323b;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale — use these instead of ad-hoc font sizes. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.85rem;
+  --text-base: 1rem;
+  --text-md: 1.15rem;
+  --text-lg: 1.5rem;
+  --text-2xl: 2rem;
+  --text-xl: 2.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Near-zero (not 0) keeps animationend/transitionend events firing for any
+   JS that depends on them, while removing perceptible motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--text-base);
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+/* Visible focus ring for keyboard users only (not on mouse click). */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* On the teal header/footer a teal ring would be invisible; use white there. */
+.site-header :focus-visible,
+.site-footer :focus-visible {
+  outline-color: var(--white);
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ---- Tooltip ------------------------------------------------------------ */
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--card-dark);
+  color: var(--white);
+  font-size: var(--text-xs);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--card-dark);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.tooltip:hover::after,
+.tooltip:hover::before,
+.tooltip:focus-within::after,
+.tooltip:focus-within::before {
+  opacity: 1;
+}
+

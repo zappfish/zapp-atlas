@@ -1,0 +1,20 @@
+{#
+  A record's phenotypes: the first shown with the phenotype badge, the rest
+  collapsed into a "+N more" count that reveals them in a tooltip on hover.
+  The including markup provides:
+    - r: a record with a phenotypes list
+#}
+<div class="atlas-phenos">
+  <span class="atlas-pheno">
+    <span class="atlas-pheno__badge" aria-hidden="true">
+      {% include "icons/category-phenotypic-feature.svg" %}
+    </span>
+    <span class="atlas-pheno__label">{{ r.phenotypes[0] }}</span>
+    {% if r.phenotypes | length > 1 %}
+      <span class="tooltip atlas-pheno__more" tabindex="0"
+            data-tooltip="{{ r.phenotypes[1:] | join(', ') }}">
+        +{{ r.phenotypes | length - 1 }}
+      </span>
+    {% endif %}
+  </span>
+</div>
