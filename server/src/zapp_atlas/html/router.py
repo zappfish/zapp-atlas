@@ -35,14 +35,16 @@ def login_page(
 
 
 @router.get("/my-submissions", response_class=HTMLResponse)
-def my_submissions_page(request: Request) -> HTMLResponse:
+def my_submissions_page(request: Request, view: str = "list") -> HTMLResponse:
     # Post-login landing. The sidebar renders the group list and total count.
+    # `view` toggles the submissions between the list and a card grid.
     from zapp_atlas.html import dashboard_placeholder as data
 
     return templates.TemplateResponse(
         request,
         "my_submissions.html",
         {
+            "view": "grid" if view == "grid" else "list",
             "groups": data.GROUPS,
             "my_submissions_count": data.total_submissions(),
             "submissions": data.all_submissions(),

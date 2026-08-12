@@ -1,0 +1,39 @@
+{#
+  One submission as a grid card (atlas-card style). The including loop provides:
+    - s: a submission with title, status, date, group_name, group_id
+  View is offered only for Published submissions; Edit and Duplicate always.
+#}
+<article class="mysub-card">
+  <div class="mysub-card__body">
+    <span class="mysub__status mysub__status--{{ s.status | lower | replace(' ', '-') }}">
+      <span class="mysub__dot" aria-hidden="true"></span>{{ s.status }}
+    </span>
+
+    <h3 class="mysub-card__title">{{ s.title }}</h3>
+
+    <p class="mysub-card__meta">
+      {% if s.group_name %}
+        <a class="mysub__group" href="/research-groups/{{ s.group_id }}">{{ s.group_name }}</a>
+        <span class="mysub__sep" aria-hidden="true">&middot;</span>
+      {% endif %}
+      Updated {{ s.date }}
+    </p>
+
+    <div class="mysub-card__actions">
+      {% if s.status == "Published" %}
+        <a class="mysub__btn" href="/records/{{ s.id | default('') }}">
+          {% include "icons/external.svg" %}
+          View
+        </a>
+      {% endif %}
+      <a class="mysub__btn" href="/edit">
+        {% include "icons/pencil.svg" %}
+        Edit
+      </a>
+      <button class="mysub__btn" type="button">
+        {% include "icons/copy.svg" %}
+        Duplicate
+      </button>
+    </div>
+  </div>
+</article>

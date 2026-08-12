@@ -1,0 +1,39 @@
+{#
+  One submission row on the My Submissions page. The including loop provides:
+    - s: a submission with title, status, date, group_name, group_id
+  View is offered only for Published submissions; Edit and Duplicate always.
+#}
+<li class="mysub">
+  <span class="mysub__icon">{% include "icons/folder.svg" %}</span>
+
+  <div class="mysub__info">
+    <span class="mysub__title">{{ s.title }}</span>
+    <span class="mysub__meta">
+      <span class="mysub__status mysub__status--{{ s.status | lower | replace(' ', '-') }}">
+        <span class="mysub__dot" aria-hidden="true"></span>{{ s.status }}
+      </span>
+      {% if s.group_name %}
+        <a class="mysub__group" href="/research-groups/{{ s.group_id }}">{{ s.group_name }}</a>
+      {% endif %}
+      <span class="mysub__sep" aria-hidden="true">&middot;</span>
+      <span class="mysub__date">Last updated on {{ s.date }}</span>
+    </span>
+  </div>
+
+  <div class="mysub__actions">
+    {% if s.status == "Published" %}
+      <a class="mysub__btn" href="/records/{{ s.id | default('') }}">
+        {% include "icons/external.svg" %}
+        View
+      </a>
+    {% endif %}
+    <a class="mysub__btn" href="/edit">
+      {% include "icons/pencil.svg" %}
+      Edit
+    </a>
+    <button class="mysub__btn" type="button">
+      {% include "icons/copy.svg" %}
+      Duplicate
+    </button>
+  </div>
+</li>
