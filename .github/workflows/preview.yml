@@ -18,6 +18,9 @@ env:
   FLY_ORG: sabrina-toro
   FLY_API_TOKEN: ${{ secrets.FLY_PREVIEW_TOKEN }}
   APP: zapp-atlas-pr-${{ github.event.pull_request.number }}
+  # gh works out the repo from the local git remote, which the destroy job has
+  # no checkout to provide. Name it explicitly so neither job depends on that.
+  GH_REPO: ${{ github.repository }}
 
 jobs:
   deploy:
