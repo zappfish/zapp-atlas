@@ -1,0 +1,36 @@
+{#
+  One collapsible filter group in the atlas sidebar. The including loop
+  provides:
+    - facet: {label, open, searchable, options: [{label, checked, count?}]}
+  <details>/<summary> gives the collapse behaviour with no script.
+#}
+<details class="atlas-facet"{% if facet.open %} open{% endif %}>
+  <summary class="atlas-facet__head">
+    <span>{{ facet.label }}</span>
+    {% include "icons/chevron-down.svg" %}
+  </summary>
+
+  {% if facet.searchable %}
+    <div class="atlas-facet__search">
+      {% include "icons/search.svg" %}
+      <input type="search" placeholder="Search {{ facet.label | lower }} …"
+             aria-label="Search {{ facet.label | lower }}">
+    </div>
+  {% endif %}
+
+  <ul class="atlas-facet__list">
+    {% for opt in facet.options %}
+      <li>
+        <label class="atlas-check">
+          <input type="checkbox"{% if opt.checked %} checked{% endif %}>
+          <span class="atlas-check__label">{{ opt.label }}</span>
+          {% if opt.count is defined %}
+            <span class="atlas-check__count">{{ opt.count }}</span>
+          {% endif %}
+        </label>
+      </li>
+    {% else %}
+      <li class="atlas-facet__empty">No options</li>
+    {% endfor %}
+  </ul>
+</details>

@@ -1,0 +1,18 @@
+{#
+  One phenotype record as a grid card. The including loop provides:
+    - r: a record with image, phenotypes (list), chemical, fish, study_id, age
+#}
+<article class="atlas-card">
+  <a class="atlas-card__media" href="#" aria-label="View record {{ r.id }}">
+    {% include "partials/atlas_media.html" %}
+  </a>
+  <div class="atlas-card__body">
+    {% include "partials/atlas_phenotypes.html" %}
+    <dl class="atlas-card__meta">
+      <div><dt>Chemical</dt><dd>{{ r.chemical }}</dd></div>
+      <div><dt>Fish</dt><dd>{{ r.fish }}</dd></div>
+      <div><dt>Study Id</dt><dd>{{ r.study_id }}</dd></div>
+      <div><dt>Age</dt><dd>{{ r.age }}</dd></div>
+    </dl>
+  </div>
+</article>
