@@ -54,9 +54,9 @@ _GROUP_DATA = {
         ],
         "submissions": [
             {"title": "sox2 expression — 24 hpf neural tube",
-             "status": "Published", "date": "2026-05-14"},
+             "status": "Published", "date": "2026-05-14", "owner": True},
             {"title": "pax2a optic cup ISH dataset",
-             "status": "In Progress", "date": "2026-06-01"},
+             "status": "In Progress", "date": "2026-06-01", "owner": False},
         ],
     },
     2: {
@@ -71,7 +71,7 @@ _GROUP_DATA = {
         ],
         "submissions": [
             {"title": "casper pigmentation baseline",
-             "status": "In Progress", "date": "2026-06-20"},
+             "status": "In Progress", "date": "2026-06-20", "owner": True},
         ],
     },
     3: {

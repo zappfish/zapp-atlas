@@ -1,0 +1,111 @@
+{#
+  A group dashboard's swappable region: sidebar + main. Shares the #dash-body
+  target with the My Submissions body so sidebar navigation swaps either in.
+#}
+<div class="dashboard" id="dash-body">
+  {% set active = group.id %}
+  {% include "partials/dash_sidebar.html" %}
+
+  <div class="dash-main">
+    <header class="dash-header">
+      <h1 class="dash-header__title">
+        {{ group.name }}
+        {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
+      </h1>
+      <button class="dash-members" type="button">
+        {% include "icons/users.svg" %}
+        Members
+      </button>
+    </header>
+
+    {# ---- Fish Tank ---- #}
+    {% set fish_rows = [] %}
+    {% for f in fish_tank %}
+      {% set _ = fish_rows.append({
+        "label": f.name, "sublabel": f.zf_id,
+        "geno": f if (f.background or f.mutations or f.transgenes) else None,
+      }) %}
+    {% endfor %}
+    {% set section = {
+      "id": "fish-tank", "icon": "icons/fish.svg", "title": "Fish Tank",
+      "add_label": "Add fish", "search_ph": "Search fish …",
+      "rows": fish_rows,
+      "empty_text": "Add a fish line to start building this group's tank.",
+    } %}
+    {% include "partials/dash_section.html" %}
+
+    {# ---- Chemical Cabinet ---- #}
+    {% set chem_rows = [] %}
+    {% for c in cabinet %}
+      {% set _ = chem_rows.append({
+        "label": c.abbr ~ " · " ~ c.name, "sublabel": c.chemical_id,
+        "detail": c.manufacturer,
+      }) %}
+    {% endfor %}
+    {% set section = {
+      "id": "chemical-cabinet", "icon": "icons/flask.svg", "title": "Chemical Cabinet",
+      "add_label": "Add chemical", "search_ph": "Search chemicals …",
+      "rows": chem_rows,
+      "empty_text": "Add a chemical to this group's cabinet.",
+    } %}
+    {% include "partials/dash_section.html" %}
+
+    {# ---- Submissions ---- #}
+    <section class="dash-submissions" id="submissions">
+      <header class="dash-submissions__head">
+        <h2 class="dash-card__title">
+          Submissions
+          {% if submissions %}
+            <span class="dash-count">{{ submissions | length }}</span>
+          {% endif %}
+        </h2>
+      </header>
+
+      <div class="dash-subtools">
+        <div class="dash-searchbox">
+          {% include "icons/search.svg" %}
+          <input type="search" placeholder="Search by submissions …"
+                 aria-label="Search submissions">
+        </div>
+        <button class="btn btn--primary dash-newsub" type="button">
+          + New submission
+        </button>
+      </div>
+
+      <div class="dash-filters">
+        <button class="dash-filter is-active" type="button">
+          All
+          {% if submissions %}<span class="dash-filter__n">{{ submissions | length }}</span>{% endif %}
+        </button>
+        <button class="dash-filter" type="button">Study Id &#9662;</button>
+        {% set published = submissions | selectattr("status", "equalto", "Published") | list | length %}
+        {% set in_progress = submissions | selectattr("status", "equalto", "In Progress") | list | length %}
+        <button class="dash-filter" type="button">
+          Published
+          {% if published %}<span class="dash-filter__n">{{ published }}</span>{% endif %}
+        </button>
+        <button class="dash-filter" type="button">
+          In Progress
+          {% if in_progress %}<span class="dash-filter__n">{{ in_progress }}</span>{% endif %}
+        </button>
+        <button class="dash-filter" type="button">On Hold</button>
+        <button class="dash-filter" type="button">Retracted</button>
+        <button class="dash-filter" type="button">My submissions</button>
+      </div>
+
+      <ul class="dash-sub-list">
+        {% for s in submissions %}
+          {% include "partials/dash_sub_item.html" %}
+        {% else %}
+          <li class="dash-empty dash-empty--panel">
+            {% include "icons/doc.svg" %}
+            <p class="dash-empty__title">No submissions yet</p>
+            <p class="dash-empty__text">
+              Create a submission to share this group's observations.
+            </p>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>

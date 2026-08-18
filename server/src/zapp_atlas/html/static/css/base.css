@@ -3,6 +3,29 @@
  * Loaded by base.html, so rules here apply site-wide across both surfaces.
  */
 
+/* Poppins, self-hosted. Weights: 400 regular, 600 semibold, 700 bold. */
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/poppins-v24-latin-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/static/fonts/poppins-v24-latin-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/static/fonts/poppins-v24-latin-700.woff2") format("woff2");
+}
+
 :root {
   --teal: #357084;
   --ink: #1f2937;
@@ -12,7 +35,14 @@
   --line: #e5e7eb;
   --btn-bg: #eef3f1;
   --card-dark: #16323b;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Submission status colors. */
+  --status-published: #15803d;
+  --status-in-progress: #b45309;
+  --status-on-hold: #a16207;
+  --status-retracted: #b91c1c;
+
+  --font: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Type scale — use these instead of ad-hoc font sizes. */
   --text-xs: 0.8125rem;  /* 13px */
@@ -44,6 +74,12 @@
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+/* Offset in-page anchor scrolls so sections clear the sticky header. */
+:target {
+  scroll-margin-top: 5rem;
 }
 
 body {

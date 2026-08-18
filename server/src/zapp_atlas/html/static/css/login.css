@@ -49,7 +49,7 @@
 }
 
 .login__wordmark {
-  font-weight: 800;
+  font-weight: 700;
   font-size: var(--text-2xl);
   letter-spacing: 0.02em;
   color: var(--ink);

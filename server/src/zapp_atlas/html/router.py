@@ -34,15 +34,24 @@ def login_page(
     )
 
 
+def _dash_template(request: Request, full: str, body: str) -> str:
+    # Sidebar navigation is an htmx request: return just the swapped #dash-body.
+    # A direct load returns the full page.
+    return body if request.headers.get("HX-Request") else full
+
+
 @router.get("/my-submissions", response_class=HTMLResponse)
 def my_submissions_page(request: Request, view: str = "list") -> HTMLResponse:
     # Post-login landing. The sidebar renders the group list and total count.
     # `view` toggles the submissions between the list and a card grid.
     from zapp_atlas.html import dashboard_placeholder as data
 
+    template = _dash_template(
+        request, "my_submissions.html", "partials/my_submissions_body.html"
+    )
     return templates.TemplateResponse(
         request,
-        "my_submissions.html",
+        template,
         {
             "view": "grid" if view == "grid" else "list",
             "groups": data.GROUPS,
@@ -60,7 +69,10 @@ def research_group_page(request: Request, group_id: int) -> HTMLResponse:
     view = data.get_group_view(group_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Research group not found")
-    return templates.TemplateResponse(request, "dashboard.html", view)
+    template = _dash_template(
+        request, "dashboard.html", "partials/dashboard_body.html"
+    )
+    return templates.TemplateResponse(request, template, view)
 
 
 @router.get("/partials/hello", response_class=HTMLResponse)

@@ -1,0 +1,48 @@
+{#
+  One inventory row (a fish line, a chemical). The including loop provides `item`:
+    label      main text
+    sublabel   secondary text (zfin / chemical id)
+    detail     optional line under the label
+    geno       optional fish genotype {background, mutations[], transgenes[]}
+  View and remove actions sit at the right.
+#}
+<div class="dash-row">
+  <div class="dash-row__main">
+    <span class="dash-row__label">{{ item.label }}
+      {% if item.sublabel %}<span class="dash-row__sub">{{ item.sublabel }}</span>{% endif %}
+    </span>
+    {% if item.geno %}
+      <span class="dash-row__geno">
+        {% if item.geno.background %}
+          <span class="dash-geno-part">
+            <span class="dash-geno-label">bg:</span> {{ item.geno.background }}
+          </span>
+        {% endif %}
+        {% for m in item.geno.mutations %}
+          <span class="dash-geno-part">
+            <span class="dash-geno-label">MUT:</span>
+            allele: {{ m.allele }} ({{ m.zygosity }}),
+            <span class="dash-geno-label">gene:</span> {{ m.gene }}
+          </span>
+        {% endfor %}
+        {% for t in item.geno.transgenes %}
+          <span class="dash-geno-part">
+            <span class="dash-geno-label">TG:</span>
+            allele: {{ t.allele }} ({{ t.zygosity }}), {{ t.construct }}
+          </span>
+        {% endfor %}
+      </span>
+    {% elif item.detail %}
+      <span class="dash-row__detail">{{ item.detail }}</span>
+    {% endif %}
+  </div>
+  <div class="dash-row__actions">
+    <button class="dash-icon-btn" type="button" aria-label="View {{ item.label }}">
+      {% include "icons/eye.svg" %}
+    </button>
+    <button class="dash-icon-btn dash-icon-btn--danger" type="button"
+            aria-label="Remove {{ item.label }}">
+      {% include "icons/trash.svg" %}
+    </button>
+  </div>
+</div>

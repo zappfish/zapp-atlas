@@ -1,10 +1,11 @@
 {#
   One submission row. The including page provides:
-    - s:  a submission with title, status, date, and optionally
+    - s:  a submission with title, status, date, owner, and optionally
           group_name / group_id (shown when present, e.g. on My Submissions)
+  Actions follow permission: the owner gets View / Edit / Duplicate; everyone
+  else gets View / Duplicate (no Edit).
 #}
 <li class="dash-sub">
-  <span class="dash-sub__icon">{% include "icons/fish.svg" %}</span>
   <div class="dash-sub__info">
     <span class="dash-sub__title">{{ s.title }}</span>
     <span class="dash-sub__meta">
@@ -14,7 +15,24 @@
       <span class="dash-sub__status dash-sub__status--{{ s.status | lower | replace(' ', '-') }}">
         {{ s.status }}
       </span>
+      <span class="dash-sub__date">{{ s.date }}</span>
     </span>
   </div>
-  <span class="dash-sub__date">{{ s.date }}</span>
+
+  <div class="mysub__actions">
+    <a class="mysub__btn" href="/records/{{ s.id | default('') }}">
+      {% include "icons/external.svg" %}
+      View
+    </a>
+    {% if s.owner %}
+      <a class="mysub__btn" href="/edit">
+        {% include "icons/pencil.svg" %}
+        Edit
+      </a>
+    {% endif %}
+    <button class="mysub__btn" type="button">
+      {% include "icons/copy.svg" %}
+      Duplicate
+    </button>
+  </div>
 </li>
