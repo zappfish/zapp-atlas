@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from zapp_atlas.api.deps import get_app_settings
 from zapp_atlas.auth.deps import CurrentIdentity
@@ -12,6 +12,14 @@ from zapp_atlas.settings import AppSettings
 
 
 router = APIRouter(tags=["html"])
+
+
+def _login_redirect(request: Request) -> Response:
+    # htmx follows a 3xx into its swap target; HX-Redirect navigates the whole
+    # page instead. A direct load gets a plain redirect.
+    if request.headers.get("HX-Request"):
+        return Response(status_code=204, headers={"HX-Redirect": "/login"})
+    return RedirectResponse("/login", status_code=303)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -41,9 +49,14 @@ def _dash_template(request: Request, full: str, body: str) -> str:
 
 
 @router.get("/my-submissions", response_class=HTMLResponse)
-def my_submissions_page(request: Request, view: str = "list") -> HTMLResponse:
+def my_submissions_page(
+    request: Request, identity: CurrentIdentity, view: str = "list"
+) -> Response:
     # Post-login landing. The sidebar renders the group list and total count.
     # `view` toggles the submissions between the list and a card grid.
+    if identity is None:
+        return _login_redirect(request)
+
     from zapp_atlas.html import dashboard_placeholder as data
 
     template = _dash_template(
@@ -62,8 +75,13 @@ def my_submissions_page(request: Request, view: str = "list") -> HTMLResponse:
 
 
 @router.get("/research-groups/{group_id}", response_class=HTMLResponse)
-def research_group_page(request: Request, group_id: int) -> HTMLResponse:
+def research_group_page(
+    request: Request, identity: CurrentIdentity, group_id: int
+) -> Response:
     # Static data shaped like the group-scoped API responses.
+    if identity is None:
+        return _login_redirect(request)
+
     from zapp_atlas.html import dashboard_placeholder as data
 
     view = data.get_group_view(group_id)
