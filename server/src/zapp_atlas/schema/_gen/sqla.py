@@ -448,3 +448,72 @@ class Fish(ZfinEntity):
 
     __mapper_args__ = {"concrete": True}
 
+
+class ResearchGroup(ZappEntity):
+    """
+    A named collection of users that have shared editing access.
+    """
+
+    __tablename__ = "ResearchGroup"
+
+    name: Mapped[str] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+
+    def __repr__(self):
+        return f"ResearchGroup(name={self.name},id={self.id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class ResearchGroupMember(ZappEntity):
+    """
+    Membership of an ORCID identity in a research group.
+    """
+
+    __tablename__ = "ResearchGroupMember"
+
+    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    member: Mapped[str] = mapped_column(Text())
+    role: Mapped[str] = mapped_column(Enum('admin', 'member', name='ResearchGroupRoleEnum'))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+
+    def __repr__(self):
+        return f"ResearchGroupMember(research_group={self.research_group},member={self.member},role={self.role},id={self.id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class ChemicalCabinetEntry(ZappEntity):
+    """
+    A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+    """
+
+    __tablename__ = "ChemicalCabinetEntry"
+
+    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    chemical_id: Mapped[str] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+
+    def __repr__(self):
+        return f"ChemicalCabinetEntry(research_group={self.research_group},chemical_id={self.chemical_id},id={self.id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class FishTankEntry(ZappEntity):
+    """
+    A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    """
+
+    __tablename__ = "FishTankEntry"
+
+    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    fish_zfin_id: Mapped[str] = mapped_column(Text(), ForeignKey("Fish.zfin_id"))
+    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_zfin_id])
+
+    def __repr__(self):
+        return f"FishTankEntry(research_group={self.research_group},id={self.id},fish_zfin_id={self.fish_zfin_id},)"
+
+    __mapper_args__ = {"concrete": True}
+

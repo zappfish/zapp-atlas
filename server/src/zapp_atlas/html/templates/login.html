@@ -69,21 +69,19 @@
       </p>
 
       {#
-        Local development only, shown when ZAPP_DEV_AUTH=true. Signs in a fake
-        identity so the signed-in state can be worked on without ORCID
-        credentials. Never rendered in a deployment.
+        Shown when ZAPP_DEV_AUTH=true: local development, and the per-PR
+        preview apps deployed from fly.preview.toml, where ORCID cannot work.
+        Signs in a fake identity in one click; the route still accepts `name`
+        and `orcid_id` if you want a different one, so POST directly to
+        /auth/dev/login for that. Never enabled in production.
       #}
       {% if dev_auth %}
         <section class="login-card login-card--dev">
           <h2 class="login-card__title">Development sign-in</h2>
           <p>ORCID is bypassed because <code>ZAPP_DEV_AUTH</code> is enabled.</p>
           <form method="post" action="/auth/dev/login" class="login-dev-form">
-            <label for="dev-name">Name</label>
-            <input id="dev-name" name="name" value="Josiah Carberry">
-            <label for="dev-orcid">ORCID iD</label>
-            <input id="dev-orcid" name="orcid_id" value="0000-0002-1825-0097">
             <button type="submit" class="btn btn--primary login-card__submit">
-              Sign in as this user
+              Sign in as Josiah Carberry
             </button>
           </form>
         </section>
