@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from sqlalchemy.orm import Session
 
-from zapp_atlas.api.deps import get_app_settings
+from zapp_atlas.api.deps import get_app_settings, get_session
 from zapp_atlas.auth.deps import CurrentIdentity
 from zapp_atlas.html.templating import templates
 from zapp_atlas.settings import AppSettings
@@ -14,12 +15,16 @@ from zapp_atlas.settings import AppSettings
 router = APIRouter(tags=["html"])
 
 
-def _login_redirect(request: Request) -> Response:
+def _redirect(request: Request, target: str) -> Response:
     # htmx follows a 3xx into its swap target; HX-Redirect navigates the whole
     # page instead. A direct load gets a plain redirect.
     if request.headers.get("HX-Request"):
-        return Response(status_code=204, headers={"HX-Redirect": "/login"})
-    return RedirectResponse("/login", status_code=303)
+        return Response(status_code=204, headers={"HX-Redirect": target})
+    return RedirectResponse(target, status_code=303)
+
+
+def _login_redirect(request: Request) -> Response:
+    return _redirect(request, "/login")
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -91,6 +96,23 @@ def research_group_page(
         request, "dashboard.html", "partials/dashboard_body.html"
     )
     return templates.TemplateResponse(request, template, view)
+
+
+@router.post("/research-groups", response_class=HTMLResponse)
+def create_research_group(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    name: Annotated[str, Form()],
+) -> Response:
+    # The signed-in caller becomes the group's first admin (create_group).
+    if identity is None:
+        return _login_redirect(request)
+
+    from zapp_atlas.api.services.research_groups import create_group
+
+    group = create_group(session, name.strip(), identity)
+    return _redirect(request, f"/research-groups/{group.id}")
 
 
 @router.get("/partials/hello", response_class=HTMLResponse)

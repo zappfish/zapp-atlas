@@ -44,5 +44,9 @@
     {% endfor %}
   </ul>
 
-  <button class="dash-new-group" type="button">+ New Group</button>
+  <button class="dash-new-group" type="button" data-open-modal="new-group-modal">
+    + New Group
+  </button>
 </aside>
+
+{% include "partials/new_group_modal.html" %}

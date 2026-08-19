@@ -56,3 +56,19 @@ document.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeMenus(null);
 });
+
+// Modals (<dialog class="modal">): a button opens by id, and it closes on
+// Cancel or a click on the backdrop. Escape is native to <dialog>.
+document.addEventListener("click", (e) => {
+  const opener = e.target.closest("[data-open-modal]");
+  if (opener) {
+    document.getElementById(opener.dataset.openModal)?.showModal();
+    return;
+  }
+  if (e.target.closest("[data-close-modal]")) {
+    e.target.closest("dialog")?.close();
+    return;
+  }
+  // A click on the dialog element itself (not its panel) is the backdrop.
+  if (e.target.matches("dialog.modal")) e.target.close();
+});
