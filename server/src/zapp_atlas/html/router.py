@@ -27,28 +27,32 @@ def _login_redirect(request: Request) -> Response:
     return _redirect(request, "/login")
 
 
-def _group_view(session: Session, identity, group_id: int) -> dict | None:
-    """Assemble a group's dashboard context from real data, or None if the
-    caller is not a member (unknown and forbidden both read as absent, so
-    membership can't be probed). Fish tank and chemical cabinet come from the
-    group-scoped services; submissions have no API yet and stay empty.
-    """
+def _is_member(session: Session, identity, group_id: int) -> bool:
+    # Unknown group and non-membership both read as "not a member", so a
+    # caller can't probe which groups exist.
     from zapp_atlas.api.authz import orcid_curie
-    from zapp_atlas.api.services import cabinet, fish_tank, research_groups
     from zapp_atlas.schema.sqla import ResearchGroup, ResearchGroupMember
 
-    group = session.get(ResearchGroup, group_id)
-    if group is None:
-        return None
-    member = (
+    if session.get(ResearchGroup, group_id) is None:
+        return False
+    return (
         session.query(ResearchGroupMember)
-        .filter_by(
-            research_group=group_id, member=orcid_curie(identity.orcid_id)
-        )
+        .filter_by(research_group=group_id, member=orcid_curie(identity.orcid_id))
         .one_or_none()
+        is not None
     )
-    if member is None:
+
+
+def _group_view(session: Session, identity, group_id: int) -> dict | None:
+    """The dashboard context for a group, or None if the caller is not a
+    member.
+    """
+    from zapp_atlas.api.services import cabinet, fish_tank, research_groups
+    from zapp_atlas.schema.sqla import ResearchGroup
+
+    if not _is_member(session, identity, group_id):
         return None
+    group = session.get(ResearchGroup, group_id)
 
     tank = fish_tank.list_entries(session, group_id)
     chemicals = cabinet.list_entries(session, group_id)
@@ -105,8 +109,7 @@ def my_submissions_page(
     session: Annotated[Session, Depends(get_session)],
     view: str = "list",
 ) -> Response:
-    # Post-login landing. The sidebar lists the user's real groups. Submissions
-    # have no API yet, so they remain placeholder for now.
+    # Post-login landing: the sidebar lists the user's groups.
     if identity is None:
         return _login_redirect(request)
 
@@ -145,6 +148,33 @@ def research_group_page(
         request, "dashboard.html", "partials/dashboard_body.html"
     )
     return templates.TemplateResponse(request, template, view)
+
+
+@router.post("/research-groups/{group_id}/fish-tank", response_class=HTMLResponse)
+def add_fish_line(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    zfin_id: Annotated[str, Form()],
+    name: Annotated[str, Form()],
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+    if not _is_member(session, identity, group_id):
+        raise HTTPException(status_code=404, detail="Research group not found")
+
+    from pydantic import ValidationError
+
+    from zapp_atlas.api.dto import FishRef
+    from zapp_atlas.api.services.fish_tank import add_entry
+
+    try:
+        fish = FishRef(zfin_id=zfin_id.strip(), name=name.strip())
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Invalid ZFIN id") from exc
+    add_entry(session, group_id, fish)
+    return _redirect(request, f"/research-groups/{group_id}")
 
 
 @router.post("/research-groups", response_class=HTMLResponse)

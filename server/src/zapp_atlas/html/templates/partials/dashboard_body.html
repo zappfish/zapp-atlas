@@ -28,11 +28,13 @@
     {% endfor %}
     {% set section = {
       "id": "fish-tank", "icon": "icons/fish.svg", "title": "Fish Tank",
-      "add_label": "Add fish", "search_ph": "Search fish …",
+      "add_label": "Add fish", "add_modal": "add-fish-modal",
+      "search_ph": "Search fish …",
       "rows": fish_rows,
       "empty_text": "Add a fish line to start building this group's tank.",
     } %}
     {% include "partials/dash_section.html" %}
+    {% include "partials/add_fish_modal.html" %}
 
     {# ---- Chemical Cabinet ---- #}
     {% set chem_rows = [] %}
