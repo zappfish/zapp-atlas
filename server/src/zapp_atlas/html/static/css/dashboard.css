@@ -293,10 +293,8 @@
   .mysub__actions { margin-left: auto; }
 }
 
-/* My Submissions: icon + title + subtitle, no divider under it. */
+/* My Submissions: title + subtitle, no divider under it. */
 .dash-header--plain { align-items: flex-start; padding: 0.5rem 0.25rem 0; border-bottom: none; }
-.dash-header__left { display: flex; gap: 0.85rem; }
-.dash-header__left > .icon { width: 1.6rem; height: 1.6rem; color: var(--muted); flex-shrink: 0; margin-top: 0.1rem; }
 .dash-header__meta { margin: 0.2rem 0 0; font-size: var(--text-sm); color: var(--muted); }
 
 /* My Submissions: grid (card) view */
