@@ -16,50 +16,52 @@
       </div>
     </header>
 
-    {# ---- Search ---- #}
-    <div class="mysub-search">
-      {% include "icons/search.svg" %}
-      <input type="search" class="mysub-search__input"
-             placeholder="Search submissions…" aria-label="Search submissions">
-      <button class="mysub-search__btn" type="button">Search</button>
-    </div>
-
-    {# ---- Status guide ---- #}
-    <div class="mysub-guide">
-      <span class="mysub-guide__item mysub-guide__item--published">
-        <span class="mysub__dot" aria-hidden="true"></span>Published
-        <span class="mysub-guide__hint">Live on the Atlas</span>
-      </span>
-      <span class="mysub-guide__item mysub-guide__item--in-progress">
-        <span class="mysub__dot" aria-hidden="true"></span>In Progress
-        <span class="mysub-guide__hint">Being edited</span>
-      </span>
-      <span class="mysub-guide__item mysub-guide__item--on-hold">
-        <span class="mysub__dot" aria-hidden="true"></span>On Hold
-        <span class="mysub-guide__hint">Pending review</span>
-      </span>
-      <span class="mysub-guide__item mysub-guide__item--retracted">
-        <span class="mysub__dot" aria-hidden="true"></span>Retracted
-        <span class="mysub-guide__hint">Withdrawn</span>
-      </span>
-    </div>
-
-    {# ---- Filters + view toggle ---- #}
-    <div class="mysub-tools">
-      {% include "partials/sub_filters.html" %}
-
-      {# Plain links so the choice lives in the URL and needs no script. #}
-      <div class="mysub-view" role="group" aria-label="View">
-        <a class="mysub-view__btn {{ 'is-active' if view == 'list' }}"
-           href="/my-submissions?view=list" aria-label="List view">
-          {% include "icons/list.svg" %}
-        </a>
-        <a class="mysub-view__btn {{ 'is-active' if view == 'grid' }}"
-           href="/my-submissions?view=grid" aria-label="Grid view">
-          {% include "icons/grid.svg" %}
-        </a>
+    {% if submissions %}
+      {# ---- Search ---- #}
+      <div class="mysub-search">
+        {% include "icons/search.svg" %}
+        <input type="search" class="mysub-search__input"
+               placeholder="Search submissions…" aria-label="Search submissions">
+        <button class="mysub-search__btn" type="button">Search</button>
       </div>
-    </div>
+
+      {# ---- Status guide ---- #}
+      <div class="mysub-guide">
+        <span class="mysub-guide__item mysub-guide__item--published">
+          <span class="mysub__dot" aria-hidden="true"></span>Published
+          <span class="mysub-guide__hint">Live on the Atlas</span>
+        </span>
+        <span class="mysub-guide__item mysub-guide__item--in-progress">
+          <span class="mysub__dot" aria-hidden="true"></span>In Progress
+          <span class="mysub-guide__hint">Being edited</span>
+        </span>
+        <span class="mysub-guide__item mysub-guide__item--on-hold">
+          <span class="mysub__dot" aria-hidden="true"></span>On Hold
+          <span class="mysub-guide__hint">Pending review</span>
+        </span>
+        <span class="mysub-guide__item mysub-guide__item--retracted">
+          <span class="mysub__dot" aria-hidden="true"></span>Retracted
+          <span class="mysub-guide__hint">Withdrawn</span>
+        </span>
+      </div>
+
+      {# ---- Filters + view toggle ---- #}
+      <div class="mysub-tools">
+        {% include "partials/sub_filters.html" %}
+
+        {# Plain links so the choice lives in the URL and needs no script. #}
+        <div class="mysub-view" role="group" aria-label="View">
+          <a class="mysub-view__btn {{ 'is-active' if view == 'list' }}"
+             href="/my-submissions?view=list" aria-label="List view">
+            {% include "icons/list.svg" %}
+          </a>
+          <a class="mysub-view__btn {{ 'is-active' if view == 'grid' }}"
+             href="/my-submissions?view=grid" aria-label="Grid view">
+            {% include "icons/grid.svg" %}
+          </a>
+        </div>
+      </div>
+    {% endif %}
 
     {# ---- Submissions ---- #}
     {% if view == "grid" %}

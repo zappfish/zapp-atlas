@@ -130,7 +130,6 @@ def my_submissions_page(
         return _login_redirect(request)
 
     from zapp_atlas.api.services.research_groups import list_groups_for
-    from zapp_atlas.html import dashboard_placeholder as data
 
     template = _dash_template(
         request, "my_submissions.html", "partials/my_submissions_body.html"
@@ -141,8 +140,8 @@ def my_submissions_page(
         {
             "view": "grid" if view == "grid" else "list",
             "groups": list_groups_for(session, identity),
-            "my_submissions_count": data.total_submissions(),
-            "submissions": data.all_submissions(),
+            "my_submissions_count": 0,
+            "submissions": [],
         },
     )
 

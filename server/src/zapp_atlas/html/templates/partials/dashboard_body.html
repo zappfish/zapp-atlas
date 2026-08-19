@@ -77,19 +77,23 @@
       </header>
 
       <div class="dash-subtools">
-        <div class="dash-searchbox">
-          {% include "icons/search.svg" %}
-          <input type="search" placeholder="Search by submissions …"
-                 aria-label="Search submissions">
-        </div>
+        {% if submissions %}
+          <div class="dash-searchbox">
+            {% include "icons/search.svg" %}
+            <input type="search" placeholder="Search by submissions …"
+                   aria-label="Search submissions">
+          </div>
+        {% endif %}
         <button class="btn btn--primary dash-newsub" type="button">
           + New submission
         </button>
       </div>
 
-      <div class="mysub-tools">
-        {% with context = "group" %}{% include "partials/sub_filters.html" %}{% endwith %}
-      </div>
+      {% if submissions %}
+        <div class="mysub-tools">
+          {% with context = "group" %}{% include "partials/sub_filters.html" %}{% endwith %}
+        </div>
+      {% endif %}
 
       <ul class="mysub-list">
         {% for s in submissions %}
