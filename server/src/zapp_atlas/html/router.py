@@ -27,6 +27,51 @@ def _login_redirect(request: Request) -> Response:
     return _redirect(request, "/login")
 
 
+def _group_view(session: Session, identity, group_id: int) -> dict | None:
+    """Assemble a group's dashboard context from real data, or None if the
+    caller is not a member (unknown and forbidden both read as absent, so
+    membership can't be probed). Fish tank and chemical cabinet come from the
+    group-scoped services; submissions have no API yet and stay empty.
+    """
+    from zapp_atlas.api.authz import orcid_curie
+    from zapp_atlas.api.services import cabinet, fish_tank, research_groups
+    from zapp_atlas.schema.sqla import ResearchGroup, ResearchGroupMember
+
+    group = session.get(ResearchGroup, group_id)
+    if group is None:
+        return None
+    member = (
+        session.query(ResearchGroupMember)
+        .filter_by(
+            research_group=group_id, member=orcid_curie(identity.orcid_id)
+        )
+        .one_or_none()
+    )
+    if member is None:
+        return None
+
+    tank = fish_tank.list_entries(session, group_id)
+    chemicals = cabinet.list_entries(session, group_id)
+    groups = research_groups.list_groups_for(session, identity)
+    return {
+        "groups": groups,
+        "my_submissions_count": 0,
+        "group": {
+            "id": group.id,
+            "name": group.name,
+            "is_default": False,
+            "chemical_count": len(chemicals),
+            "fish_line_count": len(tank),
+            "submission_count": 0,
+        },
+        "fish_tank": [
+            {"name": e.fish.name, "zf_id": e.fish.zfin_id} for e in tank
+        ],
+        "cabinet": [{"chemical_id": e.chemical_id} for e in chemicals],
+        "submissions": [],
+    }
+
+
 @router.get("/", response_class=HTMLResponse)
 def index_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "index.html")
@@ -55,13 +100,17 @@ def _dash_template(request: Request, full: str, body: str) -> str:
 
 @router.get("/my-submissions", response_class=HTMLResponse)
 def my_submissions_page(
-    request: Request, identity: CurrentIdentity, view: str = "list"
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    view: str = "list",
 ) -> Response:
-    # Post-login landing. The sidebar renders the group list and total count.
-    # `view` toggles the submissions between the list and a card grid.
+    # Post-login landing. The sidebar lists the user's real groups. Submissions
+    # have no API yet, so they remain placeholder for now.
     if identity is None:
         return _login_redirect(request)
 
+    from zapp_atlas.api.services.research_groups import list_groups_for
     from zapp_atlas.html import dashboard_placeholder as data
 
     template = _dash_template(
@@ -72,7 +121,7 @@ def my_submissions_page(
         template,
         {
             "view": "grid" if view == "grid" else "list",
-            "groups": data.GROUPS,
+            "groups": list_groups_for(session, identity),
             "my_submissions_count": data.total_submissions(),
             "submissions": data.all_submissions(),
         },
@@ -81,15 +130,15 @@ def my_submissions_page(
 
 @router.get("/research-groups/{group_id}", response_class=HTMLResponse)
 def research_group_page(
-    request: Request, identity: CurrentIdentity, group_id: int
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
 ) -> Response:
-    # Static data shaped like the group-scoped API responses.
     if identity is None:
         return _login_redirect(request)
 
-    from zapp_atlas.html import dashboard_placeholder as data
-
-    view = data.get_group_view(group_id)
+    view = _group_view(session, identity, group_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Research group not found")
     template = _dash_template(

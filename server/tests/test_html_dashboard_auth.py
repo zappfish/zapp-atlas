@@ -28,5 +28,16 @@ def test_dashboard_htmx_requests_signal_a_full_page_redirect(client: TestClient)
 
 def test_dashboard_pages_render_when_signed_in(client: TestClient) -> None:
     _sign_in(client)
-    for path in GUARDED:
-        assert client.get(path).status_code == 200
+    assert client.get("/my-submissions").status_code == 200
+    # A group renders only for its members; view one the caller just created.
+    created = client.post(
+        "/research-groups", data={"name": "My Lab"}, follow_redirects=False
+    )
+    assert client.get(created.headers["location"]).status_code == 200
+
+
+def test_group_page_404s_for_a_non_member(client: TestClient) -> None:
+    _sign_in(client)
+    # A group the caller does not belong to reads as absent, so membership
+    # cannot be probed by id.
+    assert client.get("/research-groups/999999").status_code == 404

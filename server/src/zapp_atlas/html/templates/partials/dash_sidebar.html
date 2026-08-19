@@ -26,9 +26,11 @@
            hx-get="/research-groups/{{ g.id }}">
           <span class="dash-group__text">
             <span class="dash-group__name">{{ g.name }}</span>
-            <span class="dash-group__kind">
-              {% if g.is_default %}Default &middot; {% endif %}{{ g.kind }}
-            </span>
+            {% if g.is_default or g.kind %}
+              <span class="dash-group__kind">
+                {% if g.is_default %}Default &middot; {% endif %}{{ g.kind }}
+              </span>
+            {% endif %}
           </span>
           <span class="dash-group__caret" aria-hidden="true">&rsaquo;</span>
         </a>
