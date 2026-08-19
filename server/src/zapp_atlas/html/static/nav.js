@@ -62,7 +62,14 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("click", (e) => {
   const opener = e.target.closest("[data-open-modal]");
   if (opener) {
-    document.getElementById(opener.dataset.openModal)?.showModal();
+    const modal = document.getElementById(opener.dataset.openModal);
+    if (opener.dataset.deleteUrl && modal) {
+      // Fill the shared confirm dialog from the row that opened it.
+      modal.querySelector("[data-confirm-form]").action = opener.dataset.deleteUrl;
+      modal.querySelector("[data-confirm-text]").textContent =
+        `Remove ${opener.dataset.deleteName}? This cannot be undone.`;
+    }
+    modal?.showModal();
     return;
   }
   if (e.target.closest("[data-close-modal]")) {

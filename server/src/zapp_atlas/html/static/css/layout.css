@@ -132,6 +132,12 @@
   font-size: var(--text-md);
   font-weight: 600;
 }
+.modal__text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.45;
+}
 .modal__field {
   display: flex;
   flex-direction: column;
@@ -178,6 +184,15 @@
 }
 .modal .btn--primary:hover {
   background: #2c6072;
+}
+.modal .btn--danger {
+  border-color: var(--status-retracted);
+  background: var(--white);
+  color: var(--status-retracted);
+  font-weight: 600;
+}
+.modal .btn--danger:hover {
+  background: #fef2f2;
 }
 
 

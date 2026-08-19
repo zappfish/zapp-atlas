@@ -43,8 +43,9 @@
     {% if item.delete_url %}
       <button class="dash-icon-btn dash-icon-btn--danger" type="button"
               aria-label="Remove {{ item.label }}"
-              hx-post="{{ item.delete_url }}"
-              hx-confirm="Remove {{ item.label }}?">
+              data-open-modal="confirm-delete-modal"
+              data-delete-url="{{ item.delete_url }}"
+              data-delete-name="{{ item.label }}">
         {% include "icons/trash.svg" %}
       </button>
     {% endif %}

@@ -50,6 +50,7 @@
         "label": label,
         "sublabel": c.chemical_id if named else none,
         "detail": c.manufacturer if c.manufacturer else none,
+        "delete_url": c.delete_url,
       }) %}
     {% endfor %}
     {% set section = {
@@ -102,5 +103,7 @@
         {% endfor %}
       </ul>
     </section>
+
+    {% include "partials/confirm_delete_modal.html" %}
   </div>
 </div>

@@ -76,7 +76,15 @@ def _group_view(session: Session, identity, group_id: int) -> dict | None:
             }
             for e in tank
         ],
-        "cabinet": [{"chemical_id": e.chemical_id} for e in chemicals],
+        "cabinet": [
+            {
+                "chemical_id": e.chemical_id,
+                "delete_url": (
+                    f"/research-groups/{group_id}/chemical-cabinet/{e.id}/delete"
+                ),
+            }
+            for e in chemicals
+        ],
         "submissions": [],
     }
 
@@ -223,6 +231,29 @@ def add_chemical(
     from zapp_atlas.api.services.cabinet import add_entry
 
     add_entry(session, group_id, chemical_id.strip())
+    return _redirect(request, f"/research-groups/{group_id}")
+
+
+@router.post(
+    "/research-groups/{group_id}/chemical-cabinet/{entry_id}/delete",
+    response_class=HTMLResponse,
+)
+def delete_chemical(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    entry_id: int,
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+    if not _is_member(session, identity, group_id):
+        raise HTTPException(status_code=404, detail="Research group not found")
+
+    from zapp_atlas.api.services.cabinet import delete_entry
+
+    if not delete_entry(session, group_id, entry_id):
+        raise HTTPException(status_code=404, detail="Chemical not found")
     return _redirect(request, f"/research-groups/{group_id}")
 
 
