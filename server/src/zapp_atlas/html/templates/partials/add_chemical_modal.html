@@ -1,0 +1,20 @@
+{#
+  "Add chemical" dialog. Posts a chemical id to
+  POST /research-groups/{group.id}/chemical-cabinet, which adds it to this
+  group's cabinet and redirects back to the group. Opened by nav.js.
+#}
+<dialog class="modal" id="add-chemical-modal" aria-labelledby="add-chemical-title">
+  <form class="modal__panel" method="post"
+        action="/research-groups/{{ group.id }}/chemical-cabinet">
+    <h2 class="modal__title" id="add-chemical-title">Add chemical</h2>
+    <label class="modal__field">
+      <span class="modal__label">Chemical id</span>
+      <input class="modal__input" type="text" name="chemical_id" required autofocus
+             maxlength="60" placeholder="e.g. CHEBI:16236">
+    </label>
+    <div class="modal__actions">
+      <button class="btn" type="button" data-close-modal>Cancel</button>
+      <button class="btn btn--primary" type="submit">Add</button>
+    </div>
+  </form>
+</dialog>

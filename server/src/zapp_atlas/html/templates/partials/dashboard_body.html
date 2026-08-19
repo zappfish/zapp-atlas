@@ -37,20 +37,29 @@
     {% include "partials/add_fish_modal.html" %}
 
     {# ---- Chemical Cabinet ---- #}
+    {# Each field is shown only when present, so cabinet entries gain a name,
+       abbreviation, or manufacturer as those are added without a template
+       change. Until then a row shows just its chemical id. #}
     {% set chem_rows = [] %}
     {% for c in cabinet %}
+      {% set named = c.name if c.name else none %}
+      {% set label = (c.abbr ~ " · " ~ named) if (c.abbr and named)
+                     else (named or c.chemical_id) %}
       {% set _ = chem_rows.append({
-        "label": c.abbr ~ " · " ~ c.name, "sublabel": c.chemical_id,
-        "detail": c.manufacturer,
+        "label": label,
+        "sublabel": c.chemical_id if named else none,
+        "detail": c.manufacturer if c.manufacturer else none,
       }) %}
     {% endfor %}
     {% set section = {
       "id": "chemical-cabinet", "icon": "icons/flask.svg", "title": "Chemical Cabinet",
-      "add_label": "Add chemical", "search_ph": "Search chemicals …",
+      "add_label": "Add chemical", "add_modal": "add-chemical-modal",
+      "search_ph": "Search chemicals …",
       "rows": chem_rows,
       "empty_text": "Add a chemical to this group's cabinet.",
     } %}
     {% include "partials/dash_section.html" %}
+    {% include "partials/add_chemical_modal.html" %}
 
     {# ---- Submissions ---- #}
     <section class="dash-submissions" id="submissions">

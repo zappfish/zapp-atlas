@@ -177,6 +177,27 @@ def add_fish_line(
     return _redirect(request, f"/research-groups/{group_id}")
 
 
+@router.post(
+    "/research-groups/{group_id}/chemical-cabinet", response_class=HTMLResponse
+)
+def add_chemical(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    chemical_id: Annotated[str, Form()],
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+    if not _is_member(session, identity, group_id):
+        raise HTTPException(status_code=404, detail="Research group not found")
+
+    from zapp_atlas.api.services.cabinet import add_entry
+
+    add_entry(session, group_id, chemical_id.strip())
+    return _redirect(request, f"/research-groups/{group_id}")
+
+
 @router.post("/research-groups", response_class=HTMLResponse)
 def create_research_group(
     request: Request,
