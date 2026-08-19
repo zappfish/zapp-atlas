@@ -69,6 +69,11 @@ document.addEventListener("click", (e) => {
       modal.querySelector("[data-confirm-text]").textContent =
         `Remove ${opener.dataset.deleteName}? This cannot be undone.`;
     }
+    if (opener.dataset.editUrl && modal) {
+      // Fill the shared edit dialog with the row's current value.
+      modal.querySelector("[data-edit-form]").action = opener.dataset.editUrl;
+      modal.querySelector("[data-edit-input]").value = opener.dataset.editValue;
+    }
     modal?.showModal();
     return;
   }

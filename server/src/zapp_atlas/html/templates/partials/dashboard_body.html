@@ -50,6 +50,8 @@
         "label": label,
         "sublabel": c.chemical_id if named else none,
         "detail": c.manufacturer if c.manufacturer else none,
+        "edit_url": c.edit_url,
+        "edit_value": c.chemical_id,
         "delete_url": c.delete_url,
       }) %}
     {% endfor %}
@@ -105,5 +107,6 @@
     </section>
 
     {% include "partials/confirm_delete_modal.html" %}
+    {% include "partials/edit_chemical_modal.html" %}
   </div>
 </div>
