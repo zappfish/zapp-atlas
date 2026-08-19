@@ -69,7 +69,12 @@ def _group_view(session: Session, identity, group_id: int) -> dict | None:
             "submission_count": 0,
         },
         "fish_tank": [
-            {"name": e.fish.name, "zf_id": e.fish.zfin_id} for e in tank
+            {
+                "name": e.fish.name,
+                "zf_id": e.fish.zfin_id,
+                "delete_url": f"/research-groups/{group_id}/fish-tank/{e.id}/delete",
+            }
+            for e in tank
         ],
         "cabinet": [{"chemical_id": e.chemical_id} for e in chemicals],
         "submissions": [],
@@ -174,6 +179,29 @@ def add_fish_line(
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail="Invalid ZFIN id") from exc
     add_entry(session, group_id, fish)
+    return _redirect(request, f"/research-groups/{group_id}")
+
+
+@router.post(
+    "/research-groups/{group_id}/fish-tank/{entry_id}/delete",
+    response_class=HTMLResponse,
+)
+def delete_fish_line(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    entry_id: int,
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+    if not _is_member(session, identity, group_id):
+        raise HTTPException(status_code=404, detail="Research group not found")
+
+    from zapp_atlas.api.services.fish_tank import delete_entry
+
+    if not delete_entry(session, group_id, entry_id):
+        raise HTTPException(status_code=404, detail="Fish line not found")
     return _redirect(request, f"/research-groups/{group_id}")
 
 

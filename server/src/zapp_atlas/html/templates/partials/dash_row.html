@@ -40,9 +40,13 @@
     <button class="dash-icon-btn" type="button" aria-label="View {{ item.label }}">
       {% include "icons/eye.svg" %}
     </button>
-    <button class="dash-icon-btn dash-icon-btn--danger" type="button"
-            aria-label="Remove {{ item.label }}">
-      {% include "icons/trash.svg" %}
-    </button>
+    {% if item.delete_url %}
+      <button class="dash-icon-btn dash-icon-btn--danger" type="button"
+              aria-label="Remove {{ item.label }}"
+              hx-post="{{ item.delete_url }}"
+              hx-confirm="Remove {{ item.label }}?">
+        {% include "icons/trash.svg" %}
+      </button>
+    {% endif %}
   </div>
 </div>
