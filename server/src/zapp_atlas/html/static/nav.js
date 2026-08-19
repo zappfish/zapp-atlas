@@ -41,3 +41,18 @@ wireToggle(
   document.querySelector(".user-chip"),
   "is-user-open",
 );
+
+// Overflow menus (<details.sub-menu>): close on outside-click and Escape.
+// One open at a time; delegated so htmx-swapped rows are covered.
+const closeMenus = (except) => {
+  document.querySelectorAll("details.sub-menu[open]").forEach((d) => {
+    if (d !== except) d.removeAttribute("open");
+  });
+};
+document.addEventListener("click", (e) => {
+  const open = e.target.closest("details.sub-menu[open]");
+  closeMenus(open);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeMenus(null);
+});

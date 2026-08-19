@@ -1,0 +1,34 @@
+{#
+  One submission row, shared by My Submissions and a group's Submissions.
+  The including loop provides `s` (title, status, date, and optionally
+  group_name / group_id / submitted_by). `context` selects what the meta shows:
+    "mine"  (default) - the viewer's own submissions: status, group, date.
+    "group"           - a group's submissions: status, submitter, date.
+  Actions render through partials/sub_actions.html.
+#}
+{% set context = context | default("mine") %}
+<li class="mysub">
+  <div class="mysub__info">
+    <span class="mysub__title">{{ s.title }}</span>
+    <span class="mysub__meta">
+      <span class="mysub__status mysub__status--{{ s.status | lower | replace(' ', '-') }}">
+        <span class="mysub__dot" aria-hidden="true"></span>{{ s.status }}
+      </span>
+      {% if context == "group" %}
+        {% if s.submitted_by %}
+          <span class="mysub__sep" aria-hidden="true">&middot;</span>
+          <span class="mysub__by">Submitted by {{ s.submitted_by }}</span>
+        {% endif %}
+      {% elif s.group_name %}
+        <span class="mysub__sep" aria-hidden="true">&middot;</span>
+        <a class="mysub__group" href="/research-groups/{{ s.group_id }}">{{ s.group_name }}</a>
+      {% endif %}
+      <span class="mysub__sep" aria-hidden="true">&middot;</span>
+      <span class="mysub__date">Updated on {{ s.date }}</span>
+    </span>
+  </div>
+
+  <div class="mysub__actions">
+    {% include "partials/sub_actions.html" %}
+  </div>
+</li>

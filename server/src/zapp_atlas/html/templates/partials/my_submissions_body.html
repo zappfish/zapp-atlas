@@ -47,29 +47,9 @@
       </span>
     </div>
 
-    {# ---- Filter tabs + view toggle ---- #}
-    {% set published = submissions | selectattr("status", "equalto", "Published") | list | length %}
-    {% set in_progress = submissions | selectattr("status", "equalto", "In Progress") | list | length %}
-    {% set on_hold = submissions | selectattr("status", "equalto", "On Hold") | list | length %}
-    {% set retracted = submissions | selectattr("status", "equalto", "Retracted") | list | length %}
+    {# ---- Filters + view toggle ---- #}
     <div class="mysub-tools">
-      <div class="mysub-tabs">
-        <button class="mysub-tab is-active" type="button">
-          All <span class="mysub-tab__n">{{ submissions | length }}</span>
-        </button>
-        <button class="mysub-tab" type="button">
-          Published {% if published %}<span class="mysub-tab__n">{{ published }}</span>{% endif %}
-        </button>
-        <button class="mysub-tab" type="button">
-          In Progress {% if in_progress %}<span class="mysub-tab__n">{{ in_progress }}</span>{% endif %}
-        </button>
-        <button class="mysub-tab" type="button">
-          On Hold {% if on_hold %}<span class="mysub-tab__n">{{ on_hold }}</span>{% endif %}
-        </button>
-        <button class="mysub-tab" type="button">
-          Retracted {% if retracted %}<span class="mysub-tab__n">{{ retracted }}</span>{% endif %}
-        </button>
-      </div>
+      {% include "partials/sub_filters.html" %}
 
       {# Plain links so the choice lives in the URL and needs no script. #}
       <div class="mysub-view" role="group" aria-label="View">
@@ -96,7 +76,7 @@
     {% else %}
       <ul class="mysub-list">
         {% for s in submissions %}
-          {% include "partials/my_sub_item.html" %}
+          {% include "partials/sub_row.html" %}
         {% else %}
           {% include "partials/my_sub_empty.html" %}
         {% endfor %}
