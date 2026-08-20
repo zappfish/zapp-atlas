@@ -18,17 +18,17 @@
             <span class="dash-geno-label">bg:</span> {{ item.geno.background }}
           </span>
         {% endif %}
-        {% for m in item.geno.mutations %}
+        {% for mutation in item.geno.mutations %}
           <span class="dash-geno-part">
             <span class="dash-geno-label">MUT:</span>
-            allele: {{ m.allele }} ({{ m.zygosity }}),
-            <span class="dash-geno-label">gene:</span> {{ m.gene }}
+            allele: {{ mutation.allele }} ({{ mutation.zygosity }}),
+            <span class="dash-geno-label">gene:</span> {{ mutation.gene }}
           </span>
         {% endfor %}
-        {% for t in item.geno.transgenes %}
+        {% for transgene in item.geno.transgenes %}
           <span class="dash-geno-part">
             <span class="dash-geno-label">TG:</span>
-            allele: {{ t.allele }} ({{ t.zygosity }}), {{ t.construct }}
+            allele: {{ transgene.allele }} ({{ transgene.zygosity }}), {{ transgene.construct }}
           </span>
         {% endfor %}
       </span>

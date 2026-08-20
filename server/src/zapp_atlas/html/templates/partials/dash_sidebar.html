@@ -18,17 +18,17 @@
 
   <h2 class="dash-sidebar__heading">My Research Groups</h2>
   <ul class="dash-groups">
-    {% for g in groups %}
-      {% set is_open = g.id == active %}
+    {% for group in groups %}
+      {% set is_open = group.id == active %}
       <li class="dash-group">
         <a class="dash-group__summary{% if is_open %} is-active{% endif %}"
-           href="/research-groups/{{ g.id }}"
-           hx-get="/research-groups/{{ g.id }}">
+           href="/research-groups/{{ group.id }}"
+           hx-get="/research-groups/{{ group.id }}">
           <span class="dash-group__text">
-            <span class="dash-group__name">{{ g.name }}</span>
-            {% if g.is_default or g.kind %}
+            <span class="dash-group__name">{{ group.name }}</span>
+            {% if group.is_default or group.kind %}
               <span class="dash-group__kind">
-                {% if g.is_default %}Default &middot; {% endif %}{{ g.kind }}
+                {% if group.is_default %}Default &middot; {% endif %}{{ group.kind }}
               </span>
             {% endif %}
           </span>

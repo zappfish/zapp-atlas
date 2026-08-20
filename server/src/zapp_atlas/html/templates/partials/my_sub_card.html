@@ -1,13 +1,13 @@
 {#
   One submission as a grid card: a media area on top (placeholder image), then
   the submission details. The including loop provides:
-    - s: a submission with title, status, date, group_name, group_id
+    - submission: with title, status, date, group_name, group_id
   Actions render through partials/sub_actions.html.
 #}
 <article class="mysub-card">
-  <a class="mysub-card__media" href="/edit" aria-label="Open {{ s.title }}">
-    {% if s.image %}
-      <img src="{{ s.image }}" alt="" loading="lazy">
+  <a class="mysub-card__media" href="/edit" aria-label="Open {{ submission.title }}">
+    {% if submission.image %}
+      <img src="{{ submission.image }}" alt="" loading="lazy">
     {% else %}
       <span class="mysub-card__ph" aria-hidden="true">{% include "icons/fish.svg" %}</span>
     {% endif %}
@@ -18,18 +18,18 @@
   </div>
 
   <div class="mysub-card__body">
-    <span class="mysub__status mysub__status--{{ s.status | lower | replace(' ', '-') }}">
-      <span class="mysub__dot" aria-hidden="true"></span>{{ s.status }}
+    <span class="mysub__status mysub__status--{{ submission.status | lower | replace(' ', '-') }}">
+      <span class="mysub__dot" aria-hidden="true"></span>{{ submission.status }}
     </span>
 
-    <h3 class="mysub-card__title">{{ s.title }}</h3>
+    <h3 class="mysub-card__title">{{ submission.title }}</h3>
 
     <p class="mysub-card__meta">
-      {% if s.group_name %}
-        <a class="mysub__group" href="/research-groups/{{ s.group_id }}">{{ s.group_name }}</a>
+      {% if submission.group_name %}
+        <a class="mysub__group" href="/research-groups/{{ submission.group_id }}">{{ submission.group_name }}</a>
         <span class="mysub__sep" aria-hidden="true">&middot;</span>
       {% endif %}
-      Updated on {{ s.date }}
+      Updated on {{ submission.date }}
     </p>
   </div>
 </article>

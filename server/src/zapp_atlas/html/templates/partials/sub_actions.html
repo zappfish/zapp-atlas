@@ -1,11 +1,11 @@
 {#
   Submission actions, shared by the list, card, and group-dashboard rows.
-  The including template provides `s` (a submission with id, status, and an
+  The including template provides `submission` (with id, status, and an
   optional `owner` flag; absent means the viewer may edit).
   All actions live in a "..." overflow menu. The first item is Edit when the
   submission is editable (owner and not yet published), otherwise View.
 #}
-{% set editable = s.status != "Published" and s.get("owner", True) %}
+{% set editable = submission.status != "Published" and submission.get("owner", True) %}
 <details class="sub-menu">
   <summary class="mysub__btn sub-menu__toggle" aria-label="Actions">
     {% include "icons/dots.svg" %}
@@ -17,7 +17,7 @@
         Edit
       </a>
     {% else %}
-      <a class="sub-menu__item" href="/records/{{ s.id | default('') }}" role="menuitem">
+      <a class="sub-menu__item" href="/records/{{ submission.id | default('') }}" role="menuitem">
         {% include "icons/external.svg" %}
         View
       </a>
