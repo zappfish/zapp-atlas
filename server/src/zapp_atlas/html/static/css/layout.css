@@ -195,34 +195,107 @@
   background: #fef2f2;
 }
 
-/* Members list + add form inside the members modal. */
+/* ---- Members modal ------------------------------------------------------ */
+
+.modal--wide {
+  width: min(40rem, calc(100vw - 2rem));
+}
+/* Members modal drives its own vertical rhythm with explicit margins, so the
+   panel's uniform gap is removed here and the bottom padding tightened. */
+.members .modal__panel {
+  gap: 0;
+  padding-bottom: 1.5rem;
+}
+.members__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.members__close {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+}
+.members__close:hover {
+  color: var(--ink);
+}
+.members__subhead {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ink);
+}
+/* "Current members" heading -> member card. */
+.members__subhead--list {
+  margin-bottom: 1rem;
+}
+/* "Add member" heading -> helper text. */
+.members__subhead--add {
+  margin-bottom: 0.5rem;
+}
+.members__divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 1.375rem 0;
+}
+/* Helper text under "Add member" -> the input row. */
+.members .member-add {
+  margin-top: 0.875rem;
+}
+
 .member-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+  /* Past ~5-6 rows the list scrolls on its own; the header and Add section,
+     being outside it, stay fixed. Room on the right keeps the scrollbar clear
+     of the row content. */
+  max-height: 20rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 .member {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--line);
+  gap: 0.85rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafbfc;
   font-size: var(--text-sm);
 }
-.member:last-child {
-  border-bottom: none;
+.member__avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--white);
+  font-weight: 600;
+  font-size: var(--text-xs);
 }
 .member__who {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  line-height: 1.3;
+  line-height: 1.25;
+  gap: 0.15rem;
 }
 .member__name {
   color: var(--ink);
+  font-weight: 600;
 }
 .member__who .member__orcid {
   font-size: var(--text-xs);
@@ -230,20 +303,41 @@
   font-family: ui-monospace, Menlo, monospace;
 }
 .member__role {
-  font-size: var(--text-xs);
+  flex-shrink: 0;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
   color: var(--muted);
+  background: var(--line);
 }
 .member__role--admin {
   color: var(--teal);
+  background: var(--btn-bg);
 }
+.member__menu {
+  flex-shrink: 0;
+}
+.member__menu .sub-menu__toggle {
+  border: none;
+  background: none;
+  color: var(--muted);
+  padding: 0.3rem;
+  cursor: pointer;
+  list-style: none;
+}
+.member__menu .sub-menu__toggle::-webkit-details-marker {
+  display: none;
+}
+.member__menu .sub-menu__toggle:hover {
+  color: var(--ink);
+}
+
 .member-add {
   display: flex;
-  gap: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--line);
+  gap: 0.6rem;
 }
 .member-add__orcid {
   flex: 1;

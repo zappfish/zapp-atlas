@@ -29,6 +29,15 @@ def membership(session: Session, identity, group_id: int):
     )
 
 
+def _initials(name: str | None) -> str:
+    # Up to two initials from a name, for the avatar; a placeholder otherwise.
+    if not name:
+        return "?"
+    parts = name.split()
+    letters = parts[0][:1] + (parts[-1][:1] if len(parts) > 1 else "")
+    return letters.upper()
+
+
 def _member_names(session: Session, members) -> dict[str, str]:
     """Map each membership's ORCID CURIE to the person's name, for members who
     have signed in. A member added by ORCID but never signed in has no identity
@@ -74,9 +83,10 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
         "is_admin": is_admin,
         "members": [
             {
-                "orcid": member.member,
+                "orcid": member.member.removeprefix(_ORCID_PREFIX),
                 "role": member.role,
                 "name": names.get(member.member),
+                "initials": _initials(names.get(member.member)),
                 # No self-removal: an admin can drop others, not their own seat.
                 "remove_url": (
                     f"/research-groups/{group_id}/members/{member.id}/remove"

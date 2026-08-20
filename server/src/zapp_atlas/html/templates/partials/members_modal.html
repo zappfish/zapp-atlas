@@ -1,53 +1,66 @@
 {#
-  Members dialog for a research group. Lists each member's ORCID and role.
-  An admin also gets a form to add a member (posts to the members route).
+  Members dialog for a research group: a list of members with their role, and
+  (for admins) a form to add one. Each member's overflow menu removes them.
   The including page provides `group`, `members`, and `is_admin`.
 #}
-<dialog class="modal" id="members-modal" aria-labelledby="members-title">
+<dialog class="modal modal--wide members" id="members-modal" aria-labelledby="members-title">
   <div class="modal__panel">
-    <h2 class="modal__title" id="members-title">Members</h2>
+    <header class="members__head">
+      <div>
+        <h2 class="modal__title" id="members-title">Members</h2>
+        <p class="modal__text">Manage members and their roles.</p>
+      </div>
+      <button class="members__close" type="button" data-close-modal
+              aria-label="Close">&times;</button>
+    </header>
 
+    <h3 class="members__subhead members__subhead--list">Current members ({{ members | length }})</h3>
     <ul class="member-list">
       {% for member in members %}
         <li class="member">
+          <span class="member__avatar" aria-hidden="true">{{ member.initials }}</span>
           <span class="member__who">
+            <span class="member__name">{{ member.name or member.orcid }}</span>
             {% if member.name %}
-              <span class="member__name">{{ member.name }}</span>
-              <span class="member__orcid">{{ member.orcid }}</span>
-            {% else %}
-              <span class="member__name">{{ member.orcid }}</span>
+              <span class="member__orcid">ORCID: {{ member.orcid }}</span>
             {% endif %}
           </span>
           <span class="member__role member__role--{{ member.role }}">{{ member.role }}</span>
           {% if is_admin and member.remove_url %}
-            <button class="dash-icon-btn dash-icon-btn--danger" type="button"
-                    aria-label="Remove {{ member.name or member.orcid }}"
-                    data-open-modal="confirm-delete-modal"
-                    data-delete-url="{{ member.remove_url }}"
-                    data-delete-name="{{ member.name or member.orcid }}">
-              {% include "icons/trash.svg" %}
-            </button>
+            <details class="sub-menu member__menu">
+              <summary class="sub-menu__toggle" aria-label="Member actions">
+                {% include "icons/dots.svg" %}
+              </summary>
+              <div class="sub-menu__list" role="menu">
+                <button class="sub-menu__item sub-menu__item--danger" type="button"
+                        role="menuitem"
+                        data-open-modal="confirm-delete-modal"
+                        data-delete-url="{{ member.remove_url }}"
+                        data-delete-name="{{ member.name or member.orcid }}">
+                  {% include "icons/trash.svg" %}
+                  Remove
+                </button>
+              </div>
+            </details>
           {% endif %}
         </li>
       {% endfor %}
     </ul>
 
     {% if is_admin %}
+      <hr class="members__divider">
+      <h3 class="members__subhead members__subhead--add">Add member</h3>
+      <p class="modal__text">Enter an ORCID and select a role to add a member.</p>
       <form class="member-add" method="post"
             action="/research-groups/{{ group.id }}/members">
         <input class="modal__input member-add__orcid" type="text" name="member"
                required placeholder="ORCID e.g. 0000-0002-1825-0097">
-        <select class="modal__input member-add__role" name="role"
-                aria-label="Role">
+        <select class="modal__input member-add__role" name="role" aria-label="Role">
           <option value="member">member</option>
           <option value="admin">admin</option>
         </select>
-        <button class="btn btn--primary" type="submit">Add</button>
+        <button class="btn btn--primary" type="submit">Add member</button>
       </form>
     {% endif %}
-
-    <div class="modal__actions">
-      <button class="btn" type="button" data-close-modal>Close</button>
-    </div>
   </div>
 </dialog>
