@@ -255,6 +255,36 @@ def add_group_member(
     return _redirect(request, f"/research-groups/{group_id}")
 
 
+@router.post(
+    "/research-groups/{group_id}/members/{member_id}/remove",
+    response_class=HTMLResponse,
+)
+def remove_group_member(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    member_id: int,
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+
+    from zapp_atlas.api.authz import ResearchGroupRoleEnum
+    from zapp_atlas.api.services.research_groups import remove_member
+
+    membership = dashboard_service.membership(session, identity, group_id)
+    if membership is None:
+        raise HTTPException(status_code=404, detail="Research group not found")
+    if membership.role != ResearchGroupRoleEnum.admin.value:
+        raise HTTPException(status_code=403, detail="Admins only")
+    if membership.id == member_id:
+        raise HTTPException(status_code=403, detail="Cannot remove yourself")
+
+    if not remove_member(session, group_id, member_id):
+        raise HTTPException(status_code=404, detail="Membership not found")
+    return _redirect(request, f"/research-groups/{group_id}")
+
+
 @router.post("/research-groups", response_class=HTMLResponse)
 def create_research_group(
     request: Request,

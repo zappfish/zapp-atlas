@@ -19,6 +19,15 @@
             {% endif %}
           </span>
           <span class="member__role member__role--{{ member.role }}">{{ member.role }}</span>
+          {% if is_admin and member.remove_url %}
+            <button class="dash-icon-btn dash-icon-btn--danger" type="button"
+                    aria-label="Remove {{ member.name or member.orcid }}"
+                    data-open-modal="confirm-delete-modal"
+                    data-delete-url="{{ member.remove_url }}"
+                    data-delete-name="{{ member.name or member.orcid }}">
+              {% include "icons/trash.svg" %}
+            </button>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>

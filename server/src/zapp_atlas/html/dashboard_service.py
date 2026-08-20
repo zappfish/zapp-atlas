@@ -57,11 +57,11 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
     from zapp_atlas.api.services import cabinet, fish_tank, research_groups
     from zapp_atlas.schema.sqla import ResearchGroup
 
-    member = membership(session, identity, group_id)
-    if member is None:
+    my_membership = membership(session, identity, group_id)
+    if my_membership is None:
         return None
     group = session.get(ResearchGroup, group_id)
-    is_admin = member.role == ResearchGroupRoleEnum.admin.value
+    is_admin = my_membership.role == ResearchGroupRoleEnum.admin.value
 
     tank = fish_tank.list_entries(session, group_id)
     chemicals = cabinet.list_entries(session, group_id)
@@ -77,6 +77,12 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
                 "orcid": member.member,
                 "role": member.role,
                 "name": names.get(member.member),
+                # No self-removal: an admin can drop others, not their own seat.
+                "remove_url": (
+                    f"/research-groups/{group_id}/members/{member.id}/remove"
+                    if member.id != my_membership.id
+                    else None
+                ),
             }
             for member in members
         ],
