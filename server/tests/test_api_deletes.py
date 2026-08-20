@@ -6,7 +6,6 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-
 _PNG_1X1_RED = bytes.fromhex(
     "89504E470D0A1A0A0000000D49484452000000010000000108020000"
     "00907753DE0000000C4944415408D76368F8FF1F0000040100017F3F"
@@ -56,9 +55,7 @@ def _build_study_graph(client: TestClient) -> dict:
     }
 
 
-def test_delete_image_removes_row_and_blob(
-    client: TestClient, tmp_path: Path
-) -> None:
+def test_delete_image_removes_row_and_blob(client: TestClient, tmp_path: Path) -> None:
     ids = _build_study_graph(client)
     blob = tmp_path / "images" / str(ids["image_id"])
     assert blob.is_file()
@@ -70,9 +67,7 @@ def test_delete_image_removes_row_and_blob(
     assert not blob.exists()
 
 
-def test_delete_observation_cascades_to_images(
-    client: TestClient, tmp_path: Path
-) -> None:
+def test_delete_observation_cascades_to_images(client: TestClient, tmp_path: Path) -> None:
     ids = _build_study_graph(client)
 
     res = client.delete(f"/api/observations/{ids['observation_id']}")

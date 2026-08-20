@@ -81,9 +81,7 @@ def test_edit_page_explains_how_to_build_when_unavailable(tmp_path) -> None:
     # An app whose client has never been built and has no dev server.
     app = FastAPI()
     app.include_router(make_edit_router(tmp_path))
-    app.dependency_overrides[get_app_settings] = lambda: AppSettings(
-        vite_dev_server=""
-    )
+    app.dependency_overrides[get_app_settings] = lambda: AppSettings(vite_dev_server="")
 
     res = TestClient(app).get("/edit")
 

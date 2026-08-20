@@ -7,14 +7,13 @@ logic in one place, so the router stays clean.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from zapp_atlas.schema.pydantic_crud import (
     ControlCreate,
-    ExposureEventCreate,
     ExperimentCreate,
+    ExposureEventCreate,
     PhenotypeCreate,
     PhenotypeObservationSetCreate,
     RegimenCreate,
@@ -22,13 +21,12 @@ from zapp_atlas.schema.pydantic_crud import (
     StudyCreate,
     StudyUpdate,
 )
-
 from zapp_atlas.schema.sqla import (  # type: ignore
     Control,
+    Experiment,
     ExposureEvent,
     ExposureRoute,
     ExposureType,
-    Experiment,
     Fish,
     Phenotype,
     PhenotypeObservationSet,
@@ -40,7 +38,6 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     StudyAnnotator,
     VehicleOfTransmission,
 )
-
 
 log = logging.getLogger(__name__)
 
@@ -63,9 +60,7 @@ def _resolve_ontology_term(session: Session, field_name: str, payload):
     term_uri = payload.term_uri
     term_label = payload.term_label
 
-    existing = (
-        session.query(orm_cls).filter(orm_cls.term_uri == term_uri).one_or_none()
-    )
+    existing = session.query(orm_cls).filter(orm_cls.term_uri == term_uri).one_or_none()
     if existing is not None:
         # Backfill label if the stored row was created with a placeholder.
         if term_label and existing.term_label != term_label:
@@ -113,7 +108,9 @@ def _fish_from_payload(session: Session, payload: Fish | None) -> Fish | None:
         return Fish(zfin_id=payload.zfin_id, name=payload.name)
 
 
-def _phenotype_term_from_payload(session: Session, payload: PhenotypeTerm | None) -> PhenotypeTerm | None:
+def _phenotype_term_from_payload(
+    session: Session, payload: PhenotypeTerm | None
+) -> PhenotypeTerm | None:
     if payload is None:
         return None
     # ``PhenotypeTerm`` has a composite PK ``(term_uri, term_label)`` but
@@ -125,9 +122,7 @@ def _phenotype_term_from_payload(session: Session, payload: PhenotypeTerm | None
     # if the current one is empty and the payload carries something real.
     incoming_label = getattr(payload, "term_label", None) or ""
     existing = (
-        session.query(PhenotypeTerm)
-        .filter(PhenotypeTerm.term_uri == payload.term_uri)
-        .first()
+        session.query(PhenotypeTerm).filter(PhenotypeTerm.term_uri == payload.term_uri).first()
     )
     if existing is not None:
         return existing
@@ -164,7 +159,9 @@ def _vehicle_from_payload(payload) -> VehicleOfTransmission | None:
 
 def _phenotype_from_create(session: Session, payload: PhenotypeCreate) -> Phenotype:
     prevalence = _quantity_value_from_payload(getattr(payload, "prevalence", None))
-    phenotype_term = _phenotype_term_from_payload(session, getattr(payload, "phenotype_term_id", None))
+    phenotype_term = _phenotype_term_from_payload(
+        session, getattr(payload, "phenotype_term_id", None)
+    )
     return Phenotype(
         stage=payload.stage,
         severity=getattr(payload, "severity", None),
@@ -173,7 +170,9 @@ def _phenotype_from_create(session: Session, payload: PhenotypeCreate) -> Phenot
     )
 
 
-def _obs_set_from_create(session: Session, payload: PhenotypeObservationSetCreate) -> PhenotypeObservationSet:
+def _obs_set_from_create(
+    session: Session, payload: PhenotypeObservationSetCreate
+) -> PhenotypeObservationSet:
     obs = PhenotypeObservationSet()
     for ph in payload.phenotype or []:
         obs.phenotype.append(_phenotype_from_create(session, ph))
@@ -190,7 +189,9 @@ def _regimen_from_create(session: Session, payload: RegimenCreate | None) -> Reg
         interval_between_individual_exposures=_quantity_value_from_payload(
             getattr(payload, "interval_between_individual_exposures", None)
         ),
-        total_exposure_duration=_quantity_value_from_payload(getattr(payload, "total_exposure_duration", None)),
+        total_exposure_duration=_quantity_value_from_payload(
+            getattr(payload, "total_exposure_duration", None)
+        ),
         individual_exposure_duration=_quantity_value_from_payload(
             getattr(payload, "individual_exposure_duration", None)
         ),
@@ -260,7 +261,7 @@ def create_study(session: Session, payload: StudyCreate) -> Study:
     return study
 
 
-def get_study_by_id(session: Session, study_id: int) -> Optional[Study]:
+def get_study_by_id(session: Session, study_id: int) -> Study | None:
     # SQLAlchemy 1.4/2.0: Session.get is preferred.
     try:
         return session.get(Study, study_id)
@@ -283,15 +284,13 @@ def delete_study(session: Session, study_id: int, *, storage) -> bool:
     for experiment in list(study.experiment or []):
         delete_experiment_row(session, experiment, storage=storage)
     # Study_annotator assoc rows (no cascade on the generated relationship)
-    session.query(StudyAnnotator).filter_by(
-        Study_id=study.id
-    ).delete(synchronize_session="fetch")
+    session.query(StudyAnnotator).filter_by(Study_id=study.id).delete(synchronize_session="fetch")
     session.delete(study)
     session.commit()
     return True
 
 
-def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Optional[Study]:
+def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Study | None:
     study = get_study_by_id(session, study_id)
     if study is None:
         return None
@@ -307,9 +306,9 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Optional
         # so reassigning the association_proxy triggers a NULLify on the
         # composite-PK child rows and crashes. Delete the rows at the
         # SQL layer, expire the relationship, then append the new list.
-        session.query(StudyAnnotator).filter(
-            StudyAnnotator.Study_id == study.id
-        ).delete(synchronize_session="fetch")
+        session.query(StudyAnnotator).filter(StudyAnnotator.Study_id == study.id).delete(
+            synchronize_session="fetch"
+        )
         session.flush()
         session.expire(study, ["annotator_rel"])
         for a in patch.annotator:
