@@ -1,5 +1,8 @@
+// Shared client-side UI behaviors, loaded on every page: the mobile nav and
+// user menu, the submission overflow menus, and the modals. Plain JS, no build
+// step, since each is pure UI state with no server round trip.
+
 // Toggle a menu open/closed with a button, closing on outside-click and Escape.
-// Plain client-side JS, since this is pure UI state with no server round trip.
 const wireToggle = (root, trigger, openClass) => {
   if (!root || !trigger) return;
 

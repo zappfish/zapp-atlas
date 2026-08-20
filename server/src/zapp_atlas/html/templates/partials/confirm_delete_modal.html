@@ -1,7 +1,7 @@
 {#
   Reusable delete-confirmation dialog, shared by every removable row (fish tank,
   chemical cabinet). A trash button carries data-delete-url and data-delete-name;
-  nav.js fills this dialog from them and opens it. The form posts to the url.
+  ui.js fills this dialog from them and opens it. The form posts to the url.
 #}
 <dialog class="modal" id="confirm-delete-modal" aria-labelledby="confirm-delete-title">
   <form class="modal__panel" method="post" data-confirm-form>

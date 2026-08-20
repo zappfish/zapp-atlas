@@ -263,7 +263,7 @@
 .mysub__btn .icon { width: 0.85rem; height: 0.85rem; color: var(--muted); }
 
 /* Overflow menu (Duplicate, Delete): native <details>, closed on outside
-   click by nav.js. The toggle reuses .mysub__btn as an icon-only square. */
+   click by ui.js. The toggle reuses .mysub__btn as an icon-only square. */
 .sub-menu { position: relative; }
 .sub-menu__toggle { padding: 0.4rem; list-style: none; }
 .sub-menu__toggle::-webkit-details-marker { display: none; }
