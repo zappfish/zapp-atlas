@@ -203,6 +203,35 @@ def test_store_orcid_identity_updates_existing_identity() -> None:
     assert second.name == "Dr. Sofia Garcia"
 
 
+def test_store_orcid_identity_keeps_prefetched_name_when_login_has_none() -> None:
+    # An admin adding this person to a group may have pre-populated their
+    # identity from the ORCID public API (#142); a token payload that carries
+    # no name must not erase that.
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    init_db(engine)
+    Session = sessionmaker(bind=engine)
+
+    with Session() as session:
+        session.add(OrcidIdentity(orcid_id="0000-0001-2345-6789", name="Sofia Garcia"))
+        session.commit()
+
+        identity = store_orcid_identity(
+            session,
+            {
+                "access_token": "access-token",
+                "token_type": "bearer",
+                "scope": "/authenticate",
+                "orcid": "0000-0001-2345-6789",
+            },
+        )
+
+    assert identity.name == "Sofia Garcia"
+
+
 def test_orcid_identity_table_is_registered_with_init_db() -> None:
     engine = create_engine(
         "sqlite:///:memory:",

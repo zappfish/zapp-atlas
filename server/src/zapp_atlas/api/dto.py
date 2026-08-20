@@ -49,6 +49,8 @@ class MemberIn(BaseModel):
 class MemberOut(_FromAttributes):
     id: int
     member: str
+    # Display name from OrcidIdentity; null until one is known for this ORCID.
+    name: str | None = None
     role: ResearchGroupRoleEnum
     created_at: datetime | None
     updated_at: datetime | None

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import secrets
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -13,7 +14,6 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.auth.models import OrcidIdentity
 from zapp_atlas.settings import AppSettings, load_settings
-
 
 ORCID_STATE_COOKIE = "zapp_orcid_state"
 ORCID_AUTH_COOKIE = "zapp_orcid_auth"
@@ -48,9 +48,7 @@ def get_orcid_config(settings: AppSettings | None = None) -> OrcidConfig:
     client_id = settings.orcid_client_id
     client_secret = settings.orcid_client_secret
     if not client_id or not client_secret:
-        raise OrcidConfigError(
-            "ZAPP_ORCID_CLIENT_ID and ZAPP_ORCID_CLIENT_SECRET must be set"
-        )
+        raise OrcidConfigError("ZAPP_ORCID_CLIENT_ID and ZAPP_ORCID_CLIENT_SECRET must be set")
     return OrcidConfig(
         client_id=client_id,
         client_secret=client_secret,
@@ -125,10 +123,37 @@ def store_orcid_identity(session: Session, payload: dict[str, Any]) -> OrcidIden
         identity = OrcidIdentity(orcid_id=orcid_id)
         session.add(identity)
 
-    identity.name = payload.get("name")
+    # A payload without a name must not erase one we already hold — the row
+    # may have been pre-populated from the ORCID public API (#142).
+    name = payload.get("name")
+    if name:
+        identity.name = name
 
     session.commit()
     session.refresh(identity)
+    return identity
+
+
+def ensure_orcid_identity(
+    session: Session,
+    orcid_id: str,
+    name_lookup: Callable[[str], str | None] | None = None,
+) -> OrcidIdentity:
+    """Get or create the identity row for a bare ORCID, without committing.
+
+    An existing row is returned untouched — its name may come from the
+    person's own login, which outranks anything ``name_lookup`` would find, so
+    the lookup (typically a network call) only runs when a row is created.
+    """
+    identity = session.scalar(
+        select(OrcidIdentity)
+        .where(OrcidIdentity.orcid_id == orcid_id)
+        .order_by(OrcidIdentity.created_at)
+    )
+    if identity is None:
+        name = name_lookup(orcid_id) if name_lookup is not None else None
+        identity = OrcidIdentity(orcid_id=orcid_id, name=name)
+        session.add(identity)
     return identity
 
 

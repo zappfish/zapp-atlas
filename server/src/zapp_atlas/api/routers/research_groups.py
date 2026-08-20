@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.authz import (
@@ -74,7 +74,10 @@ def list_members_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> list[MemberOut]:
-    return [MemberOut.model_validate(m) for m in list_members(session, group_id)]
+    return [
+        MemberOut.model_validate(m).model_copy(update={"name": name})
+        for m, name in list_members(session, group_id)
+    ]
 
 
 @router.post(
@@ -86,10 +89,17 @@ def add_member_endpoint(
     group_id: int,
     payload: MemberIn,
     session: SessionDep,
+    request: Request,
     _: GroupAdmin,
 ) -> MemberOut:
-    membership = add_member(session, group_id, payload.member, payload.role.value)
-    return MemberOut.model_validate(membership)
+    membership, name = add_member(
+        session,
+        group_id,
+        payload.member,
+        payload.role.value,
+        name_lookup=request.app.state.orcid_name_lookup,
+    )
+    return MemberOut.model_validate(membership).model_copy(update={"name": name})
 
 
 @router.delete(
@@ -103,6 +113,4 @@ def remove_member_endpoint(
     _: GroupAdmin,
 ) -> None:
     if not remove_member(session, group_id, member_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found")
