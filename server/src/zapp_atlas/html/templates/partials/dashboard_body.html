@@ -12,7 +12,8 @@
         {{ group.name }}
         {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
       </h1>
-      <button class="dash-members" type="button">
+      <button class="dash-members" type="button"
+              data-open-modal="members-modal">
         {% include "icons/users.svg" %}
         Members
       </button>
@@ -20,11 +21,11 @@
 
     {# ---- Fish Tank ---- #}
     {% set fish_rows = [] %}
-    {% for f in fish_tank %}
+    {% for fish in fish_tank %}
       {% set _ = fish_rows.append({
-        "label": f.name, "sublabel": f.zf_id,
-        "geno": f if (f.background or f.mutations or f.transgenes) else None,
-        "delete_url": f.delete_url,
+        "label": fish.name, "sublabel": fish.zf_id,
+        "geno": fish if (fish.background or fish.mutations or fish.transgenes) else None,
+        "delete_url": fish.delete_url,
       }) %}
     {% endfor %}
     {% set section = {
@@ -42,17 +43,17 @@
        abbreviation, or manufacturer as those are added without a template
        change. Until then a row shows just its chemical id. #}
     {% set chem_rows = [] %}
-    {% for c in cabinet %}
-      {% set named = c.name if c.name else none %}
-      {% set label = (c.abbr ~ " · " ~ named) if (c.abbr and named)
-                     else (named or c.chemical_id) %}
+    {% for chemical in cabinet %}
+      {% set named = chemical.name if chemical.name else none %}
+      {% set label = (chemical.abbr ~ " · " ~ named) if (chemical.abbr and named)
+                     else (named or chemical.chemical_id) %}
       {% set _ = chem_rows.append({
         "label": label,
-        "sublabel": c.chemical_id if named else none,
-        "detail": c.manufacturer if c.manufacturer else none,
-        "edit_url": c.edit_url,
-        "edit_value": c.chemical_id,
-        "delete_url": c.delete_url,
+        "sublabel": chemical.chemical_id if named else none,
+        "detail": chemical.manufacturer if chemical.manufacturer else none,
+        "edit_url": chemical.edit_url,
+        "edit_value": chemical.chemical_id,
+        "delete_url": chemical.delete_url,
       }) %}
     {% endfor %}
     {% set section = {
@@ -96,7 +97,7 @@
       {% endif %}
 
       <ul class="mysub-list">
-        {% for s in submissions %}
+        {% for submission in submissions %}
           {% with context = "group" %}{% include "partials/sub_row.html" %}{% endwith %}
         {% else %}
           <li class="dash-empty dash-empty--panel">
@@ -110,6 +111,7 @@
       </ul>
     </section>
 
+    {% include "partials/members_modal.html" %}
     {% include "partials/confirm_delete_modal.html" %}
     {% include "partials/edit_chemical_modal.html" %}
   </div>

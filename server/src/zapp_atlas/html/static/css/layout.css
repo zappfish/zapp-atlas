@@ -195,6 +195,55 @@
   background: #fef2f2;
 }
 
+/* Members list + add form inside the members modal. */
+.member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.member {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+.member:last-child {
+  border-bottom: none;
+}
+.member__orcid {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  font-family: ui-monospace, Menlo, monospace;
+}
+.member__role {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.member__role--admin {
+  color: var(--teal);
+}
+.member-add {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+.member-add__orcid {
+  flex: 1;
+  min-width: 0;
+}
+.member-add__role {
+  flex: 0 0 auto;
+}
+
 
 /* ---- User menu (signed-in header chip + dropdown) ----------------------- */
 
@@ -469,7 +518,7 @@
     transform: translateY(-8px) rotate(-45deg);
   }
 
-  /* Drop-down panel; shown when nav.js sets .is-nav-open. */
+  /* Drop-down panel; shown when ui.js sets .is-nav-open. */
   .site-nav {
     display: none;
     position: absolute;
