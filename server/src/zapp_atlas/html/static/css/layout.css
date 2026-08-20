@@ -214,10 +214,19 @@
 .member:last-child {
   border-bottom: none;
 }
-.member__orcid {
+.member__who {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.member__name {
   color: var(--ink);
+}
+.member__who .member__orcid {
+  font-size: var(--text-xs);
+  color: var(--muted);
   font-family: ui-monospace, Menlo, monospace;
 }
 .member__role {

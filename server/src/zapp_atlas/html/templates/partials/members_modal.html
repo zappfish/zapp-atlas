@@ -10,7 +10,14 @@
     <ul class="member-list">
       {% for member in members %}
         <li class="member">
-          <span class="member__orcid">{{ member.orcid }}</span>
+          <span class="member__who">
+            {% if member.name %}
+              <span class="member__name">{{ member.name }}</span>
+              <span class="member__orcid">{{ member.orcid }}</span>
+            {% else %}
+              <span class="member__name">{{ member.orcid }}</span>
+            {% endif %}
+          </span>
           <span class="member__role member__role--{{ member.role }}">{{ member.role }}</span>
         </li>
       {% endfor %}

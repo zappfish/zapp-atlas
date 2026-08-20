@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.deps import get_app_settings, get_session
 from zapp_atlas.auth.deps import CurrentIdentity
+from zapp_atlas.html import dashboard_service
 from zapp_atlas.html.templating import templates
 from zapp_atlas.settings import AppSettings
 
@@ -25,80 +26,6 @@ def _redirect(request: Request, target: str) -> Response:
 
 def _login_redirect(request: Request) -> Response:
     return _redirect(request, "/login")
-
-
-def _membership(session: Session, identity, group_id: int):
-    # The caller's membership row, or None. Unknown group and non-membership
-    # both read as None, so a caller can't probe which groups exist.
-    from zapp_atlas.api.authz import orcid_curie
-    from zapp_atlas.schema.sqla import ResearchGroup, ResearchGroupMember
-
-    if session.get(ResearchGroup, group_id) is None:
-        return None
-    return (
-        session.query(ResearchGroupMember)
-        .filter_by(research_group=group_id, member=orcid_curie(identity.orcid_id))
-        .one_or_none()
-    )
-
-
-def _group_view(session: Session, identity, group_id: int) -> dict | None:
-    """The dashboard context for a group, or None if the caller is not a
-    member.
-    """
-    from zapp_atlas.api.authz import ResearchGroupRoleEnum
-    from zapp_atlas.api.services import cabinet, fish_tank, research_groups
-    from zapp_atlas.schema.sqla import ResearchGroup
-
-    membership = _membership(session, identity, group_id)
-    if membership is None:
-        return None
-    group = session.get(ResearchGroup, group_id)
-    is_admin = membership.role == ResearchGroupRoleEnum.admin.value
-
-    tank = fish_tank.list_entries(session, group_id)
-    chemicals = cabinet.list_entries(session, group_id)
-    groups = research_groups.list_groups_for(session, identity)
-    members = research_groups.list_members(session, group_id)
-    return {
-        "groups": groups,
-        "my_submissions_count": 0,
-        "is_admin": is_admin,
-        "members": [
-            {"orcid": member.member, "role": member.role} for member in members
-        ],
-        "group": {
-            "id": group.id,
-            "name": group.name,
-            "is_default": False,
-            "chemical_count": len(chemicals),
-            "fish_line_count": len(tank),
-            "submission_count": 0,
-        },
-        "fish_tank": [
-            {
-                "name": entry.fish.name,
-                "zf_id": entry.fish.zfin_id,
-                "delete_url": (
-                    f"/research-groups/{group_id}/fish-tank/{entry.id}/delete"
-                ),
-            }
-            for entry in tank
-        ],
-        "cabinet": [
-            {
-                "chemical_id": entry.chemical_id,
-                "edit_url": (
-                    f"/research-groups/{group_id}/chemical-cabinet/{entry.id}/edit"
-                ),
-                "delete_url": (
-                    f"/research-groups/{group_id}/chemical-cabinet/{entry.id}/delete"
-                ),
-            }
-            for entry in chemicals
-        ],
-        "submissions": [],
-    }
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -165,7 +92,7 @@ def research_group_page(
     if identity is None:
         return _login_redirect(request)
 
-    view = _group_view(session, identity, group_id)
+    view = dashboard_service.group_view(session, identity, group_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Research group not found")
     template = _dash_template(
@@ -185,7 +112,7 @@ def add_fish_line(
 ) -> Response:
     if identity is None:
         return _login_redirect(request)
-    if not _membership(session, identity, group_id):
+    if not dashboard_service.membership(session, identity, group_id):
         raise HTTPException(status_code=404, detail="Research group not found")
 
     from pydantic import ValidationError
@@ -214,7 +141,7 @@ def delete_fish_line(
 ) -> Response:
     if identity is None:
         return _login_redirect(request)
-    if not _membership(session, identity, group_id):
+    if not dashboard_service.membership(session, identity, group_id):
         raise HTTPException(status_code=404, detail="Research group not found")
 
     from zapp_atlas.api.services.fish_tank import delete_entry
@@ -236,7 +163,7 @@ def add_chemical(
 ) -> Response:
     if identity is None:
         return _login_redirect(request)
-    if not _membership(session, identity, group_id):
+    if not dashboard_service.membership(session, identity, group_id):
         raise HTTPException(status_code=404, detail="Research group not found")
 
     from zapp_atlas.api.services.cabinet import add_entry
@@ -258,7 +185,7 @@ def delete_chemical(
 ) -> Response:
     if identity is None:
         return _login_redirect(request)
-    if not _membership(session, identity, group_id):
+    if not dashboard_service.membership(session, identity, group_id):
         raise HTTPException(status_code=404, detail="Research group not found")
 
     from zapp_atlas.api.services.cabinet import delete_entry
@@ -282,7 +209,7 @@ def edit_chemical(
 ) -> Response:
     if identity is None:
         return _login_redirect(request)
-    if not _membership(session, identity, group_id):
+    if not dashboard_service.membership(session, identity, group_id):
         raise HTTPException(status_code=404, detail="Research group not found")
 
     from zapp_atlas.api.services.cabinet import update_entry
@@ -311,7 +238,7 @@ def add_group_member(
     from zapp_atlas.api.dto import MemberIn
     from zapp_atlas.api.services.research_groups import add_member
 
-    membership = _membership(session, identity, group_id)
+    membership = dashboard_service.membership(session, identity, group_id)
     # Non-members read as 404; a member who is not an admin is forbidden.
     if membership is None:
         raise HTTPException(status_code=404, detail="Research group not found")
