@@ -11,16 +11,15 @@ from sqlalchemy.orm import Session
 from zapp_atlas.auth.models import OrcidIdentity
 
 _ORCID_PREFIX = "ORCID:"
-_ZFIN_PREFIX = "ZFIN:"
 
 
-def _fish_slug(entry) -> str:
-    """A readable path segment for a tank entry: the id (which the route reads
-    back) followed by a slugified ZFIN id for legibility. Only the leading id
-    is significant; the rest is cosmetic.
+def _record_slug(entry_id: int, label: str) -> str:
+    """A readable path segment "<id>-<label>": the id (which the route reads
+    back) followed by a slugified label for legibility. Only the leading id is
+    significant; the rest is cosmetic.
     """
-    zfin = entry.fish.zfin_id.removeprefix(_ZFIN_PREFIX).lower()
-    return f"{entry.id}-{zfin}"
+    slug = label.split(":", 1)[-1].lower().replace(" ", "-")
+    return f"{entry_id}-{slug}"
 
 
 def membership(session: Session, identity, group_id: int):
@@ -119,7 +118,9 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
                 "name": entry.fish.name,
                 "zf_id": entry.fish.zfin_id,
                 "detail_url": (
-                    f"/research-groups/{group_id}/fish-tank/{_fish_slug(entry)}"
+                    "/research-groups/"
+                    f"{group_id}/fish-tank/"
+                    f"{_record_slug(entry.id, entry.fish.zfin_id)}"
                 ),
                 "delete_url": (
                     f"/research-groups/{group_id}/fish-tank/{entry.id}/delete"
@@ -130,6 +131,11 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
         "cabinet": [
             {
                 "chemical_id": entry.chemical_id,
+                "detail_url": (
+                    "/research-groups/"
+                    f"{group_id}/chemical-cabinet/"
+                    f"{_record_slug(entry.id, entry.chemical_id)}"
+                ),
                 "edit_url": (
                     f"/research-groups/{group_id}/chemical-cabinet/{entry.id}/edit"
                 ),
@@ -143,29 +149,65 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
     }
 
 
+def _detail_shell(session: Session, identity, group_id: int) -> dict | None:
+    """The sidebar and group context a record detail page needs, or None if the
+    caller is not a member.
+    """
+    from zapp_atlas.api.services import research_groups
+    from zapp_atlas.schema.sqla import ResearchGroup
+
+    if membership(session, identity, group_id) is None:
+        return None
+    group = session.get(ResearchGroup, group_id)
+    return {
+        "groups": research_groups.list_groups_for(session, identity),
+        "my_submissions_count": 0,
+        "group": {"id": group.id, "name": group.name},
+    }
+
+
 def fish_detail_view(
     session: Session, identity, group_id: int, entry_id: int
 ) -> dict | None:
     """One fish tank entry with its group, or None if the caller is not a
     member or the entry is not in this group.
     """
-    from zapp_atlas.api.services import fish_tank, research_groups
-    from zapp_atlas.schema.sqla import ResearchGroup
+    from zapp_atlas.api.services import fish_tank
 
-    if membership(session, identity, group_id) is None:
+    shell = _detail_shell(session, identity, group_id)
+    if shell is None:
         return None
     entry = fish_tank.get_entry(session, group_id, entry_id)
     if entry is None:
         return None
 
-    group = session.get(ResearchGroup, group_id)
-    return {
-        "groups": research_groups.list_groups_for(session, identity),
-        "my_submissions_count": 0,
-        "group": {"id": group.id, "name": group.name},
+    return shell | {
         "fish": {
             "name": entry.fish.name,
             "zf_id": entry.fish.zfin_id,
+            "added_on": entry.created_at,
+        },
+    }
+
+
+def chemical_detail_view(
+    session: Session, identity, group_id: int, entry_id: int
+) -> dict | None:
+    """One chemical cabinet entry with its group, or None if the caller is not
+    a member or the entry is not in this group.
+    """
+    from zapp_atlas.api.services import cabinet
+
+    shell = _detail_shell(session, identity, group_id)
+    if shell is None:
+        return None
+    entry = cabinet.get_entry(session, group_id, entry_id)
+    if entry is None:
+        return None
+
+    return shell | {
+        "chemical": {
+            "chemical_id": entry.chemical_id,
             "added_on": entry.created_at,
         },
     }

@@ -19,6 +19,10 @@
       </button>
     </header>
 
+    {% if notice %}
+      <div class="toast" role="status" data-toast>{{ notice }}</div>
+    {% endif %}
+
     {# ---- Fish Tank ---- #}
     {% set fish_rows = [] %}
     {% for fish in fish_tank %}
@@ -37,7 +41,7 @@
       "empty_text": "Add a fish line to start building this group's tank.",
     } %}
     {% include "partials/dash_section.html" %}
-    {% include "partials/add_fish_modal.html" %}
+    {% include "modals/add_fish.html" %}
 
     {# ---- Chemical Cabinet ---- #}
     {# Each field is shown only when present, so cabinet entries gain a name,
@@ -52,6 +56,7 @@
         "label": label,
         "sublabel": chemical.chemical_id if named else none,
         "detail": chemical.manufacturer if chemical.manufacturer else none,
+        "detail_url": chemical.detail_url,
         "edit_url": chemical.edit_url,
         "edit_value": chemical.chemical_id,
         "delete_url": chemical.delete_url,
@@ -65,7 +70,7 @@
       "empty_text": "Add a chemical to this group's cabinet.",
     } %}
     {% include "partials/dash_section.html" %}
-    {% include "partials/add_chemical_modal.html" %}
+    {% include "modals/add_chemical.html" %}
 
     {# ---- Submissions ---- #}
     <section class="dash-submissions" id="submissions">
@@ -112,8 +117,8 @@
       </ul>
     </section>
 
-    {% include "partials/members_modal.html" %}
-    {% include "partials/confirm_delete_modal.html" %}
-    {% include "partials/edit_chemical_modal.html" %}
+    {% include "modals/members.html" %}
+    {% include "modals/confirm_delete.html" %}
+    {% include "modals/edit_chemical.html" %}
   </div>
 </div>

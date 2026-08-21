@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Annotated
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -28,11 +29,23 @@ def _login_redirect(request: Request) -> Response:
     return _redirect(request, "/login")
 
 
+def _group_redirect(request: Request, group_id: int, notice: str = "") -> Response:
+    # Back to the group page, optionally carrying a notice for a duplicate or
+    # other benign conflict so the page can show it instead of an error.
+    target = f"/research-groups/{group_id}"
+    if notice:
+        target += "?" + urlencode({"notice": notice})
+    return _redirect(request, target)
+
+
 def _leading_id(slug: str) -> int | None:
     # A record slug is "<id>-<label>"; the leading integer is the real id and
     # the label is cosmetic. Returns None when the slug does not start with one.
     head = slug.split("-", 1)[0]
     return int(head) if head.isdigit() else None
+
+
+_CHEMICAL_EXISTS = "Chemical already exists in this research group."
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -95,6 +108,7 @@ def research_group_page(
     identity: CurrentIdentity,
     session: Annotated[Session, Depends(get_session)],
     group_id: int,
+    notice: str = "",
 ) -> Response:
     if identity is None:
         return _login_redirect(request)
@@ -102,6 +116,7 @@ def research_group_page(
     view = dashboard_service.group_view(session, identity, group_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Research group not found")
+    view["notice"] = notice
     template = _dash_template(
         request, "dashboard.html", "partials/dashboard_body.html"
     )
@@ -122,7 +137,6 @@ def fish_detail_page(
     if identity is None:
         return _login_redirect(request)
 
-    # The slug is "<id>-<zfin>"; only the leading id identifies the entry.
     entry_id = _leading_id(entry_slug)
     if entry_id is None:
         raise HTTPException(status_code=404, detail="Fish line not found")
@@ -133,6 +147,34 @@ def fish_detail_page(
         raise HTTPException(status_code=404, detail="Fish line not found")
     template = _dash_template(
         request, "fish_detail.html", "partials/fish_detail_body.html"
+    )
+    return templates.TemplateResponse(request, template, view)
+
+
+@router.get(
+    "/research-groups/{group_id}/chemical-cabinet/{entry_slug}",
+    response_class=HTMLResponse,
+)
+def chemical_detail_page(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    entry_slug: str,
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+
+    entry_id = _leading_id(entry_slug)
+    if entry_id is None:
+        raise HTTPException(status_code=404, detail="Chemical not found")
+    view = dashboard_service.chemical_detail_view(
+        session, identity, group_id, entry_id
+    )
+    if view is None:
+        raise HTTPException(status_code=404, detail="Chemical not found")
+    template = _dash_template(
+        request, "chemical_detail.html", "partials/chemical_detail_body.html"
     )
     return templates.TemplateResponse(request, template, view)
 
@@ -160,8 +202,11 @@ def add_fish_line(
         fish = FishRef(zfin_id=zfin_id.strip(), name=name.strip())
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail="Invalid ZFIN id") from exc
-    add_entry(session, group_id, fish)
-    return _redirect(request, f"/research-groups/{group_id}")
+    try:
+        add_entry(session, group_id, fish)
+    except HTTPException as exc:
+        return _group_redirect(request, group_id, exc.detail)
+    return _group_redirect(request, group_id)
 
 
 @router.post(
@@ -204,8 +249,11 @@ def add_chemical(
 
     from zapp_atlas.api.services.cabinet import add_entry
 
-    add_entry(session, group_id, chemical_id.strip())
-    return _redirect(request, f"/research-groups/{group_id}")
+    try:
+        add_entry(session, group_id, chemical_id.strip())
+    except HTTPException as exc:
+        return _group_redirect(request, group_id, _CHEMICAL_EXISTS)
+    return _group_redirect(request, group_id)
 
 
 @router.post(
@@ -250,12 +298,15 @@ def edit_chemical(
 
     from zapp_atlas.api.services.cabinet import update_entry
 
-    updated = update_entry(
-        session, group_id, entry_id, chemical_id=chemical_id.strip()
-    )
+    try:
+        updated = update_entry(
+            session, group_id, entry_id, chemical_id=chemical_id.strip()
+        )
+    except HTTPException as exc:
+        return _group_redirect(request, group_id, _CHEMICAL_EXISTS)
     if updated is None:
         raise HTTPException(status_code=404, detail="Chemical not found")
-    return _redirect(request, f"/research-groups/{group_id}")
+    return _group_redirect(request, group_id)
 
 
 @router.post("/research-groups/{group_id}/members", response_class=HTMLResponse)
@@ -287,8 +338,11 @@ def add_group_member(
         payload = MemberIn(member=member.strip(), role=role)
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail="Invalid member") from exc
-    add_member(session, group_id, payload.member, payload.role.value)
-    return _redirect(request, f"/research-groups/{group_id}")
+    try:
+        add_member(session, group_id, payload.member, payload.role.value)
+    except HTTPException as exc:
+        return _group_redirect(request, group_id, exc.detail)
+    return _group_redirect(request, group_id)
 
 
 @router.post(

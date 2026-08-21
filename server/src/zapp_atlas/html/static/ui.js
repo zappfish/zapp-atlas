@@ -87,3 +87,12 @@ document.addEventListener("click", (e) => {
   // A click on the dialog element itself (not its panel) is the backdrop.
   if (e.target.matches("dialog.modal")) e.target.close();
 });
+
+// Toast: auto-dismiss the transient notice a few seconds after it appears.
+const toast = document.querySelector("[data-toast]");
+if (toast) {
+  setTimeout(() => {
+    toast.classList.add("toast--hiding");
+    toast.addEventListener("transitionend", () => toast.remove());
+  }, 4000);
+}
