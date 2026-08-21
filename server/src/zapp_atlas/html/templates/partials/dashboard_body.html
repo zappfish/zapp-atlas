@@ -25,6 +25,7 @@
       {% set _ = fish_rows.append({
         "label": fish.name, "sublabel": fish.zf_id,
         "geno": fish if (fish.background or fish.mutations or fish.transgenes) else None,
+        "detail_url": fish.detail_url,
         "delete_url": fish.delete_url,
       }) %}
     {% endfor %}

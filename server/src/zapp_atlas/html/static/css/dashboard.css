@@ -438,3 +438,81 @@
 .dash-more-toggle:not(:checked) ~ .dash-rows .dash-row-slot.is-extra { display: none; }
 .dash-more-toggle:checked ~ .dash-more .dash-more__show { display: none; }
 .dash-more-toggle:checked ~ .dash-more .dash-more__hide { display: inline; }
+
+/* ---- Record detail pages (fish, chemical) ------------------------------- */
+/* The detail page sets its own vertical rhythm, so the shared column gap is
+   removed here and each step spaced explicitly. */
+.dash-main--detail {
+  gap: 0;
+}
+.dash-main--detail .dash-header {
+  padding-bottom: 1rem;
+}
+.dash-main--detail .detail-summary {
+  margin-top: 1.25rem;
+}
+.detail-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.875rem;
+  margin-bottom: 1.25rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+}
+.detail-back .icon { width: 0.75rem; height: 0.75rem; }
+.detail-back:hover { color: var(--teal); }
+
+/* Record summary: a compact multi-column layout that stacks on narrow screens.
+   No card or heavy border; a hairline under the heading gives light structure. */
+.detail-summary {
+  max-width: 52rem;
+}
+.detail-heading {
+  margin: 0 0 0.85rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.detail-cols {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem 2rem;
+}
+.detail-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.detail-col__label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.detail-col__value {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--ink);
+  word-break: break-word;
+}
+.detail-col__value--mono {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 640px) {
+  .detail-cols {
+    grid-template-columns: 1fr;
+  }
+}

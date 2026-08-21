@@ -37,9 +37,14 @@
     {% endif %}
   </div>
   <div class="dash-row__actions">
-    <button class="dash-icon-btn" type="button" aria-label="View {{ item.label }}">
-      {% include "icons/eye.svg" %}
-    </button>
+    {% if item.detail_url %}
+      <a class="dash-icon-btn" aria-label="View {{ item.label }}"
+         href="{{ item.detail_url }}"
+         hx-get="{{ item.detail_url }}"
+         hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true">
+        {% include "icons/eye.svg" %}
+      </a>
+    {% endif %}
     {% if item.edit_url %}
       <button class="dash-icon-btn" type="button"
               aria-label="Edit {{ item.label }}"

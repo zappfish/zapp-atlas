@@ -11,6 +11,16 @@ from sqlalchemy.orm import Session
 from zapp_atlas.auth.models import OrcidIdentity
 
 _ORCID_PREFIX = "ORCID:"
+_ZFIN_PREFIX = "ZFIN:"
+
+
+def _fish_slug(entry) -> str:
+    """A readable path segment for a tank entry: the id (which the route reads
+    back) followed by a slugified ZFIN id for legibility. Only the leading id
+    is significant; the rest is cosmetic.
+    """
+    zfin = entry.fish.zfin_id.removeprefix(_ZFIN_PREFIX).lower()
+    return f"{entry.id}-{zfin}"
 
 
 def membership(session: Session, identity, group_id: int):
@@ -108,6 +118,9 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
             {
                 "name": entry.fish.name,
                 "zf_id": entry.fish.zfin_id,
+                "detail_url": (
+                    f"/research-groups/{group_id}/fish-tank/{_fish_slug(entry)}"
+                ),
                 "delete_url": (
                     f"/research-groups/{group_id}/fish-tank/{entry.id}/delete"
                 ),
@@ -127,4 +140,32 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
             for entry in chemicals
         ],
         "submissions": [],
+    }
+
+
+def fish_detail_view(
+    session: Session, identity, group_id: int, entry_id: int
+) -> dict | None:
+    """One fish tank entry with its group, or None if the caller is not a
+    member or the entry is not in this group.
+    """
+    from zapp_atlas.api.services import fish_tank, research_groups
+    from zapp_atlas.schema.sqla import ResearchGroup
+
+    if membership(session, identity, group_id) is None:
+        return None
+    entry = fish_tank.get_entry(session, group_id, entry_id)
+    if entry is None:
+        return None
+
+    group = session.get(ResearchGroup, group_id)
+    return {
+        "groups": research_groups.list_groups_for(session, identity),
+        "my_submissions_count": 0,
+        "group": {"id": group.id, "name": group.name},
+        "fish": {
+            "name": entry.fish.name,
+            "zf_id": entry.fish.zfin_id,
+            "added_on": entry.created_at,
+        },
     }

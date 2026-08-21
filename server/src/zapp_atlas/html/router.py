@@ -28,6 +28,13 @@ def _login_redirect(request: Request) -> Response:
     return _redirect(request, "/login")
 
 
+def _leading_id(slug: str) -> int | None:
+    # A record slug is "<id>-<label>"; the leading integer is the real id and
+    # the label is cosmetic. Returns None when the slug does not start with one.
+    head = slug.split("-", 1)[0]
+    return int(head) if head.isdigit() else None
+
+
 @router.get("/", response_class=HTMLResponse)
 def index_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "index.html")
@@ -97,6 +104,35 @@ def research_group_page(
         raise HTTPException(status_code=404, detail="Research group not found")
     template = _dash_template(
         request, "dashboard.html", "partials/dashboard_body.html"
+    )
+    return templates.TemplateResponse(request, template, view)
+
+
+@router.get(
+    "/research-groups/{group_id}/fish-tank/{entry_slug}",
+    response_class=HTMLResponse,
+)
+def fish_detail_page(
+    request: Request,
+    identity: CurrentIdentity,
+    session: Annotated[Session, Depends(get_session)],
+    group_id: int,
+    entry_slug: str,
+) -> Response:
+    if identity is None:
+        return _login_redirect(request)
+
+    # The slug is "<id>-<zfin>"; only the leading id identifies the entry.
+    entry_id = _leading_id(entry_slug)
+    if entry_id is None:
+        raise HTTPException(status_code=404, detail="Fish line not found")
+    view = dashboard_service.fish_detail_view(
+        session, identity, group_id, entry_id
+    )
+    if view is None:
+        raise HTTPException(status_code=404, detail="Fish line not found")
+    template = _dash_template(
+        request, "fish_detail.html", "partials/fish_detail_body.html"
     )
     return templates.TemplateResponse(request, template, view)
 
