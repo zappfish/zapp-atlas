@@ -35,11 +35,12 @@
           <span class="dash-group__caret" aria-hidden="true">&rsaquo;</span>
         </a>
         {% if is_open %}
-          {# Same-page scroll to the section — a bare fragment, no reload. #}
+          {# Absolute so a detail page returns to the group page's section,
+             rather than appending the hash to the detail URL. #}
           <ul class="dash-subnav">
-            <li><a href="#fish-tank">Fish Tank</a></li>
-            <li><a href="#chemical-cabinet">Chemical Cabinet</a></li>
-            <li><a href="#submissions">Submissions</a></li>
+            <li><a href="/research-groups/{{ group.id }}#fish-tank">Fish Tank</a></li>
+            <li><a href="/research-groups/{{ group.id }}#chemical-cabinet">Chemical Cabinet</a></li>
+            <li><a href="/research-groups/{{ group.id }}#submissions">Submissions</a></li>
           </ul>
         {% endif %}
       </li>
