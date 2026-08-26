@@ -1,0 +1,15 @@
+{#
+  Shown when the ORCID round-trip fails: the user denied access, ORCID sent
+  no authorization code, the CSRF state did not match, or the token exchange
+  errored. Extends base.html so a failed login still looks like the rest of
+  the site.
+#}
+{% extends "base.html" %}
+
+{% block title %}ORCID login failed &mdash; ZAPP Atlas{% endblock %}
+
+{% block content %}
+  <h1>ORCID login failed</h1>
+  <p>{{ message }}</p>
+  <p><a href="/login">Return to login</a></p>
+{% endblock %}

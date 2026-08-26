@@ -11,6 +11,7 @@ primary_region = 'sjc'
 [env]
   ZAPP_DB_PATH = '/data/zapp.db'
   ZAPP_UPLOAD_DIR = '/data/uploads'
+  ZAPP_ORCID_REDIRECT_URI = 'https://atlas.zappfish.org/registered'
 
 [[mounts]]
   source = 'zapp_data'

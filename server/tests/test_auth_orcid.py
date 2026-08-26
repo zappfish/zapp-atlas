@@ -18,16 +18,35 @@ from zapp_atlas.db import init_db
 from zapp_atlas.settings import DEFAULT_ORCID_REDIRECT_URI
 
 
-def test_login_page_renders(client: TestClient) -> None:
+def test_login_page_offers_sign_in_when_signed_out(client: TestClient) -> None:
     res = client.get("/login")
 
     assert res.status_code == 200
     assert "Sign in with ORCID" in res.text
     assert "/auth/orcid/login" in res.text
-    assert "/auth/orcid/logout" in res.text
-    assert "Log out" in res.text
+    # Signing out is meaningless when signed out; don't offer it.
+    assert "/auth/orcid/logout" not in res.text
     assert "auth_id=" not in res.text
-    assert 'hx-get="/auth/orcid/status"' in res.text
+
+
+def test_login_page_shows_the_signed_in_user(client: TestClient) -> None:
+    client.app.state.settings.dev_auth = True
+    client.post(
+        "/auth/dev/login",
+        data={"name": "Ada Lovelace", "orcid_id": "0000-0001-1111-2222"},
+    )
+
+    res = client.get("/login")
+
+    assert res.status_code == 200
+    assert "Ada Lovelace" in res.text
+    assert "0000-0001-1111-2222" in res.text
+    assert "/auth/orcid/logout" in res.text
+    # Already signed in — don't also offer to sign in.
+    assert "Sign in with ORCID" not in res.text
+    assert "/auth/dev/login" not in res.text
+    # The state is in the page itself, not fetched afterwards.
+    assert 'hx-get="/auth/orcid/status"' not in res.text
 
 
 def test_orcid_login_redirects_to_authorize(client: TestClient) -> None:
@@ -99,6 +118,37 @@ def test_registered_callback_rejects_state_mismatch(
 
     assert res.status_code == 400
     assert "state did not match" in res.text
+
+
+def test_dev_login_is_absent_by_default(client: TestClient) -> None:
+    assert client.app.state.settings.dev_auth is False
+
+    assert "/auth/dev/login" not in client.get("/login").text
+
+    res = client.post("/auth/dev/login", follow_redirects=False)
+    assert res.status_code == 404
+    assert ORCID_AUTH_COOKIE not in res.cookies
+
+
+def test_dev_login_signs_in_when_enabled(client: TestClient) -> None:
+    client.app.state.settings.dev_auth = True
+
+    assert "/auth/dev/login" in client.get("/login").text
+
+    res = client.post(
+        "/auth/dev/login",
+        data={"name": "Josiah Carberry", "orcid_id": "0000-0002-1825-0097"},
+        follow_redirects=False,
+    )
+
+    assert res.status_code == 303
+    assert res.headers["location"] == "/login"
+    assert ORCID_AUTH_COOKIE in res.cookies
+
+    status_res = client.get("/auth/orcid/status")
+    assert status_res.status_code == 200
+    assert "Josiah Carberry" in status_res.text
+    assert "0000-0002-1825-0097" in status_res.text
 
 
 def test_orcid_logout_clears_auth_cookie(client: TestClient) -> None:

@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from sqlalchemy import DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from zapp_atlas.schema._gen.sqla import Base
+from zapp_atlas.schema.sqla import Base
 
 
 def _utcnow() -> datetime:

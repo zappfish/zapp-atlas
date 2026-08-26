@@ -259,6 +259,70 @@ classes:
       name:
         required: true
 
+  # Operational entities (research groups and what they keep on hand)
+  ResearchGroup:
+    is_a: ZappEntity
+    description: A named collection of users that have shared editing access.
+    slots:
+      - name
+    slot_usage:
+      name:
+        required: true
+
+  ResearchGroupMember:
+    is_a: ZappEntity
+    description: Membership of an ORCID identity in a research group.
+    annotations:
+      timestamped: true
+    slots:
+      - research_group
+      - member
+      - role
+    unique_keys:
+      membership_grain:
+        unique_key_slots:
+          - research_group
+          - member
+
+  ChemicalCabinetEntry:
+    is_a: ZappEntity
+    description: >-
+      A chemical a research group keeps on hand. Recorded once, then reused to
+      pre-fill curation instead of re-searching the chemical each time.
+    annotations:
+      timestamped: true
+    slots:
+      - research_group
+      - chemical_id
+    slot_usage:
+      chemical_id:
+        required: true
+    unique_keys:
+      cabinet_grain:
+        unique_key_slots:
+          - research_group
+          - chemical_id
+
+  FishTankEntry:
+    is_a: ZappEntity
+    description: >-
+      A fish line a research group maintains. Recorded once, then reused to
+      pre-fill curation instead of re-searching the line each time.
+    annotations:
+      timestamped: true
+    slots:
+      - research_group
+      - fish
+    slot_usage:
+      fish:
+        required: true
+        description: The fish line the group maintains.
+    unique_keys:
+      tank_grain:
+        unique_key_slots:
+          - research_group
+          - fish
+
   # Value objects (not entities, inlined)
   QuantityValue:
     description: >-
@@ -498,8 +562,29 @@ slots:
   phenotype_comments:
     description: Comments about the phenotype in the control image.
     range: string
+  research_group:
+    description: The research group an entry belongs to.
+    range: ResearchGroup
+    required: true
+  member:
+    description: ORCID identifier of a research group member.
+    range: uriorcurie
+    required: true
+    pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
+  role:
+    description: A member's permission level within a research group.
+    range: ResearchGroupRoleEnum
+    required: true
 
 enums:
+
+  ResearchGroupRoleEnum:
+    description: An enumeration of permission levels within a research group.
+    permissible_values:
+      admin:
+        description: Can manage group membership as well as the group's data.
+      member:
+        description: Can edit the group's data.
 
   SeverityEnum:
     description: An enumeration of severity levels for phenotypes.

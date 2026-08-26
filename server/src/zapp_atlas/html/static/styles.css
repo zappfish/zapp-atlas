@@ -1,0 +1,788 @@
+/*
+ * ZAPP Atlas — global styles for the server-rendered (htmx) surface.
+ * Loaded by base.html, so rules here apply site-wide across both surfaces.
+ */
+
+:root {
+  --teal: #357084;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --bg: #ffffff;
+  --white: #ffffff;
+  --line: #e5e7eb;
+  --btn-bg: #eef3f1;
+  --card-dark: #16323b;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale — use these instead of ad-hoc font sizes. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.85rem;
+  --text-base: 1rem;
+  --text-md: 1.15rem;
+  --text-lg: 1.5rem;
+  --text-2xl: 2rem;
+  --text-xl: 2.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Near-zero (not 0) keeps animationend/transitionend events firing for any
+   JS that depends on them, while removing perceptible motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--text-base);
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+/* Visible focus ring for keyboard users only (not on mouse click). */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* On the teal header/footer a teal ring would be invisible; use white there. */
+.site-header :focus-visible,
+.site-footer :focus-visible {
+  outline-color: var(--white);
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Header ------------------------------------------------------------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 84px;
+  padding: 0 2rem;
+  background: var(--teal);
+  color: var(--white);
+}
+
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.site-brand__name {
+  color: var(--white);
+  font-weight: 600;
+  font-size: var(--text-lg); /* ~24px */
+  letter-spacing: 0.02em;
+}
+
+.site-brand__logo {
+  height: 30px;
+  width: auto;
+  display: block;
+}
+
+/* One gap drives all spacing; links carry no horizontal padding so every
+   item is evenly spaced. */
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.site-nav a:not(.btn) {
+  color: var(--white);
+  text-decoration: none;
+  font-size: var(--text-base);
+  padding: 0.4rem 0;
+  transition: color 0.15s ease;
+}
+
+.site-nav a:not(.btn):hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.site-nav__divider {
+  width: 1px;
+  height: 1.5rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: var(--text-base);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Inline SVG icons (from templates/icons/) inherit the text color via
+   currentColor. Sized relative to the surrounding text. */
+.icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.btn .icon {
+  width: 0.7em;
+  height: 0.7em;
+}
+
+.site-nav .btn--primary {
+  background: var(--btn-bg);
+  color: var(--teal);
+  font-weight: 600;
+  border: none;
+}
+
+.site-nav .btn--primary:hover {
+  background: var(--white);
+}
+
+.site-nav .btn--outline {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: transparent;
+  color: var(--white);
+}
+
+.btn--outline:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Tooltip ------------------------------------------------------------ */
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--card-dark);
+  color: var(--white);
+  font-size: var(--text-xs);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--card-dark);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.tooltip:hover::after,
+.tooltip:hover::before,
+.tooltip:focus-within::after,
+.tooltip:focus-within::before {
+  opacity: 1;
+}
+
+/* ---- User menu (signed-in header chip + dropdown) ----------------------- */
+
+.user-menu {
+  position: relative;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.user-chip:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.user-chip__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--card-dark);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.user-chip__text {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.user-chip__greeting {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-chip__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.user-chip__caret {
+  font-size: var(--text-xs);
+  opacity: 0.8;
+}
+
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 220px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 76, 92, 0.15);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.is-user-open .user-dropdown {
+  display: block;
+}
+
+/* Scoped under .user-dropdown so these win over `.site-nav a` white text. */
+.user-dropdown .user-dropdown__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 1rem;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.user-dropdown .user-dropdown__item:hover {
+  background: var(--btn-bg);
+}
+
+/* Non-clickable info line (ORCID iD) above the actions. */
+.user-dropdown__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: #fafbfc;
+}
+
+.user-dropdown__info + .user-dropdown__info {
+  border-top: none;
+}
+
+.user-dropdown__label {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.user-dropdown__value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.user-dropdown form {
+  margin: 0;
+}
+
+.user-dropdown .user-dropdown__item[type="submit"] {
+  font: inherit;
+}
+
+/* ---- Coming soon placeholder ------------------------------------------- */
+
+.coming-soon {
+  text-align: center;
+  padding: 6rem 1.5rem;
+}
+
+.coming-soon h1 {
+  font-size: var(--text-xl);
+  margin: 0 0 0.5rem;
+}
+
+.coming-soon p {
+  color: var(--muted);
+  font-size: var(--text-md);
+  margin: 0;
+}
+
+/* ---- Login -------------------------------------------------------------- */
+
+.login {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+/* Logo stacked above the wordmark. */
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.login__logo {
+  height: 56px;
+  width: auto;
+  display: block;
+}
+
+.login__wordmark {
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.login__tagline {
+  margin: 0 0 2rem;
+  color: var(--muted);
+}
+
+.login-card {
+  align-self: stretch;
+  text-align: left;
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(15, 76, 92, 0.12);
+}
+
+/* Dark header strip at the top of the card. */
+.login-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-dark);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+}
+
+.login-card__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 22.5px;
+  margin: 0;
+  color: var(--white);
+}
+
+.login-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+}
+
+.login-card__badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a6ce39;
+}
+
+.login-card__body {
+  padding: 2rem 2rem 1.75rem;
+}
+
+.login-card__lead {
+  font-size: var(--text-sm);
+  line-height: 21.45px;
+  color: #5c7d8a;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.login-card__submit {
+  width: 100%;
+  justify-content: center;
+  font-size: var(--text-base);
+  padding: 0.85rem 1rem;
+}
+
+/* Lower note section with a tinted background and ORCID badge. */
+.login-card__note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px 24px;
+  background: rgba(0, 122, 140, 0.04);
+  border-top: 1px solid rgba(0, 80, 100, 0.13);
+}
+
+.login-card__note p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 21.45px;
+  color: #5c7d8a;
+}
+
+.login-card__note .icon--orcid {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: 0.1rem;
+}
+
+.login-card__register {
+  color: var(--teal);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.login-card__register:hover {
+  text-decoration: underline;
+}
+
+.login-card__note .icon--external {
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.25rem;
+  vertical-align: -0.1em;
+}
+
+/* ORCID-branded sign-in button. */
+.btn--orcid {
+  background: #a6ce39;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.btn--orcid:hover {
+  background: #9ac42f;
+}
+
+.btn--orcid .icon--orcid {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.login__terms {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  margin: 1.5rem 0 0;
+}
+
+.login-card--dev {
+  margin-top: 2rem;
+  background: #fafafa;
+}
+
+.login-dev-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.login-dev-form label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.login-dev-form input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+
+/* ---- Footer ------------------------------------------------------------- */
+
+.site-footer {
+  background: var(--teal);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 2.25rem 2rem 1rem;
+  font-size: var(--text-sm);
+}
+
+.site-footer__cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.site-footer__brand {
+  flex: 1 1 260px;
+}
+
+.site-footer__brand-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.site-footer__brand p {
+  max-width: 280px;
+}
+
+.site-footer__email {
+  margin-top: 0.5rem;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.site-footer__logo {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.site-footer__wordmark {
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--white);
+}
+
+.site-footer__links,
+.site-footer__contact {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.5rem;
+}
+
+.site-footer h2 {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 0.6rem;
+}
+
+.site-footer a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--white);
+  text-decoration: underline;
+}
+
+.site-footer p {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.site-footer__note {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: var(--text-xs);
+  margin: 4rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Mobile menu (hamburger) -------------------------------------------- */
+
+.site-nav__burger {
+  display: none;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .site-header {
+    position: relative;
+  }
+
+  .site-brand__logo {
+    height: 34px;
+  }
+
+  /* Bars fold into an X when open. */
+  .site-nav__burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .site-nav__burger span {
+    display: block;
+    height: 2px;
+    width: 26px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .is-nav-open .site-nav__burger span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .is-nav-open .site-nav__burger span:nth-child(2) {
+    opacity: 0;
+  }
+  .is-nav-open .site-nav__burger span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* Drop-down panel; shown when nav.js sets .is-nav-open. */
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.5rem 1.25rem 1.25rem;
+    background: var(--teal);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+
+  .is-nav-open .site-nav {
+    display: flex;
+  }
+
+  .site-nav a:not(.btn) {
+    padding: 0.7rem 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .site-nav__divider {
+    display: none;
+  }
+
+  .site-nav .btn {
+    align-self: center;
+    justify-content: center;
+    width: 180px;
+    padding: 0.65rem 1rem;
+  }
+
+  .site-nav .btn--primary {
+    margin-top: 1rem;
+  }
+
+  .site-nav .btn--outline {
+    margin-top: 0.75rem;
+    /* Brighten the border so it reads against the teal panel. */
+    border-color: var(--white);
+  }
+
+  .site-footer {
+    padding: 2rem 1.25rem 1rem;
+  }
+
+  .site-footer__cols {
+    gap: 2.5rem;
+  }
+}
+
+/* Once the footer columns stack into a single column, center them. */
+@media (max-width: 560px) {
+  .site-footer__cols {
+    text-align: center;
+  }
+
+  .site-footer__brand-row {
+    justify-content: center;
+  }
+
+  .site-footer__brand p {
+    max-width: none;
+  }
+
+  .site-footer__links,
+  .site-footer__contact {
+    align-items: center;
+  }
+}

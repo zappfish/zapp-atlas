@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ZAPP Atlas{% endblock %}</title>
+    {# styles.css is the single place styling edits happen #}
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/htmx.min.js"></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    {# ---- Header: site-wide navigation lives here ---- #}
+    <header class="site-header">
+      <a class="site-brand" href="/">
+        <img class="site-brand__logo" src="/static/logo-white.svg" alt="">
+        <span class="site-brand__name">ZAPP</span>
+      </a>
+
+      {# Mobile menu button; toggled by the script at the end of the body.
+         Shows a hamburger, becomes an X while the menu is open. #}
+      <button class="site-nav__burger" type="button"
+              aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav">
+        <a href="#">Resources</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact us</a>
+        <a href="#">Downloads</a>
+        <span class="site-nav__divider" aria-hidden="true"></span>
+        {% if current_identity %}
+          <a class="btn btn--primary" href="/edit">
+            {% include "icons/upload.svg" %}
+            Submit Data
+          </a>
+        {% else %}
+          <span class="tooltip" data-tooltip="Please log in to submit data">
+            <a class="btn btn--primary" href="/login">
+              {% include "icons/upload.svg" %}
+              Submit Data
+            </a>
+          </span>
+        {% endif %}
+
+        {% if current_identity %}
+          {% set _parts = (current_identity.name or "").split() %}
+          {% set _initials = (_parts[0][:1] ~ (_parts[-1][:1] if _parts|length > 1 else "")) | upper or "?" %}
+          <div class="user-menu">
+            <button class="user-chip" type="button"
+                    aria-expanded="false" aria-controls="user-dropdown">
+              <span class="user-chip__avatar">{{ _initials }}</span>
+              <span class="user-chip__text">
+                <span class="user-chip__greeting">Hello,</span>
+                <span class="user-chip__name">{{ _parts[0] if _parts else "there" }}</span>
+              </span>
+              <span class="user-chip__caret" aria-hidden="true">&#9662;</span>
+            </button>
+
+            <div class="user-dropdown" id="user-dropdown">
+              <div class="user-dropdown__info">
+                <span class="user-dropdown__label">Signed in as</span>
+                <span class="user-dropdown__value">
+                  {{ current_identity.name or "ORCID user" }}
+                </span>
+              </div>
+              <div class="user-dropdown__info">
+                <span class="user-dropdown__label">ORCID iD</span>
+                <span class="user-dropdown__value">{{ current_identity.orcid_id }}</span>
+              </div>
+              <form method="post" action="/auth/orcid/logout">
+                <button type="submit" class="user-dropdown__item">Sign out</button>
+              </form>
+            </div>
+          </div>
+        {% elif request.url.path != "/login" %}
+          {# Hide the Login button on the login page itself — it would just
+             link back here. #}
+          <a class="btn btn--outline" href="/login">Login</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    {# ---- Content: per-page markup goes in the `content` block ---- #}
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    {# ---- Footer ---- #}
+    <footer class="site-footer">
+      <div class="site-footer__cols">
+        <div class="site-footer__brand">
+          <div class="site-footer__brand-row">
+            <img class="site-footer__logo" src="/static/logo-white.svg" alt="">
+            <span class="site-footer__wordmark">ZAPP Atlas</span>
+          </div>
+          <p>Zebrafish Toxicology<br>Phenotype Atlas Project</p>
+          <p class="site-footer__email"><a href="mailto:info@zappfish.org">info@zappfish.org</a></p>
+        </div>
+
+        <nav class="site-footer__links" aria-label="Quick links">
+          <h2>Quick Links</h2>
+          <a href="#">FAQ</a>
+          <a href="/edit">Submit Data</a>
+          <a href="#">Resources</a>
+          <a href="#">Contact Us</a>
+        </nav>
+
+        <div class="site-footer__contact">
+          <h2>Contact</h2>
+          <p>UNC Chapel Hill</p>
+          <p>Department of Genetics</p>
+          <p>Email: <a href="mailto:info@zappfish.org">info@zappfish.org</a></p>
+        </div>
+      </div>
+
+      <p class="site-footer__note">
+        The ZAPP project is supported by NIEHS 1R24ES036130 &middot;
+        Advancing a community-led zebrafish toxicology phenotype atlas.
+      </p>
+    </footer>
+
+    <script src="/static/nav.js"></script>
+  </body>
+</html>

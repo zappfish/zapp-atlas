@@ -1,0 +1,91 @@
+{#
+  Rendered server-side from `identity`: signed out (offer ORCID) and signed in
+  (say who, offer sign out). The same states are also available as an htmx
+  fragment at /auth/orcid/status for showing sign-in state on other pages.
+#}
+{% extends "base.html" %}
+
+{% block title %}
+  {% if identity %}Your account{% else %}Sign in{% endif %} &mdash; ZAPP Atlas
+{% endblock %}
+
+{% block content %}
+  <div class="login">
+    {% if identity %}
+      {# ---- Signed-in state ---- #}
+      <section class="login-card">
+        <h1 class="login-card__title">Your account</h1>
+        <p>
+          <strong>Signed in as {{ identity.name or "ORCID user" }}</strong><br>
+          ORCID iD {{ identity.orcid_id }}
+        </p>
+        <form method="post" action="/auth/orcid/logout">
+          <button type="submit" class="btn btn--primary login-card__submit">
+            Sign out
+          </button>
+        </form>
+      </section>
+    {% else %}
+      {# ---- Signed-out state ---- #}
+      <div class="login__brand">
+        <img class="login__logo" src="/static/logo.svg" alt="">
+        <span class="login__wordmark">ZAPP</span>
+      </div>
+      <p class="login__tagline">Login to annotate and submit your data</p>
+
+      <section class="login-card">
+        <header class="login-card__head">
+          <h1 class="login-card__title">Researcher Sign In</h1>
+          <span class="login-card__badge">
+            <span class="login-card__badge-dot" aria-hidden="true"></span>Secure
+          </span>
+        </header>
+
+        <div class="login-card__body">
+          <p class="login-card__lead">
+            Sign in with your ORCID iD to access personalized search history,
+            research groups, and to contribute phenotype annotations.
+          </p>
+
+          <a class="btn btn--orcid login-card__submit" href="/auth/orcid/login">
+            {% include "icons/orcid.svg" %}
+            Sign in with ORCID iD
+          </a>
+        </div>
+
+        <div class="login-card__note">
+          {% include "icons/orcid.svg" %}
+          <p>
+            ORCID provides a persistent researcher identifier. We never store
+            your password.
+            <a class="login-card__register" href="https://orcid.org/register"
+               target="_blank" rel="noopener">Register for an ORCID iD{% include "icons/external.svg" %}</a>
+          </p>
+        </div>
+      </section>
+
+      <p class="login__terms">
+        By signing in, you agree to follow platform guidelines.
+      </p>
+
+      {#
+        Shown when ZAPP_DEV_AUTH=true: local development, and the per-PR
+        preview apps deployed from fly.preview.toml, where ORCID cannot work.
+        Signs in a fake identity in one click; the route still accepts `name`
+        and `orcid_id` if you want a different one, so POST directly to
+        /auth/dev/login for that. Never enabled in production.
+      #}
+      {% if dev_auth %}
+        <section class="login-card login-card--dev">
+          <h2 class="login-card__title">Development sign-in</h2>
+          <p>ORCID is bypassed because <code>ZAPP_DEV_AUTH</code> is enabled.</p>
+          <form method="post" action="/auth/dev/login" class="login-dev-form">
+            <button type="submit" class="btn btn--primary login-card__submit">
+              Sign in as Josiah Carberry
+            </button>
+          </form>
+        </section>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}
