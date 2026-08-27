@@ -351,11 +351,36 @@ class Image(ZappEntity):
     magnification: Mapped[str | None] = mapped_column(Text())
     resolution: Mapped[str | None] = mapped_column(Text())
     scale_bar: Mapped[str | None] = mapped_column(Text())
+    image_scope: Mapped[str | None] = mapped_column(Enum('whole_organism', 'partial_organism', name='ImageScopeEnum'))
+    modality: Mapped[str | None] = mapped_column(Enum('brightfield', 'fluorescence', 'other', name='ImageModalityEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     PhenotypeObservationSet_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("PhenotypeObservationSet.id"))
 
+    # One-To-Many: OneToAnyMapping(source_class='Image', source_slot='label', mapping_type=None, target_class='ImageLabel', target_slot='Image_id', join_class=None, uses_join_table=None, multivalued=False)
+    label: Mapped[list[ImageLabel]] = relationship(foreign_keys="[ImageLabel.Image_id]")
+
     def __repr__(self):
-        return f"Image(magnification={self.magnification},resolution={self.resolution},scale_bar={self.scale_bar},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},)"
+        return f"Image(magnification={self.magnification},resolution={self.resolution},scale_bar={self.scale_bar},image_scope={self.image_scope},modality={self.modality},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class ImageLabel(ZappEntity):
+    """
+    A reagent or signal shown in an image: a transgenic reporter, in situ probe, antibody, chemical stain, or vital dye. An image may carry several (multi-channel fluorescence, Alcian blue + Alizarin red double staining).
+    """
+
+    __tablename__ = "ImageLabel"
+
+    label_kind: Mapped[str] = mapped_column(Enum('transgene_reporter', 'ish_probe', 'antibody', 'chemical_stain', 'vital_dye', 'other', name='LabelKindEnum'))
+    name: Mapped[str] = mapped_column(Text())
+    label_id: Mapped[str | None] = mapped_column(Text())
+    comment: Mapped[str | None] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Image_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Image.id"))
+
+    def __repr__(self):
+        return f"ImageLabel(label_kind={self.label_kind},name={self.name},label_id={self.label_id},comment={self.comment},id={self.id},Image_id={self.Image_id},)"
 
     __mapper_args__ = {"concrete": True}
 

@@ -395,12 +395,30 @@
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "image_scope": {
+          "$ref": "#/$defs/ImageScopeEnum",
+          "description": "Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region."
+        },
+        "label": {
+          "description": "The labels (reagents or signals) shown in this image.",
+          "items": {
+            "$ref": "#/$defs/ImageLabel"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
         "magnification": {
           "description": "The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.",
           "type": [
             "string",
             "null"
           ]
+        },
+        "modality": {
+          "$ref": "#/$defs/ImageModalityEnum",
+          "description": "How the image was acquired. The biology shown (reporters, probes, antibodies, stains) is carried by the label list, not the modality."
         },
         "resolution": {
           "description": "The level of detail in the image.",
@@ -422,6 +440,77 @@
       ],
       "title": "Image",
       "type": "object"
+    },
+    "ImageLabel": {
+      "additionalProperties": false,
+      "description": "A reagent or signal shown in an image: a transgenic reporter, in situ probe, antibody, chemical stain, or vital dye. An image may carry several (multi-channel fluorescence, Alcian blue + Alizarin red double staining).",
+      "properties": {
+        "comment": {
+          "description": "Additional comments.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "label_id": {
+          "description": "Identifier for the label where one exists, e.g. a ZFIN construct ID for a transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a CHEBI ID for a chemical stain.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label_kind": {
+          "$ref": "#/$defs/LabelKindEnum",
+          "description": "The kind of reagent or signal this label is."
+        },
+        "name": {
+          "description": "Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7, anti-MF20, Alcian blue.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label_kind",
+        "name",
+        "id"
+      ],
+      "title": "ImageLabel",
+      "type": "object"
+    },
+    "ImageModalityEnum": {
+      "description": "An enumeration of image acquisition modalities.",
+      "enum": [
+        "brightfield",
+        "fluorescence",
+        "other"
+      ],
+      "title": "ImageModalityEnum",
+      "type": "string"
+    },
+    "ImageScopeEnum": {
+      "description": "An enumeration of how much of the organism an image shows.",
+      "enum": [
+        "whole_organism",
+        "partial_organism"
+      ],
+      "title": "ImageScopeEnum",
+      "type": "string"
+    },
+    "LabelKindEnum": {
+      "description": "An enumeration of kinds of reagents or signals shown in an image.",
+      "enum": [
+        "transgene_reporter",
+        "ish_probe",
+        "antibody",
+        "chemical_stain",
+        "vital_dye",
+        "other"
+      ],
+      "title": "LabelKindEnum",
+      "type": "string"
     },
     "ManufacturerEnum": {
       "description": "An enumeration of manufacturers and suppliers of chemicals used in exposure events.",

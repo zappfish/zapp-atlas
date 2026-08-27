@@ -155,6 +155,27 @@ classes:
       - magnification
       - resolution
       - scale_bar
+      - image_scope
+      - modality
+      - label
+
+  ImageLabel:
+    is_a: ZappEntity
+    description: >-
+      A reagent or signal shown in an image: a transgenic reporter, in situ
+      probe, antibody, chemical stain, or vital dye. An image may carry several
+      (multi-channel fluorescence, Alcian blue + Alizarin red double staining).
+    slots:
+      - label_kind
+      - name
+      - label_id
+      - comment
+    slot_usage:
+      name:
+        required: true
+        description: >-
+          Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7,
+          anti-MF20, Alcian blue.
 
   ControlImage:
     is_a: ZappEntity
@@ -304,6 +325,34 @@ slots:
     pattern: "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$"
 
   # Other slots
+  image_scope:
+    description: >-
+      Whether the image shows the entire organism or only a region, organ, or
+      structure. Phenotype annotations on a partial-organism image should be
+      limited to what is visible in the imaged region.
+    range: ImageScopeEnum
+  modality:
+    description: >-
+      How the image was acquired. The biology shown (reporters, probes,
+      antibodies, stains) is carried by the label list, not the modality.
+    range: ImageModalityEnum
+  label:
+    description: The labels (reagents or signals) shown in this image.
+    range: ImageLabel
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  label_kind:
+    description: The kind of reagent or signal this label is.
+    range: LabelKindEnum
+    required: true
+  label_id:
+    description: >-
+      Identifier for the label where one exists, e.g. a ZFIN construct ID for a
+      transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an
+      in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a
+      CHEBI ID for a chemical stain.
+    range: uriorcurie
   publication:
     description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
     range: string
@@ -524,6 +573,40 @@ slots:
     required: true
 
 enums:
+
+  ImageScopeEnum:
+    description: An enumeration of how much of the organism an image shows.
+    permissible_values:
+      whole_organism:
+        description: The entire fish, head to tail.
+      partial_organism:
+        description: A specific region, organ, or structure (e.g., head, heart, fin, eye).
+
+  ImageModalityEnum:
+    description: An enumeration of image acquisition modalities.
+    permissible_values:
+      brightfield:
+        description: Brightfield microscopy.
+      fluorescence:
+        description: Fluorescence microscopy.
+      other:
+        description: Another acquisition modality, described in the image comment.
+
+  LabelKindEnum:
+    description: An enumeration of kinds of reagents or signals shown in an image.
+    permissible_values:
+      transgene_reporter:
+        description: A transgenic reporter, e.g. Tg(-6.35drl:EGFP).
+      ish_probe:
+        description: An in situ hybridization probe, e.g. myl7.
+      antibody:
+        description: An antibody used for immunostaining.
+      chemical_stain:
+        description: A chemical stain, e.g. Alcian blue or Alizarin red.
+      vital_dye:
+        description: A vital dye, e.g. BODIPY or acridine orange.
+      other:
+        description: Another kind of label, described in the label comment.
 
   ResearchGroupRoleEnum:
     description: An enumeration of permission levels within a research group.
