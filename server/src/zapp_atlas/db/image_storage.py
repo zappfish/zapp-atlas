@@ -68,9 +68,7 @@ class LocalFilesystemStorage(Storage):
             return None
         type_path = path.with_suffix(path.suffix + ".type")
         content_type = (
-            type_path.read_text().strip()
-            if type_path.is_file()
-            else "application/octet-stream"
+            type_path.read_text().strip() if type_path.is_file() else "application/octet-stream"
         )
         return StoredObject(data=path.read_bytes(), content_type=content_type)
 
@@ -90,16 +88,14 @@ class BucketStorage(Storage):
     def __init__(
         self, *, endpoint_url: str, bucket: str, public_url_prefix: str | None = None
     ) -> None:
-        import boto3  # noqa: PLC0415 — lazy, optional
+        import boto3
 
         self._bucket = bucket
         self._client = boto3.client("s3", endpoint_url=endpoint_url)
         self._public_url_prefix = public_url_prefix
 
     def put(self, key: str, data: bytes, content_type: str) -> None:
-        self._client.put_object(
-            Bucket=self._bucket, Key=key, Body=data, ContentType=content_type
-        )
+        self._client.put_object(Bucket=self._bucket, Key=key, Body=data, ContentType=content_type)
 
     def get(self, key: str) -> StoredObject | None:
         try:

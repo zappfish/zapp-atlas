@@ -13,7 +13,6 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.api.routers.cabinet import router as cabinet_router
 from zapp_atlas.api.routers.experiments import router as experiments_router
 from zapp_atlas.api.routers.exposures import router as exposures_router
@@ -22,12 +21,12 @@ from zapp_atlas.api.routers.images import router as images_router
 from zapp_atlas.api.routers.observations import router as observations_router
 from zapp_atlas.api.routers.research_groups import router as research_groups_router
 from zapp_atlas.api.routers.studies import router as studies_router
+from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.html.edit_router import make_edit_router
 from zapp_atlas.html.router import router as html_router
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
-
 
 logger = logging.getLogger(__name__)
 

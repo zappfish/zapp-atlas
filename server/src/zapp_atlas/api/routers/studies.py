@@ -28,7 +28,6 @@ from zapp_atlas.schema.pydantic_crud import (
     StudyUpdate,
 )
 
-
 router = APIRouter(prefix="/studies", tags=["studies"])
 
 
@@ -84,6 +83,4 @@ def delete_study_endpoint(
     storage: Annotated[Storage, Depends(get_storage)],
 ) -> None:
     if not delete_study(session, study_id, storage=storage):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Study not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")

@@ -110,12 +110,7 @@ def test_admin_can_remove_member(client: TestClient) -> None:
     add_member(client, group_id, MEMBER, "member")
     member_id = _member_id(client, group_id, MEMBER)
     signin(client, ADMIN)
-    assert (
-        client.delete(
-            f"/api/research-groups/{group_id}/members/{member_id}"
-        ).status_code
-        == 204
-    )
+    assert client.delete(f"/api/research-groups/{group_id}/members/{member_id}").status_code == 204
     remaining = client.get(f"/api/research-groups/{group_id}/members").json()
     assert all(m["id"] != member_id for m in remaining)
 

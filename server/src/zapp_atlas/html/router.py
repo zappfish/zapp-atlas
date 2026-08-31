@@ -10,7 +10,6 @@ from zapp_atlas.auth.deps import CurrentIdentity
 from zapp_atlas.html.templating import templates
 from zapp_atlas.settings import AppSettings
 
-
 router = APIRouter(tags=["html"])
 
 
