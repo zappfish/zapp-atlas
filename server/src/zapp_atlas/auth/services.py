@@ -14,7 +14,6 @@ from sqlalchemy.orm import Session
 from zapp_atlas.auth.models import OrcidIdentity
 from zapp_atlas.settings import AppSettings, load_settings
 
-
 ORCID_STATE_COOKIE = "zapp_orcid_state"
 ORCID_AUTH_COOKIE = "zapp_orcid_auth"
 
@@ -48,9 +47,7 @@ def get_orcid_config(settings: AppSettings | None = None) -> OrcidConfig:
     client_id = settings.orcid_client_id
     client_secret = settings.orcid_client_secret
     if not client_id or not client_secret:
-        raise OrcidConfigError(
-            "ZAPP_ORCID_CLIENT_ID and ZAPP_ORCID_CLIENT_SECRET must be set"
-        )
+        raise OrcidConfigError("ZAPP_ORCID_CLIENT_ID and ZAPP_ORCID_CLIENT_SECRET must be set")
     return OrcidConfig(
         client_id=client_id,
         client_secret=client_secret,

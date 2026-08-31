@@ -21,10 +21,10 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.schema.sqla import (  # type: ignore
+    Experiment,
     ExposureEvent,
     ExposureRoute,
     ExposureType,
-    Experiment,
     Fish,
     Phenotype,
     PhenotypeObservationSet,
@@ -33,7 +33,6 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     StressorChemical,
     Study,
 )
-
 
 SEEDED_PUBLICATIONS = {
     "PMID:22194820",
@@ -55,9 +54,7 @@ def _upsert_fish(session: Session, *, zfin_id: str, name: str) -> Fish:
     return fish
 
 
-def _upsert_phenotype_term(
-    session: Session, *, term_uri: str, term_label: str
-) -> PhenotypeTerm:
+def _upsert_phenotype_term(session: Session, *, term_uri: str, term_label: str) -> PhenotypeTerm:
     term = session.query(PhenotypeTerm).filter_by(term_uri=term_uri).one_or_none()
     if term is None:
         term = PhenotypeTerm(term_uri=term_uri, term_label=term_label)
@@ -65,9 +62,7 @@ def _upsert_phenotype_term(
     return term
 
 
-def _upsert_exposure_route(
-    session: Session, *, term_uri: str, term_label: str
-) -> ExposureRoute:
+def _upsert_exposure_route(session: Session, *, term_uri: str, term_label: str) -> ExposureRoute:
     term = session.query(ExposureRoute).filter_by(term_uri=term_uri).one_or_none()
     if term is None:
         term = ExposureRoute(term_uri=term_uri, term_label=term_label)
@@ -75,9 +70,7 @@ def _upsert_exposure_route(
     return term
 
 
-def _upsert_exposure_type(
-    session: Session, *, term_uri: str, term_label: str
-) -> ExposureType:
+def _upsert_exposure_type(session: Session, *, term_uri: str, term_label: str) -> ExposureType:
     term = session.query(ExposureType).filter_by(term_uri=term_uri).one_or_none()
     if term is None:
         term = ExposureType(term_uri=term_uri, term_label=term_label)
@@ -108,11 +101,11 @@ def _build_bpa_study(session: Session) -> Study:
     """
 
     fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
-    bpa = dict(
-        chemical_id="CHEBI:33216",
-        cas_id="80-05-7",
-        chemical_name="bisphenol A",
-    )
+    bpa = {
+        "chemical_id": "CHEBI:33216",
+        "cas_id": "80-05-7",
+        "chemical_name": "bisphenol A",
+    }
     pericardial_edema = _upsert_phenotype_term(
         session,
         term_uri="ZP:0105827",
@@ -174,16 +167,16 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     """
 
     fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
-    bpa = dict(
-        chemical_id="CHEBI:33216",
-        cas_id="80-05-7",
-        chemical_name="bisphenol A",
-    )
-    retinoic_acid = dict(
-        chemical_id="CHEBI:15367",
-        cas_id="302-79-4",
-        chemical_name="all-trans-retinoic acid",
-    )
+    bpa = {
+        "chemical_id": "CHEBI:33216",
+        "cas_id": "80-05-7",
+        "chemical_name": "bisphenol A",
+    }
+    retinoic_acid = {
+        "chemical_id": "CHEBI:15367",
+        "cas_id": "302-79-4",
+        "chemical_name": "all-trans-retinoic acid",
+    }
 
     head_abnormal = _upsert_phenotype_term(
         session,
@@ -253,16 +246,16 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     """
 
     fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
-    malathion = dict(
-        chemical_id="CHEBI:6651",
-        cas_id="121-75-5",
-        chemical_name="malathion",
-    )
-    trichlorfon = dict(
-        chemical_id="CHEBI:9747",
-        cas_id="52-68-6",
-        chemical_name="trichlorfon",
-    )
+    malathion = {
+        "chemical_id": "CHEBI:6651",
+        "cas_id": "121-75-5",
+        "chemical_name": "malathion",
+    }
+    trichlorfon = {
+        "chemical_id": "CHEBI:9747",
+        "cas_id": "52-68-6",
+        "chemical_name": "trichlorfon",
+    }
     pericardial_edema = _upsert_phenotype_term(
         session,
         term_uri="ZP:0105827",

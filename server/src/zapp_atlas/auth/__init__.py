@@ -1,2 +1,1 @@
 """ORCID OAuth support."""
-

@@ -26,13 +26,11 @@ from zapp_atlas.api.services.experiments import (
     patch_experiment,
 )
 from zapp_atlas.db.image_storage import Storage, get_storage
-
 from zapp_atlas.schema.pydantic_crud import (
     ExperimentCreate,
     ExperimentRead,
     ExperimentUpdate,
 )
-
 
 router = APIRouter(tags=["experiments"])
 
