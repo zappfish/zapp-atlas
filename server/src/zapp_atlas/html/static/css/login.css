@@ -9,6 +9,7 @@
 
 .coming-soon h1 {
   font-size: var(--text-xl);
+  font-weight: 600;
   margin: 0 0 0.5rem;
 }
 

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.deps import get_app_settings, get_session
 from zapp_atlas.auth.deps import CurrentIdentity
-from zapp_atlas.html import dashboard_service
+from zapp_atlas.html import curation_guidelines, dashboard_service
 from zapp_atlas.html.templating import templates
 from zapp_atlas.settings import AppSettings
 
@@ -51,6 +51,30 @@ _CHEMICAL_EXISTS = "Chemical already exists in this research group."
 @router.get("/", response_class=HTMLResponse)
 def index_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "index.html")
+
+
+@router.get("/curation-guidelines", response_class=HTMLResponse)
+def curation_guidelines_page(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request,
+        "curation_guidelines.html",
+        {
+            "groups": curation_guidelines.GROUPS,
+            "entry_count": curation_guidelines.entry_count(),
+        },
+    )
+
+
+@router.get("/downloads", response_class=HTMLResponse)
+def downloads_page(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request, "coming_soon.html", {"heading": "Downloads"}
+    )
+
+
+@router.get("/help", response_class=HTMLResponse)
+def help_page(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request, "coming_soon.html", {"heading": "Help"})
 
 
 @router.get("/login", response_class=HTMLResponse)
