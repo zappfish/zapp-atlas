@@ -34,7 +34,23 @@
   --white: #ffffff;
   --line: #e5e7eb;
   --btn-bg: #eef3f1;
+  --nav-row-hover: #f5f7f7;
   --card-dark: #16323b;
+  --teal-dark: #2c6072;   /* teal button hover */
+  --danger-tint: #fef2f2; /* danger button hover */
+
+  /* Translucent white, for text and dividers on the teal header/footer.*/
+  --on-teal-strong: rgba(255, 255, 255, 0.85);
+  --on-teal-muted: rgba(255, 255, 255, 0.6);
+  --on-teal-line: rgba(255, 255, 255, 0.12);
+  --on-teal-fill: rgba(255, 255, 255, 0.16);
+
+  /* Raised surfaces: dropdowns, toasts, modals. */
+  --surface-sunken: #f7f8f9;
+  --shadow-panel: 0 8px 24px rgba(15, 76, 92, 0.15);
+  --shadow-modal: 0 10px 40px rgba(15, 76, 92, 0.2);
+  --radius: 8px;
+  --radius-lg: 12px;
 
   /* Submission status colors. */
   --status-published: #15803d;
