@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Curation Guidelines — ZAPP Atlas{% endblock %}
+
+{% block content %}
+  {#
+    Category filtering is done with radio inputs and CSS sibling selectors
+    rather than script: the whole page is static, so there is nothing to fetch
+    and no state worth keeping in JS. Each entry is a native <details>, which
+    brings keyboard support and open/close for free.
+  #}
+  <section class="guide">
+    <header class="guide__head">
+      <h1>Curation guidelines</h1>
+      <p>Best practices for phenotype annotations.</p>
+    </header>
+
+    <div class="guide__filters" role="tablist" aria-label="Filter by category">
+      <input class="guide__radio" type="radio" name="guide-filter" id="filter-all" checked>
+      <label class="guide__chip" for="filter-all">All</label>
+      {% for group in groups %}
+        <input class="guide__radio" type="radio" name="guide-filter" id="filter-{{ group.slug }}">
+        <label class="guide__chip" for="filter-{{ group.slug }}">{{ group.label }}</label>
+      {% endfor %}
+      <span class="guide__count">{{ entry_count }} guidelines</span>
+    </div>
+
+    <div class="guide__groups">
+      {% for group in groups %}
+        <section class="guide__group" data-category="{{ group.slug }}">
+          <h2 class="guide__group-title">{{ group.title }}</h2>
+          {% for entry in group.entries %}
+            <details class="guide__item">
+              <summary class="guide__summary">
+                <span class="guide__q">{{ entry.summary }}</span>
+                <span class="guide__sign" aria-hidden="true"></span>
+              </summary>
+              {% if entry.body %}
+                <p class="guide__a">{{ entry.body }}</p>
+              {% endif %}
+            </details>
+          {% endfor %}
+        </section>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
