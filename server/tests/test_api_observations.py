@@ -19,7 +19,7 @@ def _create_exposure(client: TestClient) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-2", "name": "AB"},
+            "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
             "control": [],
             "exposure_event": [],
         },
@@ -105,7 +105,6 @@ def test_patch_observation_replaces_phenotype(client: TestClient) -> None:
         json={
             "phenotype": [
                 {
-                    "id": 0,
                     "stage": "ZFS:0000036",
                     "severity": "severe",
                     "phenotype_term_id": {

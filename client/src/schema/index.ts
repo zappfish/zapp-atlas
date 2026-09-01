@@ -3,7 +3,6 @@ GENERATED FILE. DO NOT EDIT.
 */
 
 export type ZappEntityId = string;
-export type ZfinEntityZfinId = string;
 export type StudyId = string;
 export type ExperimentId = string;
 export type PhenotypeObservationSetId = string;
@@ -18,7 +17,11 @@ export type ControlImageId = string;
 export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
-export type FishZfinId = string;
+export type FishId = string;
+export type GenotypeId = string;
+export type CrossId = string;
+export type MutantAlleleId = string;
+export type TransgenicAlleleId = string;
 export type ResearchGroupId = string;
 export type ResearchGroupMemberId = string;
 export type ChemicalCabinetEntryId = string;
@@ -148,6 +151,60 @@ export enum ResearchGroupRoleEnum {
     member = "member",
 };
 /**
+* How the genotype of the exposed animals was established from the cross. A het × het incross segregates 1:2:1, so an unsorted clutch is a mixture — without this, a reported phenotype prevalence cannot be distinguished from a Mendelian ratio.
+*/
+export enum ProgenySelectionEnum {
+    
+    /** Each animal was individually genotyped, so the genotype is certain. */
+    genotyped = "genotyped",
+    /** Animals were sorted by visible phenotype rather than genotyped. */
+    phenotype_sorted = "phenotype_sorted",
+    /** Parents were homozygous (or the line is stable), so all progeny are assumed to share the genotype. */
+    assumed_uniform = "assumed_uniform",
+    /** A segregating clutch used without selection — the stated genotype applies to only a fraction of the animals. */
+    segregating = "segregating",
+    /** Not stated in the source. */
+    unknown = "unknown",
+};
+/**
+* Zygosity of an allele in a fish or in one of its parents. Applies both to the fish's own allele zygosity and to parental (maternal / paternal) zygosity, which matters for maternal-effect phenotypes.
+*/
+export enum ZygosityEnum {
+    
+    /** Homozygous — the allele is present on both homologous chromosomes. */
+    homozygous = "homozygous",
+    /** Heterozygous — the allele is present on one of the two homologous chromosomes. */
+    heterozygous = "heterozygous",
+    /** Zygosity is unknown or unspecified. */
+    unknown = "unknown",
+};
+/**
+* Common types of sequence alteration for an allele or transgenic feature. Each value is normalized to a Sequence Ontology (SO) term so curators pick a familiar label while the atlas stores the standard identifier.
+*/
+export enum SequenceAlterationTypeEnum {
+    
+    /** A single-nucleotide substitution. */
+    point_mutation = "point_mutation",
+    /** One or more nucleotides replaced by the same number of nucleotides. */
+    substitution = "substitution",
+    /** Loss of one or more nucleotides. */
+    deletion = "deletion",
+    /** Gain of one or more nucleotides. */
+    insertion = "insertion",
+    /** A combined insertion and deletion affecting 2 or more bases. NOTE: SO's canonical label for SO:1000032 is "delins"; "indel" is a registered SO synonym and is the term curators actually use at the bench (e.g. CRISPR indels), so it is deliberately the label shown here. Do not "correct" it. */
+    indel = "indel",
+    /** A segment reversed in orientation. */
+    inversion = "inversion",
+    /** One or more copies of a segment added. */
+    duplication = "duplication",
+    /** An engineered transgenic construct inserted into the genome. */
+    transgenic_insertion = "transgenic_insertion",
+    /** A substitution involving a different number of nucleotides. */
+    complex_substitution = "complex_substitution",
+    /** Alteration of unspecified or other type (SO root term). */
+    sequence_alteration = "sequence_alteration",
+};
+/**
 * An enumeration of severity levels for phenotypes.
 */
 export enum SeverityEnum {
@@ -184,15 +241,6 @@ export interface ZappEntity {
  * Entities representing ontology terms with URI identifiers.
  */
 export interface OntologyEntity {
-}
-
-
-/**
- * Entities with ZFIN database identifiers.
- */
-export interface ZfinEntity {
-    /** ZFIN database identifier. */
-    zfin_id: string,
 }
 
 
@@ -430,11 +478,99 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * Zebrafish used as subject in the study.
+ * A zebrafish subject in a study. Mirrors ZFIN's Fish object (GENO:0000525, "effective genotype"): a Fish is the combination of an intrinsic Genotype (mutant alleles, transgenics and wild-type background) and any transient gene-targeting reagents (STRs — morpholinos/CRISPRs). The STR / gene-targeting reagent component is out of scope for ZAPP at this time and is intentionally not modeled yet. The Fish carries its own ZFIN fish identifier (ZDB-FISH-…), which is distinct from the ZDB-GENO-… identifier of its Genotype; either may be absent for lab-specific fish not yet registered with ZFIN.
  */
-export interface Fish extends ZfinEntity {
+export interface Fish extends ZappEntity {
     /** Name or label of an entity. */
     name: string,
+    /** ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the genotype identifier; may be absent for lab-specific fish not yet registered. */
+    fish_zfin_id?: string,
+    /** The intrinsic genotype of the fish. */
+    genotype?: Genotype,
+    /** The mating that produced the experimental animals, and how their genotype was established. Defaults conceptually to an incross of the fish's own line. */
+    cross?: Cross,
+}
+
+
+/**
+ * The intrinsic genotype of a fish (GENO:0000000) — equivalently, a *line*: the heritable combination of a wild-type genetic background plus any mutant allele(s) and transgenic insertion(s). Carries its own ZFIN genotype identifier (ZDB-GENO-…), which may differ from the fish identifier and may be absent if not yet registered.
+Note the recursion: ``background`` is itself a Genotype. A wild-type strain such as AB is simply a Genotype with no alterations (ZFIN models this the same way — a fish's "Background ID" is a ZDB-GENO). There is therefore one concept here, not two: a background *is* a line.
+ */
+export interface Genotype extends ZappEntity {
+    /** ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be absent for genotypes not yet registered with ZFIN. */
+    genotype_zfin_id?: string,
+    /** Display name of the genotype, e.g. "fgf8a<ti282a/ti282a>; rerea<tb210/tb210>". */
+    genotype_name?: string,
+    /** Mutant allele(s) carried by the genotype. */
+    mutant_allele?: MutantAllele[],
+    /** Transgenic insertion(s) carried by the genotype. */
+    transgenic_allele?: TransgenicAllele[],
+    /** The genetic background this line was bred into — itself a Genotype, normally a wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN models a fish's background the same way, as a ZDB-GENO reference. */
+    background?: Genotype,
+}
+
+
+/**
+ * How the experimental animals were produced: the mating that generated the clutch, plus how the resulting genotype was established. An incross is represented by the same line on both sides.
+This matters because a genotype is not derivable from the parents alone — it follows from the cross *plus* selection. A het × het incross segregates 1:2:1, so an unsorted clutch has no single genotype, and an unqualified phenotype prevalence from such a clutch may be a Mendelian ratio rather than a toxicological effect. ``progeny_selection`` is what distinguishes those.
+ */
+export interface Cross extends ZappEntity {
+    /** The line (Genotype) of the female parent. Determines maternal contribution. */
+    maternal_line?: Genotype,
+    /** The line (Genotype) of the male parent. */
+    paternal_line?: Genotype,
+    /** How the genotype of the exposed animals was established from the cross — essential for interpreting phenotype prevalence. */
+    progeny_selection?: string,
+}
+
+
+/**
+ * A mutant allele (genomic feature) carried by the fish, together with its zygosity and the gene it affects. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); ZAPP additionally records the affected gene (affected genomic region).
+ */
+export interface MutantAllele extends ZappEntity {
+    /** ZFIN genomic feature identifier (ZDB-ALT-…) for the allele. */
+    allele_id?: string,
+    /** The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg". */
+    allele_symbol: string,
+    /** The type of sequence alteration the allele represents, chosen from a controlled dropdown of common mutation / alteration types and normalized to a Sequence Ontology (SO) term. ZFIN records this as the feature's SO type. */
+    alteration_type?: string,
+    /** Identifier of the gene affected by the allele (affected genomic region), typically a ZFIN gene id (ZDB-GENE-…). */
+    affected_gene_id?: string,
+    /** Symbol of the gene affected by the allele, e.g. "snapc1b". */
+    affected_gene_symbol?: string,
+    /** Zygosity of the allele in the fish. */
+    zygosity?: string,
+    /** Zygosity of the allele in the maternal parent. */
+    mother_zygosity?: string,
+    /** Zygosity of the allele in the paternal parent. */
+    father_zygosity?: string,
+}
+
+
+/**
+ * A transgenic insertion (genomic feature) carried by the fish, together with its zygosity and the transgenic construct it derives from. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); the construct is a ZFIN transgenic construct (ZDB-TGCONSTRCT-…) used mainly for name display. The gene slots record the construct's driver / reporter gene so the atlas can be searched by gene across mutant and transgenic alleles alike.
+ */
+export interface TransgenicAllele extends ZappEntity {
+    /** ZFIN genomic feature identifier (ZDB-ALT-…) for the allele. */
+    allele_id?: string,
+    /** The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg". */
+    allele_symbol: string,
+    /** ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic allele. */
+    construct_id?: string,
+    /** Name of the transgenic construct, e.g. "Tg(mpeg1:YFP)". */
+    construct_name?: string,
+    /** Type of alteration for a transgenic feature — usually a transgenic insertion (SO:0001218). Normalized to a Sequence Ontology term. */
+    alteration_type?: string,
+    /** Identifier of the gene whose regulatory region drives the transgene (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…). */
+    affected_gene_id?: string,
+    /** Symbol of the transgene's driver / reporter gene, e.g. "fli1". */
+    affected_gene_symbol?: string,
+    /** Zygosity of the allele in the fish. */
+    zygosity?: string,
+    /** Zygosity of the allele in the maternal parent. */
+    mother_zygosity?: string,
+    /** Zygosity of the allele in the paternal parent. */
+    father_zygosity?: string,
 }
 
 

@@ -53,19 +53,6 @@ class OntologyEntity(Base):
         return f"OntologyEntity(id={self.id},)"
 
 
-class ZfinEntity(Base):
-    """
-    Entities with ZFIN database identifiers.
-    """
-
-    __tablename__ = "ZfinEntity"
-
-    zfin_id: Mapped[str] = mapped_column(Text(), primary_key=True)
-
-    def __repr__(self):
-        return f"ZfinEntity(zfin_id={self.zfin_id},)"
-
-
 class QuantityValue(Base):
     """
     A value of an attribute that is quantitative and measurable, expressed as a combination of a unit and a numeric value
@@ -161,8 +148,8 @@ class Experiment(ZappEntity):
     rearing_condition_comment: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     Study_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Study.id"))
-    fish_zfin_id: Mapped[str | None] = mapped_column(Text(), ForeignKey("Fish.zfin_id"))
-    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_zfin_id])
+    fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
+    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])
 
     # One-To-Many: OneToAnyMapping(source_class='Experiment', source_slot='control', mapping_type=None, target_class='Control', target_slot='Experiment_id', join_class=None, uses_join_table=None, multivalued=False)
     control: Mapped[list[Control]] = relationship(foreign_keys="[Control.Experiment_id]")
@@ -171,7 +158,7 @@ class Experiment(ZappEntity):
     exposure_event: Mapped[list[ExposureEvent]] = relationship(foreign_keys="[ExposureEvent.Experiment_id]")
 
     def __repr__(self):
-        return f"Experiment(standard_rearing_condition={self.standard_rearing_condition},rearing_condition_comment={self.rearing_condition_comment},id={self.id},Study_id={self.Study_id},fish_zfin_id={self.fish_zfin_id},)"
+        return f"Experiment(standard_rearing_condition={self.standard_rearing_condition},rearing_condition_comment={self.rearing_condition_comment},id={self.id},Study_id={self.Study_id},fish_id={self.fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -459,18 +446,120 @@ class ExposureType(OntologyEntity):
     __mapper_args__ = {"concrete": True}
 
 
-class Fish(ZfinEntity):
+class Fish(ZappEntity):
     """
-    Zebrafish used as subject in the study.
+    A zebrafish subject in a study. Mirrors ZFIN's Fish object (GENO:0000525, "effective genotype"): a Fish is the combination of an intrinsic Genotype (mutant alleles, transgenics and wild-type background) and any transient gene-targeting reagents (STRs — morpholinos/CRISPRs). The STR / gene-targeting reagent component is out of scope for ZAPP at this time and is intentionally not modeled yet. The Fish carries its own ZFIN fish identifier (ZDB-FISH-…), which is distinct from the ZDB-GENO-… identifier of its Genotype; either may be absent for lab-specific fish not yet registered with ZFIN.
     """
 
     __tablename__ = "Fish"
 
     name: Mapped[str] = mapped_column(Text())
-    zfin_id: Mapped[str] = mapped_column(Text(), primary_key=True)
+    fish_zfin_id: Mapped[str | None] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    genotype_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+    genotype: Mapped[Genotype | None] = relationship(foreign_keys=[genotype_id])
+    cross_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Cross.id"))
+    cross: Mapped[Cross | None] = relationship(foreign_keys=[cross_id])
 
     def __repr__(self):
-        return f"Fish(name={self.name},zfin_id={self.zfin_id},)"
+        return f"Fish(name={self.name},fish_zfin_id={self.fish_zfin_id},id={self.id},genotype_id={self.genotype_id},cross_id={self.cross_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class Genotype(ZappEntity):
+    """
+    The intrinsic genotype of a fish (GENO:0000000) — equivalently, a *line*: the heritable combination of a wild-type genetic background plus any mutant allele(s) and transgenic insertion(s). Carries its own ZFIN genotype identifier (ZDB-GENO-…), which may differ from the fish identifier and may be absent if not yet registered.
+Note the recursion: ``background`` is itself a Genotype. A wild-type strain such as AB is simply a Genotype with no alterations (ZFIN models this the same way — a fish's "Background ID" is a ZDB-GENO). There is therefore one concept here, not two: a background *is* a line.
+    """
+
+    __tablename__ = "Genotype"
+
+    genotype_zfin_id: Mapped[str | None] = mapped_column(Text())
+    genotype_name: Mapped[str | None] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    background_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+    background: Mapped[Genotype | None] = relationship(foreign_keys=[background_id], remote_side=[id])
+
+    # One-To-Many: OneToAnyMapping(source_class='Genotype', source_slot='mutant_allele', mapping_type=None, target_class='MutantAllele', target_slot='Genotype_id', join_class=None, uses_join_table=None, multivalued=False)
+    mutant_allele: Mapped[list[MutantAllele]] = relationship(foreign_keys="[MutantAllele.Genotype_id]")
+
+    # One-To-Many: OneToAnyMapping(source_class='Genotype', source_slot='transgenic_allele', mapping_type=None, target_class='TransgenicAllele', target_slot='Genotype_id', join_class=None, uses_join_table=None, multivalued=False)
+    transgenic_allele: Mapped[list[TransgenicAllele]] = relationship(foreign_keys="[TransgenicAllele.Genotype_id]")
+
+    def __repr__(self):
+        return f"Genotype(genotype_zfin_id={self.genotype_zfin_id},genotype_name={self.genotype_name},id={self.id},background_id={self.background_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class Cross(ZappEntity):
+    """
+    How the experimental animals were produced: the mating that generated the clutch, plus how the resulting genotype was established. An incross is represented by the same line on both sides.
+This matters because a genotype is not derivable from the parents alone — it follows from the cross *plus* selection. A het × het incross segregates 1:2:1, so an unsorted clutch has no single genotype, and an unqualified phenotype prevalence from such a clutch may be a Mendelian ratio rather than a toxicological effect. ``progeny_selection`` is what distinguishes those.
+    """
+
+    __tablename__ = "Cross"
+
+    progeny_selection: Mapped[str | None] = mapped_column(Enum('genotyped', 'phenotype_sorted', 'assumed_uniform', 'segregating', 'unknown', name='ProgenySelectionEnum'))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    maternal_line_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+    maternal_line: Mapped[Genotype | None] = relationship(foreign_keys=[maternal_line_id])
+    paternal_line_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+    paternal_line: Mapped[Genotype | None] = relationship(foreign_keys=[paternal_line_id])
+
+    def __repr__(self):
+        return f"Cross(progeny_selection={self.progeny_selection},id={self.id},maternal_line_id={self.maternal_line_id},paternal_line_id={self.paternal_line_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class MutantAllele(ZappEntity):
+    """
+    A mutant allele (genomic feature) carried by the fish, together with its zygosity and the gene it affects. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); ZAPP additionally records the affected gene (affected genomic region).
+    """
+
+    __tablename__ = "MutantAllele"
+
+    allele_id: Mapped[str | None] = mapped_column(Text())
+    allele_symbol: Mapped[str] = mapped_column(Text())
+    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
+    affected_gene_id: Mapped[str | None] = mapped_column(Text())
+    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
+    zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', name='ZygosityEnum'))
+    mother_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', name='ZygosityEnum'))
+    father_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', name='ZygosityEnum'))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Genotype_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+
+    def __repr__(self):
+        return f"MutantAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Genotype_id={self.Genotype_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class TransgenicAllele(ZappEntity):
+    """
+    A transgenic insertion (genomic feature) carried by the fish, together with its zygosity and the transgenic construct it derives from. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); the construct is a ZFIN transgenic construct (ZDB-TGCONSTRCT-…) used mainly for name display. The gene slots record the construct's driver / reporter gene so the atlas can be searched by gene across mutant and transgenic alleles alike.
+    """
+
+    __tablename__ = "TransgenicAllele"
+
+    allele_id: Mapped[str | None] = mapped_column(Text())
+    allele_symbol: Mapped[str] = mapped_column(Text())
+    construct_id: Mapped[str | None] = mapped_column(Text())
+    construct_name: Mapped[str | None] = mapped_column(Text())
+    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
+    affected_gene_id: Mapped[str | None] = mapped_column(Text())
+    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
+    zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', name='ZygosityEnum'))
+    mother_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', name='ZygosityEnum'))
+    father_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', name='ZygosityEnum'))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Genotype_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+
+    def __repr__(self):
+        return f"TransgenicAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},construct_id={self.construct_id},construct_name={self.construct_name},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Genotype_id={self.Genotype_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -535,11 +624,11 @@ class FishTankEntry(ZappEntity):
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    fish_zfin_id: Mapped[str] = mapped_column(Text(), ForeignKey("Fish.zfin_id"))
-    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_zfin_id])
+    fish_id: Mapped[int] = mapped_column(Integer(), ForeignKey("Fish.id"))
+    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])
 
     def __repr__(self):
-        return f"FishTankEntry(research_group={self.research_group},id={self.id},fish_zfin_id={self.fish_zfin_id},)"
+        return f"FishTankEntry(research_group={self.research_group},id={self.id},fish_id={self.fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

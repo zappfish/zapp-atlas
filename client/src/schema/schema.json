@@ -126,6 +126,47 @@
       "title": "ControlImage",
       "type": "object"
     },
+    "Cross": {
+      "additionalProperties": false,
+      "description": "How the experimental animals were produced: the mating that generated the clutch, plus how the resulting genotype was established. An incross is represented by the same line on both sides.\nThis matters because a genotype is not derivable from the parents alone — it follows from the cross *plus* selection. A het × het incross segregates 1:2:1, so an unsorted clutch has no single genotype, and an unqualified phenotype prevalence from such a clutch may be a Mendelian ratio rather than a toxicological effect. ``progeny_selection`` is what distinguishes those.",
+      "properties": {
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "maternal_line": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Genotype"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The line (Genotype) of the female parent. Determines maternal contribution."
+        },
+        "paternal_line": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Genotype"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The line (Genotype) of the male parent."
+        },
+        "progeny_selection": {
+          "$ref": "#/$defs/ProgenySelectionEnum",
+          "description": "How the genotype of the exposed animals was established from the cross — essential for interpreting phenotype prevalence."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Cross",
+      "type": "object"
+    },
     "Experiment": {
       "additionalProperties": false,
       "description": "A group of observations (phenotypic outcomes and their control) that are linked by a common exposure event and subject, and that are part of a study.",
@@ -343,21 +384,50 @@
     },
     "Fish": {
       "additionalProperties": false,
-      "description": "Zebrafish used as subject in the study.",
+      "description": "A zebrafish subject in a study. Mirrors ZFIN's Fish object (GENO:0000525, \"effective genotype\"): a Fish is the combination of an intrinsic Genotype (mutant alleles, transgenics and wild-type background) and any transient gene-targeting reagents (STRs — morpholinos/CRISPRs). The STR / gene-targeting reagent component is out of scope for ZAPP at this time and is intentionally not modeled yet. The Fish carries its own ZFIN fish identifier (ZDB-FISH-…), which is distinct from the ZDB-GENO-… identifier of its Genotype; either may be absent for lab-specific fish not yet registered with ZFIN.",
       "properties": {
+        "cross": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Cross"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The mating that produced the experimental animals, and how their genotype was established. Defaults conceptually to an incross of the fish's own line."
+        },
+        "fish_zfin_id": {
+          "description": "ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the genotype identifier; may be absent for lab-specific fish not yet registered.",
+          "pattern": "^ZFIN:ZDB-FISH-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "genotype": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Genotype"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The intrinsic genotype of the fish."
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
         "name": {
           "description": "Name or label of an entity.",
-          "type": "string"
-        },
-        "zfin_id": {
-          "description": "ZFIN database identifier.",
-          "pattern": "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$",
           "type": "string"
         }
       },
       "required": [
         "name",
-        "zfin_id"
+        "id"
       ],
       "title": "Fish",
       "type": "object"
@@ -385,6 +455,67 @@
         "id"
       ],
       "title": "FishTankEntry",
+      "type": "object"
+    },
+    "Genotype": {
+      "additionalProperties": false,
+      "description": "The intrinsic genotype of a fish (GENO:0000000) — equivalently, a *line*: the heritable combination of a wild-type genetic background plus any mutant allele(s) and transgenic insertion(s). Carries its own ZFIN genotype identifier (ZDB-GENO-…), which may differ from the fish identifier and may be absent if not yet registered.\nNote the recursion: ``background`` is itself a Genotype. A wild-type strain such as AB is simply a Genotype with no alterations (ZFIN models this the same way — a fish's \"Background ID\" is a ZDB-GENO). There is therefore one concept here, not two: a background *is* a line.",
+      "properties": {
+        "background": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Genotype"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The genetic background this line was bred into — itself a Genotype, normally a wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN models a fish's background the same way, as a ZDB-GENO reference."
+        },
+        "genotype_name": {
+          "description": "Display name of the genotype, e.g. \"fgf8a<ti282a/ti282a>; rerea<tb210/tb210>\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "genotype_zfin_id": {
+          "description": "ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be absent for genotypes not yet registered with ZFIN.",
+          "pattern": "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "mutant_allele": {
+          "description": "Mutant allele(s) carried by the genotype.",
+          "items": {
+            "$ref": "#/$defs/MutantAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "transgenic_allele": {
+          "description": "Transgenic insertion(s) carried by the genotype.",
+          "items": {
+            "$ref": "#/$defs/TransgenicAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Genotype",
       "type": "object"
     },
     "Image": {
@@ -461,6 +592,64 @@
       ],
       "title": "ManufacturerEnum",
       "type": "string"
+    },
+    "MutantAllele": {
+      "additionalProperties": false,
+      "description": "A mutant allele (genomic feature) carried by the fish, together with its zygosity and the gene it affects. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); ZAPP additionally records the affected gene (affected genomic region).",
+      "properties": {
+        "affected_gene_id": {
+          "description": "Identifier of the gene affected by the allele (affected genomic region), typically a ZFIN gene id (ZDB-GENE-…).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affected_gene_symbol": {
+          "description": "Symbol of the gene affected by the allele, e.g. \"snapc1b\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allele_id": {
+          "description": "ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.",
+          "pattern": "^ZFIN:ZDB-ALT-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allele_symbol": {
+          "description": "The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".",
+          "type": "string"
+        },
+        "alteration_type": {
+          "$ref": "#/$defs/SequenceAlterationTypeEnum",
+          "description": "The type of sequence alteration the allele represents, chosen from a controlled dropdown of common mutation / alteration types and normalized to a Sequence Ontology (SO) term. ZFIN records this as the feature's SO type."
+        },
+        "father_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "Zygosity of the allele in the paternal parent."
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "mother_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "Zygosity of the allele in the maternal parent."
+        },
+        "zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "Zygosity of the allele in the fish."
+        }
+      },
+      "required": [
+        "allele_symbol",
+        "id"
+      ],
+      "title": "MutantAllele",
+      "type": "object"
     },
     "OntologyEntity": {
       "additionalProperties": false,
@@ -582,6 +771,18 @@
       ],
       "title": "PhenotypeTerm",
       "type": "object"
+    },
+    "ProgenySelectionEnum": {
+      "description": "How the genotype of the exposed animals was established from the cross. A het × het incross segregates 1:2:1, so an unsorted clutch is a mixture — without this, a reported phenotype prevalence cannot be distinguished from a Mendelian ratio.",
+      "enum": [
+        "genotyped",
+        "phenotype_sorted",
+        "assumed_uniform",
+        "segregating",
+        "unknown"
+      ],
+      "title": "ProgenySelectionEnum",
+      "type": "string"
     },
     "QuantityValue": {
       "additionalProperties": false,
@@ -722,6 +923,23 @@
         "member"
       ],
       "title": "ResearchGroupRoleEnum",
+      "type": "string"
+    },
+    "SequenceAlterationTypeEnum": {
+      "description": "Common types of sequence alteration for an allele or transgenic feature. Each value is normalized to a Sequence Ontology (SO) term so curators pick a familiar label while the atlas stores the standard identifier.",
+      "enum": [
+        "point_mutation",
+        "substitution",
+        "deletion",
+        "insertion",
+        "indel",
+        "inversion",
+        "duplication",
+        "transgenic_insertion",
+        "complex_substitution",
+        "sequence_alteration"
+      ],
+      "title": "SequenceAlterationTypeEnum",
       "type": "string"
     },
     "SeverityEnum": {
@@ -902,6 +1120,79 @@
       "title": "Study",
       "type": "object"
     },
+    "TransgenicAllele": {
+      "additionalProperties": false,
+      "description": "A transgenic insertion (genomic feature) carried by the fish, together with its zygosity and the transgenic construct it derives from. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); the construct is a ZFIN transgenic construct (ZDB-TGCONSTRCT-…) used mainly for name display. The gene slots record the construct's driver / reporter gene so the atlas can be searched by gene across mutant and transgenic alleles alike.",
+      "properties": {
+        "affected_gene_id": {
+          "description": "Identifier of the gene whose regulatory region drives the transgene (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affected_gene_symbol": {
+          "description": "Symbol of the transgene's driver / reporter gene, e.g. \"fli1\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allele_id": {
+          "description": "ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.",
+          "pattern": "^ZFIN:ZDB-ALT-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allele_symbol": {
+          "description": "The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".",
+          "type": "string"
+        },
+        "alteration_type": {
+          "$ref": "#/$defs/SequenceAlterationTypeEnum",
+          "description": "Type of alteration for a transgenic feature — usually a transgenic insertion (SO:0001218). Normalized to a Sequence Ontology term."
+        },
+        "construct_id": {
+          "description": "ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic allele.",
+          "pattern": "^ZFIN:ZDB-TGCONSTRCT-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "construct_name": {
+          "description": "Name of the transgenic construct, e.g. \"Tg(mpeg1:YFP)\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "father_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "Zygosity of the allele in the paternal parent."
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "mother_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "Zygosity of the allele in the maternal parent."
+        },
+        "zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "Zygosity of the allele in the fish."
+        }
+      },
+      "required": [
+        "allele_symbol",
+        "id"
+      ],
+      "title": "TransgenicAllele",
+      "type": "object"
+    },
     "VehicleEnum": {
       "description": "An enumeration of vehicles used to deliver stressors in exposure events.",
       "enum": [
@@ -1068,21 +1359,15 @@
       "title": "ZappEntity",
       "type": "object"
     },
-    "ZfinEntity": {
-      "additionalProperties": false,
-      "description": "Entities with ZFIN database identifiers.",
-      "properties": {
-        "zfin_id": {
-          "description": "ZFIN database identifier.",
-          "pattern": "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "zfin_id"
+    "ZygosityEnum": {
+      "description": "Zygosity of an allele in a fish or in one of its parents. Applies both to the fish's own allele zygosity and to parental (maternal / paternal) zygosity, which matters for maternal-effect phenotypes.",
+      "enum": [
+        "homozygous",
+        "heterozygous",
+        "unknown"
       ],
-      "title": "ZfinEntity",
-      "type": "object"
+      "title": "ZygosityEnum",
+      "type": "string"
     }
   },
   "$id": "https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema",

@@ -11,6 +11,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.errors import SchemaRuleViolation
+from zapp_atlas.api.services.fish import fish_from_create
 from zapp_atlas.schema.pydantic_crud import (
     ControlCreate,
     ExperimentCreate,
@@ -28,7 +29,6 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     ExposureEvent,
     ExposureRoute,
     ExposureType,
-    Fish,
     Phenotype,
     PhenotypeObservationSet,
     PhenotypeTerm,
@@ -72,21 +72,6 @@ def _resolve_ontology_term(session: Session, field_name: str, payload):
     return new
 
 
-def _get_or_create_by_attrs(session: Session, model, /, **attrs):
-    """Best-effort get-or-create helper.
-
-    We intentionally keep this simple because the schema/ORM may still be in
-    flux (and may move into this repository).
-    """
-
-    instance = session.query(model).filter_by(**attrs).one_or_none()
-    if instance is not None:
-        return instance
-    instance = model(**attrs)
-    session.add(instance)
-    return instance
-
-
 def _quantity_value_from_payload(payload: QuantityValue | None) -> QuantityValue | None:
     if payload is None:
         return None
@@ -96,17 +81,6 @@ def _quantity_value_from_payload(payload: QuantityValue | None) -> QuantityValue
         unit=getattr(payload, "unit", None),
         numeric_value=getattr(payload, "numeric_value", None),
     )
-
-
-def _fish_from_payload(session: Session, payload: Fish | None) -> Fish | None:
-    if payload is None:
-        return None
-    # Fish has a natural identifier (zfin_id). Prefer upsert semantics.
-    try:
-        return _get_or_create_by_attrs(session, Fish, zfin_id=payload.zfin_id, name=payload.name)
-    except Exception:
-        # Fall back to naive instance creation if constraints differ.
-        return Fish(zfin_id=payload.zfin_id, name=payload.name)
 
 
 def _phenotype_term_from_payload(
@@ -271,7 +245,7 @@ def _experiment_from_create(session: Session, payload: ExperimentCreate) -> Expe
     exp = Experiment(
         standard_rearing_condition=payload.standard_rearing_condition,
         rearing_condition_comment=getattr(payload, "rearing_condition_comment", None),
-        fish=_fish_from_payload(session, getattr(payload, "fish", None)),
+        fish=fish_from_create(getattr(payload, "fish", None)),
     )
     for c in payload.control or []:
         exp.control.append(_control_from_create(c))

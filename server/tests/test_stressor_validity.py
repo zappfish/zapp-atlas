@@ -82,7 +82,7 @@ def _experiment(client: TestClient) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-1", "name": "AB"},
+            "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
             "control": [],
             "exposure_event": [],
         },

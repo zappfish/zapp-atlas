@@ -9,7 +9,8 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.services.exposures import delete_exposure_row
-from zapp_atlas.api.services.studies import _experiment_from_create, _fish_from_payload
+from zapp_atlas.api.services.fish import fish_from_create
+from zapp_atlas.api.services.studies import _experiment_from_create
 from zapp_atlas.db.image_storage import Storage
 from zapp_atlas.schema.pydantic_crud import (
     ExperimentCreate,
@@ -64,7 +65,7 @@ def patch_experiment(
     if patch.rearing_condition_comment is not None:
         exp.rearing_condition_comment = patch.rearing_condition_comment
     if patch.fish is not None:
-        exp.fish = _fish_from_payload(session, patch.fish)
+        exp.fish = fish_from_create(patch.fish)
     # control / exposure_event lists are intentionally not replaced on PATCH —
     # those have their own nested routes.
 

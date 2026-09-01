@@ -16,7 +16,14 @@ OUTSIDER = "0000-0003-3333-4444"
 
 ETHANOL = "CHEBI:16236"
 BPA = "CHEBI:33216"
-AB_LINE = "ZFIN:ZDB-GENO-960809-7"
+# AB wild-type line: the fish and its intrinsic genotype carry distinct ZFIN ids.
+AB_FISH_ID = "ZFIN:ZDB-FISH-150901-27842"
+AB_GENO_ID = "ZFIN:ZDB-GENO-960809-7"
+AB_FISH = {
+    "name": "AB",
+    "fish_zfin_id": AB_FISH_ID,
+    "genotype": {"genotype_zfin_id": AB_GENO_ID, "genotype_name": "AB"},
+}
 TU_LINE = "ZFIN:ZDB-GENO-990623-3"
 
 
@@ -255,16 +262,18 @@ def test_cabinet_delete(client: TestClient) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_tank_add_get_or_creates_fish(client: TestClient) -> None:
+def test_tank_add_stores_fish_graph(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     created = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": AB_LINE, "name": "AB"}},
+        json={"fish": AB_FISH},
     )
     assert created.status_code == 201, created.text
     body = created.json()
-    assert body["fish"] == {"zfin_id": AB_LINE, "name": "AB"}
+    assert body["fish"]["name"] == "AB"
+    assert body["fish"]["fish_zfin_id"] == AB_FISH_ID
+    assert body["fish"]["genotype"]["genotype_zfin_id"] == AB_GENO_ID
     assert body["created_at"] is not None
 
 
@@ -272,9 +281,13 @@ def test_tank_grain_conflict(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     url = f"/api/research-groups/{group_id}/fish-tank"
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
+    fish = {"fish": AB_FISH}
     assert client.post(url, json=fish).status_code == 201
     assert client.post(url, json=fish).status_code == 409
+    # An unregistered line has no ZFIN id; its name is the duplicate key.
+    lab_line = {"fish": {"name": "our fgf8a stock"}}
+    assert client.post(url, json=lab_line).status_code == 201
+    assert client.post(url, json=lab_line).status_code == 409
 
 
 def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
@@ -282,17 +295,18 @@ def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
     signin(client, ADMIN)
     res = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": "not-a-zfin", "name": "Mystery"}},
+        json={"fish": {"name": "Mystery", "fish_zfin_id": "not-a-zfin"}},
     )
     assert res.status_code == 422
 
 
 def test_two_groups_may_tank_the_same_fish(client: TestClient) -> None:
-    # The second entry reuses the existing Fish row rather than re-creating it.
+    # Each group's entry owns its own Fish graph; the line is only unique
+    # within a tank, not across groups.
     group_a = make_group(client, "Lab A")
     group_b = make_group(client, "Lab B")
     signin(client, ADMIN)
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
+    fish = {"fish": AB_FISH}
     a = client.post(f"/api/research-groups/{group_a}/fish-tank", json=fish)
     b = client.post(f"/api/research-groups/{group_b}/fish-tank", json=fish)
     assert a.status_code == 201 and b.status_code == 201

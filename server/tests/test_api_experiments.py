@@ -56,10 +56,7 @@ def test_experiment_create_for_study_then_get_and_list():
     exp_payload = {
         "standard_rearing_condition": True,
         "rearing_condition_comment": "",
-        "fish": {
-            "zfin_id": "ZFIN:ZDB-GENO-960809-7",
-            "name": "AB",
-        },
+        "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
         "control": [],
         "exposure_event": [],
     }
@@ -86,10 +83,7 @@ def test_experiment_create_missing_study_404():
 
     exp_payload = {
         "standard_rearing_condition": True,
-        "fish": {
-            "zfin_id": "ZFIN:ZDB-GENO-960809-7",
-            "name": "AB",
-        },
+        "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
         "control": [],
         "exposure_event": [],
     }
@@ -115,7 +109,7 @@ def test_experiment_patch_updates_rearing_and_fish():
         json={
             "standard_rearing_condition": True,
             "rearing_condition_comment": "",
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-960809-7", "name": "AB"},
+            "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
             "control": [],
             "exposure_event": [],
         },
@@ -126,14 +120,20 @@ def test_experiment_patch_updates_rearing_and_fish():
         json={
             "standard_rearing_condition": False,
             "rearing_condition_comment": "temperature 24C",
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-010112-1", "name": "TU"},
+            "fish": {
+                "name": "TU",
+                "genotype": {
+                    "genotype_zfin_id": "ZFIN:ZDB-GENO-010112-1",
+                    "background": {"genotype_name": "TU"},
+                },
+            },
         },
     )
     assert res.status_code == 200, res.text
     patched = res.json()
     assert patched["standard_rearing_condition"] is False
     assert patched["rearing_condition_comment"] == "temperature 24C"
-    assert patched["fish"]["zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
+    assert patched["fish"]["genotype"]["genotype_zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
     assert patched["fish"]["name"] == "TU"
 
 

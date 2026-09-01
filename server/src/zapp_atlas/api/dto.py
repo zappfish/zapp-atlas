@@ -20,12 +20,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from zapp_atlas.schema.pydantic_crud import ResearchGroupRoleEnum
+from zapp_atlas.schema.pydantic_crud import FishCreate, FishRead, ResearchGroupRoleEnum
 
 # Accepts a bare ORCID or an ``ORCID:`` CURIE; the service normalizes to CURIE.
 _ORCID_RE = re.compile(r"^(ORCID:)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
-# ZFIN line identifier, matching the schema's ``zfin_id`` pattern.
-_ZFIN_RE = re.compile(r"^ZFIN:ZDB-[A-Z]+-\d{6}-\d+$")
 
 
 class _FromAttributes(BaseModel):
@@ -71,26 +69,20 @@ class CabinetEntryOut(_FromAttributes):
     updated_at: datetime | None
 
 
-class FishRef(_FromAttributes):
-    zfin_id: str
-    name: str
-
-    @field_validator("zfin_id")
-    @classmethod
-    def _valid_zfin(cls, value: str) -> str:
-        if not _ZFIN_RE.match(value):
-            raise ValueError(f"Invalid ZFIN id: {value}")
-        return value
-
-
 class TankEntryIn(BaseModel):
-    """Add a fish line to a group's tank. ``research_group`` is path-derived."""
+    """Add a fish line to a group's tank. ``research_group`` is path-derived.
 
-    fish: FishRef
+    ``fish`` is the generated create model — the same full Fish/Genotype graph
+    an experiment takes — so a line saved to the tank can later pre-fill a
+    submission without losing detail. Its ZFIN-id patterns reject malformed
+    identifiers with a 422.
+    """
+
+    fish: FishCreate
 
 
 class TankEntryOut(_FromAttributes):
     id: int
-    fish: FishRef
+    fish: FishRead
     created_at: datetime | None
     updated_at: datetime | None

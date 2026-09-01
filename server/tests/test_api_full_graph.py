@@ -22,7 +22,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-3", "name": "AB"},
+            "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
             "control": [],
             "exposure_event": [],
         },

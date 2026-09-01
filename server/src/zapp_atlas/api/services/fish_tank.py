@@ -1,28 +1,23 @@
-"""Fish tank persistence (a group's maintained fish lines)."""
+"""Fish tank persistence (a group's maintained fish lines).
+
+A tank entry owns its whole Fish/Genotype graph: fish are inlined per use, not
+shared rows, because integer-keyed Fish has no natural key the database could
+dedupe on (two labs' "AB" may differ in cross or zygosity detail). The
+``tank_grain`` unique index therefore no longer catches a duplicate line by
+itself; ``add_entry`` checks the meaningful key instead — the ZFIN fish id when
+the line has one, the name within the group when it does not — and answers 409.
+"""
 
 from __future__ import annotations
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.dto import FishRef
-from zapp_atlas.api.persistence import commit_or_conflict
-from zapp_atlas.schema.sqla import Fish, FishTankEntry
+from zapp_atlas.api.services.fish import fish_from_create
+from zapp_atlas.schema.pydantic_crud import FishCreate
+from zapp_atlas.schema.sqla import Fish, FishTankEntry  # type: ignore
 
-
-def _get_or_create_fish(session: Session, ref: FishRef) -> Fish:
-    """Fish is a shared, ZFIN-keyed entity; reuse the row if it exists.
-
-    When the row already exists its stored ``name`` wins — a payload ``name``
-    is not written back, so the response echoes the canonical name rather than
-    the submitted one. Names are a property of the shared Fish, not the tank
-    entry.
-    """
-    fish = session.get(Fish, ref.zfin_id)
-    if fish is None:
-        fish = Fish(zfin_id=ref.zfin_id, name=ref.name)
-        session.add(fish)
-        session.flush()
-    return fish
+_DUPLICATE = "That fish line is already in this tank"
 
 
 def list_entries(
@@ -50,11 +45,23 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> FishTankEntry |
     )
 
 
-def add_entry(session: Session, group_id: int, fish: FishRef) -> FishTankEntry:
-    row = _get_or_create_fish(session, fish)
-    entry = FishTankEntry(research_group=group_id, fish_zfin_id=row.zfin_id)
+def _is_duplicate(session: Session, group_id: int, payload: FishCreate) -> bool:
+    query = (
+        session.query(FishTankEntry)
+        .join(Fish, FishTankEntry.fish_id == Fish.id)
+        .filter(FishTankEntry.research_group == group_id)
+    )
+    if payload.fish_zfin_id is not None:
+        return query.filter(Fish.fish_zfin_id == payload.fish_zfin_id).first() is not None
+    return query.filter(Fish.name == payload.name).first() is not None
+
+
+def add_entry(session: Session, group_id: int, payload: FishCreate) -> FishTankEntry:
+    if _is_duplicate(session, group_id, payload):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_DUPLICATE)
+    entry = FishTankEntry(research_group=group_id, fish=fish_from_create(payload))
     session.add(entry)
-    commit_or_conflict(session, "That fish line is already in this tank")
+    session.commit()
     session.refresh(entry)
     return entry
 
