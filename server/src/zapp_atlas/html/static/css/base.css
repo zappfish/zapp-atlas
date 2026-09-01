@@ -48,6 +48,13 @@
   /* Raised surfaces: dropdowns, toasts, modals. */
   --surface-sunken: #f7f8f9;
   --shadow-panel: 0 8px 24px rgba(15, 76, 92, 0.15);
+  --shadow-dropdown: 0 6px 20px rgba(16, 42, 51, 0.16);
+
+  /* Header dropdown panels. */
+  --panel-offset: 0.35rem;
+  --panel-gap: 2px;
+  --panel-pad: 6px;
+  --radius-panel: 10px;
   --shadow-modal: 0 10px 40px rgba(15, 76, 92, 0.2);
   --radius: 8px;
   --radius-lg: 12px;

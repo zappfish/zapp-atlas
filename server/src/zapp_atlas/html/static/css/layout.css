@@ -42,22 +42,36 @@
   gap: 1.25rem;
 }
 
-.site-nav > a:not(.btn) {
-  color: var(--white);
-  text-decoration: none;
-  font-size: var(--text-md);
+/* Every top-level nav item, link or dropdown trigger, shares one rule so a
+   new item matches the rest without restating anything. */
+.site-nav > a:not(.btn),
+.nav-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.4rem 0;
+  border: none;
+  background: none;
+  color: var(--white);
+  font-family: inherit;
+  font-size: var(--text-base);
+  text-decoration: none;
+  cursor: pointer;
   transition: color 0.15s ease;
 }
 
-.site-nav > a:not(.btn):hover {
+.site-nav > a:not(.btn):hover,
+.nav-menu__trigger:hover {
   color: var(--on-teal-strong);
 }
 
 .site-nav__divider {
+  box-sizing: content-box;
   width: 1px;
   height: 1.5rem;
+  padding: 0 0.25rem;
   background: var(--on-teal-muted);
+  background-clip: content-box;
 }
 
 /* Resources dropdown. */
@@ -67,21 +81,6 @@
 
 .nav-menu__trigger {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--white);
-  font-family: inherit;
-  font-size: var(--text-md);
-  transition: color 0.15s ease;
-}
-
-.nav-menu__trigger:hover {
-  color: var(--on-teal-strong);
 }
 
 /* Slightly larger than the 0.7em the .btn icons use, so the chevron reads at
@@ -97,17 +96,23 @@
   transform: rotate(180deg);
 }
 
-.nav-menu__dropdown {
+.nav-menu__dropdown,
+.user-dropdown {
   display: none;
   position: absolute;
-  top: calc(100% + 0.35rem);
-  left: 0;
-  min-width: 220px;
-  padding: 8px;
+  top: calc(100% + var(--panel-offset));
+  flex-direction: column;
+  gap: var(--panel-gap);
+  min-width: 210px;
+  padding: var(--panel-pad);
   background: var(--white);
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(16, 42, 51, 0.16);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-dropdown);
   z-index: 20;
+}
+
+.nav-menu__dropdown {
+  left: 0;
 }
 
 /* Notch tethering the panel to the trigger. Hung off the trigger so it
@@ -134,16 +139,16 @@
 }
 
 .is-nav-menu-open .nav-menu__dropdown {
-  display: block;
+  display: flex;
 }
 
 .site-nav .nav-menu__dropdown .nav-menu__item {
   display: flex;
   align-items: center;
-  height: 46px;
+  height: 30px;
   padding: 0 12px;
   border-radius: 8px;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
@@ -192,7 +197,6 @@
 .site-nav .btn--primary {
   background: var(--btn-bg);
   color: var(--teal);
-  font-weight: 600;
   border: none;
 }
 
@@ -225,6 +229,8 @@
   border-radius: var(--radius);
   background: var(--on-teal-line);
   color: var(--white);
+  font-family: inherit;
+  font-size: var(--text-sm);
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -242,7 +248,7 @@
   background: var(--white);
   color: var(--card-dark);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .user-chip__text {
@@ -258,7 +264,6 @@
 
 .user-chip__name {
   font-size: var(--text-sm);
-  font-weight: 600;
 }
 
 /* Same treatment as the nav chevron: flips while the menu is open. */
@@ -274,21 +279,11 @@
 }
 
 .user-dropdown {
-  display: none;
-  position: absolute;
-  top: calc(100% + 0.5rem);
   right: 0;
-  min-width: 220px;
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-panel);
-  overflow: hidden;
-  z-index: 20;
 }
 
 .is-user-open .user-dropdown {
-  display: block;
+  display: flex;
 }
 
 /* Scoped under .user-dropdown so these win over `.site-nav a` white text. */
