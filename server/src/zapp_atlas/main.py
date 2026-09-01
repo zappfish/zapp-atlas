@@ -10,9 +10,11 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.routers.cabinet import router as cabinet_router
 from zapp_atlas.api.routers.experiments import router as experiments_router
 from zapp_atlas.api.routers.exposures import router as exposures_router
@@ -58,6 +60,16 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings or load_settings()
+
+    @app.exception_handler(SchemaRuleViolation)
+    def _schema_rule_violation(request: Request, exc: SchemaRuleViolation) -> JSONResponse:
+        # A rule the schema declares but the generated validators cannot check.
+        # It is a bad request, not a server fault, so answer like FastAPI's own
+        # validation errors rather than letting it escape as a 500.
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": [{"type": "schema_rule", "msg": str(exc)}]},
+        )
 
     @app.get("/health")
     def health() -> dict[str, str]:

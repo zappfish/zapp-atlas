@@ -736,6 +736,48 @@
     },
     "StressorChemical": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "chemical_id": {}
+              },
+              "required": [
+                "chemical_id"
+              ]
+            },
+            {
+              "properties": {
+                "unrecognized_chemical_name": {}
+              },
+              "required": [
+                "unrecognized_chemical_name"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "manufacturer": {
+                "const": "other_not_listed"
+              }
+            },
+            "required": [
+              "manufacturer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unrecognized_manufacturer_name": {}
+            },
+            "required": [
+              "unrecognized_manufacturer_name"
+            ]
+          }
+        }
+      ],
       "description": "A chemical that elicits a response (a phenotype) in a subject when encountered through exposure.",
       "properties": {
         "cas_id": {
@@ -806,26 +848,6 @@
       "required": [
         "id"
       ],
-      "then": {
-        "anyOf": [
-          {
-            "properties": {
-              "chemical_id": {}
-            },
-            "required": [
-              "chemical_id"
-            ]
-          },
-          {
-            "properties": {
-              "unrecognized_chemical_name": {}
-            },
-            "required": [
-              "unrecognized_chemical_name"
-            ]
-          }
-        ]
-      },
       "title": "StressorChemical",
       "type": "object"
     },
@@ -908,6 +930,48 @@
     },
     "VehicleOfTransmission": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "vehicle_type": {
+                "const": "other_not_listed"
+              }
+            },
+            "required": [
+              "vehicle_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unrecognized_chemical_name": {}
+            },
+            "required": [
+              "unrecognized_chemical_name"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "manufacturer": {
+                "const": "other_not_listed"
+              }
+            },
+            "required": [
+              "manufacturer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unrecognized_manufacturer_name": {}
+            },
+            "required": [
+              "unrecognized_manufacturer_name"
+            ]
+          }
+        }
+      ],
       "description": "The substance or medium used to deliver a stressor to a subject during an exposure event.",
       "properties": {
         "cas_id": {

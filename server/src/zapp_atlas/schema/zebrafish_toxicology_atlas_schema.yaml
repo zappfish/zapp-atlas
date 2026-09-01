@@ -137,21 +137,6 @@ classes:
       - unrecognized_manufacturer_name
       - concentration
       - comment
-    slot_usage:
-      cas_id:
-        required: false
-      unrecognized_chemical_name:
-        required: false
-      synonym:
-        required: false
-      manufacturer:
-        required: false
-      unrecognized_manufacturer_name:
-        required: false
-      concentration:
-        required: false
-      comment:
-        required: false
     rules:
       - description: >-
           A chemical entry must be identifiable: at least one of chemical_id
@@ -166,6 +151,18 @@ classes:
             - slot_conditions:
                 unrecognized_chemical_name:
                   required: true
+      - description: >-
+          Picking the other_not_listed manufacturer escape hatch means the
+          supplier has to be named in free text; without it the entry records
+          no recoverable supplier at all.
+        preconditions:
+          slot_conditions:
+            manufacturer:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_manufacturer_name:
+              required: true
 
   VehicleOfTransmission:
     is_a: ZappEntity
@@ -180,23 +177,31 @@ classes:
       - unrecognized_manufacturer_name
       - concentration
       - comment
-    slot_usage:
-      chemical_id:
-        required: false
-      cas_id:
-        required: false
-      unrecognized_chemical_name:
-        required: false
-      synonym:
-        required: false
-      manufacturer:
-        required: false
-      unrecognized_manufacturer_name:
-        required: false
-      concentration:
-        required: false
-      comment:
-        required: false
+    rules:
+      - description: >-
+          Picking the other_not_listed vehicle escape hatch means the vehicle
+          has to be named in free text; without it the entry records no
+          recoverable vehicle at all.
+        preconditions:
+          slot_conditions:
+            vehicle_type:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_chemical_name:
+              required: true
+      - description: >-
+          Picking the other_not_listed manufacturer escape hatch means the
+          supplier has to be named in free text; without it the entry records
+          no recoverable supplier at all.
+        preconditions:
+          slot_conditions:
+            manufacturer:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_manufacturer_name:
+              required: true
 
   Image:
     is_a: ZappEntity
@@ -520,7 +525,6 @@ slots:
   concentration:
     description: The dose or concentration of the chemical to which the subject was exposed to.
     range: QuantityValue
-    required: true
     inlined_as_list: true
     inlined: true
   interval_between_individual_exposures:

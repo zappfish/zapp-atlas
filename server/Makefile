@@ -41,18 +41,9 @@ $(TS_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	uv run gen-typescript $< >>$@
 
 # JSON Schema for the client: runtime validation (Ajv) + type-safe unmarshalling.
-# JSON has no comments, so the "do not edit" notice rides in the standard JSON
-# Schema `$$comment` keyword, injected as the first key. ($$ escapes $ for Make.)
-# Injected with Python rather than jq so the codegen needs nothing outside the
-# uv environment.
-define JSON_SCHEMA_NOTICE
-import json, sys
-notice = "GENERATED FILE. DO NOT EDIT. Regenerate with `make schema`."
-json.dump({"$$comment": notice, **json.load(sys.stdin)}, sys.stdout, indent=2, ensure_ascii=False)
-print()
-endef
-export JSON_SCHEMA_NOTICE
-
+# The post-processor injects the "do not edit" notice and makes LinkML's
+# unconditional class rules effective -- see zapp_atlas/schema/json_schema_post.py.
+# Python rather than jq so the codegen needs nothing outside the uv environment.
 $(JSON_SCHEMA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
-	uv run gen-json-schema $< | uv run python -c "$$JSON_SCHEMA_NOTICE" > $@
+	uv run gen-json-schema $< | uv run python -m zapp_atlas.schema.json_schema_post > $@

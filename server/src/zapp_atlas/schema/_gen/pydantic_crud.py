@@ -903,16 +903,15 @@ class StressorChemical(ZappEntity):
                     'postconditions': {'any_of': [{'slot_conditions': {'chemical_id': {'name': 'chemical_id',
                                                                                        'required': True}}},
                                                   {'slot_conditions': {'unrecognized_chemical_name': {'name': 'unrecognized_chemical_name',
-                                                                                                      'required': True}}}]}}],
-         'slot_usage': {'cas_id': {'name': 'cas_id', 'required': False},
-                        'comment': {'name': 'comment', 'required': False},
-                        'concentration': {'name': 'concentration', 'required': False},
-                        'manufacturer': {'name': 'manufacturer', 'required': False},
-                        'synonym': {'name': 'synonym', 'required': False},
-                        'unrecognized_chemical_name': {'name': 'unrecognized_chemical_name',
-                                                       'required': False},
-                        'unrecognized_manufacturer_name': {'name': 'unrecognized_manufacturer_name',
-                                                           'required': False}}})
+                                                                                                      'required': True}}}]}},
+                   {'description': 'Picking the other_not_listed manufacturer escape '
+                                   'hatch means the supplier has to be named in free '
+                                   'text; without it the entry records no recoverable '
+                                   'supplier at all.',
+                    'postconditions': {'slot_conditions': {'unrecognized_manufacturer_name': {'name': 'unrecognized_manufacturer_name',
+                                                                                              'required': True}}},
+                    'preconditions': {'slot_conditions': {'manufacturer': {'equals_string': 'other_not_listed',
+                                                                           'name': 'manufacturer'}}}}]})
 
     chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
@@ -993,16 +992,22 @@ class VehicleOfTransmission(ZappEntity):
     The substance or medium used to deliver a stressor to a subject during an exposure event.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'cas_id': {'name': 'cas_id', 'required': False},
-                        'chemical_id': {'name': 'chemical_id', 'required': False},
-                        'comment': {'name': 'comment', 'required': False},
-                        'concentration': {'name': 'concentration', 'required': False},
-                        'manufacturer': {'name': 'manufacturer', 'required': False},
-                        'synonym': {'name': 'synonym', 'required': False},
-                        'unrecognized_chemical_name': {'name': 'unrecognized_chemical_name',
-                                                       'required': False},
-                        'unrecognized_manufacturer_name': {'name': 'unrecognized_manufacturer_name',
-                                                           'required': False}}})
+         'rules': [{'description': 'Picking the other_not_listed vehicle escape hatch '
+                                   'means the vehicle has to be named in free text; '
+                                   'without it the entry records no recoverable '
+                                   'vehicle at all.',
+                    'postconditions': {'slot_conditions': {'unrecognized_chemical_name': {'name': 'unrecognized_chemical_name',
+                                                                                          'required': True}}},
+                    'preconditions': {'slot_conditions': {'vehicle_type': {'equals_string': 'other_not_listed',
+                                                                           'name': 'vehicle_type'}}}},
+                   {'description': 'Picking the other_not_listed manufacturer escape '
+                                   'hatch means the supplier has to be named in free '
+                                   'text; without it the entry records no recoverable '
+                                   'supplier at all.',
+                    'postconditions': {'slot_conditions': {'unrecognized_manufacturer_name': {'name': 'unrecognized_manufacturer_name',
+                                                                                              'required': True}}},
+                    'preconditions': {'slot_conditions': {'manufacturer': {'equals_string': 'other_not_listed',
+                                                                           'name': 'manufacturer'}}}}]})
 
     vehicle_type: VehicleEnum = Field(default=..., description="""The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary.""", json_schema_extra = { "linkml_meta": {'domain_of': ['VehicleOfTransmission']} })
     chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',

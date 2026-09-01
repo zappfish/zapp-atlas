@@ -2,8 +2,9 @@
 
 ``gen-sqla`` renders neither ``unique_keys`` nor timestamp defaults. Both are
 read back out of the schema and attached to the generated tables, so the YAML
-stays the single source of truth. Delete this module once the generator
-supports them.
+stays the single source of truth. It also emits the child tables it builds for
+multivalued scalar slots without a delete cascade, which is fixed up here for
+the same reason. Delete this module once the generator supports them.
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from pathlib import Path
 
 from linkml_runtime import SchemaView
 from linkml_runtime.linkml_model.meta import ClassDefinition
-from sqlalchemy import Column, DateTime, Index, Table
+from sqlalchemy import Column, DateTime, Index, Table, inspect
 
 from zapp_atlas.schema._gen.sqla import Base
 
@@ -56,6 +57,38 @@ def _apply_unique_keys(view: SchemaView, model: type, definition: ClassDefinitio
         Index(name, *columns, unique=True)
 
 
+def _is_owned_child(parent: Table, target: Table) -> bool:
+    """Is ``target`` a child table that only exists to hold ``parent``'s rows?
+
+    ``gen-sqla`` renders a multivalued scalar slot (``synonym``, ``annotator``)
+    as its own table whose primary key is the parent's foreign key plus the
+    value itself. Every column is part of the key, so such a row cannot be
+    detached from its parent by blanking the foreign key -- the only way to
+    stop pointing at a parent is to be deleted with it.
+    """
+    if not all(column.primary_key for column in target.columns):
+        return False
+    return any(fk.column.table is parent for column in target.columns for fk in column.foreign_keys)
+
+
+def _apply_child_cascades(model: type) -> None:
+    """Give owned-child relationships the delete cascade the generator omits.
+
+    Without it SQLAlchemy tries to blank out the child's foreign key when the
+    parent goes away, which is a no-op on an ordinary column but raises on
+    these, because the foreign key is part of the child's primary key. Deleting
+    a stressor chemical that had synonyms would fail with "tried to blank-out
+    primary key column", taking the whole request down with it.
+    """
+    for relationship in inspect(model).relationships:
+        target = relationship.mapper.persist_selectable
+        if not isinstance(target, Table) or not _is_owned_child(model.__table__, target):
+            continue
+        if "delete-orphan" in relationship.cascade:
+            continue
+        relationship.cascade = "all, delete-orphan"
+
+
 def _apply_timestamps(model: type) -> None:
     if "created_at" in model.__table__.c:
         return
@@ -66,7 +99,10 @@ def _apply_timestamps(model: type) -> None:
 
 
 def apply_schema_constraints(schema_path: Path = SCHEMA_PATH) -> None:
-    """Attach every schema-declared unique key and timestamp pair. Idempotent."""
+    """Attach schema-declared unique keys, timestamps, and child cascades.
+
+    Idempotent.
+    """
     view = SchemaView(str(schema_path))
     models = {mapper.class_.__name__: mapper.class_ for mapper in Base.registry.mappers}
     for class_name, definition in view.all_classes().items():
@@ -74,5 +110,6 @@ def apply_schema_constraints(schema_path: Path = SCHEMA_PATH) -> None:
         if model is None:
             continue
         _apply_unique_keys(view, model, definition)
+        _apply_child_cascades(model)
         if TIMESTAMPED in definition.annotations:
             _apply_timestamps(model)

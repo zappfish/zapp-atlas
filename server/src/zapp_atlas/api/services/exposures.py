@@ -20,7 +20,6 @@ from zapp_atlas.schema.pydantic_crud import (
 from zapp_atlas.schema.sqla import (  # type: ignore
     Experiment,
     ExposureEvent,
-    VehicleOfTransmission,
 )
 
 
@@ -90,9 +89,11 @@ def delete_exposure_row(session: Session, ee: ExposureEvent, *, storage: Storage
         delete_observation_row(session, obs, storage=storage)
     for stressor in list(ee.stressor or []):
         session.delete(stressor)
-    session.query(VehicleOfTransmission).filter_by(ExposureEvent_id=ee.id).delete(
-        synchronize_session="fetch"
-    )
+    # Deleted one at a time rather than as a bulk query: a bulk delete goes
+    # straight to SQL and skips the ORM cascade, which would leave each
+    # vehicle's synonym rows behind pointing at a vehicle that no longer exists.
+    for vehicle in list(ee.vehicle or []):
+        session.delete(vehicle)
     if ee.regimen is not None:
         session.delete(ee.regimen)
     session.delete(ee)
