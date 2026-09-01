@@ -8,6 +8,7 @@
        loads first. #}
     <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
     <link rel="stylesheet" href="/static/css/login.css">
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="/static/htmx.min.js"></script>
@@ -29,10 +30,25 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="#">Resources</a>
-        <a href="#">FAQ</a>
-        <a href="#">Contact us</a>
-        <a href="#">Downloads</a>
+        {# Resources opens a dropdown; Help is a plain link. Both use the
+           same toggle helper as the signed-in user menu. #}
+        <div class="nav-menu">
+          <button class="nav-menu__trigger" type="button"
+                  aria-expanded="false" aria-controls="resources-dropdown">
+            Resources
+            {% include "icons/chevron-down.svg" %}
+          </button>
+          <div class="nav-menu__dropdown" id="resources-dropdown">
+            <a class="nav-menu__item" href="#">Curation Guidelines</a>
+            <a class="nav-menu__item" href="https://zappfish.org/ZAPPGovernance/"
+               target="_blank" rel="noopener">Data Governance{% include "icons/external.svg" %}</a>
+            <a class="nav-menu__item" href="https://zappfish.org/faqs"
+               target="_blank" rel="noopener">Project FAQ{% include "icons/external.svg" %}</a>
+            <a class="nav-menu__item" href="https://zappfish.org/contact"
+               target="_blank" rel="noopener">Contact Us{% include "icons/external.svg" %}</a>
+          </div>
+        </div>
+        <a href="#">Help</a>
         <span class="site-nav__divider" aria-hidden="true"></span>
         {% if current_identity %}
           <a class="btn btn--primary" href="/edit">
@@ -59,7 +75,7 @@
                 <span class="user-chip__greeting">Hello,</span>
                 <span class="user-chip__name">{{ _parts[0] if _parts else "there" }}</span>
               </span>
-              <span class="user-chip__caret" aria-hidden="true">&#9662;</span>
+              {% include "icons/chevron-down.svg" %}
             </button>
 
             <div class="user-dropdown" id="user-dropdown">

@@ -45,6 +45,13 @@ wireToggle(
   "is-user-open",
 );
 
+// Resources dropdown in the main nav.
+wireToggle(
+  document.querySelector(".nav-menu"),
+  document.querySelector(".nav-menu__trigger"),
+  "is-nav-menu-open",
+);
+
 // Overflow menus (<details.sub-menu>): close on outside-click and Escape.
 // One open at a time; delegated so htmx-swapped rows are covered.
 const closeMenus = (except) => {
