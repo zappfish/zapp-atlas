@@ -1,0 +1,85 @@
+{#
+  The My Submissions swappable region: sidebar + main. Shares the #dash-body
+  target with the group dashboard body so sidebar navigation swaps either in.
+#}
+<div class="dashboard" id="dash-body">
+  {% set active = "my-submissions" %}
+  {% include "partials/dash_sidebar.html" %}
+
+  <div class="dash-main">
+    <header class="dash-header dash-header--plain">
+      <div>
+        <h1 class="dash-header__title">My Submissions</h1>
+        <p class="dash-header__meta">
+          All submissions across your research groups
+        </p>
+      </div>
+    </header>
+
+    {% if submissions %}
+      {# ---- Search ---- #}
+      <div class="mysub-search">
+        {% include "icons/search.svg" %}
+        <input type="search" class="mysub-search__input"
+               placeholder="Search submissions…" aria-label="Search submissions">
+        <button class="mysub-search__btn" type="button">Search</button>
+      </div>
+
+      {# ---- Status guide ---- #}
+      <div class="mysub-guide">
+        <span class="mysub-guide__item mysub-guide__item--published">
+          <span class="mysub__dot" aria-hidden="true"></span>Published
+          <span class="mysub-guide__hint">Live on the Atlas</span>
+        </span>
+        <span class="mysub-guide__item mysub-guide__item--in-progress">
+          <span class="mysub__dot" aria-hidden="true"></span>In Progress
+          <span class="mysub-guide__hint">Being edited</span>
+        </span>
+        <span class="mysub-guide__item mysub-guide__item--on-hold">
+          <span class="mysub__dot" aria-hidden="true"></span>On Hold
+          <span class="mysub-guide__hint">Pending review</span>
+        </span>
+        <span class="mysub-guide__item mysub-guide__item--retracted">
+          <span class="mysub__dot" aria-hidden="true"></span>Retracted
+          <span class="mysub-guide__hint">Withdrawn</span>
+        </span>
+      </div>
+
+      {# ---- Filters + view toggle ---- #}
+      <div class="mysub-tools">
+        {% include "partials/sub_filters.html" %}
+
+        {# Plain links so the choice lives in the URL and needs no script. #}
+        <div class="mysub-view" role="group" aria-label="View">
+          <a class="mysub-view__btn {{ 'is-active' if view == 'list' }}"
+             href="/my-submissions?view=list" aria-label="List view">
+            {% include "icons/list.svg" %}
+          </a>
+          <a class="mysub-view__btn {{ 'is-active' if view == 'grid' }}"
+             href="/my-submissions?view=grid" aria-label="Grid view">
+            {% include "icons/grid.svg" %}
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    {# ---- Submissions ---- #}
+    {% if view == "grid" %}
+      <div class="mysub-grid">
+        {% for submission in submissions %}
+          {% include "partials/my_sub_card.html" %}
+        {% else %}
+          {% include "partials/my_sub_empty.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <ul class="mysub-list">
+        {% for submission in submissions %}
+          {% include "partials/sub_row.html" %}
+        {% else %}
+          {% include "partials/my_sub_empty.html" %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</div>

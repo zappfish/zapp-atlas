@@ -119,6 +119,20 @@ linkml_meta = LinkMLMeta({'default_prefix': 'zebrafish_toxicology_atlas_schema',
      'source_file': 'src/zapp_atlas/schema/zebrafish_toxicology_atlas_schema.yaml',
      'title': 'zebrafish-toxicology-atlas-schema'} )
 
+class ResearchGroupRoleEnum(str, Enum):
+    """
+    An enumeration of permission levels within a research group.
+    """
+    admin = "admin"
+    """
+    Can manage group membership as well as the group's data.
+    """
+    member = "member"
+    """
+    Can edit the group's data.
+    """
+
+
 class SeverityEnum(str, Enum):
     """
     An enumeration of severity levels for phenotypes.
@@ -559,7 +573,7 @@ class Experiment(ZappEntity):
 
     standard_rearing_condition: Optional[bool] = Field(default=None, description="""An indication of whether the subject was maintained under standard conditions, which are the established, consistent environmental and husbandry parameters (such as temperature, lighting, diet, and housing) designed to minimize variability and ensure reproducibility in experiments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     rearing_condition_comment: Optional[str] = Field(default=None, description="""Comments on rearing conditions, for example, about how conditions deviated from standard parameters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
+    fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[Control]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     exposure_event: Optional[list[ExposureEvent]] = Field(default=None, description="""The exposure event in an experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -571,7 +585,7 @@ class ExperimentCreate(ConfiguredBaseModel):
     """
     standard_rearing_condition: Optional[bool] = Field(default=None, description="""An indication of whether the subject was maintained under standard conditions, which are the established, consistent environmental and husbandry parameters (such as temperature, lighting, diet, and housing) designed to minimize variability and ensure reproducibility in experiments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     rearing_condition_comment: Optional[str] = Field(default=None, description="""Comments on rearing conditions, for example, about how conditions deviated from standard parameters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
+    fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[ControlCreate]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     exposure_event: Optional[list[ExposureEventCreate]] = Field(default=None, description="""The exposure event in an experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
 
@@ -582,7 +596,7 @@ class ExperimentUpdate(ConfiguredBaseModel):
     """
     standard_rearing_condition: Optional[bool] = Field(default=None, description="""An indication of whether the subject was maintained under standard conditions, which are the established, consistent environmental and husbandry parameters (such as temperature, lighting, diet, and housing) designed to minimize variability and ensure reproducibility in experiments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     rearing_condition_comment: Optional[str] = Field(default=None, description="""Comments on rearing conditions, for example, about how conditions deviated from standard parameters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
+    fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[Control]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     exposure_event: Optional[list[ExposureEvent]] = Field(default=None, description="""The exposure event in an experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
 
@@ -593,7 +607,7 @@ class ExperimentRead(ReadBaseModel):
     """
     standard_rearing_condition: Optional[bool] = Field(default=None, description="""An indication of whether the subject was maintained under standard conditions, which are the established, consistent environmental and husbandry parameters (such as temperature, lighting, diet, and housing) designed to minimize variability and ensure reproducibility in experiments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     rearing_condition_comment: Optional[str] = Field(default=None, description="""Comments on rearing conditions, for example, about how conditions deviated from standard parameters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    fish: Optional[FishRead] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
+    fish: Optional[FishRead] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[ControlRead]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     exposure_event: Optional[list[ExposureEventRead]] = Field(default=None, description="""The exposure event in an experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -874,7 +888,7 @@ class StressorChemical(ZappEntity):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
+    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     chemical_name: Optional[str] = Field(default=None, description="""Name of the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Other names for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
@@ -891,7 +905,7 @@ class StressorChemicalCreate(ConfiguredBaseModel):
     """
     Create schema for StressorChemical — id is server-generated.
     """
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
+    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     chemical_name: Optional[str] = Field(default=None, description="""Name of the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Other names for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
@@ -907,7 +921,7 @@ class StressorChemicalUpdate(ConfiguredBaseModel):
     """
     Update schema for StressorChemical — all fields optional for partial updates.
     """
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
+    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     chemical_name: Optional[str] = Field(default=None, description="""Name of the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Other names for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
@@ -923,7 +937,7 @@ class StressorChemicalRead(ReadBaseModel):
     """
     Read schema for StressorChemical — from_attributes=True, extra=ignore.
     """
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
+    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     chemical_name: Optional[str] = Field(default=None, description="""Name of the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Other names for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical']} })
@@ -1148,7 +1162,7 @@ class Fish(ZfinEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     zfin_id: str = Field(default=..., description="""ZFIN database identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZfinEntity']} })
 
     @field_validator('zfin_id')
@@ -1169,7 +1183,7 @@ class FishRead(ReadBaseModel):
     """
     Read schema for Fish — from_attributes=True, extra=ignore.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     zfin_id: str = Field(default=..., description="""ZFIN database identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZfinEntity']} })
 
     @field_validator('zfin_id')
@@ -1184,6 +1198,219 @@ class FishRead(ReadBaseModel):
             err_msg = f"Invalid zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
+
+
+class ResearchGroup(ZappEntity):
+    """
+    A named collection of users that have shared editing access.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'name': {'name': 'name', 'required': True}}})
+
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class ResearchGroupCreate(ConfiguredBaseModel):
+    """
+    Create schema for ResearchGroup — id is server-generated.
+    """
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+
+
+class ResearchGroupUpdate(ConfiguredBaseModel):
+    """
+    Update schema for ResearchGroup — all fields optional for partial updates.
+    """
+    name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+
+
+class ResearchGroupRead(ReadBaseModel):
+    """
+    Read schema for ResearchGroup — from_attributes=True, extra=ignore.
+    """
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class ResearchGroupMember(ZappEntity):
+    """
+    Membership of an ORCID identity in a research group.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
+         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'unique_keys': {'membership_grain': {'unique_key_name': 'membership_grain',
+                                              'unique_key_slots': ['research_group',
+                                                                   'member']}}})
+
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('member')
+    def pattern_member(cls, v):
+        pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid member format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class ResearchGroupMemberCreate(ConfiguredBaseModel):
+    """
+    Create schema for ResearchGroupMember — id is server-generated.
+    """
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+
+    @field_validator('member')
+    def pattern_member(cls, v):
+        pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid member format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class ResearchGroupMemberUpdate(ConfiguredBaseModel):
+    """
+    Update schema for ResearchGroupMember — all fields optional for partial updates.
+    """
+    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    member: Optional[str] = Field(default=None, description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    role: Optional[ResearchGroupRoleEnum] = Field(default=None, description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+
+    @field_validator('member')
+    def pattern_member(cls, v):
+        pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid member format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class ResearchGroupMemberRead(ReadBaseModel):
+    """
+    Read schema for ResearchGroupMember — from_attributes=True, extra=ignore.
+    """
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('member')
+    def pattern_member(cls, v):
+        pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid member format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class ChemicalCabinetEntry(ZappEntity):
+    """
+    A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
+         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'chemical_id': {'name': 'chemical_id', 'required': True}},
+         'unique_keys': {'cabinet_grain': {'unique_key_name': 'cabinet_grain',
+                                           'unique_key_slots': ['research_group',
+                                                                'chemical_id']}}})
+
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class ChemicalCabinetEntryCreate(ConfiguredBaseModel):
+    """
+    Create schema for ChemicalCabinetEntry — id is server-generated.
+    """
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
+
+
+class ChemicalCabinetEntryUpdate(ConfiguredBaseModel):
+    """
+    Update schema for ChemicalCabinetEntry — all fields optional for partial updates.
+    """
+    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
+
+
+class ChemicalCabinetEntryRead(ReadBaseModel):
+    """
+    Read schema for ChemicalCabinetEntry — from_attributes=True, extra=ignore.
+    """
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'ChemicalCabinetEntry']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class FishTankEntry(ZappEntity):
+    """
+    A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
+         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'fish': {'description': 'The fish line the group maintains.',
+                                 'name': 'fish',
+                                 'required': True}},
+         'unique_keys': {'tank_grain': {'unique_key_name': 'tank_grain',
+                                        'unique_key_slots': ['research_group',
+                                                             'fish']}}})
+
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class FishTankEntryCreate(ConfiguredBaseModel):
+    """
+    Create schema for FishTankEntry — id is server-generated.
+    """
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
+
+
+class FishTankEntryUpdate(ConfiguredBaseModel):
+    """
+    Update schema for FishTankEntry — all fields optional for partial updates.
+    """
+    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    fish: Optional[Fish] = Field(default=None, description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
+
+
+class FishTankEntryRead(ReadBaseModel):
+    """
+    Read schema for FishTankEntry — from_attributes=True, extra=ignore.
+    """
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
 class QuantityValue(ConfiguredBaseModel):
@@ -1261,6 +1488,22 @@ ExposureType.model_rebuild()
 ExposureTypeRead.model_rebuild()
 Fish.model_rebuild()
 FishRead.model_rebuild()
+ResearchGroup.model_rebuild()
+ResearchGroupCreate.model_rebuild()
+ResearchGroupUpdate.model_rebuild()
+ResearchGroupRead.model_rebuild()
+ResearchGroupMember.model_rebuild()
+ResearchGroupMemberCreate.model_rebuild()
+ResearchGroupMemberUpdate.model_rebuild()
+ResearchGroupMemberRead.model_rebuild()
+ChemicalCabinetEntry.model_rebuild()
+ChemicalCabinetEntryCreate.model_rebuild()
+ChemicalCabinetEntryUpdate.model_rebuild()
+ChemicalCabinetEntryRead.model_rebuild()
+FishTankEntry.model_rebuild()
+FishTankEntryCreate.model_rebuild()
+FishTankEntryUpdate.model_rebuild()
+FishTankEntryRead.model_rebuild()
 QuantityValue.model_rebuild()
 QuantityValueRead.model_rebuild()
 

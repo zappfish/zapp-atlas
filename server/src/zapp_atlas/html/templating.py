@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from zapp_atlas.api.deps import open_session
 from zapp_atlas.auth.services import ORCID_AUTH_COOKIE, get_orcid_identity
+from zapp_atlas.html import nav
 
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
@@ -29,7 +30,14 @@ def _current_identity(request: Request) -> dict[str, object]:
         return {"current_identity": get_orcid_identity(session, identity_id)}
 
 
+def _nav_items(request: Request) -> dict[str, object]:
+    """Expose the navigation structure as `nav_items`, so the shared header
+    renders from html/nav.py rather than hand-written markup.
+    """
+    return {"nav_items": nav.ITEMS}
+
+
 templates = Jinja2Templates(
     directory=TEMPLATES_DIR,
-    context_processors=[_current_identity],
+    context_processors=[_current_identity, _nav_items],
 )

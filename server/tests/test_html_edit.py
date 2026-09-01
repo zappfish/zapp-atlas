@@ -18,9 +18,9 @@ def test_edit_page_renders_inside_the_site_shell(client: TestClient) -> None:
     assert res.status_code == 200
     # The SPA mounts into the shared layout, not a standalone document.
     assert '<div id="root"></div>' in res.text
-    assert "<header>" in res.text
-    assert "<footer>" in res.text
-    assert '<link rel="stylesheet" href="/static/styles.css">' in res.text
+    assert '<header class="site-header">' in res.text
+    assert '<footer class="site-footer">' in res.text
+    assert '<link rel="stylesheet" href="/static/css/base.css">' in res.text
 
 
 def test_edit_page_serves_deep_links(client: TestClient) -> None:

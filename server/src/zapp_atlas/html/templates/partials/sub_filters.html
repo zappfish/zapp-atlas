@@ -1,0 +1,37 @@
+{#
+  Submission filter + sort controls, shared by My Submissions and a group's
+  Submissions. The including template provides `submissions` and optionally
+  `context`: "group" adds the group-only "My submissions" scope filter.
+  Static UI - the actual filtering/sorting query differs per page.
+#}
+{% set context = context | default("mine") %}
+{% set published = submissions | selectattr("status", "equalto", "Published") | list | length %}
+{% set in_progress = submissions | selectattr("status", "equalto", "In Progress") | list | length %}
+{% set on_hold = submissions | selectattr("status", "equalto", "On Hold") | list | length %}
+{% set retracted = submissions | selectattr("status", "equalto", "Retracted") | list | length %}
+<div class="mysub-tabs">
+  <button class="mysub-tab is-active" type="button">
+    All <span class="mysub-tab__n">{{ submissions | length }}</span>
+  </button>
+  <button class="mysub-tab" type="button">
+    Published {% if published %}<span class="mysub-tab__n">{{ published }}</span>{% endif %}
+  </button>
+  <button class="mysub-tab" type="button">
+    In Progress {% if in_progress %}<span class="mysub-tab__n">{{ in_progress }}</span>{% endif %}
+  </button>
+  <button class="mysub-tab" type="button">
+    On Hold {% if on_hold %}<span class="mysub-tab__n">{{ on_hold }}</span>{% endif %}
+  </button>
+  <button class="mysub-tab" type="button">
+    Retracted {% if retracted %}<span class="mysub-tab__n">{{ retracted }}</span>{% endif %}
+  </button>
+  {% if context == "group" %}
+    <button class="mysub-tab" type="button">My submissions</button>
+  {% endif %}
+</div>
+
+<div class="mysub-sort">
+  <button class="mysub-tab" type="button">Study Id {% include "icons/chevron-down.svg" %}</button>
+  <button class="mysub-tab" type="button">Date {% include "icons/chevron-down.svg" %}</button>
+  <button class="mysub-tab" type="button">Owner {% include "icons/chevron-down.svg" %}</button>
+</div>

@@ -1,0 +1,604 @@
+/* ZAPP Atlas — layout styles. Part of the split from base.css. */
+
+/* ---- Header ------------------------------------------------------------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 84px;
+  padding: 0 2rem;
+  background: var(--teal);
+  color: var(--white);
+}
+
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.site-brand__name {
+  color: var(--white);
+  font-weight: 600;
+  font-size: var(--text-lg); /* ~24px */
+  letter-spacing: 0.02em;
+}
+
+.site-brand__logo {
+  height: 30px;
+  width: auto;
+  display: block;
+}
+
+/* One gap drives all spacing; links carry no horizontal padding so every
+   item is evenly spaced. */
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* Every top-level nav item, link or dropdown trigger, shares one rule so a
+   new item matches the rest without restating anything. */
+.site-nav > a:not(.btn),
+.nav-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0;
+  border: none;
+  background: none;
+  color: var(--white);
+  font-family: inherit;
+  font-size: var(--text-base);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.site-nav > a:not(.btn):hover,
+.nav-menu__trigger:hover {
+  color: var(--on-teal-strong);
+}
+
+.site-nav__divider {
+  box-sizing: content-box;
+  width: 1px;
+  height: 1.5rem;
+  padding: 0 0.25rem;
+  background: var(--on-teal-muted);
+  background-clip: content-box;
+}
+
+/* Resources dropdown. */
+.nav-menu {
+  position: relative;
+}
+
+.nav-menu__trigger {
+  position: relative;
+}
+
+/* Slightly larger than the 0.7em the .btn icons use, so the chevron reads at
+   nav size. Flips to point up while the panel is open. */
+.nav-menu__trigger .icon--chevron-down {
+  width: 0.7em;
+  height: 0.7em;
+  opacity: 0.9;
+  transition: transform 0.15s ease;
+}
+
+.is-nav-menu-open .nav-menu__trigger .icon--chevron-down {
+  transform: rotate(180deg);
+}
+
+.nav-menu__dropdown,
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + var(--panel-offset));
+  flex-direction: column;
+  gap: var(--panel-gap);
+  min-width: 210px;
+  padding: var(--panel-pad);
+  background: var(--white);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-dropdown);
+  z-index: 20;
+}
+
+.nav-menu__dropdown {
+  left: 0;
+}
+
+/* Notch tethering the panel to the trigger. Hung off the trigger so it
+   self-centers on the label at any width. */
+.nav-menu__trigger::after {
+  content: "";
+  display: none;
+  position: absolute;
+  /* Sits flush on the panel's top edge (0.35rem below the trigger) and above
+     it, so the whole triangle shows rather than half-buried behind the panel. */
+  bottom: -0.35rem;
+  left: 50%;
+  margin-left: -9px;
+  width: 0;
+  height: 0;
+  border: 9px solid transparent;
+  border-top: none;
+  border-bottom-color: var(--white);
+  z-index: 21;
+}
+
+.is-nav-menu-open .nav-menu__trigger::after {
+  display: block;
+}
+
+.is-nav-menu-open .nav-menu__dropdown {
+  display: flex;
+}
+
+.site-nav .nav-menu__dropdown .nav-menu__item {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-menu__dropdown .nav-menu__item .icon--external {
+  margin-left: auto;
+  width: 12px;
+  height: 12px;
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
+.site-nav .nav-menu__dropdown .nav-menu__item:hover {
+  background: var(--nav-row-hover);
+  color: var(--ink);
+}
+
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: var(--text-base);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Inline SVG icons (from templates/icons/) inherit the text color via
+   currentColor. Sized relative to the surrounding text. */
+.icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.btn .icon {
+  width: 0.7em;
+  height: 0.7em;
+}
+
+.site-nav .btn--primary {
+  background: var(--btn-bg);
+  color: var(--teal);
+  border: none;
+}
+
+.site-nav .btn--primary:hover {
+  background: var(--white);
+}
+
+.site-nav .btn--outline {
+  border-color: var(--on-teal-strong);
+  background: transparent;
+  color: var(--white);
+}
+
+.btn--outline:hover {
+  background: var(--on-teal-line);
+}
+
+/* ---- User menu (signed-in header chip + dropdown) ----------------------- */
+
+.user-menu {
+  position: relative;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--on-teal-fill);
+  border-radius: var(--radius);
+  background: var(--on-teal-line);
+  color: var(--white);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.user-chip:hover {
+  background: var(--on-teal-fill);
+}
+
+.user-chip__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--card-dark);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.user-chip__text {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.user-chip__greeting {
+  font-size: var(--text-sm);
+  color: var(--on-teal-strong);
+}
+
+.user-chip__name {
+  font-size: var(--text-sm);
+}
+
+/* Same treatment as the nav chevron: flips while the menu is open. */
+.user-chip .icon--chevron-down {
+  width: 0.7em;
+  height: 0.7em;
+  opacity: 0.9;
+  transition: transform 0.15s ease;
+}
+
+.is-user-open .user-chip .icon--chevron-down {
+  transform: rotate(180deg);
+}
+
+.user-dropdown {
+  right: 0;
+}
+
+.is-user-open .user-dropdown {
+  display: flex;
+}
+
+/* Scoped under .user-dropdown so these win over `.site-nav a` white text. */
+.user-dropdown .user-dropdown__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 1rem;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.user-dropdown .user-dropdown__item:hover {
+  background: var(--btn-bg);
+}
+
+/* Non-clickable info line (ORCID iD) above the actions. */
+.user-dropdown__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-sunken);
+}
+
+.user-dropdown__info + .user-dropdown__info {
+  border-top: none;
+}
+
+.user-dropdown__label {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.user-dropdown__value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.user-dropdown form {
+  margin: 0;
+}
+
+.user-dropdown .user-dropdown__item[type="submit"] {
+  font: inherit;
+}
+
+
+/* ---- Footer ------------------------------------------------------------- */
+
+.site-footer {
+  background: var(--teal);
+  color: var(--on-teal-strong);
+  padding: 2.25rem 2rem 1rem;
+  font-size: var(--text-sm);
+}
+
+.site-footer__cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.site-footer__brand {
+  flex: 1 1 260px;
+}
+
+.site-footer__brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.site-footer__brand p {
+  max-width: 280px;
+}
+
+.site-footer__email {
+  margin-top: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--on-teal-muted);
+}
+
+.site-footer__logo {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.site-footer__wordmark {
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--white);
+}
+
+.site-footer__links,
+.site-footer__contact {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.5rem;
+}
+
+.site-footer h2 {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-teal-strong);
+  margin: 0 0 0.6rem;
+}
+
+.site-footer a {
+  color: var(--on-teal-strong);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--white);
+  text-decoration: underline;
+}
+
+.site-footer p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--on-teal-strong);
+}
+
+.site-footer__note {
+  text-align: center;
+  color: var(--on-teal-muted);
+  font-size: var(--text-xs);
+  margin: 4rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid var(--on-teal-line);
+}
+
+
+/* ---- Mobile menu (hamburger) -------------------------------------------- */
+
+.site-nav__burger {
+  display: none;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .site-header {
+    position: relative;
+  }
+
+  .site-brand__logo {
+    height: 34px;
+  }
+
+  /* Bars fold into an X when open. */
+  .site-nav__burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .site-nav__burger span {
+    display: block;
+    height: 2px;
+    width: 26px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .is-nav-open .site-nav__burger span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .is-nav-open .site-nav__burger span:nth-child(2) {
+    opacity: 0;
+  }
+  .is-nav-open .site-nav__burger span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* Drop-down panel; shown when ui.js sets .is-nav-open. */
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.5rem 1.25rem 1.25rem;
+    background: var(--teal);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+
+  .is-nav-open .site-nav {
+    display: flex;
+  }
+
+  .site-nav > a:not(.btn) {
+    padding: 0.7rem 0.25rem;
+    border-bottom: 1px solid var(--on-teal-line);
+  }
+
+  .site-nav__divider {
+    display: none;
+  }
+
+  /* In the mobile panel the dropdown is always expanded inline — there is no
+     hover target and nesting a second toggle inside the menu is fussy. */
+  .nav-menu__trigger {
+    width: 100%;
+    padding: 0.7rem 0.25rem;
+    border-bottom: 1px solid var(--on-teal-line);
+  }
+
+  .nav-menu__trigger .icon--chevron-down {
+    display: none;
+  }
+
+  .nav-menu__dropdown {
+    display: block;
+    position: static;
+    min-width: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Inline in the burger panel — nothing to tether to. */
+  .is-nav-menu-open .nav-menu__trigger::after {
+    display: none;
+  }
+
+  /* The panel is transparent here (it sits inside the teal burger panel), so
+     the items take on-teal white rather than the desktop panel's dark ink. */
+  .site-nav .nav-menu__dropdown .nav-menu__item {
+    height: auto;
+    padding: 0.7rem 0.25rem 0.7rem 1.25rem;
+    font-size: var(--text-base);
+    color: var(--on-teal-strong);
+    border-bottom: 1px solid var(--on-teal-line);
+  }
+
+  .site-nav .nav-menu__dropdown .nav-menu__item:hover {
+    background: none;
+    color: var(--white);
+  }
+
+  .site-nav .btn {
+    align-self: center;
+    justify-content: center;
+    width: 180px;
+    padding: 0.65rem 1rem;
+  }
+
+  .site-nav .btn--primary {
+    margin-top: 1rem;
+  }
+
+  .site-nav .btn--outline {
+    margin-top: 0.75rem;
+    /* Brighten the border so it reads against the teal panel. */
+    border-color: var(--white);
+  }
+
+  .site-footer {
+    padding: 2rem 1.25rem 1rem;
+  }
+
+  .site-footer__cols {
+    gap: 2.5rem;
+  }
+}
+
+/* Once the footer columns stack into a single column, center them. */
+@media (max-width: 560px) {
+  .site-footer__cols {
+    text-align: center;
+  }
+
+  .site-footer__brand-row {
+    justify-content: center;
+  }
+
+  .site-footer__brand p {
+    max-width: none;
+  }
+
+  .site-footer__links,
+  .site-footer__contact {
+    align-items: center;
+  }
+}
+

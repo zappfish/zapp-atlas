@@ -1,0 +1,180 @@
+/* Curation guidelines: filter chips over a list of accordion entries. */
+
+.guide {
+  /* main is a flex column, so without an explicit width this shrinks to fit
+     its content rather than filling the page. */
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+}
+
+.guide__head h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+
+.guide__head p {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.guide__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.75rem 0 1.5rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+/* The radios drive filtering via :has() below; only their labels are shown. */
+.guide__radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.guide__chip {
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.guide__chip:hover {
+  background: var(--nav-row-hover);
+}
+
+.guide__radio:checked + .guide__chip {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--white);
+}
+
+.guide__radio:focus-visible + .guide__chip {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.guide__count {
+  margin-left: auto;
+  padding-right: 0.4rem;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.guide__group + .guide__group {
+  margin-top: 2rem;
+}
+
+.guide__group-title {
+  margin: 0 0 0.75rem;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.guide__item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.guide__item + .guide__item {
+  margin-top: 0.6rem;
+}
+
+.guide__summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.guide__summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide__summary:hover {
+  background: var(--nav-row-hover);
+  border-radius: 9px;
+}
+
+.guide__item[open] .guide__summary,
+.guide__item[open] .guide__summary:hover {
+  background: var(--nav-row-hover);
+  border-radius: 9px 9px 0 0;
+}
+
+.guide__q {
+  grid-column: 1;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Plus that becomes a minus when open, drawn from two bars. */
+.guide__sign {
+  position: relative;
+  grid-column: 2;
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.guide__sign::before,
+.guide__sign::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: translateY(-50%);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.guide__sign::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.guide__item[open] .guide__sign::after {
+  opacity: 0;
+  transform: translateY(-50%) rotate(0deg);
+}
+
+.guide__a {
+  margin: 0;
+  padding: 0.9rem 1.1rem 1.1rem;
+  color: var(--ink);
+  line-height: 1.75;
+}
+
+/* Filtering: hide every group, then reveal the one whose radio is checked.
+   #filter-all matches no group, so nothing is hidden in the default state. */
+.guide:has(#filter-image:checked) .guide__group:not([data-category="image"]),
+.guide:has(#filter-phenotype:checked) .guide__group:not([data-category="phenotype"]),
+.guide:has(#filter-exposure:checked) .guide__group:not([data-category="exposure"]),
+.guide:has(#filter-misc:checked) .guide__group:not([data-category="misc"]) {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .guide__count {
+    width: 100%;
+    margin-left: 0;
+    padding: 0.2rem 0 0 0.2rem;
+  }
+}

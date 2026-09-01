@@ -1,0 +1,67 @@
+{#
+  One inventory row (a fish line, a chemical). The including loop provides `item`:
+    label      main text
+    sublabel   secondary text (zfin / chemical id)
+    detail     optional line under the label
+    geno       optional fish genotype {background, mutations[], transgenes[]}
+  View and remove actions sit at the right.
+#}
+<div class="dash-row">
+  <div class="dash-row__main">
+    <span class="dash-row__label">{{ item.label }}
+      {% if item.sublabel %}<span class="dash-row__sub">{{ item.sublabel }}</span>{% endif %}
+    </span>
+    {% if item.geno %}
+      <span class="dash-row__geno">
+        {% if item.geno.background %}
+          <span class="dash-geno-part">
+            <span class="dash-geno-label">bg:</span> {{ item.geno.background }}
+          </span>
+        {% endif %}
+        {% for mutation in item.geno.mutations %}
+          <span class="dash-geno-part">
+            <span class="dash-geno-label">MUT:</span>
+            allele: {{ mutation.allele }} ({{ mutation.zygosity }}),
+            <span class="dash-geno-label">gene:</span> {{ mutation.gene }}
+          </span>
+        {% endfor %}
+        {% for transgene in item.geno.transgenes %}
+          <span class="dash-geno-part">
+            <span class="dash-geno-label">TG:</span>
+            allele: {{ transgene.allele }} ({{ transgene.zygosity }}), {{ transgene.construct }}
+          </span>
+        {% endfor %}
+      </span>
+    {% elif item.detail %}
+      <span class="dash-row__detail">{{ item.detail }}</span>
+    {% endif %}
+  </div>
+  <div class="dash-row__actions">
+    {% if item.detail_url %}
+      <a class="dash-icon-btn" aria-label="View {{ item.label }}"
+         href="{{ item.detail_url }}"
+         hx-get="{{ item.detail_url }}"
+         hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true">
+        {% include "icons/eye.svg" %}
+      </a>
+    {% endif %}
+    {% if item.edit_url %}
+      <button class="dash-icon-btn" type="button"
+              aria-label="Edit {{ item.label }}"
+              data-open-modal="edit-chemical-modal"
+              data-edit-url="{{ item.edit_url }}"
+              data-edit-value="{{ item.edit_value }}">
+        {% include "icons/pencil.svg" %}
+      </button>
+    {% endif %}
+    {% if item.delete_url %}
+      <button class="dash-icon-btn dash-icon-btn--danger" type="button"
+              aria-label="Remove {{ item.label }}"
+              data-open-modal="confirm-delete-modal"
+              data-delete-url="{{ item.delete_url }}"
+              data-delete-name="{{ item.label }}">
+        {% include "icons/trash.svg" %}
+      </button>
+    {% endif %}
+  </div>
+</div>

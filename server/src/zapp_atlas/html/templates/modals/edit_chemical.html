@@ -1,0 +1,19 @@
+{#
+  Reusable edit-chemical dialog, shared by every cabinet row. An edit button
+  carries data-edit-url and data-edit-value; ui.js fills this dialog from them
+  and opens it. The form posts the new chemical id to the url.
+#}
+<dialog class="modal" id="edit-chemical-modal" aria-labelledby="edit-chemical-title">
+  <form class="modal__panel" method="post" data-edit-form>
+    <h2 class="modal__title" id="edit-chemical-title">Edit chemical</h2>
+    <label class="modal__field">
+      <span class="modal__label">Chemical id</span>
+      <input class="modal__input" type="text" name="chemical_id" required
+             maxlength="60" data-edit-input placeholder="e.g. CHEBI:16236">
+    </label>
+    <div class="modal__actions">
+      <button class="btn" type="button" data-close-modal>Cancel</button>
+      <button class="btn btn--primary" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>

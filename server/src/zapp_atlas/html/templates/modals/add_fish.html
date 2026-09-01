@@ -1,0 +1,27 @@
+{#
+  "Add fish line" dialog. Posts a ZFIN id + name to
+  POST /research-groups/{group.id}/fish-tank, which links the (shared) fish
+  into this group's tank and redirects back to the group. Opened by ui.js.
+#}
+<dialog class="modal" id="add-fish-modal" aria-labelledby="add-fish-title">
+  <form class="modal__panel" method="post"
+        action="/research-groups/{{ group.id }}/fish-tank">
+    <h2 class="modal__title" id="add-fish-title">Add fish line</h2>
+    <label class="modal__field">
+      <span class="modal__label">ZFIN id</span>
+      <input class="modal__input" type="text" name="zfin_id" required autofocus
+             placeholder="ZFIN:ZDB-GENO-960809-7"
+             pattern="ZFIN:ZDB-[A-Z]+-\d{6}-\d+"
+             title="e.g. ZFIN:ZDB-GENO-960809-7">
+    </label>
+    <label class="modal__field">
+      <span class="modal__label">Name</span>
+      <input class="modal__input" type="text" name="name" required
+             maxlength="200" placeholder="e.g. AB">
+    </label>
+    <div class="modal__actions">
+      <button class="btn" type="button" data-close-modal>Cancel</button>
+      <button class="btn btn--primary" type="submit">Add</button>
+    </div>
+  </form>
+</dialog>

@@ -1,0 +1,20 @@
+{#
+  "Create research group" dialog. The form posts to POST /research-groups,
+  which creates the group (caller becomes admin) and redirects to it. Name is
+  the only field the create schema takes; membership and id are server-set.
+  Opened and closed by ui.js.
+#}
+<dialog class="modal" id="new-group-modal" aria-labelledby="new-group-title">
+  <form class="modal__panel" method="post" action="/research-groups">
+    <h2 class="modal__title" id="new-group-title">Create research group</h2>
+    <label class="modal__field">
+      <span class="modal__label">Name</span>
+      <input class="modal__input" type="text" name="name" required autofocus
+             maxlength="200" placeholder="e.g. Neurotoxicology Lab">
+    </label>
+    <div class="modal__actions">
+      <button class="btn" type="button" data-close-modal>Cancel</button>
+      <button class="btn btn--primary" type="submit">Create</button>
+    </div>
+  </form>
+</dialog>

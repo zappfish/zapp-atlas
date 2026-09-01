@@ -1,0 +1,59 @@
+{#
+  A full-width inventory section (fish tank, chemical cabinet).
+  The including page provides `section`:
+    id          anchor id for the sidebar links
+    icon        icon template path
+    title       heading text
+    add_label   text after "+ " on the add button
+    search_ph   search placeholder
+    rows        list of rows, each {label, sublabel?, detail?, geno?}
+    empty_text  message when there are no items
+    visible     rows shown before "View more" (default 2)
+  A CSS-only checkbox, scoped by id, reveals the rest.
+#}
+<section class="dash-section" id="{{ section.id }}">
+  <header class="dash-section__head">
+    <h2 class="dash-section__title">
+      {{ section.title }}
+      {% if section.rows %}<span class="dash-count">{{ section.rows | length }}</span>{% endif %}
+    </h2>
+    <div class="dash-section__tools">
+      <div class="dash-searchbox">
+        {% include "icons/search.svg" %}
+        <input type="search" placeholder="{{ section.search_ph }}"
+               aria-label="{{ section.search_ph }}">
+      </div>
+      <button class="dash-card__add" type="button"
+              {% if section.add_modal %}data-open-modal="{{ section.add_modal }}"{% endif %}>
+        + {{ section.add_label }}
+      </button>
+    </div>
+  </header>
+
+  {% if section.rows %}
+    {% set visible = section.visible | default(2) %}
+    {% if section.rows | length > visible %}
+      <input type="checkbox" class="dash-more-toggle" id="more-{{ section.id }}">
+    {% endif %}
+
+    <div class="dash-rows">
+      {% for item in section.rows %}
+        <div class="dash-row-slot{% if loop.index > visible %} is-extra{% endif %}">
+          {% include "partials/dash_row.html" %}
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if section.rows | length > visible %}
+      <label class="dash-more" for="more-{{ section.id }}">
+        <span class="dash-more__show">View {{ section.rows | length - visible }} more</span>
+        <span class="dash-more__hide">View less</span>
+      </label>
+    {% endif %}
+  {% else %}
+    <div class="dash-empty dash-empty--panel">
+      {% include section.icon %}
+      <p class="dash-empty__text">{{ section.empty_text }}</p>
+    </div>
+  {% endif %}
+</section>

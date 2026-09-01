@@ -1,0 +1,212 @@
+/*
+ * ZAPP Atlas — global styles for the server-rendered (htmx) surface.
+ * Loaded by base.html, so rules here apply site-wide across both surfaces.
+ */
+
+/* Poppins, self-hosted. Weights: 400 regular, 600 semibold, 700 bold. */
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/poppins-v24-latin-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/static/fonts/poppins-v24-latin-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/static/fonts/poppins-v24-latin-700.woff2") format("woff2");
+}
+
+:root {
+  --teal: #357084;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --bg: #ffffff;
+  --white: #ffffff;
+  --line: #e5e7eb;
+  --btn-bg: #eef3f1;
+  --nav-row-hover: #f5f7f7;
+  --card-dark: #16323b;
+  --teal-dark: #2c6072;   /* teal button hover */
+  --danger-tint: #fef2f2; /* danger button hover */
+
+  /* Translucent white, for text and dividers on the teal header/footer.*/
+  --on-teal-strong: rgba(255, 255, 255, 0.85);
+  --on-teal-muted: rgba(255, 255, 255, 0.6);
+  --on-teal-line: rgba(255, 255, 255, 0.12);
+  --on-teal-fill: rgba(255, 255, 255, 0.16);
+
+  /* Raised surfaces: dropdowns, toasts, modals. */
+  --surface-sunken: #f7f8f9;
+  --shadow-panel: 0 8px 24px rgba(15, 76, 92, 0.15);
+  --shadow-dropdown: 0 6px 20px rgba(16, 42, 51, 0.16);
+
+  /* Header dropdown panels. */
+  --panel-offset: 0.35rem;
+  --panel-gap: 2px;
+  --panel-pad: 6px;
+  --radius-panel: 10px;
+  --shadow-modal: 0 10px 40px rgba(15, 76, 92, 0.2);
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  /* Submission status colors. */
+  --status-published: #15803d;
+  --status-in-progress: #b45309;
+  --status-on-hold: #a16207;
+  --status-retracted: #b91c1c;
+
+  --font: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale — use these instead of ad-hoc font sizes. */
+  --text-xs: 0.8125rem;  /* 13px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-md: 1.15rem;
+  --text-lg: 1.5rem;
+  --text-2xl: 2rem;
+  --text-xl: 2.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Near-zero (not 0) keeps animationend/transitionend events firing for any
+   JS that depends on them, while removing perceptible motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Always show the vertical scrollbar so pages of different heights don't shift
+   horizontally when the scrollbar appears or disappears between navigations. */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+/* Offset in-page anchor scrolls so sections clear the sticky header. */
+:target {
+  scroll-margin-top: 5rem;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--text-base);
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+/* Visible focus ring for keyboard users only (not on mouse click). */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* On the teal header/footer a teal ring would be invisible; use white there. */
+.site-header :focus-visible,
+.site-footer :focus-visible {
+  outline-color: var(--white);
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ---- Tooltip ------------------------------------------------------------ */
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--card-dark);
+  color: var(--white);
+  font-size: var(--text-xs);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--card-dark);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.tooltip:hover::after,
+.tooltip:hover::before,
+.tooltip:focus-within::after,
+.tooltip:focus-within::before {
+  opacity: 1;
+}
+
+
+/* ---- Placeholder page (unbuilt sections) -------------------------------- */
+.placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 4rem 1.5rem;
+}
+.placeholder .icon { width: 2.5rem; height: 2.5rem; color: var(--teal); opacity: 0.6; margin-bottom: 0.5rem; }
+.placeholder__title { margin: 0; font-size: var(--text-lg); }
+.placeholder__text { margin: 0; color: var(--muted); }
+.placeholder__hint { margin: 0.5rem 0 0; font-size: var(--text-sm); color: var(--muted); }
+.placeholder__hint a { color: var(--teal); font-weight: 600; }
+
+/* Placeholder inside a dashboard main area (bordered panel). */
+.placeholder--panel {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+}

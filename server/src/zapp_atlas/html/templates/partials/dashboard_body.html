@@ -1,0 +1,124 @@
+{#
+  A group dashboard's swappable region: sidebar + main. Shares the #dash-body
+  target with the My Submissions body so sidebar navigation swaps either in.
+#}
+<div class="dashboard" id="dash-body">
+  {% set active = group.id %}
+  {% include "partials/dash_sidebar.html" %}
+
+  <div class="dash-main">
+    <header class="dash-header">
+      <h1 class="dash-header__title">
+        {{ group.name }}
+        {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
+      </h1>
+      <button class="dash-members" type="button"
+              data-open-modal="members-modal">
+        {% include "icons/users.svg" %}
+        Members
+      </button>
+    </header>
+
+    {% if notice %}
+      <div class="toast" role="status" data-toast>{{ notice }}</div>
+    {% endif %}
+
+    {# ---- Fish Tank ---- #}
+    {% set fish_rows = [] %}
+    {% for fish in fish_tank %}
+      {% set _ = fish_rows.append({
+        "label": fish.name, "sublabel": fish.zf_id,
+        "geno": fish if (fish.background or fish.mutations or fish.transgenes) else None,
+        "detail_url": fish.detail_url,
+        "delete_url": fish.delete_url,
+      }) %}
+    {% endfor %}
+    {% set section = {
+      "id": "fish-tank", "icon": "icons/fish.svg", "title": "Fish Tank",
+      "add_label": "Add fish", "add_modal": "add-fish-modal",
+      "search_ph": "Search fish …",
+      "rows": fish_rows,
+      "empty_text": "Add a fish line to start building this group's tank.",
+    } %}
+    {% include "partials/dash_section.html" %}
+    {% include "modals/add_fish.html" %}
+
+    {# ---- Chemical Cabinet ---- #}
+    {# Each field is shown only when present, so cabinet entries gain a name,
+       abbreviation, or manufacturer as those are added without a template
+       change. Until then a row shows just its chemical id. #}
+    {% set chem_rows = [] %}
+    {% for chemical in cabinet %}
+      {% set named = chemical.name if chemical.name else none %}
+      {% set label = (chemical.abbr ~ " · " ~ named) if (chemical.abbr and named)
+                     else (named or chemical.chemical_id) %}
+      {% set _ = chem_rows.append({
+        "label": label,
+        "sublabel": chemical.chemical_id if named else none,
+        "detail": chemical.manufacturer if chemical.manufacturer else none,
+        "detail_url": chemical.detail_url,
+        "edit_url": chemical.edit_url,
+        "edit_value": chemical.chemical_id,
+        "delete_url": chemical.delete_url,
+      }) %}
+    {% endfor %}
+    {% set section = {
+      "id": "chemical-cabinet", "icon": "icons/flask.svg", "title": "Chemical Cabinet",
+      "add_label": "Add chemical", "add_modal": "add-chemical-modal",
+      "search_ph": "Search chemicals …",
+      "rows": chem_rows,
+      "empty_text": "Add a chemical to this group's cabinet.",
+    } %}
+    {% include "partials/dash_section.html" %}
+    {% include "modals/add_chemical.html" %}
+
+    {# ---- Submissions ---- #}
+    <section class="dash-submissions" id="submissions">
+      <header class="dash-submissions__head">
+        <h2 class="dash-card__title">
+          Submissions
+          {% if submissions %}
+            <span class="dash-count">{{ submissions | length }}</span>
+          {% endif %}
+        </h2>
+      </header>
+
+      <div class="dash-subtools">
+        {% if submissions %}
+          <div class="dash-searchbox">
+            {% include "icons/search.svg" %}
+            <input type="search" placeholder="Search by submissions …"
+                   aria-label="Search submissions">
+          </div>
+        {% endif %}
+        <button class="btn btn--primary dash-newsub" type="button">
+          + New submission
+        </button>
+      </div>
+
+      {% if submissions %}
+        <div class="mysub-tools">
+          {% with context = "group" %}{% include "partials/sub_filters.html" %}{% endwith %}
+        </div>
+      {% endif %}
+
+      <ul class="mysub-list">
+        {% for submission in submissions %}
+          {% with context = "group" %}{% include "partials/sub_row.html" %}{% endwith %}
+        {% else %}
+          <li class="dash-empty dash-empty--panel">
+            {% include "icons/doc.svg" %}
+            <p class="dash-empty__title">No submissions yet</p>
+            <p class="dash-empty__text">
+              Create a submission to share this group's observations.
+            </p>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% include "modals/members.html" %}
+    {% include "modals/confirm_delete.html" %}
+    {% include "modals/edit_chemical.html" %}
+  </div>
+</div>

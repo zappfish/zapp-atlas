@@ -1,0 +1,55 @@
+{#
+  Dashboard sidebar, shared by the My Submissions and research group pages.
+  Each nav link swaps the shared #dash-body region via htmx (no full reload);
+  href is kept for no-JS and open-in-new-tab. The including page provides:
+    - groups:               list of the user's research groups
+    - my_submissions_count: number on the "My Submissions" badge
+    - active:               "my-submissions" or a research group id
+#}
+<aside class="dash-sidebar"
+       hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true">
+  <a class="dash-mysubs{% if active == 'my-submissions' %} is-active{% endif %}"
+     href="/my-submissions" hx-get="/my-submissions">
+    My Submissions
+    {% if my_submissions_count %}
+      <span class="dash-mysubs__count">{{ my_submissions_count }}</span>
+    {% endif %}
+  </a>
+
+  <h2 class="dash-sidebar__heading">My Research Groups</h2>
+  <ul class="dash-groups">
+    {% for group in groups %}
+      {% set is_open = group.id == active %}
+      <li class="dash-group">
+        <a class="dash-group__summary{% if is_open %} is-active{% endif %}"
+           href="/research-groups/{{ group.id }}"
+           hx-get="/research-groups/{{ group.id }}">
+          <span class="dash-group__text">
+            <span class="dash-group__name">{{ group.name }}</span>
+            {% if group.is_default or group.kind %}
+              <span class="dash-group__kind">
+                {% if group.is_default %}Default &middot; {% endif %}{{ group.kind }}
+              </span>
+            {% endif %}
+          </span>
+          <span class="dash-group__caret" aria-hidden="true">&rsaquo;</span>
+        </a>
+        {% if is_open %}
+          {# Absolute so a detail page returns to the group page's section,
+             rather than appending the hash to the detail URL. #}
+          <ul class="dash-subnav">
+            <li><a href="/research-groups/{{ group.id }}#fish-tank">Fish Tank</a></li>
+            <li><a href="/research-groups/{{ group.id }}#chemical-cabinet">Chemical Cabinet</a></li>
+            <li><a href="/research-groups/{{ group.id }}#submissions">Submissions</a></li>
+          </ul>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <button class="dash-new-group" type="button" data-open-modal="new-group-modal">
+    + New Group
+  </button>
+</aside>
+
+{% include "modals/new_group.html" %}

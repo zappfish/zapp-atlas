@@ -1,0 +1,28 @@
+{#
+  Top-level navigation, rendered from html/nav.py. An entry with `children` opens
+  a dropdown (the same toggle helper as the signed-in user menu drives it);
+  one without is a plain link.
+#}
+{% for entry in nav_items %}
+  {% if entry.children %}
+    {% set panel_id = entry.label | lower | replace(" ", "-") ~ "-dropdown" %}
+    <div class="nav-menu">
+      <button class="nav-menu__trigger" type="button"
+              aria-expanded="false" aria-controls="{{ panel_id }}">
+        {{ entry.label }}
+        {% include "icons/chevron-down.svg" %}
+      </button>
+      <div class="nav-menu__dropdown" id="{{ panel_id }}">
+        {% for item in entry.children %}
+          <a class="nav-menu__item" href="{{ item.href }}"
+             {% if item.external %}target="_blank" rel="noopener"{% endif %}>
+            {{ item.label }}
+            {%- if item.external %}{% include "icons/external.svg" %}{% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <a href="{{ entry.href }}">{{ entry.label }}</a>
+  {% endif %}
+{% endfor %}

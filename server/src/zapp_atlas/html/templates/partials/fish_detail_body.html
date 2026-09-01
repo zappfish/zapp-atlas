@@ -1,0 +1,43 @@
+{#
+  A fish line's detail page: sidebar + main. Shares the #dash-body target so
+  sidebar navigation swaps it like the other dashboard pages. The including page
+  provides `group`, `fish`, `groups`, and `my_submissions_count`.
+#}
+<div class="dashboard" id="dash-body">
+  {% set active = group.id %}
+  {% include "partials/dash_sidebar.html" %}
+
+  <div class="dash-main dash-main--detail">
+    <a class="detail-back" href="/research-groups/{{ group.id }}#fish-tank">
+      {% include "icons/arrow-left.svg" %}
+      {{ group.name }}
+    </a>
+
+    <header class="dash-header">
+      <h1 class="dash-header__title">
+        {{ fish.name }}
+        <span class="dash-badge">{{ fish.zf_id }}</span>
+      </h1>
+    </header>
+
+    <section class="detail-summary">
+      <h2 class="detail-heading">Details</h2>
+      <dl class="detail-cols">
+        <div class="detail-col">
+          <dt class="detail-col__label">Name</dt>
+          <dd class="detail-col__value">{{ fish.name }}</dd>
+        </div>
+        <div class="detail-col">
+          <dt class="detail-col__label">ZFIN ID</dt>
+          <dd class="detail-col__value detail-col__value--mono">{{ fish.zf_id }}</dd>
+        </div>
+        <div class="detail-col">
+          <dt class="detail-col__label">Added on</dt>
+          <dd class="detail-col__value">
+            {{ fish.added_on.strftime("%b %-d, %Y") if fish.added_on else "—" }}
+          </dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+</div>
