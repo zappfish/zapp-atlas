@@ -119,6 +119,7 @@ class ZfinAlleleOut(_FromAttributes):
     alteration_type: SequenceAlterationTypeEnum | None
     alteration_label: str
     mutagen: str | None
+    lab: str | None
     constructs: list[ZfinConstructOut]
     affected_genes: list[ZfinAffectedGeneOut]
 

@@ -40,6 +40,11 @@ _REQUIRED_FILES = ("features.txt", "features-affected-genes.txt", "wildtypes_fis
 _SO_TRANSGENIC_INSERTION = "SO:0001218"
 _AFFECTED_GENE_RELATIONSHIP = "is allele of"
 
+# Registered line designations (allele-symbol prefix -> lab of origin), vendored
+# from https://zfin.org/action/feature/line-designations. Display provenance
+# only — resolution never parses symbols for meaning.
+_LINE_DESIGNATIONS_PATH = Path(__file__).resolve().parent / "line_designations.tsv"
+
 
 class ZfinDataUnavailable(RuntimeError):
     """The ZFIN download files are not present in the configured data dir."""
@@ -65,6 +70,42 @@ def _so_to_alteration_type() -> dict[str, SequenceAlterationTypeEnum]:
     }
 
 
+@cache
+def _designations() -> tuple[dict[str, str], int]:
+    """prefix -> institution, plus the longest prefix length. Empty if the
+    vendored file is missing (labs simply come back None)."""
+    table: dict[str, str] = {}
+    if _LINE_DESIGNATIONS_PATH.is_file():
+        with _LINE_DESIGNATIONS_PATH.open(encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("#"):
+                    continue
+                prefix, institution, labs = line.rstrip("\n").split("\t")
+                table[prefix] = institution or labs.split(",")[0].strip()
+    return table, max(map(len, table), default=0)
+
+
+def _lab_for_symbol(symbol: str) -> str | None:
+    """Longest registered prefix that is followed by a digit; a leading ``d``
+    (dominant) is skipped. The 1996 Tübingen screen's two-letter codes (ti,
+    tb, tm, …) predate the current registry, so they get a named fallback."""
+    table, longest = _designations()
+    s = symbol.lower()
+    for candidate in (s, s[1:] if s.startswith("d") else ""):
+        for size in range(min(longest, len(candidate) - 1), 0, -1):
+            institution = table.get(candidate[:size])
+            if institution and candidate[size].isdigit():
+                return institution
+        if (
+            len(candidate) >= 3
+            and candidate[0] == "t"
+            and candidate[1].isalpha()
+            and candidate[2].isdigit()
+        ):
+            return "Tübingen (big-screen designation)"
+    return None
+
+
 @dataclass(frozen=True)
 class AffectedGene:
     gene_symbol: str
@@ -85,6 +126,7 @@ class AlleleRecord:
     alteration_type: SequenceAlterationTypeEnum | None
     alteration_label: str  # ZFIN's human-readable type, always present
     mutagen: str | None
+    lab: str | None  # lab of origin, from the registered symbol prefix
     constructs: tuple[Construct, ...]  # usually 0 or 1; >1 for co-injected lines
     affected_genes: tuple[AffectedGene, ...]
 
@@ -195,6 +237,7 @@ def _parse_features(path: Path, affected: dict[str, list[AffectedGene]]) -> list
             alteration_type=so_map.get(entry["so_id"]),
             alteration_label=entry["alteration_label"],
             mutagen=entry["mutagen"],
+            lab=_lab_for_symbol(entry["allele_symbol"]),
             constructs=tuple(entry["constructs"]),
             affected_genes=tuple(affected.get(zdb_id, ())),
         )
