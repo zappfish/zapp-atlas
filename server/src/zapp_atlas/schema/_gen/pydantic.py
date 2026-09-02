@@ -387,6 +387,10 @@ class ZygosityEnum(str, Enum):
     """
     Zygosity is unknown or unspecified.
     """
+    wild_type = "wild_type"
+    """
+    Wild type at this locus — carries zero copies of the allele (ZFIN's parental "W"). Chiefly meaningful for mother/father zygosity: a fish that is itself wild type for an allele would normally just not list it.
+    """
 
 
 class SequenceAlterationTypeEnum(str, Enum):

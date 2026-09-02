@@ -177,6 +177,8 @@ export enum ZygosityEnum {
     heterozygous = "heterozygous",
     /** Zygosity is unknown or unspecified. */
     unknown = "unknown",
+    /** Wild type at this locus — carries zero copies of the allele (ZFIN's parental "W"). Chiefly meaningful for mother/father zygosity: a fish that is itself wild type for an allele would normally just not list it. */
+    wild_type = "wild_type",
 };
 /**
 * Common types of sequence alteration for an allele or transgenic feature. Each value is normalized to a Sequence Ontology (SO) term so curators pick a familiar label while the atlas stores the standard identifier.

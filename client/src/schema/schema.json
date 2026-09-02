@@ -1364,7 +1364,8 @@
       "enum": [
         "homozygous",
         "heterozygous",
-        "unknown"
+        "unknown",
+        "wild_type"
       ],
       "title": "ZygosityEnum",
       "type": "string"
