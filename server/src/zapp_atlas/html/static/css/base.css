@@ -44,6 +44,7 @@
   --on-teal-muted: rgba(255, 255, 255, 0.6);
   --on-teal-line: rgba(255, 255, 255, 0.12);
   --on-teal-fill: rgba(255, 255, 255, 0.16);
+  --on-teal-active: rgba(255, 255, 255, 0.22);
 
   /* Raised surfaces: dropdowns, toasts, modals. */
   --surface-sunken: #f7f8f9;
@@ -52,9 +53,8 @@
 
   /* Header dropdown panels. */
   --panel-offset: 0.35rem;
-  --panel-gap: 2px;
-  --panel-pad: 6px;
-  --radius-panel: 10px;
+  --panel-pad: 8px 0;
+  --radius-panel: 4px;
   --shadow-modal: 0 10px 40px rgba(15, 76, 92, 0.2);
   --radius: 8px;
   --radius-lg: 12px;

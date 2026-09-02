@@ -4,10 +4,13 @@
   one without is a plain link.
 #}
 {% for entry in nav_items %}
+  {% set links = entry.children if entry.children else [entry] %}
+  {% set current = links | selectattr("href", "equalto", request.url.path) | first %}
   {% if entry.children %}
     {% set panel_id = entry.label | lower | replace(" ", "-") ~ "-dropdown" %}
     <div class="nav-menu">
-      <button class="nav-menu__trigger" type="button"
+      <button class="nav-menu__trigger{% if current %} is-current{% endif %}" type="button"
+              {% if current %}aria-current="page"{% endif %}
               aria-expanded="false" aria-controls="{{ panel_id }}">
         {{ entry.label }}
         {% include "icons/chevron-down.svg" %}
@@ -23,6 +26,7 @@
       </div>
     </div>
   {% else %}
-    <a href="{{ entry.href }}">{{ entry.label }}</a>
+    <a href="{{ entry.href }}"
+       {% if current %}class="is-current" aria-current="page"{% endif %}>{{ entry.label }}</a>
   {% endif %}
 {% endfor %}
