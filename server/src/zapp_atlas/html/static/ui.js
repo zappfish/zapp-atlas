@@ -67,6 +67,36 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeMenus(null);
 });
 
+// Role picker: a styled stand-in for a <select>, writing to a hidden input so
+// the form still posts `role`.
+document.querySelectorAll(".picker").forEach((picker) => {
+  const toggle = picker.querySelector(".picker__toggle");
+  const field = picker.querySelector('input[type="hidden"]');
+  const label = picker.querySelector(".picker__value");
+  const setOpen = wireToggle(picker, toggle, "is-open");
+
+  picker.querySelectorAll(".picker__option").forEach((option) => {
+    const choose = () => {
+      picker.querySelectorAll(".picker__option").forEach((o) => {
+        const on = o === option;
+        o.classList.toggle("is-selected", on);
+        o.setAttribute("aria-selected", String(on));
+      });
+      field.value = option.dataset.value;
+      label.textContent = option.textContent.trim();
+      setOpen(false);
+      toggle.focus();
+    };
+    option.addEventListener("click", choose);
+    option.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        choose();
+      }
+    });
+  });
+});
+
 // Modals (<dialog class="modal">): a button opens by id, and it closes on
 // Cancel or a click on the backdrop. Escape is native to <dialog>.
 document.addEventListener("click", (e) => {

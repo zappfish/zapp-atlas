@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  height: 78px;
+  height: 4.875rem;
   padding: 0 2rem;
   background: var(--teal);
   color: var(--white);
@@ -29,7 +29,7 @@
 }
 
 .site-brand__logo {
-  height: 30px;
+  height: 1.875rem;
   width: auto;
   display: block;
 }
@@ -51,7 +51,7 @@
   gap: 0.3rem;
   padding: 0.4rem 0.7rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   background: none;
   color: var(--white);
   font-family: inherit;
@@ -103,18 +103,23 @@
   transform: rotate(180deg);
 }
 
-.nav-menu__dropdown,
-.user-dropdown {
-  display: none;
+/* Shared floating panel: every menu that hangs off a trigger. Position and
+   width are the caller's; the surface treatment is here. */
+.panel {
   position: absolute;
-  top: calc(100% + var(--panel-offset));
-  flex-direction: column;
-  min-width: 210px;
-  padding: var(--panel-pad);
+  z-index: 20;
   background: var(--white);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-dropdown);
-  z-index: 20;
+}
+
+.nav-menu__dropdown,
+.user-dropdown {
+  display: none;
+  top: calc(100% + var(--panel-offset));
+  flex-direction: column;
+  min-width: 13.125rem;
+  padding: var(--panel-pad);
 }
 
 .nav-menu__dropdown {
@@ -128,8 +133,8 @@
 .site-nav .nav-menu__dropdown .nav-menu__item {
   display: flex;
   align-items: center;
-  height: 34px;
-  padding: 0 16px;
+  height: 2.125rem;
+  padding: 0 1rem;
   font-size: var(--text-sm);
   color: var(--ink);
   text-decoration: none;
@@ -138,8 +143,8 @@
 
 .nav-menu__dropdown .nav-menu__item .icon--external {
   margin-left: auto;
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   opacity: 0.45;
   flex-shrink: 0;
 }
@@ -156,7 +161,7 @@
   gap: 0.35rem;
   padding: 0.45rem 1rem;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   font-size: var(--text-base);
   text-decoration: none;
   cursor: pointer;
@@ -165,6 +170,56 @@
 
 /* Inline SVG icons (from templates/icons/) inherit the text color via
    currentColor. Sized relative to the surrounding text. */
+.btn--primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.btn--primary:hover {
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+
+.btn--secondary {
+  background: var(--white);
+  border-color: var(--teal);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.btn--secondary:hover {
+  background: var(--btn-bg);
+}
+
+.btn--neutral {
+  background: none;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn--neutral:hover {
+  background: var(--nav-row-hover);
+  color: var(--ink);
+}
+
+.btn--ghost {
+  background: none;
+  border-color: transparent;
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.btn--ghost:hover {
+  background: var(--btn-bg);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
 .icon {
   width: 1em;
   height: 1em;
@@ -224,8 +279,8 @@
 .user-chip__avatar {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 2.125rem;
+  height: 2.125rem;
   border-radius: 50%;
   background: var(--white);
   color: var(--card-dark);
@@ -334,7 +389,7 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 4rem;
-  max-width: 1100px;
+  max-width: 68.75rem;
   margin: 0 auto;
   padding-bottom: 2rem;
 }
@@ -351,7 +406,7 @@
 }
 
 .site-footer__brand p {
-  max-width: 280px;
+  max-width: 17.5rem;
 }
 
 .site-footer__email {
@@ -361,7 +416,7 @@
 }
 
 .site-footer__logo {
-  height: 44px;
+  height: 2.75rem;
   width: auto;
   display: block;
 }
@@ -430,7 +485,7 @@
   }
 
   .site-brand__logo {
-    height: 34px;
+    height: 2.125rem;
   }
 
   /* Bars fold into an X when open. */
@@ -438,9 +493,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 6px;
-    width: 40px;
-    height: 40px;
+    gap: 0.375rem;
+    width: 2.5rem;
+    height: 2.5rem;
     padding: 0;
     border: none;
     background: transparent;
@@ -450,7 +505,7 @@
   .site-nav__burger span {
     display: block;
     height: 2px;
-    width: 26px;
+    width: 1.625rem;
     margin: 0 auto;
     background: var(--white);
     border-radius: 2px;
@@ -541,7 +596,7 @@
   .site-nav .btn {
     align-self: center;
     justify-content: center;
-    width: 180px;
+    width: 11.25rem;
     padding: 0.65rem 1rem;
   }
 

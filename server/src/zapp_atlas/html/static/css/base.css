@@ -53,11 +53,11 @@
 
   /* Header dropdown panels. */
   --panel-offset: 0.35rem;
-  --panel-pad: 8px 0;
-  --radius-panel: 4px;
+  --panel-pad: 0.5rem 0;
+  --radius-panel: 0.25rem;
   --shadow-modal: 0 10px 40px rgba(15, 76, 92, 0.2);
-  --radius: 8px;
-  --radius-lg: 12px;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
 
   /* Submission status colors. */
   --status-published: #15803d;
@@ -124,7 +124,7 @@ a {
 :focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 0.25rem;
 }
 
 /* On the teal header/footer a teal ring would be invisible; use white there. */
@@ -158,7 +158,7 @@ main {
   color: var(--white);
   font-size: var(--text-xs);
   padding: 0.4rem 0.6rem;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
@@ -207,6 +207,6 @@ main {
 /* Placeholder inside a dashboard main area (bordered panel). */
 .placeholder--panel {
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   padding: 3rem 1.5rem;
 }

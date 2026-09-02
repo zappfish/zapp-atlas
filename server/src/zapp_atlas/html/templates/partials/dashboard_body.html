@@ -8,11 +8,14 @@
 
   <div class="dash-main">
     <header class="dash-header">
-      <h1 class="dash-header__title">
+      <div>
+        <p class="dash-header__eyebrow">Research group</p>
+        <h1 class="dash-header__title">
         {{ group.name }}
-        {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
-      </h1>
-      <button class="dash-members" type="button"
+          {% if group.is_default %}<span class="dash-badge">Default</span>{% endif %}
+        </h1>
+      </div>
+      <button class="btn btn--ghost dash-members" type="button"
               data-open-modal="members-modal">
         {% include "icons/users.svg" %}
         Members
@@ -91,7 +94,7 @@
                    aria-label="Search submissions">
           </div>
         {% endif %}
-        <button class="btn btn--primary dash-newsub" type="button">
+        <button class="btn btn--secondary dash-newsub" type="button">
           + New submission
         </button>
       </div>

@@ -15,7 +15,7 @@
         {{ entry.label }}
         {% include "icons/chevron-down.svg" %}
       </button>
-      <div class="nav-menu__dropdown" id="{{ panel_id }}">
+      <div class="panel nav-menu__dropdown" id="{{ panel_id }}">
         {% for item in entry.children %}
           <a class="nav-menu__item" href="{{ item.href }}"
              {% if item.external %}target="_blank" rel="noopener"{% endif %}>

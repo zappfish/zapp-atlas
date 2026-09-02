@@ -91,23 +91,14 @@
 }
 /* Modal buttons: a plain secondary and a teal primary (the header's primary is
    scoped to .site-nav, so define the standalone treatment here). */
-.modal .btn {
+.modal .btn:not([class*="btn--"]) {
   border: 1px solid var(--line);
   background: var(--white);
   color: var(--ink);
-  font-size: var(--text-sm);
 }
-.modal .btn:hover {
+.modal .btn { font-size: var(--text-sm); }
+.modal .btn:not([class*="btn--"]):hover {
   background: var(--surface-sunken);
-}
-.modal .btn--primary {
-  border-color: var(--teal);
-  background: var(--teal);
-  color: var(--white);
-  font-weight: 600;
-}
-.modal .btn--primary:hover {
-  background: var(--teal-dark);
 }
 .modal .btn--danger {
   border-color: var(--status-retracted);
@@ -179,7 +170,6 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
   /* Past ~5-6 rows the list scrolls on its own; the header and Add section,
      being outside it, stay fixed. Room on the right keeps the scrollbar clear
      of the row content. */
@@ -191,11 +181,11 @@
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface-sunken);
+  padding: 0.6rem 0.25rem;
   font-size: var(--text-sm);
+}
+.member + .member {
+  border-top: 1px solid var(--line);
 }
 .member__avatar {
   flex-shrink: 0;
@@ -228,14 +218,12 @@
 }
 .member__role {
   flex-shrink: 0;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.25rem 0.5rem;
-  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
   color: var(--muted);
-  background: var(--line);
+  background: var(--surface-sunken);
 }
 .member__role--admin {
   color: var(--teal);
@@ -261,6 +249,12 @@
 
 .member-add {
   display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.member-add__actions {
+  display: flex;
+  justify-content: flex-end;
   gap: 0.6rem;
 }
 .member-add__orcid {
@@ -269,4 +263,70 @@
 }
 .member-add__role {
   flex: 0 0 auto;
+}
+
+.picker {
+  position: relative;
+}
+.picker__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--white);
+  color: var(--ink);
+  cursor: pointer;
+}
+.picker__toggle .icon {
+  width: 0.7em;
+  height: 0.7em;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.picker.is-open .picker__toggle .icon {
+  transform: rotate(180deg);
+}
+.picker__value {
+  flex: 1;
+  text-align: left;
+}
+.picker__list {
+  display: none;
+  right: 0;
+  bottom: calc(100% + 0.25rem);
+  min-width: 100%;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+}
+.picker.is-open .picker__list {
+  display: block;
+}
+.picker__option {
+  padding: 0.45rem 0.6rem 0.45rem 1.6rem;
+  border-radius: 0.375rem;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+.picker__option:hover,
+.picker__option:focus-visible {
+  background: var(--btn-bg);
+  outline: none;
+}
+.picker__option.is-selected {
+  background: var(--btn-bg);
+  color: var(--teal);
+  font-weight: 600;
+}
+/* Checkmark sits in the padding reserved on every option, so selecting one
+   does not shift the label. */
+.picker__option.is-selected::before {
+  content: "";
+  position: absolute;
+  width: 0.3rem;
+  height: 0.6rem;
+  margin: 0.25rem 0 0 -1rem;
+  border: solid var(--teal);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }

@@ -6,7 +6,13 @@
     geno       optional fish genotype {background, mutations[], transgenes[]}
   View and remove actions sit at the right.
 #}
-<div class="dash-row">
+<div class="dash-row{% if item.detail_url %} dash-row--linked{% endif %}">
+  {% if item.detail_url %}
+    <a class="dash-row__link" tabindex="-1" aria-hidden="true"
+       href="{{ item.detail_url }}"
+       hx-get="{{ item.detail_url }}"
+       hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true"></a>
+  {% endif %}
   <div class="dash-row__main">
     <span class="dash-row__label">{{ item.label }}
       {% if item.sublabel %}<span class="dash-row__sub">{{ item.sublabel }}</span>{% endif %}
@@ -37,31 +43,39 @@
     {% endif %}
   </div>
   <div class="dash-row__actions">
-    {% if item.detail_url %}
-      <a class="dash-icon-btn" aria-label="View {{ item.label }}"
-         href="{{ item.detail_url }}"
-         hx-get="{{ item.detail_url }}"
-         hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true">
-        {% include "icons/eye.svg" %}
-      </a>
-    {% endif %}
-    {% if item.edit_url %}
-      <button class="dash-icon-btn" type="button"
-              aria-label="Edit {{ item.label }}"
-              data-open-modal="edit-chemical-modal"
-              data-edit-url="{{ item.edit_url }}"
-              data-edit-value="{{ item.edit_value }}">
-        {% include "icons/pencil.svg" %}
-      </button>
-    {% endif %}
-    {% if item.delete_url %}
-      <button class="dash-icon-btn dash-icon-btn--danger" type="button"
-              aria-label="Remove {{ item.label }}"
-              data-open-modal="confirm-delete-modal"
-              data-delete-url="{{ item.delete_url }}"
-              data-delete-name="{{ item.label }}">
-        {% include "icons/trash.svg" %}
-      </button>
-    {% endif %}
+    <details class="sub-menu">
+      <summary class="dash-icon-btn sub-menu__toggle" aria-label="Actions for {{ item.label }}">
+        {% include "icons/dots.svg" %}
+      </summary>
+      <div class="panel sub-menu__list" role="menu">
+        {% if item.detail_url %}
+          <a class="sub-menu__item" role="menuitem"
+             href="{{ item.detail_url }}"
+             hx-get="{{ item.detail_url }}"
+             hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true">
+            {% include "icons/eye.svg" %}
+            View details
+          </a>
+        {% endif %}
+        {% if item.edit_url %}
+          <button class="sub-menu__item" type="button" role="menuitem"
+                  data-open-modal="edit-chemical-modal"
+                  data-edit-url="{{ item.edit_url }}"
+                  data-edit-value="{{ item.edit_value }}">
+            {% include "icons/pencil.svg" %}
+            Edit
+          </button>
+        {% endif %}
+        {% if item.delete_url %}
+          <button class="sub-menu__item sub-menu__item--danger" type="button" role="menuitem"
+                  data-open-modal="confirm-delete-modal"
+                  data-delete-url="{{ item.delete_url }}"
+                  data-delete-name="{{ item.label }}">
+            {% include "icons/trash.svg" %}
+            Remove
+          </button>
+        {% endif %}
+      </div>
+    </details>
   </div>
 </div>

@@ -4,7 +4,7 @@
   /* main is a flex column, so without an explicit width this shrinks to fit
      its content rather than filling the page. */
   width: 100%;
-  max-width: 1360px;
+  max-width: 85rem;
   margin: 0 auto;
   padding: 2.5rem 2rem 4rem;
 }
@@ -27,7 +27,7 @@
   margin: 1.75rem 0 1.5rem;
   padding: 0.6rem;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 0.625rem;
 }
 
 /* The radios drive filtering via :has() below; only their labels are shown. */
@@ -84,7 +84,7 @@
 
 .guide__item {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 0.625rem;
   background: var(--white);
 }
 
@@ -107,13 +107,13 @@
 
 .guide__summary:hover {
   background: var(--nav-row-hover);
-  border-radius: 9px;
+  border-radius: 0.5625rem;
 }
 
 .guide__item[open] .guide__summary,
 .guide__item[open] .guide__summary:hover {
   background: var(--nav-row-hover);
-  border-radius: 9px 9px 0 0;
+  border-radius: 0.5625rem 0.5625rem 0 0;
 }
 
 .guide__q {
@@ -127,8 +127,8 @@
   position: relative;
   grid-column: 2;
   align-self: center;
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
   color: var(--muted);
 }
 

@@ -8,7 +8,7 @@
     <header class="members__head">
       <div>
         <h2 class="modal__title" id="members-title">Members</h2>
-        <p class="modal__text">Manage members and their roles.</p>
+        <p class="modal__text">Manage access to {{ group.name }}.</p>
       </div>
       <button class="members__close" type="button" data-close-modal
               aria-label="Close">&times;</button>
@@ -25,13 +25,13 @@
               <span class="member__orcid">ORCID: {{ member.orcid }}</span>
             {% endif %}
           </span>
-          <span class="member__role member__role--{{ member.role }}">{{ member.role }}</span>
+          <span class="member__role member__role--{{ member.role }}">{{ member.role | capitalize }}</span>
           {% if is_admin and member.remove_url %}
             <details class="sub-menu member__menu">
               <summary class="sub-menu__toggle" aria-label="Member actions">
                 {% include "icons/dots.svg" %}
               </summary>
-              <div class="sub-menu__list" role="menu">
+              <div class="panel sub-menu__list" role="menu">
                 <button class="sub-menu__item sub-menu__item--danger" type="button"
                         role="menuitem"
                         data-open-modal="confirm-delete-modal"
@@ -55,11 +55,23 @@
             action="/research-groups/{{ group.id }}/members">
         <input class="modal__input member-add__orcid" type="text" name="member"
                required placeholder="ORCID e.g. 0000-0002-1825-0097">
-        <select class="modal__input member-add__role" name="role" aria-label="Role">
-          <option value="member">member</option>
-          <option value="admin">admin</option>
-        </select>
-        <button class="btn btn--primary" type="submit">Add member</button>
+        <div class="member-add__actions">
+          <div class="picker member-add__role">
+            <input type="hidden" name="role" value="member">
+            <button class="modal__input picker__toggle" type="button"
+                    aria-haspopup="listbox" aria-expanded="false" aria-label="Role">
+              <span class="picker__value">Member</span>
+              {% include "icons/chevron-down.svg" %}
+            </button>
+            <ul class="panel picker__list" role="listbox" tabindex="-1">
+              <li class="picker__option is-selected" role="option" tabindex="0"
+                  aria-selected="true" data-value="member">Member</li>
+              <li class="picker__option" role="option" tabindex="0"
+                  aria-selected="false" data-value="admin">Admin</li>
+            </ul>
+          </div>
+          <button class="btn btn--primary" type="submit">Add member</button>
+        </div>
       </form>
     {% endif %}
   </div>
