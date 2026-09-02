@@ -20,13 +20,11 @@ from zapp_atlas.api.services.observations import (
     patch_observation,
 )
 from zapp_atlas.db.image_storage import Storage, get_storage
-
 from zapp_atlas.schema.pydantic_crud import (
     PhenotypeObservationSetCreate,
     PhenotypeObservationSetRead,
     PhenotypeObservationSetUpdate,
 )
-
 
 router = APIRouter(tags=["observations"])
 
@@ -41,13 +39,9 @@ def create_observation_endpoint(
     payload: PhenotypeObservationSetCreate,
     session: Annotated[Session, Depends(get_session)],
 ) -> PhenotypeObservationSetRead:
-    obs = create_observation_for_exposure(
-        session, exposure_id=exposure_id, payload=payload
-    )
+    obs = create_observation_for_exposure(session, exposure_id=exposure_id, payload=payload)
     if obs is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found")
     return obs  # type: ignore[return-value]
 
 
@@ -58,15 +52,11 @@ def get_observation_endpoint(
 ) -> PhenotypeObservationSetRead:
     obs = get_observation_by_id(session, observation_id)
     if obs is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
     return obs  # type: ignore[return-value]
 
 
-@router.patch(
-    "/observations/{observation_id}", response_model=PhenotypeObservationSetRead
-)
+@router.patch("/observations/{observation_id}", response_model=PhenotypeObservationSetRead)
 def patch_observation_endpoint(
     observation_id: int,
     patch: PhenotypeObservationSetUpdate,
@@ -74,21 +64,15 @@ def patch_observation_endpoint(
 ) -> PhenotypeObservationSetRead:
     obs = patch_observation(session, observation_id, patch)
     if obs is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
     return obs  # type: ignore[return-value]
 
 
-@router.delete(
-    "/observations/{observation_id}", status_code=status.HTTP_204_NO_CONTENT
-)
+@router.delete("/observations/{observation_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_observation_endpoint(
     observation_id: int,
     session: Annotated[Session, Depends(get_session)],
     storage: Annotated[Storage, Depends(get_storage)],
 ) -> None:
     if not delete_observation(session, observation_id, storage=storage):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")

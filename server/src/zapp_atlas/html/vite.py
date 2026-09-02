@@ -15,7 +15,6 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
-
 # Matches `rollupOptions.input` in client/vite.config.ts.
 ENTRY = "src/main.tsx"
 
@@ -55,9 +54,7 @@ def built_assets(dist_dir: Path) -> ViteAssets:
     manifest = json.loads(manifest_path.read_text())
     entry = manifest.get(ENTRY)
     if entry is None:
-        raise ViteAssetsUnavailable(
-            f"Vite manifest at {manifest_path} has no entry for {ENTRY!r}."
-        )
+        raise ViteAssetsUnavailable(f"Vite manifest at {manifest_path} has no entry for {ENTRY!r}.")
 
     # Asset URLs are the build's `base` ('/edit/') joined to the manifest path.
     return ViteAssets(
