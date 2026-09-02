@@ -14,6 +14,7 @@ export type RegimenId = string;
 export type StressorChemicalId = string;
 export type VehicleOfTransmissionId = string;
 export type ImageId = string;
+export type ImageLabelId = string;
 export type ControlImageId = string;
 export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
@@ -136,6 +137,46 @@ export enum ManufacturerEnum {
     cole_parmer = "cole_parmer",
     /** Other manufacturer not in the controlled list */
     other_not_listed = "other_not_listed",
+};
+/**
+* An enumeration of how much of the organism an image shows.
+*/
+export enum ImageScopeEnum {
+    
+    /** The entire fish, head to tail. */
+    whole_organism = "whole_organism",
+    /** A specific region, organ, or structure (e.g., head, heart, fin, eye). */
+    partial_organism = "partial_organism",
+};
+/**
+* An enumeration of image acquisition modalities.
+*/
+export enum ImageModalityEnum {
+    
+    /** Brightfield microscopy. */
+    brightfield = "brightfield",
+    /** Fluorescence microscopy. */
+    fluorescence = "fluorescence",
+    /** Another acquisition modality, described in the image comment. */
+    other = "other",
+};
+/**
+* An enumeration of kinds of reagents or signals shown in an image.
+*/
+export enum LabelKindEnum {
+    
+    /** A transgenic reporter, e.g. Tg(-6.35drl:EGFP). */
+    transgene_reporter = "transgene_reporter",
+    /** An in situ hybridization probe, e.g. myl7. */
+    ish_probe = "ish_probe",
+    /** An antibody used for immunostaining. */
+    antibody = "antibody",
+    /** A chemical stain, e.g. Alcian blue or Alizarin red. */
+    chemical_stain = "chemical_stain",
+    /** A vital dye, e.g. BODIPY or acridine orange. */
+    vital_dye = "vital_dye",
+    /** Another kind of label, described in the label comment. */
+    other = "other",
 };
 /**
 * An enumeration of permission levels within a research group.
@@ -373,6 +414,27 @@ export interface Image extends ZappEntity {
     resolution?: string,
     /** Scale bar information, including the physical length it represents and the unit of measurement. */
     scale_bar?: string,
+    /** Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region. */
+    image_scope?: string,
+    /** How the image was acquired. The biology shown (reporters, probes, antibodies, stains) is carried by the label list, not the modality. */
+    modality?: string,
+    /** The labels (reagents or signals) shown in this image. */
+    label?: ImageLabel[],
+}
+
+
+/**
+ * A reagent or signal shown in an image: a transgenic reporter, in situ probe, antibody, chemical stain, or vital dye. An image may carry several (multi-channel fluorescence, Alcian blue + Alizarin red double staining).
+ */
+export interface ImageLabel extends ZappEntity {
+    /** The kind of reagent or signal this label is. */
+    label_kind: string,
+    /** Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7, anti-MF20, Alcian blue. */
+    name: string,
+    /** Identifier for the label where one exists, e.g. a ZFIN construct ID for a transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a CHEBI ID for a chemical stain. */
+    label_id?: string,
+    /** Additional comments. */
+    comment?: string,
 }
 
 
