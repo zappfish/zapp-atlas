@@ -30,6 +30,7 @@ default_range: string
 
 imports:
   - linkml:types
+  - chemical_enums
 
 classes:
 
@@ -130,23 +131,77 @@ classes:
     slots:
       - chemical_id
       - cas_id
-      - chemical_name
+      - unrecognized_chemical_name
       - synonym
       - manufacturer
+      - unrecognized_manufacturer_name
       - concentration
       - comment
+    rules:
+      - description: >-
+          A chemical entry must be identifiable: at least one of chemical_id
+          (a standardized identifier / CURIE) or unrecognized_chemical_name
+          (the free-text fallback for a chemical that could not be resolved)
+          must be present.
+        postconditions:
+          any_of:
+            - slot_conditions:
+                chemical_id:
+                  required: true
+            - slot_conditions:
+                unrecognized_chemical_name:
+                  required: true
+      - description: >-
+          Picking the other_not_listed manufacturer escape hatch means the
+          supplier has to be named in free text; without it the entry records
+          no recoverable supplier at all.
+        preconditions:
+          slot_conditions:
+            manufacturer:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_manufacturer_name:
+              required: true
 
   VehicleOfTransmission:
     is_a: ZappEntity
     description: The substance or medium used to deliver a stressor to a subject during an exposure event.
     slots:
       - vehicle_type
+      - chemical_id
+      - cas_id
+      - unrecognized_chemical_name
+      - synonym
       - manufacturer
+      - unrecognized_manufacturer_name
       - concentration
       - comment
-    slot_usage:
-      concentration:
-        required: false
+    rules:
+      - description: >-
+          Picking the other_not_listed vehicle escape hatch means the vehicle
+          has to be named in free text; without it the entry records no
+          recoverable vehicle at all.
+        preconditions:
+          slot_conditions:
+            vehicle_type:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_chemical_name:
+              required: true
+      - description: >-
+          Picking the other_not_listed manufacturer escape hatch means the
+          supplier has to be named in free text; without it the entry records
+          no recoverable supplier at all.
+        preconditions:
+          slot_conditions:
+            manufacturer:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_manufacturer_name:
+              required: true
 
   Image:
     is_a: ZappEntity
@@ -308,7 +363,7 @@ slots:
     description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
     range: string
   synonym:
-    description: Other names for the chemical.
+    description: Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.
     range: string
     multivalued: true
   name:
@@ -455,8 +510,11 @@ slots:
   cas_id:
     description: CAS identifier for the chemical.
     range: string
-  chemical_name:
-    description: Name of the chemical.
+  unrecognized_chemical_name:
+    description: Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.
+    range: string
+  unrecognized_manufacturer_name:
+    description: Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list.
     range: string
   chemical_id:
     description: Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
@@ -467,7 +525,6 @@ slots:
   concentration:
     description: The dose or concentration of the chemical to which the subject was exposed to.
     range: QuantityValue
-    required: true
     inlined_as_list: true
     inlined: true
   interval_between_individual_exposures:
@@ -553,132 +610,5 @@ enums:
         description: Repeated exposure
         meaning: EXO:0000110
 
-  VehicleEnum:
-    description: An enumeration of vehicles used to deliver stressors in exposure events.
-    permissible_values:
-      acetone:
-        description: Acetone
-        meaning: CHEBI:15347
-      acetonitrile:
-        description: Acetonitrile
-        meaning: CHEBI:38472
-      albumin_bsa:
-        description: Albumin (BSA)
-        meaning: UMLS:C0036774
-      butanone_mek:
-        description: Butanone (MEK)
-        meaning: CHEBI:28398
-      cyclodextrin_hpbcd:
-        description: Cyclodextrin (HPBCD)
-        meaning: CHEBI:23456
-      dimethyl_formamide:
-        description: Dimethyl formamide (DMF)
-        meaning: CHEBI:17741
-      dmso:
-        description: Dimethyl sulfoxide (DMSO)
-        meaning: CHEBI:28262
-      embryonic_media:
-        description: Embryonic Media (EM/E3)
-      ethanol:
-        description: Ethanol
-        meaning: CHEBI:16236
-      glycerol:
-        description: Glycerol
-        meaning: CHEBI:17754
-      isopropanol:
-        description: Isopropanol
-        meaning: CHEBI:17824
-      methanol:
-        description: Methanol
-        meaning: CHEBI:17790
-      methylcellulose:
-        description: Methylcellulose
-        meaning: CHEBI:53448
-      pbs:
-        description: Phosphate-buffered saline (PBS)
-        meaning: "PUBCHEM.COMPOUND:24978514"
-      polyethylene_glycol:
-        description: Polyethylene glycol
-        meaning: CHEBI:30742
-      propylene_glycol:
-        description: Propylene glycol
-        meaning: CHEBI:16997
-      solketal:
-        description: Solketal
-        meaning: UNII:3XK098O8ZW
-      water:
-        description: Water
-        meaning: CHEBI:15377
-
-  ManufacturerEnum:
-    description: An enumeration of manufacturers and suppliers of chemicals used in exposure events.
-    permissible_values:
-      # Tier 1: Core global suppliers
-      sigma_aldrich:
-        description: Sigma-Aldrich
-      merck_kgaa:
-        description: Merck KGaA
-      millipore_sigma:
-        description: MilliporeSigma
-      thermo_fisher_scientific:
-        description: Thermo Fisher Scientific
-      fisher_scientific:
-        description: Fisher Scientific
-      avantor:
-        description: Avantor
-      vwr:
-        description: VWR
-      # Tier 2: Molecular biology / life sciences
-      new_england_biolabs:
-        description: New England Biolabs
-      bio_rad_laboratories:
-        description: Bio-Rad Laboratories
-      promega_corporation:
-        description: Promega Corporation
-      corning_life_sciences:
-        description: Corning Life Sciences
-      lonza_group:
-        description: Lonza Group
-      # Tier 3: Chemical libraries / screening
-      tocris_bioscience:
-        description: Tocris Bioscience
-      cayman_chemical_company:
-        description: Cayman Chemical Company
-      selleck_chemicals:
-        description: Selleck Chemicals
-      medchemexpress:
-        description: MedChemExpress
-      enzo_life_sciences:
-        description: Enzo Life Sciences
-      # Tier 4: Zebrafish / aquatic systems
-      aquaneering_inc:
-        description: Aquaneering Inc.
-      pentair_aquatic_eco_systems:
-        description: Pentair Aquatic Eco-Systems
-      tecniplast:
-        description: Tecniplast
-      zebrafish_international_resource_center:
-        description: Zebrafish International Resource Center
-      # Tier 5: Bulk / industrial chemicals
-      tokyo_chemical_industry:
-        description: Tokyo Chemical Industry
-      alfa_aesar:
-        description: Alfa Aesar
-      acros_organics:
-        description: Acros Organics
-      honeywell:
-        description: Honeywell
-      # Tier 6: Specialty biotech
-      abcam:
-        description: Abcam
-      cell_signaling_technology:
-        description: Cell Signaling Technology
-      genscript:
-        description: GenScript
-      addgene:
-        description: Addgene
-      # Tier 7: Distributors
-      thomas_scientific:
-        description: Thomas Scientific
-      cole_parmer:
-        description: Cole-Parmer
+  # VehicleEnum and ManufacturerEnum are defined in chemical_enums.yaml
+  # (imported above) to keep this schema focused on structure.

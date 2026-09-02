@@ -10,6 +10,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
+from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.schema.pydantic_crud import (
     ControlCreate,
     ExperimentCreate,
@@ -130,14 +131,43 @@ def _phenotype_term_from_payload(
     return PhenotypeTerm(term_uri=payload.term_uri, term_label=label)
 
 
+# The schema declares these as class-level `rules`, but LinkML's pydanticgen
+# does not turn class-level rules into validators, so they are re-checked here.
+# `other_not_listed` is the escape hatch for a value missing from a controlled
+# vocabulary; without the matching free-text name the row records no
+# recoverable identity at all, which is what the rules exist to prevent.
+OTHER_NOT_LISTED = "other_not_listed"
+
+
+def _enum_value(value: object) -> object:
+    """The plain value of an enum member, or the value itself if it is not one."""
+    return getattr(value, "value", value)
+
+
+def _check_escape_hatch(payload: object, choice_slot: str, name_slot: str, noun: str) -> None:
+    if _enum_value(getattr(payload, choice_slot, None)) != OTHER_NOT_LISTED:
+        return
+    if not getattr(payload, name_slot, None):
+        raise SchemaRuleViolation(
+            f"{noun} is '{OTHER_NOT_LISTED}', so {name_slot} is required to record which one."
+        )
+
+
 def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> StressorChemical:
+    if not (payload.chemical_id or getattr(payload, "unrecognized_chemical_name", None)):
+        raise SchemaRuleViolation(
+            "A stressor chemical must have either a chemical_id (CURIE) or an "
+            "unrecognized_chemical_name."
+        )
+    _check_escape_hatch(payload, "manufacturer", "unrecognized_manufacturer_name", "manufacturer")
     concentration = _quantity_value_from_payload(payload.concentration)
     stressor = StressorChemical(
         chemical_id=payload.chemical_id,
         cas_id=getattr(payload, "cas_id", None),
-        chemical_name=getattr(payload, "chemical_name", None),
+        unrecognized_chemical_name=getattr(payload, "unrecognized_chemical_name", None),
         concentration=concentration,
         manufacturer=payload.manufacturer,
+        unrecognized_manufacturer_name=getattr(payload, "unrecognized_manufacturer_name", None),
         comment=getattr(payload, "comment", None),
     )
     synonyms = getattr(payload, "synonym", None)
@@ -149,12 +179,22 @@ def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> 
 def _vehicle_from_payload(payload) -> VehicleOfTransmission | None:
     if payload is None:
         return None
-    return VehicleOfTransmission(
+    _check_escape_hatch(payload, "vehicle_type", "unrecognized_chemical_name", "vehicle_type")
+    _check_escape_hatch(payload, "manufacturer", "unrecognized_manufacturer_name", "manufacturer")
+    vehicle = VehicleOfTransmission(
         vehicle_type=payload.vehicle_type,
+        chemical_id=getattr(payload, "chemical_id", None),
+        cas_id=getattr(payload, "cas_id", None),
+        unrecognized_chemical_name=getattr(payload, "unrecognized_chemical_name", None),
         manufacturer=getattr(payload, "manufacturer", None),
+        unrecognized_manufacturer_name=getattr(payload, "unrecognized_manufacturer_name", None),
         concentration=_quantity_value_from_payload(getattr(payload, "concentration", None)),
         comment=getattr(payload, "comment", None),
     )
+    synonyms = getattr(payload, "synonym", None)
+    if synonyms:
+        vehicle.synonym = list(synonyms)
+    return vehicle
 
 
 def _phenotype_from_create(session: Session, payload: PhenotypeCreate) -> Phenotype:
