@@ -103,6 +103,4 @@ def remove_member_endpoint(
     _: GroupAdmin,
 ) -> None:
     if not remove_member(session, group_id, member_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found")

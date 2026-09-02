@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, inspect, text
 
-from zapp_atlas.db import init_db, get_session_factory
+from zapp_atlas.db import get_session_factory, init_db
 from zapp_atlas.schema.sqla import (
     Experiment,
     ExposureEvent,
@@ -92,14 +92,14 @@ def test_study_round_trip():
 
     exposure = ExposureEvent(
         exposure_start_stage="ZFS:0000011",  # Blastula:1k-cell (~3 hpf)
-        exposure_end_stage="ZFS:0000039",    # Larval:Days 7-13 (~7 dpf)
+        exposure_end_stage="ZFS:0000039",  # Larval:Days 7-13 (~7 dpf)
     )
     experiment.exposure_event.append(exposure)
 
     stressor = StressorChemical(
         chemical_id="CHEBI:33216",
         cas_id="80-05-7",
-        chemical_name="bisphenol A",
+        synonym=["bisphenol A"],
         concentration=concentration,
         manufacturer="sigma_aldrich",
     )
@@ -144,7 +144,7 @@ def test_study_round_trip():
     assert loaded_ee.exposure_end_stage == "ZFS:0000039"
 
     [loaded_stressor] = loaded_ee.stressor
-    assert loaded_stressor.chemical_name == "bisphenol A"
+    assert list(loaded_stressor.synonym) == ["bisphenol A"]
     assert loaded_stressor.chemical_id == "CHEBI:33216"
     assert loaded_stressor.cas_id == "80-05-7"
     assert loaded_stressor.concentration.numeric_value == "100"
@@ -152,9 +152,7 @@ def test_study_round_trip():
     assert loaded_stressor.manufacturer == "sigma_aldrich"
 
     [loaded_obs] = loaded_ee.phenotype_observation
-    phenotypes = sorted(
-        loaded_obs.phenotype, key=lambda p: p.phenotype_term_id.term_label
-    )
+    phenotypes = sorted(loaded_obs.phenotype, key=lambda p: p.phenotype_term_id.term_label)
     assert len(phenotypes) == 2
 
     assert phenotypes[0].phenotype_term_id.term_label == "head morphology, abnormal"

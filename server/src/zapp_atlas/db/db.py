@@ -3,9 +3,10 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from zapp_atlas.settings import AppSettings, DEFAULT_DB_PATH, load_settings
-from zapp_atlas.schema.sqla import Base
 import zapp_atlas.auth.models  # noqa: F401
+from zapp_atlas.db.migrate import migrate
+from zapp_atlas.schema.sqla import Base
+from zapp_atlas.settings import AppSettings, load_settings
 
 
 def get_db_path(settings: AppSettings | None = None) -> Path:
@@ -26,4 +27,8 @@ def get_session_factory(engine=None):
 def init_db(engine=None):
     engine = engine or get_engine()
     Base.metadata.create_all(engine)
+    # create_all only makes tables that are missing entirely. A database on a
+    # persistent disk keeps the columns it was created with, so bring it up to
+    # the current schema before anything queries it.
+    migrate(engine)
     return engine

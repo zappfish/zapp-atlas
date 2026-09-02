@@ -25,6 +25,120 @@ export type ResearchGroupMemberId = string;
 export type ChemicalCabinetEntryId = string;
 export type FishTankEntryId = string;
 /**
+* An enumeration of vehicles used to deliver stressors in exposure events.
+*/
+export enum VehicleEnum {
+    
+    /** Acetone */
+    acetone = "acetone",
+    /** Acetonitrile */
+    acetonitrile = "acetonitrile",
+    /** Bovine serum albumin (BSA) */
+    bsa = "bsa",
+    /** Butanone (MEK) */
+    butanone_mek = "butanone_mek",
+    /** Cyclodextrin (HPBCD) */
+    cyclodextrin_hpbcd = "cyclodextrin_hpbcd",
+    /** Dimethyl formamide (DMF) */
+    dimethyl_formamide = "dimethyl_formamide",
+    /** Dimethyl sulfoxide (DMSO) */
+    dmso = "dmso",
+    /** Embryonic Media (EM/E3) */
+    embryonic_media = "embryonic_media",
+    /** Ethanol */
+    ethanol = "ethanol",
+    /** Glycerol */
+    glycerol = "glycerol",
+    /** Isopropanol */
+    isopropanol = "isopropanol",
+    /** Methanol */
+    methanol = "methanol",
+    /** Methylcellulose */
+    methylcellulose = "methylcellulose",
+    /** Phosphate-buffered saline (PBS) */
+    pbs = "pbs",
+    /** Polyethylene glycol */
+    polyethylene_glycol = "polyethylene_glycol",
+    /** Propylene glycol */
+    propylene_glycol = "propylene_glycol",
+    /** Solketal */
+    solketal = "solketal",
+    /** Water */
+    water = "water",
+    /** Other vehicle not in the controlled list */
+    other_not_listed = "other_not_listed",
+};
+/**
+* An enumeration of manufacturers and suppliers of chemicals used in exposure events.
+*/
+export enum ManufacturerEnum {
+    
+    /** Sigma-Aldrich */
+    sigma_aldrich = "sigma_aldrich",
+    /** Merck KGaA */
+    merck_kgaa = "merck_kgaa",
+    /** MilliporeSigma */
+    millipore_sigma = "millipore_sigma",
+    /** Thermo Fisher Scientific */
+    thermo_fisher_scientific = "thermo_fisher_scientific",
+    /** Fisher Scientific */
+    fisher_scientific = "fisher_scientific",
+    /** Avantor */
+    avantor = "avantor",
+    /** VWR */
+    vwr = "vwr",
+    /** New England Biolabs */
+    new_england_biolabs = "new_england_biolabs",
+    /** Bio-Rad Laboratories */
+    bio_rad_laboratories = "bio_rad_laboratories",
+    /** Promega Corporation */
+    promega_corporation = "promega_corporation",
+    /** Corning Life Sciences */
+    corning_life_sciences = "corning_life_sciences",
+    /** Lonza Group */
+    lonza_group = "lonza_group",
+    /** Tocris Bioscience */
+    tocris_bioscience = "tocris_bioscience",
+    /** Cayman Chemical Company */
+    cayman_chemical_company = "cayman_chemical_company",
+    /** Selleck Chemicals */
+    selleck_chemicals = "selleck_chemicals",
+    /** MedChemExpress */
+    medchemexpress = "medchemexpress",
+    /** Enzo Life Sciences */
+    enzo_life_sciences = "enzo_life_sciences",
+    /** Aquaneering Inc. */
+    aquaneering_inc = "aquaneering_inc",
+    /** Pentair Aquatic Eco-Systems */
+    pentair_aquatic_eco_systems = "pentair_aquatic_eco_systems",
+    /** Tecniplast */
+    tecniplast = "tecniplast",
+    /** Zebrafish International Resource Center */
+    zebrafish_international_resource_center = "zebrafish_international_resource_center",
+    /** Tokyo Chemical Industry */
+    tokyo_chemical_industry = "tokyo_chemical_industry",
+    /** Alfa Aesar */
+    alfa_aesar = "alfa_aesar",
+    /** Acros Organics */
+    acros_organics = "acros_organics",
+    /** Honeywell */
+    honeywell = "honeywell",
+    /** Abcam */
+    abcam = "abcam",
+    /** Cell Signaling Technology */
+    cell_signaling_technology = "cell_signaling_technology",
+    /** GenScript */
+    genscript = "genscript",
+    /** Addgene */
+    addgene = "addgene",
+    /** Thomas Scientific */
+    thomas_scientific = "thomas_scientific",
+    /** Cole-Parmer */
+    cole_parmer = "cole_parmer",
+    /** Other manufacturer not in the controlled list */
+    other_not_listed = "other_not_listed",
+};
+/**
 * An enumeration of how much of the organism an image shows.
 */
 export enum ImageScopeEnum {
@@ -95,116 +209,6 @@ export enum ExposureRegimenTypeEnum {
     continuous = "continuous",
     /** Repeated exposure */
     repeated = "repeated",
-};
-/**
-* An enumeration of vehicles used to deliver stressors in exposure events.
-*/
-export enum VehicleEnum {
-    
-    /** Acetone */
-    acetone = "acetone",
-    /** Acetonitrile */
-    acetonitrile = "acetonitrile",
-    /** Albumin (BSA) */
-    albumin_bsa = "albumin_bsa",
-    /** Butanone (MEK) */
-    butanone_mek = "butanone_mek",
-    /** Cyclodextrin (HPBCD) */
-    cyclodextrin_hpbcd = "cyclodextrin_hpbcd",
-    /** Dimethyl formamide (DMF) */
-    dimethyl_formamide = "dimethyl_formamide",
-    /** Dimethyl sulfoxide (DMSO) */
-    dmso = "dmso",
-    /** Embryonic Media (EM/E3) */
-    embryonic_media = "embryonic_media",
-    /** Ethanol */
-    ethanol = "ethanol",
-    /** Glycerol */
-    glycerol = "glycerol",
-    /** Isopropanol */
-    isopropanol = "isopropanol",
-    /** Methanol */
-    methanol = "methanol",
-    /** Methylcellulose */
-    methylcellulose = "methylcellulose",
-    /** Phosphate-buffered saline (PBS) */
-    pbs = "pbs",
-    /** Polyethylene glycol */
-    polyethylene_glycol = "polyethylene_glycol",
-    /** Propylene glycol */
-    propylene_glycol = "propylene_glycol",
-    /** Solketal */
-    solketal = "solketal",
-    /** Water */
-    water = "water",
-};
-/**
-* An enumeration of manufacturers and suppliers of chemicals used in exposure events.
-*/
-export enum ManufacturerEnum {
-    
-    /** Sigma-Aldrich */
-    sigma_aldrich = "sigma_aldrich",
-    /** Merck KGaA */
-    merck_kgaa = "merck_kgaa",
-    /** MilliporeSigma */
-    millipore_sigma = "millipore_sigma",
-    /** Thermo Fisher Scientific */
-    thermo_fisher_scientific = "thermo_fisher_scientific",
-    /** Fisher Scientific */
-    fisher_scientific = "fisher_scientific",
-    /** Avantor */
-    avantor = "avantor",
-    /** VWR */
-    vwr = "vwr",
-    /** New England Biolabs */
-    new_england_biolabs = "new_england_biolabs",
-    /** Bio-Rad Laboratories */
-    bio_rad_laboratories = "bio_rad_laboratories",
-    /** Promega Corporation */
-    promega_corporation = "promega_corporation",
-    /** Corning Life Sciences */
-    corning_life_sciences = "corning_life_sciences",
-    /** Lonza Group */
-    lonza_group = "lonza_group",
-    /** Tocris Bioscience */
-    tocris_bioscience = "tocris_bioscience",
-    /** Cayman Chemical Company */
-    cayman_chemical_company = "cayman_chemical_company",
-    /** Selleck Chemicals */
-    selleck_chemicals = "selleck_chemicals",
-    /** MedChemExpress */
-    medchemexpress = "medchemexpress",
-    /** Enzo Life Sciences */
-    enzo_life_sciences = "enzo_life_sciences",
-    /** Aquaneering Inc. */
-    aquaneering_inc = "aquaneering_inc",
-    /** Pentair Aquatic Eco-Systems */
-    pentair_aquatic_eco_systems = "pentair_aquatic_eco_systems",
-    /** Tecniplast */
-    tecniplast = "tecniplast",
-    /** Zebrafish International Resource Center */
-    zebrafish_international_resource_center = "zebrafish_international_resource_center",
-    /** Tokyo Chemical Industry */
-    tokyo_chemical_industry = "tokyo_chemical_industry",
-    /** Alfa Aesar */
-    alfa_aesar = "alfa_aesar",
-    /** Acros Organics */
-    acros_organics = "acros_organics",
-    /** Honeywell */
-    honeywell = "honeywell",
-    /** Abcam */
-    abcam = "abcam",
-    /** Cell Signaling Technology */
-    cell_signaling_technology = "cell_signaling_technology",
-    /** GenScript */
-    genscript = "genscript",
-    /** Addgene */
-    addgene = "addgene",
-    /** Thomas Scientific */
-    thomas_scientific = "thomas_scientific",
-    /** Cole-Parmer */
-    cole_parmer = "cole_parmer",
 };
 
 
@@ -360,14 +364,16 @@ export interface StressorChemical extends ZappEntity {
     chemical_id?: string,
     /** CAS identifier for the chemical. */
     cas_id?: string,
-    /** Name of the chemical. */
-    chemical_name?: string,
-    /** Other names for the chemical. */
+    /** Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier. */
+    unrecognized_chemical_name?: string,
+    /** Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id. */
     synonym?: string[],
     /** The manufacturer or supplier of the chemical. */
     manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
     /** The dose or concentration of the chemical to which the subject was exposed to. */
-    concentration: QuantityValue,
+    concentration?: QuantityValue,
     /** Additional comments. */
     comment?: string,
 }
@@ -379,8 +385,18 @@ export interface StressorChemical extends ZappEntity {
 export interface VehicleOfTransmission extends ZappEntity {
     /** The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary. */
     vehicle_type: string,
+    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    chemical_id?: string,
+    /** CAS identifier for the chemical. */
+    cas_id?: string,
+    /** Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier. */
+    unrecognized_chemical_name?: string,
+    /** Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id. */
+    synonym?: string[],
     /** The manufacturer or supplier of the chemical. */
     manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
     /** The dose or concentration of the chemical to which the subject was exposed to. */
     concentration?: QuantityValue,
     /** Additional comments. */

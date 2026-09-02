@@ -6,7 +6,6 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-
 _PNG_1X1_RED = bytes.fromhex(
     "89504E470D0A1A0A0000000D49484452000000010000000108020000"
     "00907753DE0000000C4944415408D76368F8FF1F0000040100017F3F"
@@ -56,9 +55,7 @@ def _build_study_graph(client: TestClient) -> dict:
     }
 
 
-def test_delete_image_removes_row_and_blob(
-    client: TestClient, tmp_path: Path
-) -> None:
+def test_delete_image_removes_row_and_blob(client: TestClient, tmp_path: Path) -> None:
     ids = _build_study_graph(client)
     blob = tmp_path / "images" / str(ids["image_id"])
     assert blob.is_file()
@@ -70,9 +67,7 @@ def test_delete_image_removes_row_and_blob(
     assert not blob.exists()
 
 
-def test_delete_observation_cascades_to_images(
-    client: TestClient, tmp_path: Path
-) -> None:
+def test_delete_observation_cascades_to_images(client: TestClient, tmp_path: Path) -> None:
     ids = _build_study_graph(client)
 
     res = client.delete(f"/api/observations/{ids['observation_id']}")
@@ -126,3 +121,72 @@ def test_delete_missing_entities_404(client: TestClient) -> None:
         "/api/images/999999",
     ):
         assert client.delete(path).status_code == 404
+
+
+def _exposure_with_synonyms(client: TestClient) -> int:
+    """An exposure whose stressor and vehicle both carry synonym rows."""
+    study = client.post(
+        "/api/studies",
+        json={
+            "publication": "PMID:delete-synonyms",
+            "lab": "ZFIN:ZDB-LAB-1-1",
+            "annotator": ["ORCID:0000-0000-0000-0000"],
+            "experiment": [],
+        },
+    ).json()
+    exp = client.post(
+        f"/api/studies/{study['id']}/experiments",
+        json={
+            "standard_rearing_condition": True,
+            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-1", "name": "AB"},
+            "control": [],
+            "exposure_event": [],
+        },
+    ).json()
+    res = client.post(
+        f"/api/experiments/{exp['id']}/exposures",
+        json={
+            "stressor": [{"chemical_id": "CHEBI:33216", "synonym": ["bisphenol A", "BPA"]}],
+            "vehicle": [{"vehicle_type": "dmso", "synonym": ["DMSO", "methyl sulfoxide"]}],
+            "phenotype_observation": [],
+        },
+    )
+    assert res.status_code == 201, res.text
+    return res.json()["id"]
+
+
+def test_delete_exposure_takes_synonym_rows_with_it(client: TestClient) -> None:
+    """Synonyms are the mainline way a chemical carries its readable names.
+
+    Their rows key on the parent's id *and* the value, so nothing can detach
+    them from a deleted parent -- without a cascade the delete raises and the
+    exposure becomes undeletable, and a bulk delete instead strands the rows.
+    """
+    from zapp_atlas.schema._gen.sqla import (
+        StressorChemicalSynonym,
+        VehicleOfTransmissionSynonym,
+    )
+
+    exposure_id = _exposure_with_synonyms(client)
+
+    assert client.delete(f"/api/exposures/{exposure_id}").status_code == 204
+
+    session = client.app.state.session_factory()
+    assert session.query(StressorChemicalSynonym).count() == 0
+    assert session.query(VehicleOfTransmissionSynonym).count() == 0
+
+
+def test_delete_study_takes_nested_synonym_rows_with_it(client: TestClient) -> None:
+    from zapp_atlas.schema._gen.sqla import (
+        StressorChemicalSynonym,
+        VehicleOfTransmissionSynonym,
+    )
+
+    _exposure_with_synonyms(client)
+    study_id = client.get("/api/studies").json()[0]["id"]
+
+    assert client.delete(f"/api/studies/{study_id}").status_code == 204
+
+    session = client.app.state.session_factory()
+    assert session.query(StressorChemicalSynonym).count() == 0
+    assert session.query(VehicleOfTransmissionSynonym).count() == 0

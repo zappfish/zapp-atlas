@@ -20,13 +20,11 @@ from zapp_atlas.api.services.exposures import (
     patch_exposure,
 )
 from zapp_atlas.db.image_storage import Storage, get_storage
-
 from zapp_atlas.schema.pydantic_crud import (
     ExposureEventCreate,
     ExposureEventRead,
     ExposureEventUpdate,
 )
-
 
 router = APIRouter(tags=["exposures"])
 
@@ -45,13 +43,9 @@ def create_exposure_endpoint(
     payload: ExposureEventCreate,
     session: Annotated[Session, Depends(get_session)],
 ) -> ExposureEventRead:
-    ee = create_exposure_for_experiment(
-        session, experiment_id=experiment_id, payload=payload
-    )
+    ee = create_exposure_for_experiment(session, experiment_id=experiment_id, payload=payload)
     if ee is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Experiment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Experiment not found")
     return _as_read(ee)
 
 
@@ -62,9 +56,7 @@ def get_exposure_endpoint(
 ) -> ExposureEventRead:
     ee = get_exposure_by_id(session, exposure_id)
     if ee is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found")
     return _as_read(ee)
 
 
@@ -76,9 +68,7 @@ def patch_exposure_endpoint(
 ) -> ExposureEventRead:
     ee = patch_exposure(session, exposure_id, patch)
     if ee is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found")
     return _as_read(ee)
 
 
@@ -89,6 +79,4 @@ def delete_exposure_endpoint(
     storage: Annotated[Storage, Depends(get_storage)],
 ) -> None:
     if not delete_exposure(session, exposure_id, storage=storage):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found")

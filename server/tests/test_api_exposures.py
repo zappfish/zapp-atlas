@@ -37,7 +37,7 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
             {
                 "chemical_id": "CHEBI:33216",
                 "cas_id": "80-05-7",
-                "chemical_name": "bisphenol A",
+                "synonym": ["bisphenol A"],
                 "concentration": {"unit": "µg/L", "numeric_value": "100"},
             }
         ],

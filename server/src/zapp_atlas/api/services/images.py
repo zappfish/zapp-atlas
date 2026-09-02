@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from zapp_atlas.db.image_storage import Storage, max_upload_bytes
-
 from zapp_atlas.schema.sqla import (  # type: ignore
     Image,
     PhenotypeObservationSet,
@@ -37,7 +34,7 @@ def create_image_for_observation(
     resolution: str | None = None,
     scale_bar: str | None = None,
     max_bytes: int | None = None,
-) -> Optional[Image]:
+) -> Image | None:
     if not content_type.startswith("image/"):
         raise UnsupportedImageTypeError(content_type)
 
@@ -63,7 +60,7 @@ def create_image_for_observation(
     return image
 
 
-def get_image_by_id(session: Session, image_id: int) -> Optional[Image]:
+def get_image_by_id(session: Session, image_id: int) -> Image | None:
     return session.get(Image, image_id)
 
 

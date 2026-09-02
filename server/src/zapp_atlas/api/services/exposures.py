@@ -2,30 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.services.observations import delete_observation_row
 from zapp_atlas.api.services.studies import (
     _exposure_event_from_create,
-    _quantity_value_from_payload,
     _regimen_from_create,
     _resolve_ontology_term,
     _stressor_from_create,
     _vehicle_from_payload,
 )
 from zapp_atlas.db.image_storage import Storage
-
 from zapp_atlas.schema.pydantic_crud import (
     ExposureEventCreate,
     ExposureEventUpdate,
 )
-
 from zapp_atlas.schema.sqla import (  # type: ignore
     Experiment,
     ExposureEvent,
-    VehicleOfTransmission,
 )
 
 
@@ -34,7 +28,7 @@ def create_exposure_for_experiment(
     *,
     experiment_id: int,
     payload: ExposureEventCreate,
-) -> Optional[ExposureEvent]:
+) -> ExposureEvent | None:
     experiment = session.get(Experiment, experiment_id)
     if experiment is None:
         return None
@@ -47,13 +41,13 @@ def create_exposure_for_experiment(
     return ee
 
 
-def get_exposure_by_id(session: Session, exposure_id: int) -> Optional[ExposureEvent]:
+def get_exposure_by_id(session: Session, exposure_id: int) -> ExposureEvent | None:
     return session.get(ExposureEvent, exposure_id)
 
 
 def patch_exposure(
     session: Session, exposure_id: int, patch: ExposureEventUpdate
-) -> Optional[ExposureEvent]:
+) -> ExposureEvent | None:
     ee = get_exposure_by_id(session, exposure_id)
     if ee is None:
         return None
@@ -73,9 +67,7 @@ def patch_exposure(
     if patch.route is not None:
         ee.route = _resolve_ontology_term(session, "route", patch.route)
     if patch.exposure_type is not None:
-        ee.exposure_type = _resolve_ontology_term(
-            session, "exposure_type", patch.exposure_type
-        )
+        ee.exposure_type = _resolve_ontology_term(session, "exposure_type", patch.exposure_type)
 
     if patch.vehicle is not None:
         ee.vehicle = [_vehicle_from_payload(v) for v in patch.vehicle]
@@ -92,24 +84,22 @@ def patch_exposure(
     return ee
 
 
-def delete_exposure_row(
-    session: Session, ee: ExposureEvent, *, storage: Storage
-) -> None:
+def delete_exposure_row(session: Session, ee: ExposureEvent, *, storage: Storage) -> None:
     for obs in list(ee.phenotype_observation or []):
         delete_observation_row(session, obs, storage=storage)
     for stressor in list(ee.stressor or []):
         session.delete(stressor)
-    session.query(VehicleOfTransmission).filter_by(
-        ExposureEvent_id=ee.id
-    ).delete(synchronize_session="fetch")
+    # Deleted one at a time rather than as a bulk query: a bulk delete goes
+    # straight to SQL and skips the ORM cascade, which would leave each
+    # vehicle's synonym rows behind pointing at a vehicle that no longer exists.
+    for vehicle in list(ee.vehicle or []):
+        session.delete(vehicle)
     if ee.regimen is not None:
         session.delete(ee.regimen)
     session.delete(ee)
 
 
-def delete_exposure(
-    session: Session, exposure_id: int, *, storage: Storage
-) -> bool:
+def delete_exposure(session: Session, exposure_id: int, *, storage: Storage) -> bool:
     ee = get_exposure_by_id(session, exposure_id)
     if ee is None:
         return False

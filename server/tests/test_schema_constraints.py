@@ -7,7 +7,7 @@ enforced rather than merely declared.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 from sqlalchemy import create_engine
@@ -73,9 +73,7 @@ def test_tank_grain_is_unique_per_group_and_fish(session, group):
 def test_membership_grain_is_unique_per_group_and_member(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: ResearchGroupMember(
-            research_group=group.id, member=ORCID, role="admin"
-        ),
+        lambda: ResearchGroupMember(research_group=group.id, member=ORCID, role="admin"),
     )
 
 
@@ -84,9 +82,7 @@ def test_two_groups_may_stock_the_same_chemical(session):
     session.add_all(groups)
     session.commit()
 
-    session.add_all(
-        ChemicalCabinetEntry(research_group=g.id, chemical_id=ETHANOL) for g in groups
-    )
+    session.add_all(ChemicalCabinetEntry(research_group=g.id, chemical_id=ETHANOL) for g in groups)
     session.commit()
 
     assert session.query(ChemicalCabinetEntry).count() == 2

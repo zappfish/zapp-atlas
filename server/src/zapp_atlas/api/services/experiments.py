@@ -6,19 +6,15 @@ Study container.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.services.exposures import delete_exposure_row
 from zapp_atlas.api.services.studies import _experiment_from_create, _fish_from_payload
 from zapp_atlas.db.image_storage import Storage
-
 from zapp_atlas.schema.pydantic_crud import (
     ExperimentCreate,
     ExperimentUpdate,
 )
-
 from zapp_atlas.schema.sqla import (  # type: ignore
     Experiment,
     Study,
@@ -30,7 +26,7 @@ def create_experiment_for_study(
     *,
     study_id: int,
     payload: ExperimentCreate,
-) -> Optional[Experiment]:
+) -> Experiment | None:
     """Create an Experiment belonging to an existing Study."""
 
     study = session.get(Study, study_id)
@@ -47,7 +43,7 @@ def create_experiment_for_study(
     return exp
 
 
-def get_experiment_by_id(session: Session, experiment_id: int) -> Optional[Experiment]:
+def get_experiment_by_id(session: Session, experiment_id: int) -> Experiment | None:
     return session.get(Experiment, experiment_id)
 
 
@@ -58,7 +54,7 @@ def list_experiments(session: Session, *, limit: int = 50, offset: int = 0) -> l
 
 def patch_experiment(
     session: Session, experiment_id: int, patch: ExperimentUpdate
-) -> Optional[Experiment]:
+) -> Experiment | None:
     exp = get_experiment_by_id(session, experiment_id)
     if exp is None:
         return None
@@ -78,9 +74,7 @@ def patch_experiment(
     return exp
 
 
-def delete_experiment_row(
-    session: Session, exp: Experiment, *, storage: Storage
-) -> None:
+def delete_experiment_row(session: Session, exp: Experiment, *, storage: Storage) -> None:
     for exposure in list(exp.exposure_event or []):
         delete_exposure_row(session, exposure, storage=storage)
     for control in list(exp.control or []):
@@ -88,9 +82,7 @@ def delete_experiment_row(
     session.delete(exp)
 
 
-def delete_experiment(
-    session: Session, experiment_id: int, *, storage: Storage
-) -> bool:
+def delete_experiment(session: Session, experiment_id: int, *, storage: Storage) -> bool:
     exp = get_experiment_by_id(session, experiment_id)
     if exp is None:
         return False

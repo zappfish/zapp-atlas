@@ -545,7 +545,8 @@
         "genscript",
         "addgene",
         "thomas_scientific",
-        "cole_parmer"
+        "cole_parmer",
+        "other_not_listed"
       ],
       "title": "ManufacturerEnum",
       "type": "string"
@@ -824,6 +825,48 @@
     },
     "StressorChemical": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "chemical_id": {}
+              },
+              "required": [
+                "chemical_id"
+              ]
+            },
+            {
+              "properties": {
+                "unrecognized_chemical_name": {}
+              },
+              "required": [
+                "unrecognized_chemical_name"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "manufacturer": {
+                "const": "other_not_listed"
+              }
+            },
+            "required": [
+              "manufacturer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unrecognized_manufacturer_name": {}
+            },
+            "required": [
+              "unrecognized_manufacturer_name"
+            ]
+          }
+        }
+      ],
       "description": "A chemical that elicits a response (a phenotype) in a subject when encountered through exposure.",
       "properties": {
         "cas_id": {
@@ -840,13 +883,6 @@
             "null"
           ]
         },
-        "chemical_name": {
-          "description": "Name of the chemical.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "comment": {
           "description": "Additional comments.",
           "type": [
@@ -855,7 +891,14 @@
           ]
         },
         "concentration": {
-          "$ref": "#/$defs/QuantityValue",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QuantityValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The dose or concentration of the chemical to which the subject was exposed to."
         },
         "id": {
@@ -867,7 +910,7 @@
           "description": "The manufacturer or supplier of the chemical."
         },
         "synonym": {
-          "description": "Other names for the chemical.",
+          "description": "Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.",
           "items": {
             "type": "string"
           },
@@ -875,10 +918,23 @@
             "array",
             "null"
           ]
+        },
+        "unrecognized_chemical_name": {
+          "description": "Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unrecognized_manufacturer_name": {
+          "description": "Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
-        "concentration",
         "id"
       ],
       "title": "StressorChemical",
@@ -940,7 +996,7 @@
       "enum": [
         "acetone",
         "acetonitrile",
-        "albumin_bsa",
+        "bsa",
         "butanone_mek",
         "cyclodextrin_hpbcd",
         "dimethyl_formamide",
@@ -955,15 +1011,72 @@
         "polyethylene_glycol",
         "propylene_glycol",
         "solketal",
-        "water"
+        "water",
+        "other_not_listed"
       ],
       "title": "VehicleEnum",
       "type": "string"
     },
     "VehicleOfTransmission": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "vehicle_type": {
+                "const": "other_not_listed"
+              }
+            },
+            "required": [
+              "vehicle_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unrecognized_chemical_name": {}
+            },
+            "required": [
+              "unrecognized_chemical_name"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "manufacturer": {
+                "const": "other_not_listed"
+              }
+            },
+            "required": [
+              "manufacturer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unrecognized_manufacturer_name": {}
+            },
+            "required": [
+              "unrecognized_manufacturer_name"
+            ]
+          }
+        }
+      ],
       "description": "The substance or medium used to deliver a stressor to a subject during an exposure event.",
       "properties": {
+        "cas_id": {
+          "description": "CAS identifier for the chemical.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "chemical_id": {
+          "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "comment": {
           "description": "Additional comments.",
           "type": [
@@ -989,6 +1102,30 @@
         "manufacturer": {
           "$ref": "#/$defs/ManufacturerEnum",
           "description": "The manufacturer or supplier of the chemical."
+        },
+        "synonym": {
+          "description": "Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "unrecognized_chemical_name": {
+          "description": "Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unrecognized_manufacturer_name": {
+          "description": "Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "vehicle_type": {
           "$ref": "#/$defs/VehicleEnum",

@@ -1,0 +1,159 @@
+---
+id: https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema/chemical_enums
+name: chemical_enums
+title: chemical-enums
+description: |-
+  Controlled vocabularies for the Zebrafish Toxicology Atlas schema: the
+  vehicle-of-transmission and manufacturer/supplier enumerations. These are
+  long, growing lookup lists, so they are kept out of the core schema to keep
+  it focused on structure. Imported by zebrafish_toxicology_atlas_schema.yaml.
+license: MIT
+
+prefixes:
+  zebrafish_toxicology_atlas_schema: https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema/
+  linkml: https://w3id.org/linkml/
+  CHEBI: http://purl.obolibrary.org/obo/CHEBI_
+  UMLS: https://uts.nlm.nih.gov/uts/umls/concept/
+  "PUBCHEM.COMPOUND": https://identifiers.org/pubchem.compound/
+  UNII: https://fdasis.nlm.nih.gov/srs/unii/
+default_prefix: zebrafish_toxicology_atlas_schema
+
+imports:
+  - linkml:types
+
+enums:
+
+  VehicleEnum:
+    description: An enumeration of vehicles used to deliver stressors in exposure events.
+    permissible_values:
+      acetone:
+        description: Acetone
+        meaning: CHEBI:15347
+      acetonitrile:
+        description: Acetonitrile
+        meaning: CHEBI:38472
+      bsa:
+        description: Bovine serum albumin (BSA)
+        meaning: UMLS:C0036774
+      butanone_mek:
+        description: Butanone (MEK)
+        meaning: CHEBI:28398
+      cyclodextrin_hpbcd:
+        description: Cyclodextrin (HPBCD)
+        meaning: CHEBI:23456
+      dimethyl_formamide:
+        description: Dimethyl formamide (DMF)
+        meaning: CHEBI:17741
+      dmso:
+        description: Dimethyl sulfoxide (DMSO)
+        meaning: CHEBI:28262
+      embryonic_media:
+        description: Embryonic Media (EM/E3)
+      ethanol:
+        description: Ethanol
+        meaning: CHEBI:16236
+      glycerol:
+        description: Glycerol
+        meaning: CHEBI:17754
+      isopropanol:
+        description: Isopropanol
+        meaning: CHEBI:17824
+      methanol:
+        description: Methanol
+        meaning: CHEBI:17790
+      methylcellulose:
+        description: Methylcellulose
+        meaning: CHEBI:53448
+      pbs:
+        description: Phosphate-buffered saline (PBS)
+        meaning: "PUBCHEM.COMPOUND:24978514"
+      polyethylene_glycol:
+        description: Polyethylene glycol
+        meaning: CHEBI:30742
+      propylene_glycol:
+        description: Propylene glycol
+        meaning: CHEBI:16997
+      solketal:
+        description: Solketal
+        meaning: UNII:3XK098O8ZW
+      water:
+        description: Water
+        meaning: CHEBI:15377
+      other_not_listed:
+        description: Other vehicle not in the controlled list
+
+  ManufacturerEnum:
+    description: An enumeration of manufacturers and suppliers of chemicals used in exposure events.
+    permissible_values:
+      # Tier 1: Core global suppliers
+      sigma_aldrich:
+        description: Sigma-Aldrich
+      merck_kgaa:
+        description: Merck KGaA
+      millipore_sigma:
+        description: MilliporeSigma
+      thermo_fisher_scientific:
+        description: Thermo Fisher Scientific
+      fisher_scientific:
+        description: Fisher Scientific
+      avantor:
+        description: Avantor
+      vwr:
+        description: VWR
+      # Tier 2: Molecular biology / life sciences
+      new_england_biolabs:
+        description: New England Biolabs
+      bio_rad_laboratories:
+        description: Bio-Rad Laboratories
+      promega_corporation:
+        description: Promega Corporation
+      corning_life_sciences:
+        description: Corning Life Sciences
+      lonza_group:
+        description: Lonza Group
+      # Tier 3: Chemical libraries / screening
+      tocris_bioscience:
+        description: Tocris Bioscience
+      cayman_chemical_company:
+        description: Cayman Chemical Company
+      selleck_chemicals:
+        description: Selleck Chemicals
+      medchemexpress:
+        description: MedChemExpress
+      enzo_life_sciences:
+        description: Enzo Life Sciences
+      # Tier 4: Zebrafish / aquatic systems
+      aquaneering_inc:
+        description: Aquaneering Inc.
+      pentair_aquatic_eco_systems:
+        description: Pentair Aquatic Eco-Systems
+      tecniplast:
+        description: Tecniplast
+      zebrafish_international_resource_center:
+        description: Zebrafish International Resource Center
+      # Tier 5: Bulk / industrial chemicals
+      tokyo_chemical_industry:
+        description: Tokyo Chemical Industry
+      alfa_aesar:
+        description: Alfa Aesar
+      acros_organics:
+        description: Acros Organics
+      honeywell:
+        description: Honeywell
+      # Tier 6: Specialty biotech
+      abcam:
+        description: Abcam
+      cell_signaling_technology:
+        description: Cell Signaling Technology
+      genscript:
+        description: GenScript
+      addgene:
+        description: Addgene
+      # Tier 7: Distributors
+      thomas_scientific:
+        description: Thomas Scientific
+      cole_parmer:
+        description: Cole-Parmer
+      # Escape hatch for a supplier not in the controlled list
+      other_not_listed:
+        description: Other manufacturer not in the controlled list
