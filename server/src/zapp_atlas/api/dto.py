@@ -46,6 +46,12 @@ class MemberIn(BaseModel):
         return value
 
 
+class MemberPatch(BaseModel):
+    """Change a member's role. ``member`` is identity, so it isn't patchable."""
+
+    role: ResearchGroupRoleEnum
+
+
 class MemberOut(_FromAttributes):
     id: int
     member: str

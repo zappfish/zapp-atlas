@@ -131,6 +131,218 @@ def test_only_admin_can_remove_members(client: TestClient) -> None:
     assert res.status_code == 403
 
 
+def test_admin_can_change_a_members_role(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}",
+        json={"role": "admin"},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["role"] == "admin"
+    # the promotion is durable, and the row keeps its identity
+    listed = client.get(f"/api/research-groups/{group_id}/members").json()
+    promoted = next(m for m in listed if m["id"] == member_id)
+    assert promoted["role"] == "admin"
+    assert promoted["member"] == f"ORCID:{MEMBER}"
+
+
+def test_promoted_member_can_then_manage_membership(client: TestClient) -> None:
+    """The role change is real, not just a stored string."""
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, MEMBER)
+    assert (
+        client.post(
+            f"/api/research-groups/{group_id}/members",
+            json={"member": OUTSIDER, "role": "member"},
+        ).status_code
+        == 403
+    )
+    signin(client, ADMIN)
+    client.patch(f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "admin"})
+    signin(client, MEMBER)
+    assert (
+        client.post(
+            f"/api/research-groups/{group_id}/members",
+            json={"member": OUTSIDER, "role": "member"},
+        ).status_code
+        == 201
+    )
+
+
+def test_patch_role_touches_updated_at(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    before = next(
+        m
+        for m in client.get(f"/api/research-groups/{group_id}/members").json()
+        if m["id"] == member_id
+    )
+    after = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}",
+        json={"role": "admin"},
+    ).json()
+    assert after["created_at"] == before["created_at"]
+    assert after["updated_at"] > before["updated_at"]
+
+
+def test_only_admin_can_change_roles(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, MEMBER)  # a plain member may not hand themselves admin
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "admin"}
+    )
+    assert res.status_code == 403
+
+
+def test_patch_role_requires_authentication(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signout(client)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "admin"}
+    )
+    assert res.status_code == 401
+
+
+def test_patch_unknown_member_is_404(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    res = client.patch(f"/api/research-groups/{group_id}/members/99999", json={"role": "admin"})
+    assert res.status_code == 404
+
+
+def test_patch_member_from_another_group_is_404(client: TestClient) -> None:
+    """A membership id is only addressable under the group that owns it."""
+    mine = make_group(client, "Mine")
+    theirs = make_group(client, "Theirs")
+    add_member(client, theirs, MEMBER, "member")
+    foreign_id = _member_id(client, theirs, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(f"/api/research-groups/{mine}/members/{foreign_id}", json={"role": "member"})
+    assert res.status_code == 404
+
+
+def test_patch_rejects_unknown_role(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}",
+        json={"role": "superuser"},
+    )
+    assert res.status_code == 422
+
+
+# --------------------------------------------------------------------------- #
+# A group must always keep an admin
+# --------------------------------------------------------------------------- #
+
+
+def test_last_admin_cannot_demote_themselves(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{admin_id}", json={"role": "member"}
+    )
+    assert res.status_code == 409
+    still_admin = next(
+        m
+        for m in client.get(f"/api/research-groups/{group_id}/members").json()
+        if m["id"] == admin_id
+    )
+    assert still_admin["role"] == "admin"
+
+
+def test_last_admin_cannot_be_removed(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    res = client.delete(f"/api/research-groups/{group_id}/members/{admin_id}")
+    assert res.status_code == 409
+    assert any(
+        m["id"] == admin_id for m in client.get(f"/api/research-groups/{group_id}/members").json()
+    )
+
+
+def test_admin_may_step_down_once_another_admin_exists(client: TestClient) -> None:
+    """The intended hand-over: promote a successor first, then demote yourself."""
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    successor_id = _member_id(client, group_id, MEMBER)
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    assert (
+        client.patch(
+            f"/api/research-groups/{group_id}/members/{successor_id}",
+            json={"role": "admin"},
+        ).status_code
+        == 200
+    )
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{admin_id}", json={"role": "member"}
+    )
+    assert res.status_code == 200
+    assert res.json()["role"] == "member"
+
+
+def test_admin_may_leave_once_another_admin_exists(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "admin")
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    assert client.delete(f"/api/research-groups/{group_id}/members/{admin_id}").status_code == 204
+
+
+def test_sole_admin_of_a_one_person_group_is_still_protected(
+    client: TestClient,
+) -> None:
+    """No members to promote is not a licence to orphan the group."""
+    group_id = make_group(client)
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    assert client.delete(f"/api/research-groups/{group_id}/members/{admin_id}").status_code == 409
+
+
+def test_last_admin_guard_is_per_group(client: TestClient) -> None:
+    """Another group's admins don't count toward this group's quorum."""
+    mine = make_group(client, "Mine")
+    make_group(client, "Theirs")  # ADMIN is also an admin over here
+    add_member(client, mine, MEMBER, "member")
+    admin_id = _member_id(client, mine, ADMIN)
+    signin(client, ADMIN)
+    res = client.patch(f"/api/research-groups/{mine}/members/{admin_id}", json={"role": "member"})
+    assert res.status_code == 409
+
+
+def test_demoting_a_plain_member_is_unaffected_by_the_guard(
+    client: TestClient,
+) -> None:
+    """A no-op role write on a non-admin must not trip the admin quorum check."""
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "member"}
+    )
+    assert res.status_code == 200
+    assert res.json()["role"] == "member"
+
+
 # --------------------------------------------------------------------------- #
 # Authorization matrix (exercised through the cabinet)
 # --------------------------------------------------------------------------- #
