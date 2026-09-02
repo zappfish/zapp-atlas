@@ -10,6 +10,9 @@ server/credentials.txt
 server/data/
 *.db
 
+# Runtime data (SQLite, uploads, fetched ZFIN reference files)
+server/src/zapp_atlas/db/data/
+
 # Local planning / scratch notes
 docs/
 

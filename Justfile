@@ -51,6 +51,13 @@ fix:
 seed:
     cd server && uv run python -m zapp_atlas.seed
 
+# Download the ZFIN reference files that back the /api/zfin lookup endpoints
+fetch-zfin:
+    mkdir -p server/src/zapp_atlas/db/data/zfin
+    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/features.txt https://zfin.org/downloads/features.txt
+    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/features-affected-genes.txt https://zfin.org/downloads/features-affected-genes.txt
+    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/wildtypes_fish.txt https://zfin.org/downloads/wildtypes_fish.txt
+
 # Build the Docker image (local/Fly.io)
 build:
     docker build -t zapp-atlas .

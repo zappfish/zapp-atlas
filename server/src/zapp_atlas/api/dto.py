@@ -20,7 +20,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from zapp_atlas.schema.pydantic_crud import FishCreate, FishRead, ResearchGroupRoleEnum
+from zapp_atlas.schema.pydantic_crud import (
+    FishCreate,
+    FishRead,
+    ResearchGroupRoleEnum,
+    SequenceAlterationTypeEnum,
+)
 
 # Accepts a bare ORCID or an ``ORCID:`` CURIE; the service normalizes to CURIE.
 _ORCID_RE = re.compile(r"^(ORCID:)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
@@ -86,3 +91,47 @@ class TankEntryOut(_FromAttributes):
     fish: FishRead
     created_at: datetime | None
     updated_at: datetime | None
+
+
+class ZfinAffectedGeneOut(_FromAttributes):
+    gene_symbol: str
+    gene_id: str
+
+
+class ZfinConstructOut(_FromAttributes):
+    construct_id: str
+    construct_name: str
+
+
+class ZfinAlleleOut(_FromAttributes):
+    """One allele from the ZFIN reference index, shaped so a hit can pre-fill
+    a MutantAllele/TransgenicAllele form card directly (same field names,
+    CURIE-form ids that satisfy the generated models' patterns).
+
+    ``constructs`` is a list because a co-injected transgenic line is one
+    insertion event carrying several constructs (e.g. gz13Tg); the model's
+    scalar construct slots take the first, the form can display them all.
+    """
+
+    allele_symbol: str
+    allele_id: str
+    is_transgenic: bool
+    alteration_type: SequenceAlterationTypeEnum | None
+    alteration_label: str
+    mutagen: str | None
+    constructs: list[ZfinConstructOut]
+    affected_genes: list[ZfinAffectedGeneOut]
+
+
+class ZfinAlleleSearchOut(BaseModel):
+    query: str
+    total_matches: int
+    indexed_alleles: int
+    results: list[ZfinAlleleOut]
+
+
+class ZfinWildtypeOut(_FromAttributes):
+    name: str
+    abbreviation: str
+    fish_id: str
+    genotype_id: str
