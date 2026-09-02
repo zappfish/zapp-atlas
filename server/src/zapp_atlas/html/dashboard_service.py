@@ -166,6 +166,10 @@ def _detail_shell(session: Session, identity, group_id: int) -> dict | None:
     }
 
 
+def _on_date(value) -> str:
+    return value.strftime("%b %-d, %Y") if value else "—"
+
+
 def fish_detail_view(
     session: Session, identity, group_id: int, entry_id: int
 ) -> dict | None:
@@ -182,10 +186,19 @@ def fish_detail_view(
         return None
 
     return shell | {
-        "fish": {
-            "name": entry.fish.name,
-            "zf_id": entry.fish.zfin_id,
-            "added_on": entry.created_at,
+        "record": {
+            "section": "fish-tank",
+            "section_label": "Fish Tank",
+            "title": entry.fish.name,
+            "badge": entry.fish.zfin_id,
+            "rows": [
+                {"label": "Name", "value": entry.fish.name},
+                {"label": "ZFIN ID", "value": entry.fish.zfin_id, "mono": True},
+                {"label": "Added on", "value": _on_date(entry.created_at)},
+            ],
+            "delete_url": (
+                f"/research-groups/{group_id}/fish-tank/{entry.id}/delete"
+            ),
         },
     }
 
@@ -206,8 +219,25 @@ def chemical_detail_view(
         return None
 
     return shell | {
-        "chemical": {
-            "chemical_id": entry.chemical_id,
-            "added_on": entry.created_at,
+        "record": {
+            "section": "chemical-cabinet",
+            "section_label": "Chemical Cabinet",
+            "title": entry.chemical_id,
+            "rows": [
+                {
+                    "label": "Chemical ID",
+                    "value": entry.chemical_id,
+                    "mono": True,
+                },
+                {"label": "Added on", "value": _on_date(entry.created_at)},
+            ],
+            "edit_modal": "edit-chemical-modal",
+            "edit_url": (
+                f"/research-groups/{group_id}/chemical-cabinet/{entry.id}/edit"
+            ),
+            "edit_value": entry.chemical_id,
+            "delete_url": (
+                f"/research-groups/{group_id}/chemical-cabinet/{entry.id}/delete"
+            ),
         },
     }

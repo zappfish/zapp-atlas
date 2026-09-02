@@ -1,0 +1,79 @@
+{#
+  A record's detail page (fish line, chemical): sidebar + main. Shares the
+  #dash-body target so sidebar navigation swaps it like the other dashboard
+  pages. The including page provides `group`, `groups`,
+  `my_submissions_count`, and `record`:
+    section     sidebar slug and group-page anchor ("fish-tank")
+    section_label  breadcrumb text for that section
+    title       page title and breadcrumb leaf
+    badge       optional identifier shown beside the title
+    rows        [{label, value, mono?}] for the details panel
+    edit_modal  optional modal id, with edit_url and edit_value
+    delete_url  optional; enables Remove
+#}
+<div class="dashboard" id="dash-body">
+  {% set active = group.id %}
+  {% set active_section = record.section %}
+  {% include "partials/dash_sidebar.html" %}
+
+  <div class="dash-main dash-main--detail">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/research-groups/{{ group.id }}">{{ group.name }}</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <a href="/research-groups/{{ group.id }}#{{ record.section }}">{{ record.section_label }}</a>
+      <span class="crumbs__sep" aria-hidden="true">/</span>
+      <span aria-current="page">{{ record.title }}</span>
+    </nav>
+
+    <header class="dash-header">
+      <h1 class="dash-header__title">
+        {{ record.title }}
+        {% if record.badge %}<span class="dash-row__sub">{{ record.badge }}</span>{% endif %}
+      </h1>
+      {% if record.edit_modal or record.delete_url %}
+        <details class="sub-menu">
+          <summary class="dash-icon-btn sub-menu__toggle" aria-label="Actions for {{ record.title }}">
+            {% include "icons/dots.svg" %}
+          </summary>
+          <div class="panel sub-menu__list" role="menu">
+            {% if record.edit_modal %}
+              <button class="sub-menu__item" type="button" role="menuitem"
+                      data-open-modal="{{ record.edit_modal }}"
+                      data-edit-url="{{ record.edit_url }}"
+                      data-edit-value="{{ record.edit_value }}">
+                {% include "icons/pencil.svg" %}
+                Edit
+              </button>
+            {% endif %}
+            {% if record.delete_url %}
+              <button class="sub-menu__item sub-menu__item--danger" type="button" role="menuitem"
+                      data-open-modal="confirm-delete-modal"
+                      data-delete-url="{{ record.delete_url }}"
+                      data-delete-name="{{ record.title }}">
+                {% include "icons/trash.svg" %}
+                Remove
+              </button>
+            {% endif %}
+          </div>
+        </details>
+      {% endif %}
+    </header>
+
+    <section class="detail-summary">
+      <dl class="detail-list">
+        <div class="detail-list__head">Details</div>
+        {% for row in record.rows %}
+          <div class="detail-item">
+            <dt class="detail-item__label">{{ row.label }}</dt>
+            <dd class="detail-item__value{% if row.mono %} detail-item__value--mono{% endif %}">
+              {{ row.value }}
+            </dd>
+          </div>
+        {% endfor %}
+      </dl>
+    </section>
+  </div>
+
+  {% include "modals/confirm_delete.html" %}
+  {% if record.edit_modal %}{% include "modals/edit_chemical.html" %}{% endif %}
+</div>

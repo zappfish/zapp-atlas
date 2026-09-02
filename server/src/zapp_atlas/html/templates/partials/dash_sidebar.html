@@ -5,6 +5,7 @@
     - groups:               list of the user's research groups
     - my_submissions_count: number on the "My Submissions" badge
     - active:               "my-submissions" or a research group id
+    - active_section:       optional sub-item slug on a record detail page
 #}
 <aside class="dash-sidebar"
        hx-target="#dash-body" hx-swap="outerHTML" hx-push-url="true">
@@ -38,9 +39,12 @@
           {# Absolute so a detail page returns to the group page's section,
              rather than appending the hash to the detail URL. #}
           <ul class="dash-subnav">
-            <li><a href="/research-groups/{{ group.id }}#fish-tank">Fish Tank</a></li>
-            <li><a href="/research-groups/{{ group.id }}#chemical-cabinet">Chemical Cabinet</a></li>
-            <li><a href="/research-groups/{{ group.id }}#submissions">Submissions</a></li>
+            <li><a class="{{ 'is-active' if active_section == 'fish-tank' }}"
+                   href="/research-groups/{{ group.id }}#fish-tank">Fish Tank</a></li>
+            <li><a class="{{ 'is-active' if active_section == 'chemical-cabinet' }}"
+                   href="/research-groups/{{ group.id }}#chemical-cabinet">Chemical Cabinet</a></li>
+            <li><a class="{{ 'is-active' if active_section == 'submissions' }}"
+                   href="/research-groups/{{ group.id }}#submissions">Submissions</a></li>
           </ul>
         {% endif %}
       </li>

@@ -170,7 +170,7 @@ def fish_detail_page(
     if view is None:
         raise HTTPException(status_code=404, detail="Fish line not found")
     template = _dash_template(
-        request, "fish_detail.html", "partials/fish_detail_body.html"
+        request, "fish_detail.html", "partials/record_detail_body.html"
     )
     return templates.TemplateResponse(request, template, view)
 
@@ -198,7 +198,7 @@ def chemical_detail_page(
     if view is None:
         raise HTTPException(status_code=404, detail="Chemical not found")
     template = _dash_template(
-        request, "chemical_detail.html", "partials/chemical_detail_body.html"
+        request, "chemical_detail.html", "partials/record_detail_body.html"
     )
     return templates.TemplateResponse(request, template, view)
 
