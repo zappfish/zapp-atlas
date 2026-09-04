@@ -523,7 +523,7 @@ class MutantAllele(ZappEntity):
 
     allele_id: Mapped[str | None] = mapped_column(Text())
     allele_symbol: Mapped[str] = mapped_column(Text())
-    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
+    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'deficiency', 'translocation', 'multiple_variants', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
     affected_gene_id: Mapped[str | None] = mapped_column(Text())
     affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
     zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
@@ -549,7 +549,7 @@ class TransgenicAllele(ZappEntity):
     allele_symbol: Mapped[str] = mapped_column(Text())
     construct_id: Mapped[str | None] = mapped_column(Text())
     construct_name: Mapped[str | None] = mapped_column(Text())
-    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
+    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'deficiency', 'translocation', 'multiple_variants', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
     affected_gene_id: Mapped[str | None] = mapped_column(Text())
     affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
     zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))

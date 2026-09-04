@@ -203,6 +203,12 @@ export enum SequenceAlterationTypeEnum {
     transgenic_insertion = "transgenic_insertion",
     /** A substitution involving a different number of nucleotides. */
     complex_substitution = "complex_substitution",
+    /** A large chromosomal deletion removing a whole segment (ZFIN's "Deficiency" Df(...) lines, 111 alleles). SO's canonical label for SO:1000029 is "chromosomal_deletion"; "deficiency" is the term zebrafish curators actually use, so it is the label shown here. */
+    deficiency = "deficiency",
+    /** A segment moved to a different chromosomal location. */
+    translocation = "translocation",
+    /** An allele carrying several distinct variants under one name (377 ZFIN alleles). Mirrors ZFIN's typing of these records with SO:0001023 — that SO term names the "allele" concept rather than an alteration class, but it is exactly what ZFIN stamps on such features, so mapping it keeps them filterable rather than label-only. */
+    multiple_variants = "multiple_variants",
     /** Alteration of unspecified or other type (SO root term). */
     sequence_alteration = "sequence_alteration",
 };

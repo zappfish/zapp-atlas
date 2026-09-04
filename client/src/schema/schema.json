@@ -937,6 +937,9 @@
         "duplication",
         "transgenic_insertion",
         "complex_substitution",
+        "deficiency",
+        "translocation",
+        "multiple_variants",
         "sequence_alteration"
       ],
       "title": "SequenceAlterationTypeEnum",

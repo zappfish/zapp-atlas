@@ -74,7 +74,22 @@ FEATURE_ROWS = [
         "SO:0001023",
         "fh900",
         "fh900",
-        "Allele",
+        "Allele with multiple variants",
+        "not specified",
+        "not specified",
+        "",
+        "",
+        "",
+        "",
+    ),
+    # No SO term at all (real pattern: ZFIN's "Allele with one mnv" rows) —
+    # must stay label-only rather than guessing a type.
+    (
+        "ZDB-ALT-200101-3",
+        "",
+        "fh902",
+        "fh902",
+        "Allele with one mnv",
         "not specified",
         "not specified",
         "",
@@ -153,7 +168,7 @@ FEATURE_ROWS = [
     ),
 ]
 
-DISTINCT_ALLELES = 8
+DISTINCT_ALLELES = 9
 
 # (id, SO type, symbol, gene symbol, gene id, gene SO, relationship)
 AFFECTED_ROWS = [
@@ -307,11 +322,16 @@ def test_construct_fragment_finds_the_transgene(zfin_client):
     assert "w200Tg" in [r["allele_symbol"] for r in body["results"]]
 
 
-def test_unmapped_so_type_keeps_the_label(zfin_client):
+def test_so_1000029_and_0001023_map_to_the_promoted_values(zfin_client):
     body = zfin_client.get("/api/zfin/alleles", params={"q": "fh900"}).json()
+    assert body["results"][0]["alteration_type"] == "multiple_variants"
+
+
+def test_missing_so_type_keeps_the_label(zfin_client):
+    body = zfin_client.get("/api/zfin/alleles", params={"q": "fh902"}).json()
     hit = body["results"][0]
     assert hit["alteration_type"] is None
-    assert hit["alteration_label"] == "Allele"
+    assert hit["alteration_label"] == "Allele with one mnv"
 
 
 def test_so_root_term_maps_to_sequence_alteration(zfin_client):
@@ -326,7 +346,7 @@ def test_non_allele_relationships_are_not_affected_genes(zfin_client):
 
 def test_prefix_search_ranks_and_limits(zfin_client):
     body = zfin_client.get("/api/zfin/alleles", params={"q": "fh", "limit": 2}).json()
-    assert body["total_matches"] == 3
+    assert body["total_matches"] == 4
     assert [r["allele_symbol"] for r in body["results"]] == ["fh111", "fh900"]
 
 
