@@ -28,7 +28,6 @@ dev = [
 # For notebooks/zfin_ingest_qc.ipynb (`just qc-report`) only — never runtime deps.
 notebook = [
     "ipykernel>=6.29",
-    "matplotlib>=3.9",
     "nbconvert>=7.16",
     "pandas>=2.2",
 ]
