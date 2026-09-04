@@ -163,11 +163,6 @@ SCENARIOS: dict[str, dict] = {
                 "genotype_zfin_id": "ZFIN:ZDB-GENO-960809-7",
             },
         },
-        "cross": {
-            "maternal_line": {"genotype_name": "snapc1b<fh111/+> (AB)"},
-            "paternal_line": {"genotype_name": "snapc1b<fh111/+> (AB)"},
-            "progeny_selection": "genotyped",
-        },
     },
 }
 
@@ -228,11 +223,3 @@ def test_parental_zygosity_round_trips(client: TestClient) -> None:
     assert mutant["zygosity"] == "homozygous"
     assert mutant["mother_zygosity"] == "heterozygous"
     assert mutant["father_zygosity"] == "heterozygous"
-
-
-def test_cross_round_trips(client: TestClient) -> None:
-    got = _post_experiment(client, SCENARIOS["everything, with parental zygosity"])["fish"]
-    cross = got["cross"]
-    assert cross["progeny_selection"] == "genotyped"
-    assert cross["maternal_line"]["genotype_name"] == "snapc1b<fh111/+> (AB)"
-    assert cross["paternal_line"]["genotype_name"] == "snapc1b<fh111/+> (AB)"

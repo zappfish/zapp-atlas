@@ -2,23 +2,20 @@
 
 Shared by the study/experiment services (the fish subject of an experiment) and
 the fish-tank service (a group's saved lines). A Fish is built fresh per use
-rather than upserted: it mirrors ZFIN's Fish object (intrinsic Genotype plus
-gene-targeting reagents; the reagents are out of scope for ZAPP), and two
-submissions naming the same line may still differ in zygosity, cross, or
-parental details, so nothing short of the whole graph is a safe natural key.
+rather than upserted: two submissions naming the same line may still differ in
+zygosity or parental details, so nothing short of the whole graph is a safe
+natural key.
 """
 
 from __future__ import annotations
 
 from zapp_atlas.schema.pydantic_crud import (
-    CrossCreate,
     FishCreate,
     GenotypeCreate,
     MutantAlleleCreate,
     TransgenicAlleleCreate,
 )
 from zapp_atlas.schema.sqla import (  # type: ignore
-    Cross,
     Fish,
     Genotype,
     MutantAllele,
@@ -78,17 +75,6 @@ def genotype_from_create(payload: GenotypeCreate | None) -> Genotype | None:
     return genotype
 
 
-def cross_from_create(payload: CrossCreate | None) -> Cross | None:
-    """Map a CrossCreate to the ORM. Parent lines are themselves Genotypes."""
-    if payload is None:
-        return None
-    return Cross(
-        maternal_line=genotype_from_create(payload.maternal_line),
-        paternal_line=genotype_from_create(payload.paternal_line),
-        progeny_selection=payload.progeny_selection,
-    )
-
-
 def fish_from_create(payload: FishCreate | None) -> Fish | None:
     if payload is None:
         return None
@@ -96,5 +82,4 @@ def fish_from_create(payload: FishCreate | None) -> Fish | None:
         name=payload.name,
         fish_zfin_id=payload.fish_zfin_id,
         genotype=genotype_from_create(payload.genotype),
-        cross=cross_from_create(payload.cross),
     )

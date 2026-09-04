@@ -353,57 +353,31 @@ class ResearchGroupRoleEnum(str, Enum):
     """
 
 
-class ProgenySelectionEnum(str, Enum):
-    """
-    How the genotype of the exposed animals was established from the cross. A het × het incross segregates 1:2:1, so an unsorted clutch is a mixture — without this, a reported phenotype prevalence cannot be distinguished from a Mendelian ratio.
-    """
-    genotyped = "genotyped"
-    """
-    Each animal was individually genotyped, so the genotype is certain.
-    """
-    phenotype_sorted = "phenotype_sorted"
-    """
-    Animals were sorted by visible phenotype rather than genotyped.
-    """
-    assumed_uniform = "assumed_uniform"
-    """
-    Parents were homozygous (or the line is stable), so all progeny are assumed to share the genotype.
-    """
-    segregating = "segregating"
-    """
-    A segregating clutch used without selection — the stated genotype applies to only a fraction of the animals.
-    """
-    unknown = "unknown"
-    """
-    Not stated in the source.
-    """
-
-
 class ZygosityEnum(str, Enum):
     """
-    Zygosity of an allele in a fish or in one of its parents. Applies both to the fish's own allele zygosity and to parental (maternal / paternal) zygosity, which matters for maternal-effect phenotypes.
+    Zygosity of an allele in the fish or in one of its parents.
     """
     homozygous = "homozygous"
     """
-    Homozygous — the allele is present on both homologous chromosomes.
+    The allele is on both homologous chromosomes.
     """
     heterozygous = "heterozygous"
     """
-    Heterozygous — the allele is present on one of the two homologous chromosomes.
+    The allele is on one of the two homologous chromosomes.
     """
     unknown = "unknown"
     """
-    Zygosity is unknown or unspecified.
+    Not known or not recorded.
     """
     wild_type = "wild_type"
     """
-    Wild type at this locus — carries zero copies of the allele (ZFIN's parental "W"). Chiefly meaningful for mother/father zygosity: a fish that is itself wild type for an allele would normally just not list it.
+    Zero copies of the allele (ZFIN's parental "W").
     """
 
 
 class SequenceAlterationTypeEnum(str, Enum):
     """
-    Common types of sequence alteration for an allele or transgenic feature. Each value is normalized to a Sequence Ontology (SO) term so curators pick a familiar label while the atlas stores the standard identifier.
+    Sequence-alteration classes, each normalized to an SO term. Corpus evidence for the value set: notebooks/zfin_ingest_qc.ipynb.
     """
     point_mutation = "point_mutation"
     """
@@ -423,7 +397,7 @@ class SequenceAlterationTypeEnum(str, Enum):
     """
     indel = "indel"
     """
-    A combined insertion and deletion affecting 2 or more bases. NOTE: SO's canonical label for SO:1000032 is "delins"; "indel" is a registered SO synonym and is the term curators actually use at the bench (e.g. CRISPR indels), so it is deliberately the label shown here. Do not "correct" it.
+    Combined insertion + deletion (SO calls it "delins"; "indel" is the bench term).
     """
     inversion = "inversion"
     """
@@ -443,7 +417,7 @@ class SequenceAlterationTypeEnum(str, Enum):
     """
     deficiency = "deficiency"
     """
-    A large chromosomal deletion removing a whole segment (ZFIN's "Deficiency" Df(...) lines, 111 alleles). SO's canonical label for SO:1000029 is "chromosomal_deletion"; "deficiency" is the term zebrafish curators actually use, so it is the label shown here.
+    Large chromosomal deletion (Df lines; SO calls it "chromosomal_deletion").
     """
     translocation = "translocation"
     """
@@ -451,7 +425,7 @@ class SequenceAlterationTypeEnum(str, Enum):
     """
     multiple_variants = "multiple_variants"
     """
-    An allele carrying several distinct variants under one name (377 ZFIN alleles). Mirrors ZFIN's typing of these records with SO:0001023 — that SO term names the "allele" concept rather than an alteration class, but it is exactly what ZFIN stamps on such features, so mapping it keeps them filterable rather than label-only.
+    Several distinct variants under one allele name (ZFIN types these SO:0001023).
     """
     sequence_alteration = "sequence_alteration"
     """
@@ -1324,16 +1298,15 @@ class ExposureTypeRead(ReadBaseModel):
 
 class Fish(ZappEntity):
     """
-    A zebrafish subject in a study. Mirrors ZFIN's Fish object (GENO:0000525, \"effective genotype\"): a Fish is the combination of an intrinsic Genotype (mutant alleles, transgenics and wild-type background) and any transient gene-targeting reagents (STRs — morpholinos/CRISPRs). The STR / gene-targeting reagent component is out of scope for ZAPP at this time and is intentionally not modeled yet. The Fish carries its own ZFIN fish identifier (ZDB-FISH-…), which is distinct from the ZDB-GENO-… identifier of its Genotype; either may be absent for lab-specific fish not yet registered with ZFIN.
+    A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['GENO:0000525'],
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the genotype identifier; may be absent for lab-specific fish not yet registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype: Optional[Genotype] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    cross: Optional[Cross] = Field(default=None, description="""The mating that produced the experimental animals, and how their genotype was established. Defaults conceptually to an incross of the fish's own line.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('fish_zfin_id')
@@ -1355,9 +1328,8 @@ class FishCreate(ConfiguredBaseModel):
     Create schema for Fish — id is server-generated.
     """
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the genotype identifier; may be absent for lab-specific fish not yet registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype: Optional[GenotypeCreate] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    cross: Optional[CrossCreate] = Field(default=None, description="""The mating that produced the experimental animals, and how their genotype was established. Defaults conceptually to an incross of the fish's own line.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
 
     @field_validator('fish_zfin_id')
     def pattern_fish_zfin_id(cls, v):
@@ -1378,9 +1350,8 @@ class FishUpdate(ConfiguredBaseModel):
     Update schema for Fish — all fields optional for partial updates.
     """
     name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the genotype identifier; may be absent for lab-specific fish not yet registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype: Optional[GenotypeCreate] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    cross: Optional[CrossCreate] = Field(default=None, description="""The mating that produced the experimental animals, and how their genotype was established. Defaults conceptually to an incross of the fish's own line.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
 
     @field_validator('fish_zfin_id')
     def pattern_fish_zfin_id(cls, v):
@@ -1401,9 +1372,8 @@ class FishRead(ReadBaseModel):
     Read schema for Fish — from_attributes=True, extra=ignore.
     """
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the genotype identifier; may be absent for lab-specific fish not yet registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype: Optional[GenotypeRead] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    cross: Optional[CrossRead] = Field(default=None, description="""The mating that produced the experimental animals, and how their genotype was established. Defaults conceptually to an incross of the fish's own line.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('fish_zfin_id')
@@ -1422,17 +1392,16 @@ class FishRead(ReadBaseModel):
 
 class Genotype(ZappEntity):
     """
-    The intrinsic genotype of a fish (GENO:0000000) — equivalently, a *line*: the heritable combination of a wild-type genetic background plus any mutant allele(s) and transgenic insertion(s). Carries its own ZFIN genotype identifier (ZDB-GENO-…), which may differ from the fish identifier and may be absent if not yet registered.
-    Note the recursion: ``background`` is itself a Genotype. A wild-type strain such as AB is simply a Genotype with no alterations (ZFIN models this the same way — a fish's \"Background ID\" is a ZDB-GENO). There is therefore one concept here, not two: a background *is* a line.
+    A heritable line: mutant/transgenic allele(s) on a wild-type background, with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a Genotype with no alterations — there is no separate Background class.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['GENO:0000000'],
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be absent for genotypes not yet registered with ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name of the genotype, e.g. \"fgf8a<ti282a/ti282a>; rerea<tb210/tb210>\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     mutant_allele: Optional[list[MutantAllele]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     transgenic_allele: Optional[list[TransgenicAllele]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[Genotype] = Field(default=None, description="""The genetic background this line was bred into — itself a Genotype, normally a wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN models a fish's background the same way, as a ZDB-GENO reference.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    background: Optional[Genotype] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('genotype_zfin_id')
@@ -1453,11 +1422,11 @@ class GenotypeCreate(ConfiguredBaseModel):
     """
     Create schema for Genotype — id is server-generated.
     """
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be absent for genotypes not yet registered with ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name of the genotype, e.g. \"fgf8a<ti282a/ti282a>; rerea<tb210/tb210>\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     transgenic_allele: Optional[list[TransgenicAlleleCreate]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[GenotypeCreate] = Field(default=None, description="""The genetic background this line was bred into — itself a Genotype, normally a wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN models a fish's background the same way, as a ZDB-GENO reference.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    background: Optional[GenotypeCreate] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
 
     @field_validator('genotype_zfin_id')
     def pattern_genotype_zfin_id(cls, v):
@@ -1477,11 +1446,11 @@ class GenotypeUpdate(ConfiguredBaseModel):
     """
     Update schema for Genotype — all fields optional for partial updates.
     """
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be absent for genotypes not yet registered with ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name of the genotype, e.g. \"fgf8a<ti282a/ti282a>; rerea<tb210/tb210>\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     transgenic_allele: Optional[list[TransgenicAlleleCreate]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[GenotypeCreate] = Field(default=None, description="""The genetic background this line was bred into — itself a Genotype, normally a wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN models a fish's background the same way, as a ZDB-GENO reference.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    background: Optional[GenotypeCreate] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
 
     @field_validator('genotype_zfin_id')
     def pattern_genotype_zfin_id(cls, v):
@@ -1501,11 +1470,11 @@ class GenotypeRead(ReadBaseModel):
     """
     Read schema for Genotype — from_attributes=True, extra=ignore.
     """
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be absent for genotypes not yet registered with ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name of the genotype, e.g. \"fgf8a<ti282a/ti282a>; rerea<tb210/tb210>\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     mutant_allele: Optional[list[MutantAlleleRead]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     transgenic_allele: Optional[list[TransgenicAlleleRead]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[GenotypeRead] = Field(default=None, description="""The genetic background this line was bred into — itself a Genotype, normally a wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN models a fish's background the same way, as a ZDB-GENO reference.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
+    background: Optional[GenotypeRead] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('genotype_zfin_id')
@@ -1522,58 +1491,17 @@ class GenotypeRead(ReadBaseModel):
         return v
 
 
-class Cross(ZappEntity):
-    """
-    How the experimental animals were produced: the mating that generated the clutch, plus how the resulting genotype was established. An incross is represented by the same line on both sides.
-    This matters because a genotype is not derivable from the parents alone — it follows from the cross *plus* selection. A het × het incross segregates 1:2:1, so an unsorted clutch has no single genotype, and an unqualified phenotype prevalence from such a clutch may be a Mendelian ratio rather than a toxicological effect. ``progeny_selection`` is what distinguishes those.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
-
-    maternal_line: Optional[Genotype] = Field(default=None, description="""The line (Genotype) of the female parent. Determines maternal contribution.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    paternal_line: Optional[Genotype] = Field(default=None, description="""The line (Genotype) of the male parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    progeny_selection: Optional[ProgenySelectionEnum] = Field(default=None, description="""How the genotype of the exposed animals was established from the cross — essential for interpreting phenotype prevalence.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
-
-
-class CrossCreate(ConfiguredBaseModel):
-    """
-    Create schema for Cross — id is server-generated.
-    """
-    maternal_line: Optional[GenotypeCreate] = Field(default=None, description="""The line (Genotype) of the female parent. Determines maternal contribution.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    paternal_line: Optional[GenotypeCreate] = Field(default=None, description="""The line (Genotype) of the male parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    progeny_selection: Optional[ProgenySelectionEnum] = Field(default=None, description="""How the genotype of the exposed animals was established from the cross — essential for interpreting phenotype prevalence.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-
-
-class CrossUpdate(ConfiguredBaseModel):
-    """
-    Update schema for Cross — all fields optional for partial updates.
-    """
-    maternal_line: Optional[GenotypeCreate] = Field(default=None, description="""The line (Genotype) of the female parent. Determines maternal contribution.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    paternal_line: Optional[GenotypeCreate] = Field(default=None, description="""The line (Genotype) of the male parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    progeny_selection: Optional[ProgenySelectionEnum] = Field(default=None, description="""How the genotype of the exposed animals was established from the cross — essential for interpreting phenotype prevalence.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-
-
-class CrossRead(ReadBaseModel):
-    """
-    Read schema for Cross — from_attributes=True, extra=ignore.
-    """
-    maternal_line: Optional[GenotypeRead] = Field(default=None, description="""The line (Genotype) of the female parent. Determines maternal contribution.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    paternal_line: Optional[GenotypeRead] = Field(default=None, description="""The line (Genotype) of the male parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    progeny_selection: Optional[ProgenySelectionEnum] = Field(default=None, description="""How the genotype of the exposed animals was established from the cross — essential for interpreting phenotype prevalence.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Cross']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
-
-
 class MutantAllele(ZappEntity):
     """
-    A mutant allele (genomic feature) carried by the fish, together with its zygosity and the gene it affects. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); ZAPP additionally records the affected gene (affected genomic region).
+    A mutant allele carried by the fish: which gene it damages, and its zygosity in the fish and parents.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'allele_symbol': {'name': 'allele_symbol', 'required': True}}})
 
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The type of sequence alteration the allele represents, chosen from a controlled dropdown of common mutation / alteration types and normalized to a Sequence Ontology (SO) term. ZFIN records this as the feature's SO type.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene affected by the allele (affected genomic region), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1600,8 +1528,8 @@ class MutantAlleleCreate(ConfiguredBaseModel):
     """
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The type of sequence alteration the allele represents, chosen from a controlled dropdown of common mutation / alteration types and normalized to a Sequence Ontology (SO) term. ZFIN records this as the feature's SO type.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene affected by the allele (affected genomic region), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1627,8 +1555,8 @@ class MutantAlleleUpdate(ConfiguredBaseModel):
     """
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: Optional[str] = Field(default=None, description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The type of sequence alteration the allele represents, chosen from a controlled dropdown of common mutation / alteration types and normalized to a Sequence Ontology (SO) term. ZFIN records this as the feature's SO type.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene affected by the allele (affected genomic region), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1654,8 +1582,8 @@ class MutantAlleleRead(ReadBaseModel):
     """
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The type of sequence alteration the allele represents, chosen from a controlled dropdown of common mutation / alteration types and normalized to a Sequence Ontology (SO) term. ZFIN records this as the feature's SO type.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene affected by the allele (affected genomic region), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1678,38 +1606,30 @@ class MutantAlleleRead(ReadBaseModel):
 
 class TransgenicAllele(ZappEntity):
     """
-    A transgenic insertion (genomic feature) carried by the fish, together with its zygosity and the transgenic construct it derives from. The allele identifier is a ZFIN genomic feature id (ZDB-ALT-…); the construct is a ZFIN transgenic construct (ZDB-TGCONSTRCT-…) used mainly for name display. The gene slots record the construct's driver / reporter gene so the atlas can be searched by gene across mutant and transgenic alleles alike.
+    A transgenic insertion carried by the fish: the construct it carries, and its zygosity in the fish and parents.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'affected_gene_id': {'description': 'Identifier of the gene '
-                                                            'whose regulatory region '
-                                                            'drives the transgene '
-                                                            '(e.g. fli1 in '
-                                                            'Tg(fli1:EGFP)), typically '
-                                                            'a ZFIN gene id '
-                                                            '(ZDB-GENE-…).',
+         'slot_usage': {'affected_gene_id': {'description': 'Gene id of the '
+                                                            "construct's driver / "
+                                                            'reporter gene, when '
+                                                            'recorded.',
                                              'name': 'affected_gene_id'},
-                        'affected_gene_symbol': {'description': 'Symbol of the '
-                                                                "transgene's driver / "
-                                                                'reporter gene, e.g. '
+                        'affected_gene_symbol': {'description': 'Driver / reporter '
+                                                                'gene symbol, e.g. '
                                                                 '"fli1".',
                                                  'name': 'affected_gene_symbol'},
                         'allele_symbol': {'name': 'allele_symbol', 'required': True},
-                        'alteration_type': {'description': 'Type of alteration for a '
-                                                           'transgenic feature — '
-                                                           'usually a transgenic '
-                                                           'insertion (SO:0001218). '
-                                                           'Normalized to a Sequence '
-                                                           'Ontology term.',
+                        'alteration_type': {'description': 'Usually '
+                                                           'transgenic_insertion.',
                                             'name': 'alteration_type'}}})
 
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    construct_id: Optional[str] = Field(default=None, description="""ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
+    construct_id: Optional[str] = Field(default=None, description="""ZFIN construct id (ZDB-TGCONSTRCT-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
     construct_name: Optional[str] = Field(default=None, description="""Name of the transgenic construct, e.g. \"Tg(mpeg1:YFP)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Type of alteration for a transgenic feature — usually a transgenic insertion (SO:0001218). Normalized to a Sequence Ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene whose regulatory region drives the transgene (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the transgene's driver / reporter gene, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Usually transgenic_insertion.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""Gene id of the construct's driver / reporter gene, when recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""Driver / reporter gene symbol, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the paternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1748,11 +1668,11 @@ class TransgenicAlleleCreate(ConfiguredBaseModel):
     """
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    construct_id: Optional[str] = Field(default=None, description="""ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
+    construct_id: Optional[str] = Field(default=None, description="""ZFIN construct id (ZDB-TGCONSTRCT-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
     construct_name: Optional[str] = Field(default=None, description="""Name of the transgenic construct, e.g. \"Tg(mpeg1:YFP)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Type of alteration for a transgenic feature — usually a transgenic insertion (SO:0001218). Normalized to a Sequence Ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene whose regulatory region drives the transgene (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the transgene's driver / reporter gene, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Usually transgenic_insertion.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""Gene id of the construct's driver / reporter gene, when recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""Driver / reporter gene symbol, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the paternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1790,11 +1710,11 @@ class TransgenicAlleleUpdate(ConfiguredBaseModel):
     """
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: Optional[str] = Field(default=None, description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    construct_id: Optional[str] = Field(default=None, description="""ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
+    construct_id: Optional[str] = Field(default=None, description="""ZFIN construct id (ZDB-TGCONSTRCT-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
     construct_name: Optional[str] = Field(default=None, description="""Name of the transgenic construct, e.g. \"Tg(mpeg1:YFP)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Type of alteration for a transgenic feature — usually a transgenic insertion (SO:0001218). Normalized to a Sequence Ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene whose regulatory region drives the transgene (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the transgene's driver / reporter gene, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Usually transgenic_insertion.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""Gene id of the construct's driver / reporter gene, when recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""Driver / reporter gene symbol, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the paternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1832,11 +1752,11 @@ class TransgenicAlleleRead(ReadBaseModel):
     """
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    construct_id: Optional[str] = Field(default=None, description="""ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
+    construct_id: Optional[str] = Field(default=None, description="""ZFIN construct id (ZDB-TGCONSTRCT-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
     construct_name: Optional[str] = Field(default=None, description="""Name of the transgenic construct, e.g. \"Tg(mpeg1:YFP)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
-    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Type of alteration for a transgenic feature — usually a transgenic insertion (SO:0001218). Normalized to a Sequence Ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""Identifier of the gene whose regulatory region drives the transgene (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the transgene's driver / reporter gene, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Usually transgenic_insertion.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""Gene id of the construct's driver / reporter gene, when recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""Driver / reporter gene symbol, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the paternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -2170,10 +2090,6 @@ Genotype.model_rebuild()
 GenotypeCreate.model_rebuild()
 GenotypeUpdate.model_rebuild()
 GenotypeRead.model_rebuild()
-Cross.model_rebuild()
-CrossCreate.model_rebuild()
-CrossUpdate.model_rebuild()
-CrossRead.model_rebuild()
 MutantAllele.model_rebuild()
 MutantAlleleCreate.model_rebuild()
 MutantAlleleUpdate.model_rebuild()

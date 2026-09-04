@@ -2,7 +2,7 @@
 
 A tank entry owns its whole Fish/Genotype graph: fish are inlined per use, not
 shared rows, because integer-keyed Fish has no natural key the database could
-dedupe on (two labs' "AB" may differ in cross or zygosity detail). The
+dedupe on (two labs' "AB" may differ in zygosity detail). The
 ``tank_grain`` unique index therefore no longer catches a duplicate line by
 itself; ``add_entry`` checks the meaningful key instead — the ZFIN fish id when
 the line has one, the name within the group when it does not — and answers 409.

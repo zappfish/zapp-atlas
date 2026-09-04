@@ -250,23 +250,16 @@ classes:
       term_label:
         required: true
 
-  # Fish / genotype (mirrors ZFIN's Fish = intrinsic Genotype + extrinsic STRs)
+  # Fish / genotype
   Fish:
     is_a: ZappEntity
     description: >-
-      A zebrafish subject in a study. Mirrors ZFIN's Fish object (GENO:0000525,
-      "effective genotype"): a Fish is the combination of an intrinsic Genotype
-      (mutant alleles, transgenics and wild-type background) and any transient
-      gene-targeting reagents (STRs — morpholinos/CRISPRs). The STR / gene-targeting
-      reagent component is out of scope for ZAPP at this time and is intentionally
-      not modeled yet. The Fish carries its own ZFIN fish identifier (ZDB-FISH-…),
-      which is distinct from the ZDB-GENO-… identifier of its Genotype; either may
-      be absent for lab-specific fish not yet registered with ZFIN.
+      A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id
+      (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.
     slots:
       - name
       - fish_zfin_id
       - genotype
-      - cross
     slot_usage:
       name:
         required: true
@@ -276,16 +269,9 @@ classes:
   Genotype:
     is_a: ZappEntity
     description: >-
-      The intrinsic genotype of a fish (GENO:0000000) — equivalently, a *line*: the
-      heritable combination of a wild-type genetic background plus any mutant
-      allele(s) and transgenic insertion(s). Carries its own ZFIN genotype
-      identifier (ZDB-GENO-…), which may differ from the fish identifier and may be
-      absent if not yet registered.
-
-      Note the recursion: ``background`` is itself a Genotype. A wild-type strain
-      such as AB is simply a Genotype with no alterations (ZFIN models this the same
-      way — a fish's "Background ID" is a ZDB-GENO). There is therefore one concept
-      here, not two: a background *is* a line.
+      A heritable line: mutant/transgenic allele(s) on a wild-type background,
+      with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a
+      Genotype with no alterations — there is no separate Background class.
     slots:
       - genotype_zfin_id
       - genotype_name
@@ -295,30 +281,11 @@ classes:
     exact_mappings:
       - GENO:0000000
 
-  Cross:
-    is_a: ZappEntity
-    description: >-
-      How the experimental animals were produced: the mating that generated the
-      clutch, plus how the resulting genotype was established. An incross is
-      represented by the same line on both sides.
-
-      This matters because a genotype is not derivable from the parents alone — it
-      follows from the cross *plus* selection. A het × het incross segregates 1:2:1,
-      so an unsorted clutch has no single genotype, and an unqualified phenotype
-      prevalence from such a clutch may be a Mendelian ratio rather than a
-      toxicological effect. ``progeny_selection`` is what distinguishes those.
-    slots:
-      - maternal_line
-      - paternal_line
-      - progeny_selection
-
   MutantAllele:
     is_a: ZappEntity
     description: >-
-      A mutant allele (genomic feature) carried by the fish, together with its
-      zygosity and the gene it affects. The allele identifier is a ZFIN genomic
-      feature id (ZDB-ALT-…); ZAPP additionally records the affected gene
-      (affected genomic region).
+      A mutant allele carried by the fish: which gene it damages, and its
+      zygosity in the fish and parents.
     slots:
       - allele_id
       - allele_symbol
@@ -335,12 +302,8 @@ classes:
   TransgenicAllele:
     is_a: ZappEntity
     description: >-
-      A transgenic insertion (genomic feature) carried by the fish, together with
-      its zygosity and the transgenic construct it derives from. The allele
-      identifier is a ZFIN genomic feature id (ZDB-ALT-…); the construct is a ZFIN
-      transgenic construct (ZDB-TGCONSTRCT-…) used mainly for name display. The
-      gene slots record the construct's driver / reporter gene so the atlas can be
-      searched by gene across mutant and transgenic alleles alike.
+      A transgenic insertion carried by the fish: the construct it carries, and
+      its zygosity in the fish and parents.
     slots:
       - allele_id
       - allele_symbol
@@ -356,18 +319,11 @@ classes:
       allele_symbol:
         required: true
       alteration_type:
-        description: >-
-          Type of alteration for a transgenic feature — usually a transgenic
-          insertion (SO:0001218). Normalized to a Sequence Ontology term.
+        description: Usually transgenic_insertion.
       affected_gene_id:
-        description: >-
-          Identifier of the gene whose regulatory region drives the transgene
-          (e.g. fli1 in Tg(fli1:EGFP)), typically a ZFIN gene id (ZDB-GENE-…).
+        description: Gene id of the construct's driver / reporter gene, when recorded.
       affected_gene_symbol:
-        description: Symbol of the transgene's driver / reporter gene, e.g. "fli1".
-
-  # NOTE: there is deliberately no `Background` class. A wild-type background (AB,
-  # TL, WIK…) is just a Genotype with no alterations — see Genotype.background.
+        description: Driver / reporter gene symbol, e.g. "fli1".
 
   # Operational entities (research groups and what they keep on hand)
   ResearchGroup:
@@ -469,9 +425,7 @@ slots:
 
   # Fish / genotype slots
   fish_zfin_id:
-    description: >-
-      ZFIN fish identifier (ZDB-FISH-…) for the subject. Distinct from the
-      genotype identifier; may be absent for lab-specific fish not yet registered.
+    description: ZFIN fish id (ZDB-FISH-…), when registered.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-FISH-[0-9]{6}-[0-9]+$"
   genotype:
@@ -481,14 +435,11 @@ slots:
     inlined_as_list: true
     multivalued: false
   genotype_zfin_id:
-    description: >-
-      ZFIN genotype identifier (ZDB-GENO-…) for the intrinsic genotype. May be
-      absent for genotypes not yet registered with ZFIN.
+    description: ZFIN genotype id (ZDB-GENO-…), when registered.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$"
   genotype_name:
-    description: >-
-      Display name of the genotype, e.g. "fgf8a<ti282a/ti282a>; rerea<tb210/tb210>".
+    description: Display name, e.g. "fgf8a<ti282a/ti282a> (AB)".
     range: string
   mutant_allele:
     description: Mutant allele(s) carried by the genotype.
@@ -503,39 +454,11 @@ slots:
     inlined: true
     inlined_as_list: true
   background:
-    description: >-
-      The genetic background this line was bred into — itself a Genotype, normally a
-      wild-type strain such as AB (i.e. a Genotype carrying no alterations). ZFIN
-      models a fish's background the same way, as a ZDB-GENO reference.
+    description: The wild-type background — itself a Genotype with no alterations.
     range: Genotype
     inlined: true
     inlined_as_list: true
     multivalued: false
-  cross:
-    description: >-
-      The mating that produced the experimental animals, and how their genotype was
-      established. Defaults conceptually to an incross of the fish's own line.
-    range: Cross
-    inlined: true
-    inlined_as_list: true
-    multivalued: false
-  maternal_line:
-    description: The line (Genotype) of the female parent. Determines maternal contribution.
-    range: Genotype
-    inlined: true
-    inlined_as_list: true
-    multivalued: false
-  paternal_line:
-    description: The line (Genotype) of the male parent.
-    range: Genotype
-    inlined: true
-    inlined_as_list: true
-    multivalued: false
-  progeny_selection:
-    description: >-
-      How the genotype of the exposed animals was established from the cross —
-      essential for interpreting phenotype prevalence.
-    range: ProgenySelectionEnum
   allele_id:
     description: ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.
     range: uriorcurie
@@ -544,27 +467,20 @@ slots:
     description: The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg".
     range: string
   affected_gene_id:
-    description: >-
-      Identifier of the gene affected by the allele (affected genomic region),
-      typically a ZFIN gene id (ZDB-GENE-…).
+    description: ZFIN gene id (ZDB-GENE-…) of the affected gene.
     range: uriorcurie
   affected_gene_symbol:
     description: Symbol of the gene affected by the allele, e.g. "snapc1b".
     range: string
   construct_id:
-    description: >-
-      ZFIN transgenic construct identifier (ZDB-TGCONSTRCT-…) for a transgenic
-      allele.
+    description: ZFIN construct id (ZDB-TGCONSTRCT-…).
     range: uriorcurie
     pattern: "^ZFIN:ZDB-TGCONSTRCT-[0-9]{6}-[0-9]+$"
   construct_name:
     description: Name of the transgenic construct, e.g. "Tg(mpeg1:YFP)".
     range: string
   alteration_type:
-    description: >-
-      The type of sequence alteration the allele represents, chosen from a
-      controlled dropdown of common mutation / alteration types and normalized to a
-      Sequence Ontology (SO) term. ZFIN records this as the feature's SO type.
+    description: The class of sequence alteration, normalized to an SO term.
     range: SequenceAlterationTypeEnum
   zygosity:
     description: Zygosity of the allele in the fish.
@@ -798,54 +714,25 @@ enums:
       member:
         description: Can edit the group's data.
 
-  ProgenySelectionEnum:
-    description: >-
-      How the genotype of the exposed animals was established from the cross. A het
-      × het incross segregates 1:2:1, so an unsorted clutch is a mixture — without
-      this, a reported phenotype prevalence cannot be distinguished from a Mendelian
-      ratio.
-    permissible_values:
-      genotyped:
-        description: Each animal was individually genotyped, so the genotype is certain.
-      phenotype_sorted:
-        description: Animals were sorted by visible phenotype rather than genotyped.
-      assumed_uniform:
-        description: >-
-          Parents were homozygous (or the line is stable), so all progeny are assumed
-          to share the genotype.
-      segregating:
-        description: >-
-          A segregating clutch used without selection — the stated genotype applies to
-          only a fraction of the animals.
-      unknown:
-        description: Not stated in the source.
-
   ZygosityEnum:
-    description: >-
-      Zygosity of an allele in a fish or in one of its parents. Applies both to
-      the fish's own allele zygosity and to parental (maternal / paternal)
-      zygosity, which matters for maternal-effect phenotypes.
+    description: Zygosity of an allele in the fish or in one of its parents.
     permissible_values:
       homozygous:
-        description: Homozygous — the allele is present on both homologous chromosomes.
+        description: The allele is on both homologous chromosomes.
         meaning: GENO:0000136
       heterozygous:
-        description: Heterozygous — the allele is present on one of the two homologous chromosomes.
+        description: The allele is on one of the two homologous chromosomes.
         meaning: GENO:0000135
       unknown:
-        description: Zygosity is unknown or unspecified.
+        description: Not known or not recorded.
         meaning: GENO:0000137
       wild_type:
-        description: >-
-          Wild type at this locus — carries zero copies of the allele (ZFIN's
-          parental "W"). Chiefly meaningful for mother/father zygosity: a fish
-          that is itself wild type for an allele would normally just not list it.
+        description: Zero copies of the allele (ZFIN's parental "W").
 
   SequenceAlterationTypeEnum:
     description: >-
-      Common types of sequence alteration for an allele or transgenic feature.
-      Each value is normalized to a Sequence Ontology (SO) term so curators pick a
-      familiar label while the atlas stores the standard identifier.
+      Sequence-alteration classes, each normalized to an SO term. Corpus evidence
+      for the value set: notebooks/zfin_ingest_qc.ipynb.
     permissible_values:
       point_mutation:
         description: A single-nucleotide substitution.
@@ -860,11 +747,7 @@ enums:
         description: Gain of one or more nucleotides.
         meaning: SO:0000667
       indel:
-        description: >-
-          A combined insertion and deletion affecting 2 or more bases. NOTE: SO's
-          canonical label for SO:1000032 is "delins"; "indel" is a registered SO
-          synonym and is the term curators actually use at the bench (e.g. CRISPR
-          indels), so it is deliberately the label shown here. Do not "correct" it.
+        description: Combined insertion + deletion (SO calls it "delins"; "indel" is the bench term).
         meaning: SO:1000032
       inversion:
         description: A segment reversed in orientation.
@@ -879,22 +762,13 @@ enums:
         description: A substitution involving a different number of nucleotides.
         meaning: SO:1000005
       deficiency:
-        description: >-
-          A large chromosomal deletion removing a whole segment (ZFIN's
-          "Deficiency" Df(...) lines, 111 alleles). SO's canonical label for
-          SO:1000029 is "chromosomal_deletion"; "deficiency" is the term
-          zebrafish curators actually use, so it is the label shown here.
+        description: Large chromosomal deletion (Df lines; SO calls it "chromosomal_deletion").
         meaning: SO:1000029
       translocation:
         description: A segment moved to a different chromosomal location.
         meaning: SO:0000199
       multiple_variants:
-        description: >-
-          An allele carrying several distinct variants under one name (377 ZFIN
-          alleles). Mirrors ZFIN's typing of these records with SO:0001023 —
-          that SO term names the "allele" concept rather than an alteration
-          class, but it is exactly what ZFIN stamps on such features, so
-          mapping it keeps them filterable rather than label-only.
+        description: Several distinct variants under one allele name (ZFIN types these SO:0001023).
         meaning: SO:0001023
       sequence_alteration:
         description: Alteration of unspecified or other type (SO root term).

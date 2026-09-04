@@ -32,7 +32,6 @@ def test_init_db_creates_expected_tables():
         "Genotype",
         "MutantAllele",
         "TransgenicAllele",
-        "Cross",
         "PhenotypeTerm",
         "QuantityValue",
         "Image",
