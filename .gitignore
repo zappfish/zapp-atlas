@@ -13,6 +13,9 @@ server/data/
 # Runtime data (SQLite, uploads, fetched ZFIN reference files)
 server/src/zapp_atlas/db/data/
 
+# Rendered QC report (regenerate with `just qc-report`)
+notebooks/*.html
+
 # Local planning / scratch notes
 docs/
 
