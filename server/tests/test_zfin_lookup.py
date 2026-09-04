@@ -245,7 +245,7 @@ def test_exact_symbol_fills_the_whole_card(zfin_client):
         "alteration_type": "point_mutation",
         "alteration_label": "Allele with one point mutation",
         "mutagen": "ENU",
-        "lab": "Fred Hutchinson Cancer Research Center",
+        "institution": "Fred Hutchinson Cancer Research Center",
         "constructs": [],
         "affected_genes": [{"gene_symbol": "snapc1b", "gene_id": "ZFIN:ZDB-GENE-040426-716"}],
     }
@@ -279,17 +279,21 @@ def test_coinjected_line_aggregates_to_one_record_with_both_constructs(zfin_clie
     assert "gz13Tg" in [r["allele_symbol"] for r in body["results"]]
 
 
-def test_lab_of_origin_from_registered_prefix(zfin_client):
-    def lab_of(symbol):
+def test_institution_from_registered_prefix(zfin_client):
+    """The prefix gives the REGISTERING INSTITUTION — deliberately not called
+    "lab": ZFIN's per-feature Lab of Origin is curated separately and can
+    differ (la012336Tg: prefix registrant UCLA, lab "Burgess & Lin Lab")."""
+
+    def institution_of(symbol):
         body = zfin_client.get("/api/zfin/alleles", params={"q": symbol}).json()
-        return body["results"][0]["lab"]
+        return body["results"][0]["institution"]
 
     # Vendored registry (line_designations.tsv): longest prefix + digit boundary.
-    assert lab_of("w200Tg") == "University of Washington"
-    assert lab_of("a101") == "Harvard University"
-    assert lab_of("gz13Tg") == "The National University of Singapore"
+    assert institution_of("w200Tg") == "University of Washington"
+    assert institution_of("a101") == "Harvard University"
+    assert institution_of("gz13Tg") == "The National University of Singapore"
     # 1996 Tübingen two-letter screen codes predate the registry: named fallback.
-    assert lab_of("ti282a") == "Tübingen (big-screen designation)"
+    assert institution_of("ti282a") == "Tübingen (big-screen designation)"
 
 
 def test_identical_repeat_rows_collapse(zfin_client):

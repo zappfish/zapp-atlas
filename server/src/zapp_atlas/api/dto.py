@@ -119,7 +119,11 @@ class ZfinAlleleOut(_FromAttributes):
     alteration_type: SequenceAlterationTypeEnum | None
     alteration_label: str
     mutagen: str | None
-    lab: str | None
+    # Institution registered for the symbol's naming prefix. Deliberately not
+    # called "lab": ZFIN's per-feature Lab of Origin is curated separately
+    # (and can differ, e.g. cross-institution collaborations) — it is only on
+    # the ZFIN record page, which the UI links to.
+    institution: str | None
     constructs: list[ZfinConstructOut]
     affected_genes: list[ZfinAffectedGeneOut]
 

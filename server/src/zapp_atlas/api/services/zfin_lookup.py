@@ -40,9 +40,12 @@ _REQUIRED_FILES = ("features.txt", "features-affected-genes.txt", "wildtypes_fis
 _SO_TRANSGENIC_INSERTION = "SO:0001218"
 _AFFECTED_GENE_RELATIONSHIP = "is allele of"
 
-# Registered line designations (allele-symbol prefix -> lab of origin), vendored
-# from https://zfin.org/action/feature/line-designations. Display provenance
-# only — resolution never parses symbols for meaning.
+# Registered line designations (allele-symbol prefix -> registering
+# institution), vendored from https://zfin.org/action/feature/line-designations.
+# NOT the same thing as ZFIN's per-feature "Lab of Origin", which is curated
+# per allele (e.g. la012336Tg: prefix registrant UCLA, lab of origin
+# "Burgess & Lin Lab") and exists only on the record page — no bulk download
+# carries it. Display provenance only — resolution never parses symbols.
 _LINE_DESIGNATIONS_PATH = Path(__file__).resolve().parent / "line_designations.tsv"
 
 
@@ -85,10 +88,11 @@ def _designations() -> tuple[dict[str, str], int]:
     return table, max(map(len, table), default=0)
 
 
-def _lab_for_symbol(symbol: str) -> str | None:
-    """Longest registered prefix that is followed by a digit; a leading ``d``
-    (dominant) is skipped. The 1996 Tübingen screen's two-letter codes (ti,
-    tb, tm, …) predate the current registry, so they get a named fallback."""
+def _institution_for_symbol(symbol: str) -> str | None:
+    """The institution registered for the symbol's longest matching prefix
+    (prefix must be followed by a digit; a leading ``d`` for dominant is
+    skipped). The 1996 Tübingen screen's two-letter codes (ti, tb, tm, …)
+    predate the current registry, so they get a named fallback."""
     table, longest = _designations()
     s = symbol.lower()
     for candidate in (s, s[1:] if s.startswith("d") else ""):
@@ -126,7 +130,9 @@ class AlleleRecord:
     alteration_type: SequenceAlterationTypeEnum | None
     alteration_label: str  # ZFIN's human-readable type, always present
     mutagen: str | None
-    lab: str | None  # lab of origin, from the registered symbol prefix
+    # Registered holder of the symbol prefix — NOT ZFIN's curated per-feature
+    # "Lab of Origin" (that lives only on the record page).
+    institution: str | None
     constructs: tuple[Construct, ...]  # usually 0 or 1; >1 for co-injected lines
     affected_genes: tuple[AffectedGene, ...]
 
@@ -237,7 +243,7 @@ def _parse_features(path: Path, affected: dict[str, list[AffectedGene]]) -> list
             alteration_type=so_map.get(entry["so_id"]),
             alteration_label=entry["alteration_label"],
             mutagen=entry["mutagen"],
-            lab=_lab_for_symbol(entry["allele_symbol"]),
+            institution=_institution_for_symbol(entry["allele_symbol"]),
             constructs=tuple(entry["constructs"]),
             affected_genes=tuple(affected.get(zdb_id, ())),
         )
