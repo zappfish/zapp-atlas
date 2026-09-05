@@ -343,8 +343,23 @@
     },
     "Fish": {
       "additionalProperties": false,
-      "description": "A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.",
+      "description": "A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.",
       "properties": {
+        "background_name": {
+          "description": "Wild-type background strain, e.g. \"AB\". Absent when unknown.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "background_zfin_id": {
+          "description": "ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN.",
+          "pattern": "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "fish_zfin_id": {
           "description": "ZFIN fish id (ZDB-FISH-…), when registered.",
           "pattern": "^ZFIN:ZDB-FISH-[0-9]{6}-[0-9]+$",
@@ -353,24 +368,41 @@
             "null"
           ]
         },
-        "genotype": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Genotype"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "The intrinsic genotype of the fish."
+        "genotype_zfin_id": {
+          "description": "ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.",
+          "pattern": "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "id": {
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "mutant_allele": {
+          "description": "Mutant allele(s) carried by the fish.",
+          "items": {
+            "$ref": "#/$defs/MutantAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
         "name": {
           "description": "Name or label of an entity.",
           "type": "string"
+        },
+        "transgenic_allele": {
+          "description": "Transgenic insertion(s) carried by the fish.",
+          "items": {
+            "$ref": "#/$defs/TransgenicAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
         }
       },
       "required": [
@@ -403,67 +435,6 @@
         "id"
       ],
       "title": "FishTankEntry",
-      "type": "object"
-    },
-    "Genotype": {
-      "additionalProperties": false,
-      "description": "A heritable line: mutant/transgenic allele(s) on a wild-type background, with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a Genotype with no alterations — there is no separate Background class.",
-      "properties": {
-        "background": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Genotype"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "The wild-type background — itself a Genotype with no alterations."
-        },
-        "genotype_name": {
-          "description": "Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "genotype_zfin_id": {
-          "description": "ZFIN genotype id (ZDB-GENO-…), when registered.",
-          "pattern": "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "id": {
-          "description": "Auto-generated integer identifier.",
-          "type": "integer"
-        },
-        "mutant_allele": {
-          "description": "Mutant allele(s) carried by the genotype.",
-          "items": {
-            "$ref": "#/$defs/MutantAllele"
-          },
-          "type": [
-            "array",
-            "null"
-          ]
-        },
-        "transgenic_allele": {
-          "description": "Transgenic insertion(s) carried by the genotype.",
-          "items": {
-            "$ref": "#/$defs/TransgenicAllele"
-          },
-          "type": [
-            "array",
-            "null"
-          ]
-        }
-      },
-      "required": [
-        "id"
-      ],
-      "title": "Genotype",
       "type": "object"
     },
     "Image": {

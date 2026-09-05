@@ -1298,7 +1298,7 @@ class ExposureTypeRead(ReadBaseModel):
 
 class Fish(ZappEntity):
     """
-    A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.
+    A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['GENO:0000525'],
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
@@ -1306,7 +1306,11 @@ class Fish(ZappEntity):
 
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    genotype: Optional[Genotype] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    mutant_allele: Optional[list[MutantAllele]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    transgenic_allele: Optional[list[TransgenicAllele]] = Field(default=None, description="""Transgenic insertion(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_name: Optional[str] = Field(default=None, description="""Wild-type background strain, e.g. \"AB\". Absent when unknown.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('fish_zfin_id')
@@ -1319,6 +1323,32 @@ class Fish(ZappEntity):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('genotype_zfin_id')
+    def pattern_genotype_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid genotype_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid genotype_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('background_zfin_id')
+    def pattern_background_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid background_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -1329,7 +1359,11 @@ class FishCreate(ConfiguredBaseModel):
     """
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    genotype: Optional[GenotypeCreate] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    transgenic_allele: Optional[list[TransgenicAlleleCreate]] = Field(default=None, description="""Transgenic insertion(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_name: Optional[str] = Field(default=None, description="""Wild-type background strain, e.g. \"AB\". Absent when unknown.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
 
     @field_validator('fish_zfin_id')
     def pattern_fish_zfin_id(cls, v):
@@ -1341,6 +1375,32 @@ class FishCreate(ConfiguredBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('genotype_zfin_id')
+    def pattern_genotype_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid genotype_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid genotype_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('background_zfin_id')
+    def pattern_background_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid background_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -1351,7 +1411,11 @@ class FishUpdate(ConfiguredBaseModel):
     """
     name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    genotype: Optional[GenotypeCreate] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    transgenic_allele: Optional[list[TransgenicAlleleCreate]] = Field(default=None, description="""Transgenic insertion(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_name: Optional[str] = Field(default=None, description="""Wild-type background strain, e.g. \"AB\". Absent when unknown.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
 
     @field_validator('fish_zfin_id')
     def pattern_fish_zfin_id(cls, v):
@@ -1363,6 +1427,32 @@ class FishUpdate(ConfiguredBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('genotype_zfin_id')
+    def pattern_genotype_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid genotype_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid genotype_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('background_zfin_id')
+    def pattern_background_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid background_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -1373,7 +1463,11 @@ class FishRead(ReadBaseModel):
     """
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    genotype: Optional[GenotypeRead] = Field(default=None, description="""The intrinsic genotype of the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    mutant_allele: Optional[list[MutantAlleleRead]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    transgenic_allele: Optional[list[TransgenicAlleleRead]] = Field(default=None, description="""Transgenic insertion(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_name: Optional[str] = Field(default=None, description="""Wild-type background strain, e.g. \"AB\". Absent when unknown.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('fish_zfin_id')
@@ -1389,21 +1483,6 @@ class FishRead(ReadBaseModel):
             raise ValueError(err_msg)
         return v
 
-
-class Genotype(ZappEntity):
-    """
-    A heritable line: mutant/transgenic allele(s) on a wild-type background, with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a Genotype with no alterations — there is no separate Background class.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['GENO:0000000'],
-         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
-
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    mutant_allele: Optional[list[MutantAllele]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    transgenic_allele: Optional[list[TransgenicAllele]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[Genotype] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
-
     @field_validator('genotype_zfin_id')
     def pattern_genotype_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
@@ -1417,76 +1496,16 @@ class Genotype(ZappEntity):
             raise ValueError(err_msg)
         return v
 
-
-class GenotypeCreate(ConfiguredBaseModel):
-    """
-    Create schema for Genotype — id is server-generated.
-    """
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    transgenic_allele: Optional[list[TransgenicAlleleCreate]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[GenotypeCreate] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-
-    @field_validator('genotype_zfin_id')
-    def pattern_genotype_zfin_id(cls, v):
+    @field_validator('background_zfin_id')
+    def pattern_background_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid genotype_zfin_id format: {element}"
+                    err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid genotype_zfin_id format: {v}"
-            raise ValueError(err_msg)
-        return v
-
-
-class GenotypeUpdate(ConfiguredBaseModel):
-    """
-    Update schema for Genotype — all fields optional for partial updates.
-    """
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    transgenic_allele: Optional[list[TransgenicAlleleCreate]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[GenotypeCreate] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-
-    @field_validator('genotype_zfin_id')
-    def pattern_genotype_zfin_id(cls, v):
-        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid genotype_zfin_id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid genotype_zfin_id format: {v}"
-            raise ValueError(err_msg)
-        return v
-
-
-class GenotypeRead(ReadBaseModel):
-    """
-    Read schema for Genotype — from_attributes=True, extra=ignore.
-    """
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    genotype_name: Optional[str] = Field(default=None, description="""Display name, e.g. \"fgf8a<ti282a/ti282a> (AB)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    mutant_allele: Optional[list[MutantAlleleRead]] = Field(default=None, description="""Mutant allele(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    transgenic_allele: Optional[list[TransgenicAlleleRead]] = Field(default=None, description="""Transgenic insertion(s) carried by the genotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    background: Optional[GenotypeRead] = Field(default=None, description="""The wild-type background — itself a Genotype with no alterations.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Genotype']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
-
-    @field_validator('genotype_zfin_id')
-    def pattern_genotype_zfin_id(cls, v):
-        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid genotype_zfin_id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid genotype_zfin_id format: {v}"
+            err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -2086,10 +2105,6 @@ Fish.model_rebuild()
 FishCreate.model_rebuild()
 FishUpdate.model_rebuild()
 FishRead.model_rebuild()
-Genotype.model_rebuild()
-GenotypeCreate.model_rebuild()
-GenotypeUpdate.model_rebuild()
-GenotypeRead.model_rebuild()
 MutantAllele.model_rebuild()
 MutantAlleleCreate.model_rebuild()
 MutantAlleleUpdate.model_rebuild()

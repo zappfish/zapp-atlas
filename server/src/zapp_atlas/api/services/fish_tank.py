@@ -1,6 +1,6 @@
 """Fish tank persistence (a group's maintained fish lines).
 
-A tank entry owns its whole Fish/Genotype graph: fish are inlined per use, not
+A tank entry owns its whole Fish graph: fish are inlined per use, not
 shared rows, because integer-keyed Fish has no natural key the database could
 dedupe on (two labs' "AB" may differ in zygosity detail). The
 ``tank_grain`` unique index therefore no longer catches a duplicate line by

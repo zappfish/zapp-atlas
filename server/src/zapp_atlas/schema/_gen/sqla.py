@@ -448,44 +448,26 @@ class ExposureType(OntologyEntity):
 
 class Fish(ZappEntity):
     """
-    A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.
+    A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.
     """
 
     __tablename__ = "Fish"
 
     name: Mapped[str] = mapped_column(Text())
     fish_zfin_id: Mapped[str | None] = mapped_column(Text())
-    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    genotype_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
-    genotype: Mapped[Genotype | None] = relationship(foreign_keys=[genotype_id])
-
-    def __repr__(self):
-        return f"Fish(name={self.name},fish_zfin_id={self.fish_zfin_id},id={self.id},genotype_id={self.genotype_id},)"
-
-    __mapper_args__ = {"concrete": True}
-
-
-class Genotype(ZappEntity):
-    """
-    A heritable line: mutant/transgenic allele(s) on a wild-type background, with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a Genotype with no alterations — there is no separate Background class.
-    """
-
-    __tablename__ = "Genotype"
-
     genotype_zfin_id: Mapped[str | None] = mapped_column(Text())
-    genotype_name: Mapped[str | None] = mapped_column(Text())
+    background_name: Mapped[str | None] = mapped_column(Text())
+    background_zfin_id: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    background_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
-    background: Mapped[Genotype | None] = relationship(foreign_keys=[background_id], remote_side=[id])
 
-    # One-To-Many: OneToAnyMapping(source_class='Genotype', source_slot='mutant_allele', mapping_type=None, target_class='MutantAllele', target_slot='Genotype_id', join_class=None, uses_join_table=None, multivalued=False)
-    mutant_allele: Mapped[list[MutantAllele]] = relationship(foreign_keys="[MutantAllele.Genotype_id]")
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='mutant_allele', mapping_type=None, target_class='MutantAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    mutant_allele: Mapped[list[MutantAllele]] = relationship(foreign_keys="[MutantAllele.Fish_id]")
 
-    # One-To-Many: OneToAnyMapping(source_class='Genotype', source_slot='transgenic_allele', mapping_type=None, target_class='TransgenicAllele', target_slot='Genotype_id', join_class=None, uses_join_table=None, multivalued=False)
-    transgenic_allele: Mapped[list[TransgenicAllele]] = relationship(foreign_keys="[TransgenicAllele.Genotype_id]")
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transgenic_allele', mapping_type=None, target_class='TransgenicAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    transgenic_allele: Mapped[list[TransgenicAllele]] = relationship(foreign_keys="[TransgenicAllele.Fish_id]")
 
     def __repr__(self):
-        return f"Genotype(genotype_zfin_id={self.genotype_zfin_id},genotype_name={self.genotype_name},id={self.id},background_id={self.background_id},)"
+        return f"Fish(name={self.name},fish_zfin_id={self.fish_zfin_id},genotype_zfin_id={self.genotype_zfin_id},background_name={self.background_name},background_zfin_id={self.background_zfin_id},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -506,10 +488,10 @@ class MutantAllele(ZappEntity):
     mother_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
     father_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    Genotype_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
 
     def __repr__(self):
-        return f"MutantAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Genotype_id={self.Genotype_id},)"
+        return f"MutantAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -532,10 +514,10 @@ class TransgenicAllele(ZappEntity):
     mother_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
     father_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    Genotype_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Genotype.id"))
+    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
 
     def __repr__(self):
-        return f"TransgenicAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},construct_id={self.construct_id},construct_name={self.construct_name},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Genotype_id={self.Genotype_id},)"
+        return f"TransgenicAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},construct_id={self.construct_id},construct_name={self.construct_name},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

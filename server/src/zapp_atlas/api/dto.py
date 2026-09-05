@@ -77,7 +77,7 @@ class CabinetEntryOut(_FromAttributes):
 class TankEntryIn(BaseModel):
     """Add a fish line to a group's tank. ``research_group`` is path-derived.
 
-    ``fish`` is the generated create model — the same full Fish/Genotype graph
+    ``fish`` is the generated create model — the same full Fish graph
     an experiment takes — so a line saved to the tank can later pre-fill a
     submission without losing detail. Its ZFIN-id patterns reject malformed
     identifiers with a 422.

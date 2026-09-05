@@ -254,32 +254,23 @@ classes:
   Fish:
     is_a: ZappEntity
     description: >-
-      A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id
-      (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.
+      A zebrafish subject as the curator describes it: allele(s) on a wild-type
+      background. The two ZFIN ids are mapped from that description against
+      ZFIN's registered records, never entered. Transient reagents
+      (morpholinos/CRISPRs) are not modeled yet.
     slots:
       - name
       - fish_zfin_id
-      - genotype
+      - genotype_zfin_id
+      - mutant_allele
+      - transgenic_allele
+      - background_name
+      - background_zfin_id
     slot_usage:
       name:
         required: true
     exact_mappings:
       - GENO:0000525
-
-  Genotype:
-    is_a: ZappEntity
-    description: >-
-      A heritable line: mutant/transgenic allele(s) on a wild-type background,
-      with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a
-      Genotype with no alterations — there is no separate Background class.
-    slots:
-      - genotype_zfin_id
-      - genotype_name
-      - mutant_allele
-      - transgenic_allele
-      - background
-    exact_mappings:
-      - GENO:0000000
 
   MutantAllele:
     is_a: ZappEntity
@@ -428,37 +419,33 @@ slots:
     description: ZFIN fish id (ZDB-FISH-…), when registered.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-FISH-[0-9]{6}-[0-9]+$"
-  genotype:
-    description: The intrinsic genotype of the fish.
-    range: Genotype
-    inlined: true
-    inlined_as_list: true
-    multivalued: false
   genotype_zfin_id:
-    description: ZFIN genotype id (ZDB-GENO-…), when registered.
+    description: >-
+      ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when
+      registered.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$"
-  genotype_name:
-    description: Display name, e.g. "fgf8a<ti282a/ti282a> (AB)".
-    range: string
   mutant_allele:
-    description: Mutant allele(s) carried by the genotype.
+    description: Mutant allele(s) carried by the fish.
     range: MutantAllele
     multivalued: true
     inlined: true
     inlined_as_list: true
   transgenic_allele:
-    description: Transgenic insertion(s) carried by the genotype.
+    description: Transgenic insertion(s) carried by the fish.
     range: TransgenicAllele
     multivalued: true
     inlined: true
     inlined_as_list: true
-  background:
-    description: The wild-type background — itself a Genotype with no alterations.
-    range: Genotype
-    inlined: true
-    inlined_as_list: true
-    multivalued: false
+  background_name:
+    description: Wild-type background strain, e.g. "AB". Absent when unknown.
+    range: string
+  background_zfin_id:
+    description: >-
+      ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are
+      themselves genotype records in ZFIN.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$"
   allele_id:
     description: ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.
     range: uriorcurie

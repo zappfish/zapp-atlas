@@ -30,7 +30,7 @@ def _create_observation(client: TestClient) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
+            "fish": {"name": "AB", "background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },

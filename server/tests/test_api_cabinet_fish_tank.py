@@ -22,7 +22,8 @@ AB_GENO_ID = "ZFIN:ZDB-GENO-960809-7"
 AB_FISH = {
     "name": "AB",
     "fish_zfin_id": AB_FISH_ID,
-    "genotype": {"genotype_zfin_id": AB_GENO_ID, "genotype_name": "AB"},
+    "genotype_zfin_id": AB_GENO_ID,
+    "background_name": "AB",
 }
 TU_LINE = "ZFIN:ZDB-GENO-990623-3"
 
@@ -273,7 +274,7 @@ def test_tank_add_stores_fish_graph(client: TestClient) -> None:
     body = created.json()
     assert body["fish"]["name"] == "AB"
     assert body["fish"]["fish_zfin_id"] == AB_FISH_ID
-    assert body["fish"]["genotype"]["genotype_zfin_id"] == AB_GENO_ID
+    assert body["fish"]["genotype_zfin_id"] == AB_GENO_ID
     assert body["created_at"] is not None
 
 

@@ -11,13 +11,11 @@ from __future__ import annotations
 
 from zapp_atlas.schema.pydantic_crud import (
     FishCreate,
-    GenotypeCreate,
     MutantAlleleCreate,
     TransgenicAlleleCreate,
 )
 from zapp_atlas.schema.sqla import (  # type: ignore
     Fish,
-    Genotype,
     MutantAllele,
     TransgenicAllele,
 )
@@ -53,33 +51,18 @@ def _transgenic_allele_from_create(payload: TransgenicAlleleCreate) -> Transgeni
     )
 
 
-def genotype_from_create(payload: GenotypeCreate | None) -> Genotype | None:
-    """Map a GenotypeCreate to the ORM.
-
-    Recursive: ``background`` is itself a Genotype (a wild-type strain such as
-    AB is just a line with no alterations), so this calls back into itself
-    rather than into a distinct background mapper. Recursion terminates when
-    ``background`` is absent, which it is for a wild-type strain.
-    """
-    if payload is None:
-        return None
-    genotype = Genotype(
-        genotype_zfin_id=payload.genotype_zfin_id,
-        genotype_name=payload.genotype_name,
-        background=genotype_from_create(payload.background),
-    )
-    for mutant in payload.mutant_allele or []:
-        genotype.mutant_allele.append(_mutant_allele_from_create(mutant))
-    for transgenic in payload.transgenic_allele or []:
-        genotype.transgenic_allele.append(_transgenic_allele_from_create(transgenic))
-    return genotype
-
-
 def fish_from_create(payload: FishCreate | None) -> Fish | None:
     if payload is None:
         return None
-    return Fish(
+    fish = Fish(
         name=payload.name,
         fish_zfin_id=payload.fish_zfin_id,
-        genotype=genotype_from_create(payload.genotype),
+        genotype_zfin_id=payload.genotype_zfin_id,
+        background_name=payload.background_name,
+        background_zfin_id=payload.background_zfin_id,
     )
+    for mutant in payload.mutant_allele or []:
+        fish.mutant_allele.append(_mutant_allele_from_create(mutant))
+    for transgenic in payload.transgenic_allele or []:
+        fish.transgenic_allele.append(_transgenic_allele_from_create(transgenic))
+    return fish

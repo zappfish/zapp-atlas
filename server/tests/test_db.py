@@ -5,7 +5,6 @@ from zapp_atlas.schema.sqla import (
     Experiment,
     ExposureEvent,
     Fish,
-    Genotype,
     MutantAllele,
     Phenotype,
     PhenotypeObservationSet,
@@ -29,7 +28,6 @@ def test_init_db_creates_expected_tables():
         "PhenotypeObservationSet",
         "Control",
         "Fish",
-        "Genotype",
         "MutantAllele",
         "TransgenicAllele",
         "PhenotypeTerm",
@@ -66,24 +64,22 @@ def test_study_round_trip():
 
     # --- leaf / reference entities ----------------------------------------
 
-    # Fish carries a Genotype (mutant alleles + background); mirrors ZFIN's
-    # Fish = intrinsic Genotype. The fgf8a single-mutant from the curation slides.
+    # The fgf8a single-mutant from the curation slides: alleles + background
+    # directly on the fish, with the mapped ZFIN fish and genotype ids.
     fish = Fish(
         name="fgf8a<ti282a/ti282a>",
         fish_zfin_id="ZFIN:ZDB-FISH-150901-20282",
-        genotype=Genotype(
-            genotype_zfin_id="ZFIN:ZDB-GENO-071127-8",
-            genotype_name="fgf8a<ti282a/ti282a>",
-            background=Genotype(genotype_name="AB", genotype_zfin_id="ZFIN:ZDB-GENO-960809-7"),
-            mutant_allele=[
-                MutantAllele(
-                    allele_id="ZFIN:ZDB-ALT-980203-1091",
-                    allele_symbol="ti282a",
-                    affected_gene_symbol="fgf8a",
-                    zygosity="homozygous",
-                )
-            ],
-        ),
+        genotype_zfin_id="ZFIN:ZDB-GENO-071127-8",
+        background_name="AB",
+        background_zfin_id="ZFIN:ZDB-GENO-960809-7",
+        mutant_allele=[
+            MutantAllele(
+                allele_id="ZFIN:ZDB-ALT-980203-1091",
+                allele_symbol="ti282a",
+                affected_gene_symbol="fgf8a",
+                zygosity="homozygous",
+            )
+        ],
     )
 
     concentration = QuantityValue(unit="µg/L", numeric_value="100")
@@ -161,13 +157,11 @@ def test_study_round_trip():
     assert loaded_exp.standard_rearing_condition is True
     assert loaded_exp.fish.name == "fgf8a<ti282a/ti282a>"
     assert loaded_exp.fish.fish_zfin_id == "ZFIN:ZDB-FISH-150901-20282"
-    loaded_geno = loaded_exp.fish.genotype
-    assert loaded_geno.genotype_zfin_id == "ZFIN:ZDB-GENO-071127-8"
-    # A background IS a line: it's a Genotype with no alterations of its own.
-    assert loaded_geno.background.genotype_name == "AB"
-    assert loaded_geno.background.genotype_zfin_id == "ZFIN:ZDB-GENO-960809-7"
-    assert loaded_geno.background.mutant_allele == []
-    [loaded_ma] = loaded_geno.mutant_allele
+    loaded_fish = loaded_exp.fish
+    assert loaded_fish.genotype_zfin_id == "ZFIN:ZDB-GENO-071127-8"
+    assert loaded_fish.background_name == "AB"
+    assert loaded_fish.background_zfin_id == "ZFIN:ZDB-GENO-960809-7"
+    [loaded_ma] = loaded_fish.mutant_allele
     assert loaded_ma.allele_symbol == "ti282a"
     assert loaded_ma.affected_gene_symbol == "fgf8a"
     assert loaded_ma.zygosity == "homozygous"

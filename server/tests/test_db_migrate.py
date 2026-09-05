@@ -161,3 +161,95 @@ def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:
 
     with engine.connect() as connection:
         assert connection.execute(text("SELECT COUNT(*) FROM StressorChemical")).scalar() == 0
+
+
+# --- the fish re-key ---------------------------------------------------------
+
+AB_FISH_ID = "ZFIN:ZDB-FISH-150901-27842"
+
+
+@pytest.fixture
+def legacy_fish_db(tmp_path):
+    """A database from before Fish was re-keyed, holding a line in use.
+
+    The legacy layout keyed ``Fish`` by ZFIN id and pointed ``FishTankEntry``
+    and ``Experiment`` at that key. ``Fish`` and ``FishTankEntry`` are
+    recreated wholesale here; for ``Experiment`` only the legacy column is
+    restored (SQLite will not DROP a foreign-key column such as ``fish_id``),
+    which still exercises the relink — a real legacy database gets ``fish_id``
+    from the generic column pass first.
+    """
+    path = tmp_path / "zapp.db"
+    init_db(create_engine(f"sqlite:///{path}"))
+
+    con = sqlite3.connect(path)
+    con.executescript(
+        f"""
+        DROP TABLE "Fish";
+        CREATE TABLE "Fish" (name TEXT NOT NULL, zfin_id TEXT NOT NULL PRIMARY KEY);
+        DROP TABLE "FishTankEntry";
+        CREATE TABLE "FishTankEntry" (
+            research_group INTEGER NOT NULL REFERENCES "ResearchGroup" (id),
+            id INTEGER NOT NULL PRIMARY KEY,
+            fish_zfin_id TEXT NOT NULL REFERENCES "Fish" (zfin_id)
+        );
+        ALTER TABLE "Experiment" ADD COLUMN fish_zfin_id TEXT REFERENCES "Fish" (zfin_id);
+
+        INSERT INTO "Fish" (name, zfin_id) VALUES ('AB', '{AB_FISH_ID}');
+        INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
+        INSERT INTO "FishTankEntry" (id, research_group, fish_zfin_id)
+            VALUES (1, 1, '{AB_FISH_ID}');
+        INSERT INTO "Experiment" (id, fish_zfin_id) VALUES (1, '{AB_FISH_ID}');
+        """
+    )
+    con.commit()
+    con.close()
+    return path
+
+
+def test_migrate_rebuilds_the_legacy_fish_table(legacy_fish_db) -> None:
+    engine = create_engine(f"sqlite:///{legacy_fish_db}")
+
+    migrate(engine)
+
+    columns = {c["name"] for c in inspect(engine).get_columns("Fish")}
+    assert "id" in columns and "zfin_id" not in columns
+    with engine.connect() as connection:
+        name, zfin_id = connection.execute(text("SELECT name, fish_zfin_id FROM Fish")).one()
+    assert (name, zfin_id) == ("AB", AB_FISH_ID)
+
+
+def test_migrate_rejoins_tank_entries_and_experiments(legacy_fish_db) -> None:
+    engine = create_engine(f"sqlite:///{legacy_fish_db}")
+
+    migrate(engine)
+
+    with engine.connect() as connection:
+        fish_id = connection.execute(text("SELECT id FROM Fish")).scalar()
+        assert connection.execute(text("SELECT fish_id FROM FishTankEntry")).scalar() == fish_id
+        assert connection.execute(text("SELECT fish_id FROM Experiment")).scalar() == fish_id
+
+
+def test_the_rebuilt_fish_is_queryable_through_the_orm(legacy_fish_db) -> None:
+    from sqlalchemy.orm import sessionmaker
+
+    from zapp_atlas.schema.sqla import FishTankEntry
+
+    engine = create_engine(f"sqlite:///{legacy_fish_db}")
+    migrate(engine)
+
+    with sessionmaker(bind=engine)() as session:
+        entry = session.get(FishTankEntry, 1)
+        assert entry.fish.name == "AB"
+        assert entry.fish.fish_zfin_id == AB_FISH_ID
+
+
+def test_the_fish_rebuild_is_idempotent(legacy_fish_db) -> None:
+    engine = create_engine(f"sqlite:///{legacy_fish_db}")
+
+    migrate(engine)
+    migrate(engine)  # a second deploy of the same release
+
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT COUNT(*) FROM Fish")).scalar() == 1
+        assert connection.execute(text("SELECT COUNT(*) FROM FishTankEntry")).scalar() == 1

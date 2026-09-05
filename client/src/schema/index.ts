@@ -18,7 +18,6 @@ export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishId = string;
-export type GenotypeId = string;
 export type MutantAlleleId = string;
 export type TransgenicAlleleId = string;
 export type ResearchGroupId = string;
@@ -469,32 +468,23 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * A zebrafish subject: an intrinsic Genotype plus an optional ZFIN fish id (ZDB-FISH-…). Transient reagents (morpholinos/CRISPRs) are not modeled yet.
+ * A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.
  */
 export interface Fish extends ZappEntity {
     /** Name or label of an entity. */
     name: string,
     /** ZFIN fish id (ZDB-FISH-…), when registered. */
     fish_zfin_id?: string,
-    /** The intrinsic genotype of the fish. */
-    genotype?: Genotype,
-}
-
-
-/**
- * A heritable line: mutant/transgenic allele(s) on a wild-type background, with an optional ZFIN genotype id (ZDB-GENO-…). The background is itself a Genotype with no alterations — there is no separate Background class.
- */
-export interface Genotype extends ZappEntity {
-    /** ZFIN genotype id (ZDB-GENO-…), when registered. */
+    /** ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered. */
     genotype_zfin_id?: string,
-    /** Display name, e.g. "fgf8a<ti282a/ti282a> (AB)". */
-    genotype_name?: string,
-    /** Mutant allele(s) carried by the genotype. */
+    /** Mutant allele(s) carried by the fish. */
     mutant_allele?: MutantAllele[],
-    /** Transgenic insertion(s) carried by the genotype. */
+    /** Transgenic insertion(s) carried by the fish. */
     transgenic_allele?: TransgenicAllele[],
-    /** The wild-type background — itself a Genotype with no alterations. */
-    background?: Genotype,
+    /** Wild-type background strain, e.g. "AB". Absent when unknown. */
+    background_name?: string,
+    /** ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN. */
+    background_zfin_id?: string,
 }
 
 

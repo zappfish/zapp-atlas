@@ -56,7 +56,7 @@ def test_experiment_create_for_study_then_get_and_list():
     exp_payload = {
         "standard_rearing_condition": True,
         "rearing_condition_comment": "",
-        "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
+        "fish": {"name": "AB", "background_name": "AB"},
         "control": [],
         "exposure_event": [],
     }
@@ -83,7 +83,7 @@ def test_experiment_create_missing_study_404():
 
     exp_payload = {
         "standard_rearing_condition": True,
-        "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
+        "fish": {"name": "AB", "background_name": "AB"},
         "control": [],
         "exposure_event": [],
     }
@@ -109,7 +109,7 @@ def test_experiment_patch_updates_rearing_and_fish():
         json={
             "standard_rearing_condition": True,
             "rearing_condition_comment": "",
-            "fish": {"name": "AB", "genotype": {"background": {"genotype_name": "AB"}}},
+            "fish": {"name": "AB", "background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },
@@ -122,10 +122,8 @@ def test_experiment_patch_updates_rearing_and_fish():
             "rearing_condition_comment": "temperature 24C",
             "fish": {
                 "name": "TU",
-                "genotype": {
-                    "genotype_zfin_id": "ZFIN:ZDB-GENO-010112-1",
-                    "background": {"genotype_name": "TU"},
-                },
+                "genotype_zfin_id": "ZFIN:ZDB-GENO-010112-1",
+                "background_name": "TU",
             },
         },
     )
@@ -133,7 +131,7 @@ def test_experiment_patch_updates_rearing_and_fish():
     patched = res.json()
     assert patched["standard_rearing_condition"] is False
     assert patched["rearing_condition_comment"] == "temperature 24C"
-    assert patched["fish"]["genotype"]["genotype_zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
+    assert patched["fish"]["genotype_zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
     assert patched["fish"]["name"] == "TU"
 
 

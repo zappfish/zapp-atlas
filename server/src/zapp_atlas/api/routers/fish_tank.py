@@ -2,7 +2,7 @@
 
 Scoped to a group in the path and requires membership. A line already in the
 group's tank (same ZFIN fish id, or same name for an unregistered line) is a
-409. Each entry stores its own Fish/Genotype graph from the payload; malformed
+409. Each entry stores its own Fish graph from the payload; malformed
 ZFIN ids are rejected by the generated model's patterns (422).
 ``research_group`` is always path-derived.
 """

@@ -26,7 +26,6 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     ExposureRoute,
     ExposureType,
     Fish,
-    Genotype,
     Phenotype,
     PhenotypeObservationSet,
     PhenotypeTerm,
@@ -50,19 +49,16 @@ SEEDED_PUBLICATIONS = {
 def _build_ab_fish() -> Fish:
     """A wild-type AB fish.
 
-    Mirrors ZFIN's Fish = intrinsic Genotype + (out-of-scope) STRs. AB is simply
-    a line carrying no alterations, so it *is* its own background — there is no
-    separate Background entity. ``ZDB-GENO-960809-7`` is ZFIN's genotype id for
-    AB and ``ZDB-FISH-150901-27842`` its fish id. A fresh graph is built per
-    call because Fish is inlined per experiment.
+    AB carries no alterations, so it is its own background. ``ZDB-GENO-960809-7``
+    is ZFIN's genotype id for AB and ``ZDB-FISH-150901-27842`` its fish id. A
+    fresh row is built per call because Fish is inlined per experiment.
     """
     return Fish(
         name="AB",
         fish_zfin_id="ZFIN:ZDB-FISH-150901-27842",
-        genotype=Genotype(
-            genotype_zfin_id="ZFIN:ZDB-GENO-960809-7",
-            genotype_name="AB",
-        ),
+        genotype_zfin_id="ZFIN:ZDB-GENO-960809-7",
+        background_name="AB",
+        background_zfin_id="ZFIN:ZDB-GENO-960809-7",
     )
 
 

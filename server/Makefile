@@ -27,13 +27,10 @@ $(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS) $(SCHEMA_DIR)/crud_p
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run python -m zapp_atlas.schema.crud_pydanticgen $< >> $@
 
-# gen-sqla mis-renders self-referential scalar relationships (Genotype.background);
-# sqla_postprocess adds the remote_side declaration they need. See its docstring.
-$(SQLA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS) $(SCHEMA_DIR)/sqla_postprocess.py
+$(SQLA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
-	uv run gen-sqla --declarative --sqla-style 2 $< \
-	  | uv run python -m zapp_atlas.schema.sqla_postprocess >> $@
+	uv run gen-sqla --declarative --sqla-style 2 $< >> $@
 
 $(TS_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
