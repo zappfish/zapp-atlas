@@ -20,6 +20,7 @@ export type ExposureTypeTermUri = string;
 export type FishId = string;
 export type MutantAlleleId = string;
 export type TransgenicAlleleId = string;
+export type TransientReagentId = string;
 export type ResearchGroupId = string;
 export type ResearchGroupMemberId = string;
 export type ChemicalCabinetEntryId = string;
@@ -161,6 +162,18 @@ export enum ZygosityEnum {
     unknown = "unknown",
     /** Zero copies of the allele (ZFIN's parental "W"). */
     wild_type = "wild_type",
+};
+/**
+* The three sequence-targeting reagent kinds ZFIN registers, one per reagent id prefix. Corpus evidence in notebooks/zfin_ingest_qc.ipynb.
+*/
+export enum ReagentTypeEnum {
+    
+    /** Antisense morpholino oligo — knocks down without editing. */
+    morpholino = "morpholino",
+    /** Injected CRISPR guide (ZFIN types these by binding site; no reagent SO term fits). */
+    crispr = "crispr",
+    /** Injected TALEN pair (likewise typed by binding site in ZFIN). */
+    talen = "talen",
 };
 /**
 * Sequence-alteration classes, each normalized to an SO term. Corpus evidence for the value set: notebooks/zfin_ingest_qc.ipynb.
@@ -468,7 +481,7 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.
+ * A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
  */
 export interface Fish extends ZappEntity {
     /** Name or label of an entity. */
@@ -481,6 +494,8 @@ export interface Fish extends ZappEntity {
     mutant_allele?: MutantAllele[],
     /** Transgenic insertion(s) carried by the fish. */
     transgenic_allele?: TransgenicAllele[],
+    /** Injected reagent(s) carried by the fish — transient, not heritable. */
+    transient_reagent?: TransientReagent[],
     /** Wild-type background strain, e.g. "AB". Absent when unknown. */
     background_name?: string,
     /** ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN. */
@@ -535,6 +550,23 @@ export interface TransgenicAllele extends ZappEntity {
     mother_zygosity?: string,
     /** Zygosity of the allele in the paternal parent. */
     father_zygosity?: string,
+}
+
+
+/**
+ * A sequence-targeting reagent injected into the embryos (morpholino, CRISPR, TALEN). Transient and not heritable — part of the fish, not the genotype. Dose and injection stage are experiment-side facts.
+ */
+export interface TransientReagent extends ZappEntity {
+    /** ZFIN reagent id (ZDB-MRPHLNO-…, ZDB-CRISPR-…, or ZDB-TALEN-…). */
+    reagent_id?: string,
+    /** The reagent symbol, e.g. "MO1-gata1a", "CRISPR1-tp53". */
+    reagent_symbol: string,
+    /** Which kind of injected reagent this is. */
+    reagent_type?: string,
+    /** Gene id of the reagent's target, when recorded. */
+    affected_gene_id?: string,
+    /** The gene the reagent targets / knocks down, e.g. "gata1a". */
+    affected_gene_symbol?: string,
 }
 
 

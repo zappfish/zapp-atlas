@@ -23,6 +23,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from zapp_atlas.schema.pydantic_crud import (
     FishCreate,
     FishRead,
+    ReagentTypeEnum,
     ResearchGroupRoleEnum,
     SequenceAlterationTypeEnum,
 )
@@ -133,6 +134,25 @@ class ZfinAlleleSearchOut(BaseModel):
     total_matches: int
     indexed_alleles: int
     results: list[ZfinAlleleOut]
+
+
+class ZfinReagentOut(_FromAttributes):
+    """One transient reagent from the ZFIN reference index, shaped to pre-fill
+    a TransientReagent form card (same field names, CURIE-form ids). The
+    model's scalar gene slots take the first target; a few reagents hit
+    several paralogs, which the form can display."""
+
+    reagent_symbol: str
+    reagent_id: str
+    reagent_type: ReagentTypeEnum
+    targeted_genes: list[ZfinAffectedGeneOut]
+
+
+class ZfinReagentSearchOut(BaseModel):
+    query: str
+    total_matches: int
+    indexed_reagents: int
+    results: list[ZfinReagentOut]
 
 
 class ZfinWildtypeOut(_FromAttributes):

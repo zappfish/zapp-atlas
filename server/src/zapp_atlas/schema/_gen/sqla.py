@@ -448,7 +448,7 @@ class ExposureType(OntologyEntity):
 
 class Fish(ZappEntity):
     """
-    A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.
+    A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
     """
 
     __tablename__ = "Fish"
@@ -465,6 +465,9 @@ class Fish(ZappEntity):
 
     # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transgenic_allele', mapping_type=None, target_class='TransgenicAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
     transgenic_allele: Mapped[list[TransgenicAllele]] = relationship(foreign_keys="[TransgenicAllele.Fish_id]")
+
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transient_reagent', mapping_type=None, target_class='TransientReagent', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    transient_reagent: Mapped[list[TransientReagent]] = relationship(foreign_keys="[TransientReagent.Fish_id]")
 
     def __repr__(self):
         return f"Fish(name={self.name},fish_zfin_id={self.fish_zfin_id},genotype_zfin_id={self.genotype_zfin_id},background_name={self.background_name},background_zfin_id={self.background_zfin_id},id={self.id},)"
@@ -518,6 +521,27 @@ class TransgenicAllele(ZappEntity):
 
     def __repr__(self):
         return f"TransgenicAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},construct_id={self.construct_id},construct_name={self.construct_name},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class TransientReagent(ZappEntity):
+    """
+    A sequence-targeting reagent injected into the embryos (morpholino, CRISPR, TALEN). Transient and not heritable — part of the fish, not the genotype. Dose and injection stage are experiment-side facts.
+    """
+
+    __tablename__ = "TransientReagent"
+
+    reagent_id: Mapped[str | None] = mapped_column(Text())
+    reagent_symbol: Mapped[str] = mapped_column(Text())
+    reagent_type: Mapped[str | None] = mapped_column(Enum('morpholino', 'crispr', 'talen', name='ReagentTypeEnum'))
+    affected_gene_id: Mapped[str | None] = mapped_column(Text())
+    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
+
+    def __repr__(self):
+        return f"TransientReagent(reagent_id={self.reagent_id},reagent_symbol={self.reagent_symbol},reagent_type={self.reagent_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},id={self.id},Fish_id={self.Fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

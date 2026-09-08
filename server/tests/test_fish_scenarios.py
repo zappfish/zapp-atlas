@@ -3,7 +3,8 @@
 Each payload below is the exact FishCreate JSON the fish widget will emit, one
 per scenario in the curation slides: wild-type, single mutant (homo and het on
 AB), double mutant, single and multiple transgenics, and the everything case
-(mutant + transgenic + background + parental zygosity). The curator enters the
+(mutant + transgenic + background + parental zygosity), plus a morphant
+(wild-type + injected morpholino). The curator enters the
 alleles and the background; fish_zfin_id and genotype_zfin_id are the ZFIN
 records that composition maps to (real ids here — a fish's ZDB-FISH id is
 distinct from its genotype's ZDB-GENO id, and alleles are ZDB-ALT features).
@@ -110,6 +111,25 @@ SCENARIOS: dict[str, dict] = {
             },
         ],
     },
+    "morphant: wild-type + injected reagent": {
+        # ZFIN registers reagent-carrying fish too: AB + MO1-gata1a is a real
+        # record whose id differs from plain AB's, though the genotype id is
+        # AB's own (the injection is transient, not part of the genotype).
+        "name": "AB + MO1-gata1a",
+        "fish_zfin_id": "ZFIN:ZDB-FISH-150901-25118",
+        "genotype_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "transient_reagent": [
+            {
+                "reagent_id": "ZFIN:ZDB-MRPHLNO-050208-10",
+                "reagent_symbol": "MO1-gata1a",
+                "reagent_type": "morpholino",
+                "affected_gene_id": "ZFIN:ZDB-GENE-980526-476",
+                "affected_gene_symbol": "gata1a",
+            }
+        ],
+        "background_name": "AB",
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+    },
     "everything, with parental zygosity": {
         "name": "snapc1b<fh111/fh111>; w200Tg (AB)",
         "fish_zfin_id": "ZFIN:ZDB-FISH-160714-24",
@@ -180,6 +200,10 @@ def test_every_scenario_round_trips(client: TestClient) -> None:
         got_tg = {t["allele_symbol"] for t in got["transgenic_allele"]}
         assert got_tg == want_tg, label
 
+        want_str = {r["reagent_symbol"] for r in fish.get("transient_reagent", [])}
+        got_str = {r["reagent_symbol"] for r in got["transient_reagent"]}
+        assert got_str == want_str, label
+
         assert got["background_name"] == fish.get("background_name"), label
         assert got["background_zfin_id"] == fish.get("background_zfin_id"), label
 
@@ -190,3 +214,11 @@ def test_parental_zygosity_round_trips(client: TestClient) -> None:
     assert mutant["zygosity"] == "homozygous"
     assert mutant["mother_zygosity"] == "heterozygous"
     assert mutant["father_zygosity"] == "heterozygous"
+
+
+def test_transient_reagent_round_trips(client: TestClient) -> None:
+    got = _post_experiment(client, SCENARIOS["morphant: wild-type + injected reagent"])["fish"]
+    [reagent] = got["transient_reagent"]
+    assert reagent["reagent_type"] == "morpholino"
+    assert reagent["reagent_id"] == "ZFIN:ZDB-MRPHLNO-050208-10"
+    assert reagent["affected_gene_symbol"] == "gata1a"

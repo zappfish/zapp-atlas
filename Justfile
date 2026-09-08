@@ -64,6 +64,9 @@ fetch-zfin:
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/aliases.txt https://zfin.org/downloads/aliases.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/genetic_markers.txt https://zfin.org/downloads/genetic_markers.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/fish_components_fish.txt https://zfin.org/downloads/fish_components_fish.txt
+    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/Morpholinos.txt https://zfin.org/downloads/Morpholinos.txt
+    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/CRISPR.txt https://zfin.org/downloads/CRISPR.txt
+    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/TALEN.txt https://zfin.org/downloads/TALEN.txt
 
 # Re-execute the ZFIN ingest QC notebook and render notebooks/zfin_ingest_qc.html
 qc-report:

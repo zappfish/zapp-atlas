@@ -343,7 +343,7 @@
     },
     "Fish": {
       "additionalProperties": false,
-      "description": "A zebrafish subject as the curator describes it: allele(s) on a wild-type background. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered. Transient reagents (morpholinos/CRISPRs) are not modeled yet.",
+      "description": "A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.",
       "properties": {
         "background_name": {
           "description": "Wild-type background strain, e.g. \"AB\". Absent when unknown.",
@@ -398,6 +398,16 @@
           "description": "Transgenic insertion(s) carried by the fish.",
           "items": {
             "$ref": "#/$defs/TransgenicAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "transient_reagent": {
+          "description": "Injected reagent(s) carried by the fish — transient, not heritable.",
+          "items": {
+            "$ref": "#/$defs/TransientReagent"
           },
           "type": [
             "array",
@@ -712,6 +722,16 @@
       },
       "title": "QuantityValue",
       "type": "object"
+    },
+    "ReagentTypeEnum": {
+      "description": "The three sequence-targeting reagent kinds ZFIN registers, one per reagent id prefix. Corpus evidence in notebooks/zfin_ingest_qc.ipynb.",
+      "enum": [
+        "morpholino",
+        "crispr",
+        "talen"
+      ],
+      "title": "ReagentTypeEnum",
+      "type": "string"
     },
     "Regimen": {
       "additionalProperties": false,
@@ -1101,6 +1121,52 @@
         "id"
       ],
       "title": "TransgenicAllele",
+      "type": "object"
+    },
+    "TransientReagent": {
+      "additionalProperties": false,
+      "description": "A sequence-targeting reagent injected into the embryos (morpholino, CRISPR, TALEN). Transient and not heritable — part of the fish, not the genotype. Dose and injection stage are experiment-side facts.",
+      "properties": {
+        "affected_gene_id": {
+          "description": "Gene id of the reagent's target, when recorded.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affected_gene_symbol": {
+          "description": "The gene the reagent targets / knocks down, e.g. \"gata1a\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "reagent_id": {
+          "description": "ZFIN reagent id (ZDB-MRPHLNO-…, ZDB-CRISPR-…, or ZDB-TALEN-…).",
+          "pattern": "^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-[0-9]{6}-[0-9]+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reagent_symbol": {
+          "description": "The reagent symbol, e.g. \"MO1-gata1a\", \"CRISPR1-tp53\".",
+          "type": "string"
+        },
+        "reagent_type": {
+          "$ref": "#/$defs/ReagentTypeEnum",
+          "description": "Which kind of injected reagent this is."
+        }
+      },
+      "required": [
+        "reagent_symbol",
+        "id"
+      ],
+      "title": "TransientReagent",
       "type": "object"
     },
     "VehicleEnum": {

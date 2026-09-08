@@ -211,6 +211,78 @@ AFFECTED_ROWS = [
     ),
 ]
 
+# (gene id, gene SO, gene symbol, reagent id, reagent SO, reagent symbol,
+#  sequence, pubs, note) — as in the real Morpholinos.txt / CRISPR.txt.
+MORPHOLINO_ROWS = [
+    (
+        "ZDB-GENE-980526-476",
+        "SO:0001217",
+        "gata1a",
+        "ZDB-MRPHLNO-050208-10",
+        "SO:0000034",
+        "MO1-gata1a",
+        "CTGCAAGTGTAGTATTGAAGATGTC",
+        "ZDB-PUB-050301-1",
+        "",
+    ),
+    # One reagent, several targets (real pattern: a morpholino named for one
+    # gene also hits its paralog). Must aggregate to ONE record with BOTH genes.
+    (
+        "ZDB-GENE-030131-9800",
+        "SO:0001217",
+        "a2ml",
+        "ZDB-MRPHLNO-090212-2",
+        "SO:0000034",
+        "MO2-a2ml",
+        "CAGAGCCATGATGACGAGTGTCCAG",
+        "ZDB-PUB-020723-5",
+        "",
+    ),
+    (
+        "ZDB-GENE-030131-9801",
+        "SO:0001217",
+        "a2m2d",
+        "ZDB-MRPHLNO-090212-2",
+        "SO:0000034",
+        "MO2-a2ml",
+        "CAGAGCCATGATGACGAGTGTCCAG",
+        "ZDB-PUB-020723-5",
+        "",
+    ),
+]
+
+CRISPR_ROWS = [
+    (
+        "ZDB-GENE-990415-270",
+        "SO:0001217",
+        "tp53",
+        "ZDB-CRISPR-160122-1",
+        "SO:0001429",
+        "CRISPR1-tp53",
+        "GGTGGGAGAGTGGATGGCTGAGG",
+        "ZDB-PUB-160209-3",
+        "",
+    ),
+]
+
+# TALEN rows carry TWO target-arm sequences (10 columns).
+TALEN_ROWS = [
+    (
+        "ZDB-GENE-991019-6",
+        "SO:0001217",
+        "aanat2",
+        "ZDB-TALEN-131030-12",
+        "SO:0000059",
+        "TALEN1-aanat2",
+        "TGGTGGCCTTCATCATT",
+        "TGTTCTAGTTTCTCTT",
+        "ZDB-PUB-130124-4",
+        "",
+    ),
+]
+
+DISTINCT_REAGENTS = 4
+
 # (fish id, name, abbreviation, genotype id)
 WILDTYPE_ROWS = [
     ("ZDB-FISH-150901-29105", "TU", "TU", "ZDB-GENO-990623-3"),
@@ -224,6 +296,9 @@ def _write_downloads(data_dir):
         "features.txt": FEATURE_ROWS,
         "features-affected-genes.txt": AFFECTED_ROWS,
         "wildtypes_fish.txt": WILDTYPE_ROWS,
+        "Morpholinos.txt": MORPHOLINO_ROWS,
+        "CRISPR.txt": CRISPR_ROWS,
+        "TALEN.txt": TALEN_ROWS,
     }
     for name, table in rows.items():
         text = "".join("\t".join(row) + "\n" for row in table)
@@ -359,6 +434,39 @@ def test_wildtypes_sorted_with_curies(zfin_client):
     assert [w["name"] for w in body] == ["AB", "TU", "WIK"]
     assert body[0]["fish_id"] == "ZFIN:ZDB-FISH-150901-27842"
     assert body[0]["genotype_id"] == "ZFIN:ZDB-GENO-960809-7"
+
+
+def test_reagent_search_fills_the_card(zfin_client):
+    body = zfin_client.get("/api/zfin/reagents", params={"q": "MO1-gata1a"}).json()
+    assert body["indexed_reagents"] == DISTINCT_REAGENTS
+    assert body["results"][0] == {
+        "reagent_symbol": "MO1-gata1a",
+        "reagent_id": "ZFIN:ZDB-MRPHLNO-050208-10",
+        "reagent_type": "morpholino",
+        "targeted_genes": [{"gene_symbol": "gata1a", "gene_id": "ZFIN:ZDB-GENE-980526-476"}],
+    }
+
+
+def test_multi_target_reagent_aggregates_to_one_record(zfin_client):
+    body = zfin_client.get("/api/zfin/reagents", params={"q": "MO2-a2ml"}).json()
+    assert body["total_matches"] == 1
+    genes = [g["gene_symbol"] for g in body["results"][0]["targeted_genes"]]
+    assert genes == ["a2ml", "a2m2d"]
+
+
+def test_target_gene_finds_its_reagents(zfin_client):
+    body = zfin_client.get("/api/zfin/reagents", params={"q": "tp53"}).json()
+    hit = body["results"][0]
+    assert hit["reagent_symbol"] == "CRISPR1-tp53"
+    assert hit["reagent_type"] == "crispr"
+
+
+def test_talen_layout_with_two_arm_sequences_parses(zfin_client):
+    body = zfin_client.get("/api/zfin/reagents", params={"q": "aanat2"}).json()
+    hit = body["results"][0]
+    assert hit["reagent_symbol"] == "TALEN1-aanat2"
+    assert hit["reagent_type"] == "talen"
+    assert hit["targeted_genes"][0]["gene_id"] == "ZFIN:ZDB-GENE-991019-6"
 
 
 def test_missing_downloads_give_503_with_fetch_hint(tmp_path):

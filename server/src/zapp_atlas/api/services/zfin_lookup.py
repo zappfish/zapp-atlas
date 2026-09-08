@@ -6,7 +6,7 @@ an allele symbol (``fh111``), a gene (``fgf8a``), or a construct fragment
 ZDB-ALT id, alteration type, affected gene, construct — so the ZFIN
 identifiers attach without the curator ever seeing an identifier field.
 
-Three files from https://zfin.org/downloads (fetched by ``just fetch-zfin``
+Six files from https://zfin.org/downloads (fetched by ``just fetch-zfin``
 into ``settings.zfin_data_dir``; never committed):
 
 * ``features.txt`` — genomic feature (allele) rows: id, SO type, symbol,
@@ -19,6 +19,10 @@ into ``settings.zfin_data_dir``; never committed):
   ``is allele of`` relationship is indexed; transgenic insertions have no
   such rows (their gene-ish search surface is the construct name instead).
 * ``wildtypes_fish.txt`` — the wild-type lines with their fish/genotype ids.
+* ``Morpholinos.txt`` / ``CRISPR.txt`` / ``TALEN.txt`` — the registered
+  transient reagents, one row per (reagent, targeted gene). A few hundred
+  reagents list several targets (a morpholino hitting both paralogs), so
+  rows are aggregated by reagent id — the features.txt lesson again.
 
 The whole index lives in memory (~84k alleles, a few tens of MB) and is built
 lazily on first use, cached per data directory. Searches are linear scans —
@@ -34,9 +38,22 @@ from pathlib import Path
 from linkml_runtime import SchemaView
 
 from zapp_atlas.schema.constraints import SCHEMA_PATH
-from zapp_atlas.schema.pydantic_crud import SequenceAlterationTypeEnum
+from zapp_atlas.schema.pydantic_crud import ReagentTypeEnum, SequenceAlterationTypeEnum
 
-_REQUIRED_FILES = ("features.txt", "features-affected-genes.txt", "wildtypes_fish.txt")
+# filename -> which ReagentTypeEnum its rows are. The three files share one
+# column layout for everything we read (TALEN's second target-arm sequence
+# sits beyond it).
+_REAGENT_FILES = {
+    "Morpholinos.txt": ReagentTypeEnum.morpholino,
+    "CRISPR.txt": ReagentTypeEnum.crispr,
+    "TALEN.txt": ReagentTypeEnum.talen,
+}
+_REQUIRED_FILES = (
+    "features.txt",
+    "features-affected-genes.txt",
+    "wildtypes_fish.txt",
+    *_REAGENT_FILES,
+)
 _SO_TRANSGENIC_INSERTION = "SO:0001218"
 _AFFECTED_GENE_RELATIONSHIP = "is allele of"
 
@@ -138,6 +155,14 @@ class AlleleRecord:
 
 
 @dataclass(frozen=True)
+class ReagentRecord:
+    reagent_symbol: str
+    reagent_id: str  # CURIE (ZFIN:ZDB-MRPHLNO/CRISPR/TALEN-…)
+    reagent_type: ReagentTypeEnum
+    targeted_genes: tuple[AffectedGene, ...]  # usually 1; a few hit paralogs too
+
+
+@dataclass(frozen=True)
 class WildtypeLine:
     name: str
     abbreviation: str
@@ -147,19 +172,37 @@ class WildtypeLine:
 
 @dataclass(frozen=True)
 class _SearchRow:
-    """An allele plus its precomputed lowercase search surface."""
+    """A record plus its precomputed lowercase search surface."""
 
-    record: AlleleRecord
+    record: AlleleRecord | ReagentRecord
     symbol: str
     genes: tuple[str, ...]
     construct: str
 
 
+def _search(rows: list[_SearchRow], query: str, limit: int) -> tuple[int, list]:
+    """Ranked substring search; returns (total matches, top ``limit`` records)."""
+    q = query.strip().lower()
+    matches: list[tuple[int, str, AlleleRecord | ReagentRecord]] = []
+    for row in rows:
+        rank = _rank(row, q)
+        if rank is not None:
+            matches.append((rank, row.symbol, row.record))
+    matches.sort(key=lambda m: (m[0], m[1]))
+    return len(matches), [record for _, _, record in matches[:limit]]
+
+
 class ZfinIndex:
-    def __init__(self, alleles: list[AlleleRecord], wildtypes: list[WildtypeLine]):
+    def __init__(
+        self,
+        alleles: list[AlleleRecord],
+        wildtypes: list[WildtypeLine],
+        reagents: list[ReagentRecord],
+    ):
         self.wildtypes = wildtypes
         self.allele_count = len(alleles)
-        self._rows = [
+        self.reagent_count = len(reagents)
+        self._allele_rows = [
             _SearchRow(
                 record=rec,
                 symbol=rec.allele_symbol.lower(),
@@ -168,17 +211,21 @@ class ZfinIndex:
             )
             for rec in alleles
         ]
+        self._reagent_rows = [
+            _SearchRow(
+                record=rec,
+                symbol=rec.reagent_symbol.lower(),
+                genes=tuple(g.gene_symbol.lower() for g in rec.targeted_genes),
+                construct="",
+            )
+            for rec in reagents
+        ]
 
     def search_alleles(self, query: str, limit: int) -> tuple[int, list[AlleleRecord]]:
-        """Ranked substring search; returns (total matches, top ``limit``)."""
-        q = query.strip().lower()
-        matches: list[tuple[int, str, AlleleRecord]] = []
-        for row in self._rows:
-            rank = _rank(row, q)
-            if rank is not None:
-                matches.append((rank, row.symbol, row.record))
-        matches.sort(key=lambda m: (m[0], m[1]))
-        return len(matches), [record for _, _, record in matches[:limit]]
+        return _search(self._allele_rows, query, limit)
+
+    def search_reagents(self, query: str, limit: int) -> tuple[int, list[ReagentRecord]]:
+        return _search(self._reagent_rows, query, limit)
 
 
 def _rank(row: _SearchRow, q: str) -> int | None:
@@ -267,6 +314,42 @@ def _parse_affected_genes(path: Path) -> dict[str, list[AffectedGene]]:
     return affected
 
 
+def _parse_reagents(path: Path, reagent_type: ReagentTypeEnum) -> list[ReagentRecord]:
+    """One reagent file: gene_id, _, gene_symbol, reagent_id, _, reagent_symbol, …
+
+    Aggregated by reagent id: a reagent named for one gene can list several
+    targets (e.g. a morpholino hitting both paralogs), one row each.
+    """
+    partial: dict[str, dict] = {}
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            cols = line.rstrip("\n").split("\t")
+            if len(cols) < 6 or not cols[3].startswith("ZDB-"):
+                continue
+            gene_id, gene_symbol, zdb_id, symbol = cols[0], cols[2], cols[3], cols[5]
+            if not symbol:
+                continue
+            entry = partial.setdefault(zdb_id, {"reagent_symbol": symbol, "genes": []})
+            if (
+                gene_id
+                and gene_symbol
+                and all(g.gene_id != _curie(gene_id) for g in entry["genes"])
+            ):
+                entry["genes"].append(
+                    AffectedGene(gene_symbol=gene_symbol, gene_id=_curie(gene_id))
+                )
+
+    return [
+        ReagentRecord(
+            reagent_symbol=entry["reagent_symbol"],
+            reagent_id=_curie(zdb_id),
+            reagent_type=reagent_type,
+            targeted_genes=tuple(entry["genes"]),
+        )
+        for zdb_id, entry in partial.items()
+    ]
+
+
 def _parse_wildtypes(path: Path) -> list[WildtypeLine]:
     lines: list[WildtypeLine] = []
     with path.open(encoding="utf-8") as fh:
@@ -308,9 +391,15 @@ def get_index(data_dir: Path) -> ZfinIndex:
         )
 
     affected = _parse_affected_genes(key / "features-affected-genes.txt")
+    reagents = [
+        record
+        for filename, reagent_type in _REAGENT_FILES.items()
+        for record in _parse_reagents(key / filename, reagent_type)
+    ]
     index = ZfinIndex(
         alleles=_parse_features(key / "features.txt", affected),
         wildtypes=_parse_wildtypes(key / "wildtypes_fish.txt"),
+        reagents=reagents,
     )
     _INDEXES[key] = index
     return index

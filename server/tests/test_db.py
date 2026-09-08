@@ -30,6 +30,7 @@ def test_init_db_creates_expected_tables():
         "Fish",
         "MutantAllele",
         "TransgenicAllele",
+        "TransientReagent",
         "PhenotypeTerm",
         "QuantityValue",
         "Image",

@@ -255,15 +255,16 @@ classes:
     is_a: ZappEntity
     description: >-
       A zebrafish subject as the curator describes it: allele(s) on a wild-type
-      background. The two ZFIN ids are mapped from that description against
-      ZFIN's registered records, never entered. Transient reagents
-      (morpholinos/CRISPRs) are not modeled yet.
+      background, plus any injected transient reagents. The two ZFIN ids are
+      mapped from that description against ZFIN's registered records, never
+      entered.
     slots:
       - name
       - fish_zfin_id
       - genotype_zfin_id
       - mutant_allele
       - transgenic_allele
+      - transient_reagent
       - background_name
       - background_zfin_id
     slot_usage:
@@ -315,6 +316,26 @@ classes:
         description: Gene id of the construct's driver / reporter gene, when recorded.
       affected_gene_symbol:
         description: Driver / reporter gene symbol, e.g. "fli1".
+
+  TransientReagent:
+    is_a: ZappEntity
+    description: >-
+      A sequence-targeting reagent injected into the embryos (morpholino,
+      CRISPR, TALEN). Transient and not heritable — part of the fish, not the
+      genotype. Dose and injection stage are experiment-side facts.
+    slots:
+      - reagent_id
+      - reagent_symbol
+      - reagent_type
+      - affected_gene_id
+      - affected_gene_symbol
+    slot_usage:
+      reagent_symbol:
+        required: true
+      affected_gene_id:
+        description: Gene id of the reagent's target, when recorded.
+      affected_gene_symbol:
+        description: The gene the reagent targets / knocks down, e.g. "gata1a".
 
   # Operational entities (research groups and what they keep on hand)
   ResearchGroup:
@@ -437,6 +458,22 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: true
+  transient_reagent:
+    description: Injected reagent(s) carried by the fish — transient, not heritable.
+    range: TransientReagent
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  reagent_id:
+    description: ZFIN reagent id (ZDB-MRPHLNO-…, ZDB-CRISPR-…, or ZDB-TALEN-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-[0-9]{6}-[0-9]+$"
+  reagent_symbol:
+    description: The reagent symbol, e.g. "MO1-gata1a", "CRISPR1-tp53".
+    range: string
+  reagent_type:
+    description: Which kind of injected reagent this is.
+    range: ReagentTypeEnum
   background_name:
     description: Wild-type background strain, e.g. "AB". Absent when unknown.
     range: string
@@ -715,6 +752,19 @@ enums:
         meaning: GENO:0000137
       wild_type:
         description: Zero copies of the allele (ZFIN's parental "W").
+
+  ReagentTypeEnum:
+    description: >-
+      The three sequence-targeting reagent kinds ZFIN registers, one per
+      reagent id prefix. Corpus evidence in notebooks/zfin_ingest_qc.ipynb.
+    permissible_values:
+      morpholino:
+        description: Antisense morpholino oligo — knocks down without editing.
+        meaning: SO:0000034
+      crispr:
+        description: Injected CRISPR guide (ZFIN types these by binding site; no reagent SO term fits).
+      talen:
+        description: Injected TALEN pair (likewise typed by binding site in ZFIN).
 
   SequenceAlterationTypeEnum:
     description: >-

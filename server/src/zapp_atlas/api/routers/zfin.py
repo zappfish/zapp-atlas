@@ -14,7 +14,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from zapp_atlas.api.deps import get_app_settings
-from zapp_atlas.api.dto import ZfinAlleleOut, ZfinAlleleSearchOut, ZfinWildtypeOut
+from zapp_atlas.api.dto import (
+    ZfinAlleleOut,
+    ZfinAlleleSearchOut,
+    ZfinReagentOut,
+    ZfinReagentSearchOut,
+    ZfinWildtypeOut,
+)
 from zapp_atlas.api.services.zfin_lookup import ZfinDataUnavailable, ZfinIndex, get_index
 from zapp_atlas.settings import AppSettings
 
@@ -43,6 +49,22 @@ def search_alleles_endpoint(
         total_matches=total,
         indexed_alleles=index.allele_count,
         results=[ZfinAlleleOut.model_validate(r) for r in records],
+    )
+
+
+@router.get("/reagents", response_model=ZfinReagentSearchOut)
+def search_reagents_endpoint(
+    settings: SettingsDep,
+    q: Annotated[str, Query(min_length=1, max_length=100)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> ZfinReagentSearchOut:
+    index = _index(settings)
+    total, records = index.search_reagents(q, limit)
+    return ZfinReagentSearchOut(
+        query=q,
+        total_matches=total,
+        indexed_reagents=index.reagent_count,
+        results=[ZfinReagentOut.model_validate(r) for r in records],
     )
 
 

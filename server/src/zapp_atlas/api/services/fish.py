@@ -13,11 +13,13 @@ from zapp_atlas.schema.pydantic_crud import (
     FishCreate,
     MutantAlleleCreate,
     TransgenicAlleleCreate,
+    TransientReagentCreate,
 )
 from zapp_atlas.schema.sqla import (  # type: ignore
     Fish,
     MutantAllele,
     TransgenicAllele,
+    TransientReagent,
 )
 
 
@@ -51,6 +53,16 @@ def _transgenic_allele_from_create(payload: TransgenicAlleleCreate) -> Transgeni
     )
 
 
+def _transient_reagent_from_create(payload: TransientReagentCreate) -> TransientReagent:
+    return TransientReagent(
+        reagent_id=payload.reagent_id,
+        reagent_symbol=payload.reagent_symbol,
+        reagent_type=payload.reagent_type,
+        affected_gene_id=payload.affected_gene_id,
+        affected_gene_symbol=payload.affected_gene_symbol,
+    )
+
+
 def fish_from_create(payload: FishCreate | None) -> Fish | None:
     if payload is None:
         return None
@@ -65,4 +77,6 @@ def fish_from_create(payload: FishCreate | None) -> Fish | None:
         fish.mutant_allele.append(_mutant_allele_from_create(mutant))
     for transgenic in payload.transgenic_allele or []:
         fish.transgenic_allele.append(_transgenic_allele_from_create(transgenic))
+    for reagent in payload.transient_reagent or []:
+        fish.transient_reagent.append(_transient_reagent_from_create(reagent))
     return fish
