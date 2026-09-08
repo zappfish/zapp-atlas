@@ -60,13 +60,13 @@ def test_cabinet_grain_is_unique_per_group_and_chemical(session, group):
     )
 
 
-def test_tank_grain_is_unique_per_group_and_fish(session, group):
-    fish = Fish(name="AB")
+def test_tank_grain_is_unique_per_group_and_nickname(session, group):
+    fish = Fish(fish_zfin_id="ZFIN:ZDB-FISH-150901-27842")
     session.add(fish)
     session.commit()
     assert_second_insert_rejected(
         session,
-        lambda: FishTankEntry(research_group=group.id, fish_id=fish.id),
+        lambda: FishTankEntry(research_group=group.id, nickname="AB stock", fish_id=fish.id),
     )
 
 

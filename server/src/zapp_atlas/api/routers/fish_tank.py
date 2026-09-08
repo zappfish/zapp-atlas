@@ -1,9 +1,9 @@
 """Fish tank endpoints (a research group's maintained fish lines).
 
-Scoped to a group in the path and requires membership. A line already in the
-group's tank (same ZFIN fish id, or same name for an unregistered line) is a
-409. Each entry stores its own Fish graph from the payload; malformed
-ZFIN ids are rejected by the generated model's patterns (422).
+Scoped to a group in the path and requires membership. Each entry is filed
+under a nickname — what the group calls the line, unique within the group;
+reusing one is a 409 — and stores its own Fish graph from the payload;
+malformed ZFIN ids are rejected by the generated model's patterns (422).
 ``research_group`` is always path-derived.
 """
 
@@ -53,7 +53,7 @@ def add_tank_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> TankEntryOut:
-    entry = add_entry(session, group_id, payload.fish)
+    entry = add_entry(session, group_id, payload.nickname, payload.fish)
     return TankEntryOut.model_validate(entry)
 
 

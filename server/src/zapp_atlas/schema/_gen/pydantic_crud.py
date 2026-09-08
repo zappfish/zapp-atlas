@@ -1319,10 +1319,8 @@ class Fish(ZappEntity):
     A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['GENO:0000525'],
-         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'name': {'name': 'name', 'required': True}}})
+         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     mutant_allele: Optional[list[MutantAllele]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
@@ -1376,7 +1374,6 @@ class FishCreate(ConfiguredBaseModel):
     """
     Create schema for Fish — id is server-generated.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
@@ -1429,7 +1426,6 @@ class FishUpdate(ConfiguredBaseModel):
     """
     Update schema for Fish — all fields optional for partial updates.
     """
-    name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     mutant_allele: Optional[list[MutantAlleleCreate]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
@@ -1482,7 +1478,6 @@ class FishRead(ReadBaseModel):
     """
     Read schema for Fish — from_attributes=True, extra=ignore.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
     fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     mutant_allele: Optional[list[MutantAlleleRead]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
@@ -1542,7 +1537,7 @@ class MutantAllele(ZappEntity):
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1570,7 +1565,7 @@ class MutantAlleleCreate(ConfiguredBaseModel):
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1597,7 +1592,7 @@ class MutantAlleleUpdate(ConfiguredBaseModel):
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: Optional[str] = Field(default=None, description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1624,7 +1619,7 @@ class MutantAlleleRead(ReadBaseModel):
     allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
-    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN gene id (ZDB-GENE-…) of the affected gene.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
     zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
     mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
@@ -1945,7 +1940,7 @@ class ResearchGroup(ZappEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1953,21 +1948,21 @@ class ResearchGroupCreate(ConfiguredBaseModel):
     """
     Create schema for ResearchGroup — id is server-generated.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
 
 
 class ResearchGroupUpdate(ConfiguredBaseModel):
     """
     Update schema for ResearchGroup — all fields optional for partial updates.
     """
-    name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
 
 
 class ResearchGroupRead(ReadBaseModel):
     """
     Read schema for ResearchGroup — from_attributes=True, extra=ignore.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -2118,7 +2113,7 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
 
 class FishTankEntry(ZappEntity):
     """
-    A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
@@ -2127,9 +2122,10 @@ class FishTankEntry(ZappEntity):
                                  'required': True}},
          'unique_keys': {'tank_grain': {'unique_key_name': 'tank_grain',
                                         'unique_key_slots': ['research_group',
-                                                             'fish']}}})
+                                                             'nickname']}}})
 
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -2139,6 +2135,7 @@ class FishTankEntryCreate(ConfiguredBaseModel):
     Create schema for FishTankEntry — id is server-generated.
     """
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
     fish: FishCreate = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -2147,6 +2144,7 @@ class FishTankEntryUpdate(ConfiguredBaseModel):
     Update schema for FishTankEntry — all fields optional for partial updates.
     """
     research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
     fish: Optional[FishCreate] = Field(default=None, description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -2155,6 +2153,7 @@ class FishTankEntryRead(ReadBaseModel):
     Read schema for FishTankEntry — from_attributes=True, extra=ignore.
     """
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
     fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 

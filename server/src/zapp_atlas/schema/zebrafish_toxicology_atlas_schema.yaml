@@ -259,7 +259,6 @@ classes:
       mapped from that description against ZFIN's registered records, never
       entered.
     slots:
-      - name
       - fish_zfin_id
       - genotype_zfin_id
       - mutant_allele
@@ -267,9 +266,6 @@ classes:
       - transient_reagent
       - background_name
       - background_zfin_id
-    slot_usage:
-      name:
-        required: true
     exact_mappings:
       - GENO:0000525
 
@@ -384,12 +380,14 @@ classes:
   FishTankEntry:
     is_a: ZappEntity
     description: >-
-      A fish line a research group maintains. Recorded once, then reused to
-      pre-fill curation instead of re-searching the line each time.
+      A fish line a research group maintains, under the group's own nickname.
+      Recorded once, then reused to pre-fill curation instead of re-searching
+      the line each time.
     annotations:
       timestamped: true
     slots:
       - research_group
+      - nickname
       - fish
     slot_usage:
       fish:
@@ -399,7 +397,7 @@ classes:
       tank_grain:
         unique_key_slots:
           - research_group
-          - fish
+          - nickname
 
   # Value objects (not entities, inlined)
   QuantityValue:
@@ -458,6 +456,12 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: true
+  nickname:
+    description: >-
+      What the group calls this line, e.g. "our casper stock". The handle it is
+      picked by when pre-filling a submission; unique within the group.
+    range: string
+    required: true
   transient_reagent:
     description: Injected reagent(s) carried by the fish — transient, not heritable.
     range: TransientReagent
@@ -491,7 +495,10 @@ slots:
     description: The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg".
     range: string
   affected_gene_id:
-    description: ZFIN gene id (ZDB-GENE-…) of the affected gene.
+    description: >-
+      ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on
+      purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and
+      enhancers — the QC notebook's gene-like universe.
     range: uriorcurie
   affected_gene_symbol:
     description: Symbol of the gene affected by the allele, e.g. "snapc1b".

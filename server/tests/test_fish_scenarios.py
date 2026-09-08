@@ -1,6 +1,8 @@
 """The FISH.pdf 'gross scenarios' round-trip through the API.
 
-Each payload below is the exact FishCreate JSON the fish widget will emit, one
+Fish has no name slot — display strings are derived, and the tank's nickname
+lives on FishTankEntry. Each payload below is the exact FishCreate JSON the
+fish widget will emit, one
 per scenario in the curation slides: wild-type, single mutant (homo and het on
 AB), double mutant, single and multiple transgenics, and the everything case
 (mutant + transgenic + background + parental zygosity), plus a morphant
@@ -19,7 +21,6 @@ from fastapi.testclient import TestClient
 
 SCENARIOS: dict[str, dict] = {
     "wild-type AB": {
-        "name": "AB",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-27842",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-960809-7",
         # AB is its own background: a wild-type line carries no alterations.
@@ -27,7 +28,6 @@ SCENARIOS: dict[str, dict] = {
         "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
     },
     "single mutant, homozygous": {
-        "name": "fgf8a<ti282a/ti282a>",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-20282",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-071127-8",
         "mutant_allele": [
@@ -42,7 +42,6 @@ SCENARIOS: dict[str, dict] = {
         ],
     },
     "single mutant, het on AB": {
-        "name": "fgf8a<ti282a/+> (AB)",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-20750",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-070209-1",
         "mutant_allele": [
@@ -58,7 +57,6 @@ SCENARIOS: dict[str, dict] = {
         "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
     },
     "double mutant": {
-        "name": "fgf8a<ti282a/ti282a>; rerea<tb210/tb210>",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-29355",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-071012-3",
         "mutant_allele": [
@@ -77,7 +75,6 @@ SCENARIOS: dict[str, dict] = {
         ],
     },
     "single transgenic": {
-        "name": "y1Tg",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-3654",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-011017-4",
         "transgenic_allele": [
@@ -93,7 +90,6 @@ SCENARIOS: dict[str, dict] = {
         ],
     },
     "multiple transgenics": {
-        "name": "sd2Tg; y1Tg",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-23010",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-070329-2",
         "transgenic_allele": [
@@ -115,7 +111,6 @@ SCENARIOS: dict[str, dict] = {
         # ZFIN registers reagent-carrying fish too: AB + MO1-gata1a is a real
         # record whose id differs from plain AB's, though the genotype id is
         # AB's own (the injection is transient, not part of the genotype).
-        "name": "AB + MO1-gata1a",
         "fish_zfin_id": "ZFIN:ZDB-FISH-150901-25118",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-960809-7",
         "transient_reagent": [
@@ -131,7 +126,6 @@ SCENARIOS: dict[str, dict] = {
         "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
     },
     "everything, with parental zygosity": {
-        "name": "snapc1b<fh111/fh111>; w200Tg (AB)",
         "fish_zfin_id": "ZFIN:ZDB-FISH-160714-24",
         "genotype_zfin_id": "ZFIN:ZDB-GENO-160714-23",
         "mutant_allele": [
@@ -188,7 +182,6 @@ def test_every_scenario_round_trips(client: TestClient) -> None:
     for label, fish in SCENARIOS.items():
         got = _post_experiment(client, fish)["fish"]
 
-        assert got["name"] == fish["name"], label
         assert got["fish_zfin_id"] == fish["fish_zfin_id"], label
         assert got["genotype_zfin_id"] == fish["genotype_zfin_id"], label
 

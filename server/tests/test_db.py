@@ -68,7 +68,6 @@ def test_study_round_trip():
     # The fgf8a single-mutant from the curation slides: alleles + background
     # directly on the fish, with the mapped ZFIN fish and genotype ids.
     fish = Fish(
-        name="fgf8a<ti282a/ti282a>",
         fish_zfin_id="ZFIN:ZDB-FISH-150901-20282",
         genotype_zfin_id="ZFIN:ZDB-GENO-071127-8",
         background_name="AB",
@@ -156,7 +155,6 @@ def test_study_round_trip():
 
     [loaded_exp] = loaded_study.experiment
     assert loaded_exp.standard_rearing_condition is True
-    assert loaded_exp.fish.name == "fgf8a<ti282a/ti282a>"
     assert loaded_exp.fish.fish_zfin_id == "ZFIN:ZDB-FISH-150901-20282"
     loaded_fish = loaded_exp.fish
     assert loaded_fish.genotype_zfin_id == "ZFIN:ZDB-GENO-071127-8"

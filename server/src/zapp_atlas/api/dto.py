@@ -9,16 +9,17 @@ path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
 ``ResearchGroupCreate``/``ResearchGroupRead`` (they fit as-is).
 
-Fields for #113 (``nickname``) and #114 (``manufacturer``/``vehicle``) are
-intentionally absent; the shapes leave room to add them later.
+The #114 fields (``manufacturer``/``vehicle``) live on the generated exposure
+models; the tank's ``nickname`` (#113) is on ``TankEntryIn``/``Out``.
 """
 
 from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 
 from zapp_atlas.schema.pydantic_crud import (
     FishCreate,
@@ -78,17 +79,20 @@ class CabinetEntryOut(_FromAttributes):
 class TankEntryIn(BaseModel):
     """Add a fish line to a group's tank. ``research_group`` is path-derived.
 
-    ``fish`` is the generated create model — the same full Fish graph
-    an experiment takes — so a line saved to the tank can later pre-fill a
-    submission without losing detail. Its ZFIN-id patterns reject malformed
-    identifiers with a 422.
+    ``nickname`` is what the group calls the line — the handle the picker
+    shows, unique within the group. ``fish`` is the generated create model —
+    the same full Fish graph an experiment takes — so a line saved to the tank
+    can later pre-fill a submission without losing detail. Its ZFIN-id
+    patterns reject malformed identifiers with a 422.
     """
 
+    nickname: Annotated[str, StringConstraints(min_length=1, max_length=200)]
     fish: FishCreate
 
 
 class TankEntryOut(_FromAttributes):
     id: int
+    nickname: str
     fish: FishRead
     created_at: datetime | None
     updated_at: datetime | None

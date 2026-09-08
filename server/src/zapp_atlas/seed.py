@@ -54,7 +54,6 @@ def _build_ab_fish() -> Fish:
     fresh row is built per call because Fish is inlined per experiment.
     """
     return Fish(
-        name="AB",
         fish_zfin_id="ZFIN:ZDB-FISH-150901-27842",
         genotype_zfin_id="ZFIN:ZDB-GENO-960809-7",
         background_name="AB",

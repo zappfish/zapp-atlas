@@ -67,7 +67,6 @@ def fish_from_create(payload: FishCreate | None) -> Fish | None:
     if payload is None:
         return None
     fish = Fish(
-        name=payload.name,
         fish_zfin_id=payload.fish_zfin_id,
         genotype_zfin_id=payload.genotype_zfin_id,
         background_name=payload.background_name,

@@ -453,7 +453,6 @@ class Fish(ZappEntity):
 
     __tablename__ = "Fish"
 
-    name: Mapped[str] = mapped_column(Text())
     fish_zfin_id: Mapped[str | None] = mapped_column(Text())
     genotype_zfin_id: Mapped[str | None] = mapped_column(Text())
     background_name: Mapped[str | None] = mapped_column(Text())
@@ -470,7 +469,7 @@ class Fish(ZappEntity):
     transient_reagent: Mapped[list[TransientReagent]] = relationship(foreign_keys="[TransientReagent.Fish_id]")
 
     def __repr__(self):
-        return f"Fish(name={self.name},fish_zfin_id={self.fish_zfin_id},genotype_zfin_id={self.genotype_zfin_id},background_name={self.background_name},background_zfin_id={self.background_zfin_id},id={self.id},)"
+        return f"Fish(fish_zfin_id={self.fish_zfin_id},genotype_zfin_id={self.genotype_zfin_id},background_name={self.background_name},background_zfin_id={self.background_zfin_id},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -599,18 +598,19 @@ class ChemicalCabinetEntry(ZappEntity):
 
 class FishTankEntry(ZappEntity):
     """
-    A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
     """
 
     __tablename__ = "FishTankEntry"
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    nickname: Mapped[str] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     fish_id: Mapped[int] = mapped_column(Integer(), ForeignKey("Fish.id"))
     fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])
 
     def __repr__(self):
-        return f"FishTankEntry(research_group={self.research_group},id={self.id},fish_id={self.fish_id},)"
+        return f"FishTankEntry(research_group={self.research_group},nickname={self.nickname},id={self.id},fish_id={self.fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

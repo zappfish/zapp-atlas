@@ -1,11 +1,11 @@
 """Fish tank persistence (a group's maintained fish lines).
 
-A tank entry owns its whole Fish graph: fish are inlined per use, not
-shared rows, because integer-keyed Fish has no natural key the database could
-dedupe on (two labs' "AB" may differ in zygosity detail). The
-``tank_grain`` unique index therefore no longer catches a duplicate line by
-itself; ``add_entry`` checks the meaningful key instead — the ZFIN fish id when
-the line has one, the name within the group when it does not — and answers 409.
+A tank entry owns its whole Fish graph: fish are inlined per use, not shared
+rows, because integer-keyed Fish has no natural key the database could dedupe
+on (two labs' "AB" may differ in zygosity detail). The handle is the group's
+own NICKNAME for the line — the thing the picker shows — so that is the
+dedup key: ``add_entry`` answers 409 when the group already uses the nickname,
+and the ``tank_grain`` unique index (research_group, nickname) backs it up.
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.services.fish import fish_from_create
 from zapp_atlas.schema.pydantic_crud import FishCreate
-from zapp_atlas.schema.sqla import Fish, FishTankEntry  # type: ignore
+from zapp_atlas.schema.sqla import FishTankEntry  # type: ignore
 
-_DUPLICATE = "That fish line is already in this tank"
+_DUPLICATE = "That nickname is already used in this tank"
 
 
 def list_entries(
@@ -45,21 +45,24 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> FishTankEntry |
     )
 
 
-def _is_duplicate(session: Session, group_id: int, payload: FishCreate) -> bool:
-    query = (
+def _is_duplicate(session: Session, group_id: int, nickname: str) -> bool:
+    return (
         session.query(FishTankEntry)
-        .join(Fish, FishTankEntry.fish_id == Fish.id)
-        .filter(FishTankEntry.research_group == group_id)
+        .filter(
+            FishTankEntry.research_group == group_id,
+            FishTankEntry.nickname == nickname,
+        )
+        .first()
+        is not None
     )
-    if payload.fish_zfin_id is not None:
-        return query.filter(Fish.fish_zfin_id == payload.fish_zfin_id).first() is not None
-    return query.filter(Fish.name == payload.name).first() is not None
 
 
-def add_entry(session: Session, group_id: int, payload: FishCreate) -> FishTankEntry:
-    if _is_duplicate(session, group_id, payload):
+def add_entry(session: Session, group_id: int, nickname: str, payload: FishCreate) -> FishTankEntry:
+    if _is_duplicate(session, group_id, nickname):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_DUPLICATE)
-    entry = FishTankEntry(research_group=group_id, fish=fish_from_create(payload))
+    entry = FishTankEntry(
+        research_group=group_id, nickname=nickname, fish=fish_from_create(payload)
+    )
     session.add(entry)
     session.commit()
     session.refresh(entry)

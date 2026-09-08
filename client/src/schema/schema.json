@@ -390,10 +390,6 @@
             "null"
           ]
         },
-        "name": {
-          "description": "Name or label of an entity.",
-          "type": "string"
-        },
         "transgenic_allele": {
           "description": "Transgenic insertion(s) carried by the fish.",
           "items": {
@@ -416,7 +412,6 @@
         }
       },
       "required": [
-        "name",
         "id"
       ],
       "title": "Fish",
@@ -424,7 +419,7 @@
     },
     "FishTankEntry": {
       "additionalProperties": false,
-      "description": "A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.",
+      "description": "A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.",
       "properties": {
         "fish": {
           "$ref": "#/$defs/Fish",
@@ -434,6 +429,10 @@
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "nickname": {
+          "description": "What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.",
+          "type": "string"
+        },
         "research_group": {
           "description": "The research group an entry belongs to.",
           "type": "integer"
@@ -441,6 +440,7 @@
       },
       "required": [
         "research_group",
+        "nickname",
         "fish",
         "id"
       ],
@@ -527,7 +527,7 @@
       "description": "A mutant allele carried by the fish: which gene it damages, and its zygosity in the fish and parents.",
       "properties": {
         "affected_gene_id": {
-          "description": "ZFIN gene id (ZDB-GENE-…) of the affected gene.",
+          "description": "ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe.",
           "type": [
             "string",
             "null"

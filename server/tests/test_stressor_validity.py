@@ -82,7 +82,7 @@ def _experiment(client: TestClient) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"name": "AB", "background_name": "AB"},
+            "fish": {"background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },

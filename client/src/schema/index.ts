@@ -484,8 +484,6 @@ export interface ExposureType extends OntologyEntity {
  * A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
  */
 export interface Fish extends ZappEntity {
-    /** Name or label of an entity. */
-    name: string,
     /** ZFIN fish id (ZDB-FISH-…), when registered. */
     fish_zfin_id?: string,
     /** ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered. */
@@ -513,7 +511,7 @@ export interface MutantAllele extends ZappEntity {
     allele_symbol: string,
     /** The class of sequence alteration, normalized to an SO term. */
     alteration_type?: string,
-    /** ZFIN gene id (ZDB-GENE-…) of the affected gene. */
+    /** ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe. */
     affected_gene_id?: string,
     /** Symbol of the gene affected by the allele, e.g. "snapc1b". */
     affected_gene_symbol?: string,
@@ -604,11 +602,13 @@ export interface ChemicalCabinetEntry extends ZappEntity {
 
 
 /**
- * A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+ * A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
  */
 export interface FishTankEntry extends ZappEntity {
     /** The research group an entry belongs to. */
     research_group: ResearchGroupId,
+    /** What the group calls this line, e.g. "our casper stock". The handle it is picked by when pre-filling a submission; unique within the group. */
+    nickname: string,
     /** The fish line the group maintains. */
     fish: Fish,
 }
