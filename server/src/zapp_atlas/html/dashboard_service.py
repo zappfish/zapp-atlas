@@ -67,29 +67,25 @@ def _member_names(session: Session, members) -> dict[str, str]:
     }
 
 
-def group_view(session: Session, identity, group_id: int) -> dict | None:
-    """The dashboard context for a group, or None if the caller is not a
-    member.
+def members_view(session: Session, identity, group_id: int) -> dict | None:
+    """The members context for a group, or None if the caller is not a member.
+
+    The members modal swaps itself in place after an add or a remove, so this
+    is split out of `group_view` to render that fragment on its own.
     """
     from zapp_atlas.api.authz import ResearchGroupRoleEnum
-    from zapp_atlas.api.services import cabinet, fish_tank, research_groups
+    from zapp_atlas.api.services import research_groups
     from zapp_atlas.schema.sqla import ResearchGroup
 
     my_membership = membership(session, identity, group_id)
     if my_membership is None:
         return None
     group = session.get(ResearchGroup, group_id)
-    is_admin = my_membership.role == ResearchGroupRoleEnum.admin.value
 
-    tank = fish_tank.list_entries(session, group_id)
-    chemicals = cabinet.list_entries(session, group_id)
-    groups = research_groups.list_groups_for(session, identity)
     members = research_groups.list_members(session, group_id)
     names = _member_names(session, members)
     return {
-        "groups": groups,
-        "my_submissions_count": 0,
-        "is_admin": is_admin,
+        "is_admin": my_membership.role == ResearchGroupRoleEnum.admin.value,
         "members": [
             {
                 "orcid": member.member.removeprefix(_ORCID_PREFIX),
@@ -105,6 +101,30 @@ def group_view(session: Session, identity, group_id: int) -> dict | None:
             }
             for member in members
         ],
+        "group": {"id": group.id, "name": group.name},
+    }
+
+
+def group_view(session: Session, identity, group_id: int) -> dict | None:
+    """The dashboard context for a group, or None if the caller is not a
+    member.
+    """
+    from zapp_atlas.api.services import cabinet, fish_tank, research_groups
+    from zapp_atlas.schema.sqla import ResearchGroup
+
+    people = members_view(session, identity, group_id)
+    if people is None:
+        return None
+    group = session.get(ResearchGroup, group_id)
+
+    tank = fish_tank.list_entries(session, group_id)
+    chemicals = cabinet.list_entries(session, group_id)
+    groups = research_groups.list_groups_for(session, identity)
+    return {
+        "groups": groups,
+        "my_submissions_count": 0,
+        "is_admin": people["is_admin"],
+        "members": people["members"],
         "group": {
             "id": group.id,
             "name": group.name,

@@ -38,6 +38,22 @@ def _group_redirect(request: Request, group_id: int, notice: str = "") -> Respon
     return _redirect(request, target)
 
 
+def _members_fragment(
+    request: Request, session: Session, identity, group_id: int
+) -> Response | None:
+    # The members dialog swaps itself in place, so an htmx add or remove gets
+    # the re-rendered fragment and the dialog stays open. A direct form post
+    # (no htmx) returns None and the caller falls back to its redirect.
+    if not request.headers.get("HX-Request"):
+        return None
+    context = dashboard_service.members_view(session, identity, group_id)
+    if context is None:
+        raise HTTPException(status_code=404, detail="Research group not found")
+    return templates.TemplateResponse(
+        request, "partials/members_body.html", context
+    )
+
+
 def _leading_id(slug: str) -> int | None:
     # A record slug is "<id>-<label>"; the leading integer is the real id and
     # the label is cosmetic. Returns None when the slug does not start with one.
@@ -366,7 +382,9 @@ def add_group_member(
         add_member(session, group_id, payload.member, payload.role.value)
     except HTTPException as exc:
         return _group_redirect(request, group_id, exc.detail)
-    return _group_redirect(request, group_id)
+    return _members_fragment(
+        request, session, identity, group_id
+    ) or _group_redirect(request, group_id)
 
 
 @router.post(
@@ -396,7 +414,9 @@ def remove_group_member(
 
     if not remove_member(session, group_id, member_id):
         raise HTTPException(status_code=404, detail="Membership not found")
-    return _redirect(request, f"/research-groups/{group_id}")
+    return _members_fragment(request, session, identity, group_id) or _redirect(
+        request, f"/research-groups/{group_id}"
+    )
 
 
 @router.post("/research-groups", response_class=HTMLResponse)

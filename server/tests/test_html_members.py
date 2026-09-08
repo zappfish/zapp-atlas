@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from fastapi.testclient import TestClient
 
 ADMIN = "0000-0002-1825-0097"
@@ -84,3 +86,38 @@ def test_add_rejects_a_bad_orcid(client: TestClient) -> None:
         follow_redirects=False,
     )
     assert res.status_code == 422
+
+
+def test_htmx_add_returns_the_members_fragment(client: TestClient) -> None:
+    # The dialog swaps this fragment in place rather than navigating, so the
+    # response is the list alone -- no redirect and no surrounding document.
+    _sign_in(client, ADMIN)
+    group_path = _new_group(client)
+
+    res = client.post(
+        f"{group_path}/members",
+        data={"member": OTHER, "role": "member"},
+        headers={"HX-Request": "true"},
+        follow_redirects=False,
+    )
+    assert res.status_code == 200
+    assert 'id="members-body"' in res.text
+    assert OTHER in res.text
+    assert "<dialog" not in res.text
+
+
+def test_htmx_remove_returns_the_members_fragment(client: TestClient) -> None:
+    _sign_in(client, ADMIN)
+    group_path = _new_group(client)
+    client.post(f"{group_path}/members", data={"member": OTHER, "role": "member"})
+
+    # The only remove button on the page targets the other member (not self).
+    remove_url = re.search(
+        r'data-delete-url="(/research-groups/\d+/members/\d+/remove)"',
+        client.get(group_path).text,
+    ).group(1)
+
+    res = client.post(remove_url, headers={"HX-Request": "true"}, follow_redirects=False)
+    assert res.status_code == 200
+    assert 'id="members-body"' in res.text
+    assert OTHER not in res.text

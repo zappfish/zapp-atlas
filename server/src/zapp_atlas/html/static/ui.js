@@ -105,9 +105,23 @@ document.addEventListener("click", (e) => {
     const modal = document.getElementById(opener.dataset.openModal);
     if (opener.dataset.deleteUrl && modal) {
       // Fill the shared confirm dialog from the row that opened it.
-      modal.querySelector("[data-confirm-form]").action = opener.dataset.deleteUrl;
+      const form = modal.querySelector("[data-confirm-form]");
+      form.action = opener.dataset.deleteUrl;
       modal.querySelector("[data-confirm-text]").textContent =
         `Remove ${opener.dataset.deleteName}? This cannot be undone.`;
+      // A row that names a swap target updates that fragment in place and
+      // leaves its dialog open; without one the post redirects as usual.
+      const target = opener.dataset.deleteTarget;
+      if (target) {
+        form.setAttribute("hx-post", opener.dataset.deleteUrl);
+        form.setAttribute("hx-target", target);
+        form.setAttribute("hx-swap", "outerHTML");
+        htmx.process(form);
+      } else {
+        form.removeAttribute("hx-post");
+        form.removeAttribute("hx-target");
+        form.removeAttribute("hx-swap");
+      }
     }
     if (opener.dataset.editUrl && modal) {
       // Fill the shared edit dialog with the row's current value.
@@ -123,6 +137,14 @@ document.addEventListener("click", (e) => {
   }
   // A click on the dialog element itself (not its panel) is the backdrop.
   if (e.target.matches("dialog.modal")) e.target.close();
+});
+
+// A confirm dialog that swapped a fragment instead of navigating is still on
+// screen once the swap lands, so close it here.
+document.body.addEventListener("htmx:afterSwap", (e) => {
+  if (e.detail.requestConfig?.elt?.matches("[data-confirm-form]")) {
+    e.detail.requestConfig.elt.closest("dialog")?.close();
+  }
 });
 
 // Toast: auto-dismiss the transient notice a few seconds after it appears.

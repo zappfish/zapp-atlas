@@ -40,6 +40,8 @@
   border-radius: var(--radius-lg);
   padding: 0;
   width: min(28rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
   box-shadow: var(--shadow-modal);
 }
 .modal::backdrop {
@@ -170,12 +172,9 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  /* Past ~5-6 rows the list scrolls on its own; the header and Add section,
-     being outside it, stay fixed. Room on the right keeps the scrollbar clear
-     of the row content. */
-  max-height: 20rem;
-  overflow-y: auto;
-  padding-right: 0.25rem;
+  /* The list grows with its content rather than scrolling: an inner scroll
+     container clips each row's overflow menu, which has nowhere to escape to.
+     The dialog is capped at the viewport, so a long list scrolls there. */
 }
 .member {
   display: flex;
