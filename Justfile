@@ -51,9 +51,13 @@ fix:
 seed:
     cd server && uv run python -m zapp_atlas.seed
 
-# Download the ZFIN reference files: the first three back the /api/zfin lookup
-# endpoints today; the rest feed the genotype resolver, the alias/nickname
-# search, and the gene authority for the new-allele form (and the QC notebook).
+# Download the ZFIN reference files. Every file has a named consumer:
+# - /api/zfin lookup endpoints: features, features-affected-genes,
+#   wildtypes_fish, Morpholinos, CRISPR, TALEN;
+# - the genotype/fish resolver + the QC notebook's codomain evidence:
+#   genotype_features, genotype_backgrounds, fish_components_fish;
+# - the gene authority (QC notebook today, new-allele gene picker later):
+#   genetic_markers.
 fetch-zfin:
     mkdir -p server/src/zapp_atlas/db/data/zfin
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/features.txt https://zfin.org/downloads/features.txt
@@ -61,7 +65,6 @@ fetch-zfin:
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/wildtypes_fish.txt https://zfin.org/downloads/wildtypes_fish.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/genotype_features.txt https://zfin.org/downloads/genotype_features.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/genotype_backgrounds.txt https://zfin.org/downloads/genotype_backgrounds.txt
-    curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/aliases.txt https://zfin.org/downloads/aliases.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/genetic_markers.txt https://zfin.org/downloads/genetic_markers.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/fish_components_fish.txt https://zfin.org/downloads/fish_components_fish.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/Morpholinos.txt https://zfin.org/downloads/Morpholinos.txt
