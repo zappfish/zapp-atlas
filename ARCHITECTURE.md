@@ -67,13 +67,15 @@ server/src/zapp_atlas/
 │   └── models.py      OrcidIdentity (SQLAlchemy)
 ├── api/               Read-write JSON API (mounted under /api)
 │   ├── deps.py        get_session / get_app_settings dependencies
-│   ├── routers/       studies, experiments, exposures, observations, images
-│   └── services/      CRUD business logic per resource
+│   ├── routers/       studies, experiments, exposures, observations, images,
+│   │                  research_groups, cabinet, fish_tank, zfin
+│   └── services/      CRUD + lookup business logic per resource
 ├── db/                Persistence
 │   ├── db.py          SQLAlchemy 2.0 engine + session factory
 │   ├── init_db.py     table creation
+│   ├── migrate.py     idempotent upgrades for databases that predate a change
 │   ├── image_storage.py  local-dir or S3-compatible image storage
-│   └── data/          SQLite db + uploads (gitignored)
+│   └── data/          SQLite db, uploads, fetched ZFIN files (gitignored)
 ├── schema/            LinkML schema + generated models (see below)
 └── seed.py            example data for the dev database
 ```
@@ -91,6 +93,8 @@ server/src/zapp_atlas/
 | `/auth/orcid/*`, `GET /registered` | `auth` router | ORCID OAuth + status |
 | `POST /auth/dev/login` | `auth` router | dev-only fake sign-in (see below) |
 | `/api/{studies,experiments,exposures,observations,images}` | `api` routers | JSON CRUD |
+| `/api/research-groups`, `…/{id}/{chemical-cabinet,fish-tank}` | `api` routers | group-scoped JSON CRUD (member-gated) |
+| `GET /api/zfin/{alleles,reagents,wildtypes}` | `api` router | ZFIN lookup search (503 until `just fetch-zfin`) |
 | `GET /health` | `main` | `{"status":"ok"}` |
 
 Route order matters in `create_app`: the `/edit/assets` mount is registered
@@ -127,9 +131,10 @@ and regenerate, never edit the outputs.
 | `schema/_gen/pydantic_crud.py` | `crud_pydanticgen.py` (custom) | create/read API variants |
 | `schema/_gen/sqla.py` | `gen-sqla` | ORM tables |
 | `client/src/schema/index.ts` | `gen-typescript` | React app's types |
+| `client/src/schema/schema.json` | `gen-json-schema` + `json_schema_post` | runtime validation (Ajv) |
 
 ```sh
-cd server && make schema      # regenerate all four after editing the YAML
+cd server && make schema      # regenerate all five after editing the YAML
 ```
 
 The thin wrappers `schema/{pydantic,pydantic_crud,sqla}.py` re-export the `_gen/`
@@ -164,6 +169,28 @@ checks exist to give the form immediate feedback, not to be trusted. Because the
 generated interfaces are plain data and field names are already snake_case
 (matching the wire format), submitting to the API is just `JSON.stringify(payload)`
 — no serialization layer needed.
+
+## Reference data
+
+The schema draws a line through its controlled vocabularies: small closed sets
+curators pick from (zygosity, alteration type, reagent kind) are enums with
+ontology meanings; large open ones (alleles, genes, reagents, wild-type lines —
+later chemicals and phenotype terms) are CURIE + symbol slots, with the
+vocabulary served as **lookup data**. The ZFIN instance of that pattern:
+
+- **Fetch** — `just fetch-zfin` downloads ZFIN's bulk files into
+  `server/src/zapp_atlas/db/data/zfin/` (gitignored; the recipe's comment names
+  each file's consumer). A deployment runs it once against its persistent disk;
+  until then the lookup endpoints answer 503 naming the fix.
+- **Index** — `api/services/zfin_lookup.py` parses the files into an in-memory
+  index, lazily on first request and cached until restart.
+- **Serve** — `GET /api/zfin/{alleles,reagents,wildtypes}`: ranked autocomplete
+  shaped to pre-fill the fish form's cards, so ZFIN identifiers attach without
+  curators ever seeing an identifier field.
+- **Prove** — `notebooks/zfin_ingest_qc.ipynb` (committed executed;
+  `just qc-report` renders the HTML) is the provenance record: it imports the
+  production parser, shows the corpus evidence behind each modeling decision,
+  and asserts its tables agree with the served index.
 
 ## Frontend
 
