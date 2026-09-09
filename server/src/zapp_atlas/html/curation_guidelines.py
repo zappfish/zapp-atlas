@@ -2,7 +2,7 @@
 
 Held here rather than in the database: these are editorial guidance that
 changes when the curation team revises it, not curated records. The page
-groups them into filterable categories, each holding numbered entries.
+groups them into categories, each holding numbered entries.
 """
 
 from __future__ import annotations
@@ -11,7 +11,6 @@ GROUPS: list[dict] = [
     {
         "slug": "image",
         "label": "Image",
-        "title": "Image-related annotations",
         "entries": [
             {
                 "summary": "The phenotype you pick should be visible on the image",
@@ -65,7 +64,6 @@ GROUPS: list[dict] = [
     {
         "slug": "phenotype",
         "label": "Phenotype",
-        "title": "Phenotype-related annotations",
         "entries": [
             {
                 "summary": "Always use the phenotype picker to select terms",
@@ -100,7 +98,6 @@ GROUPS: list[dict] = [
     {
         "slug": "exposure",
         "label": "Exposure",
-        "title": "Exposure-related annotations",
         "entries": [
             {
                 "summary": "Identify the chemical by ID, not just by name",
@@ -130,14 +127,9 @@ GROUPS: list[dict] = [
     {
         "slug": "misc",
         "label": "Miscellaneous",
-        "title": "Miscellaneous",
         "entries": [
             {"summary": "Chemical screen", "body": ""},
             {"summary": "Bulk submission", "body": "To be determined."},
         ],
     },
 ]
-
-
-def entry_count() -> int:
-    return sum(len(group["entries"]) for group in GROUPS)

@@ -74,10 +74,7 @@ def curation_guidelines_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "curation_guidelines.html",
-        {
-            "groups": curation_guidelines.GROUPS,
-            "entry_count": curation_guidelines.entry_count(),
-        },
+        {"groups": curation_guidelines.GROUPS},
     )
 
 

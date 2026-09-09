@@ -1,36 +1,62 @@
-/* Curation guidelines: filter chips over a list of accordion entries. */
+/* Curation guidelines: category tabs over always-visible guideline sections.
+   The masthead sits on white and the panels on a sunken ground, so both bands
+   run the full page width while their content aligns to a shared column. */
 
 .guide {
-  /* main is a flex column, so without an explicit width this shrinks to fit
-     its content rather than filling the page. */
+  width: 100%;
+  /* A page-wide ground needs more contrast against the white masthead than
+     --surface-sunken, which is tuned for small raised surfaces. */
+  background: #f1f2ef;
+}
+
+.guide__masthead {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+}
+
+.guide__head,
+.guide__inner {
   width: 100%;
   max-width: 85rem;
   margin: 0 auto;
-  padding: 2.5rem 2rem 4rem;
+  padding-inline: 2rem;
+}
+
+.guide__head {
+  padding-top: 2.5rem;
+}
+
+.guide__eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
 }
 
 .guide__head h1 {
-  margin: 0;
+  margin: 0.3rem 0 0;
   font-size: var(--text-2xl);
 }
 
-.guide__head p {
-  margin: 0.4rem 0 0;
-  color: var(--muted);
-}
-
-.guide__filters {
+/* Tabs: labels on one strip, panels below via `order`. Each radio precedes
+   its own label and panel, so these rules cover any number of categories. */
+.guide__tabs {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1.75rem 0 1.5rem;
-  padding: 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 0.625rem;
+  align-items: flex-end;
+  width: 100%;
+  margin-top: 1.5rem;
 }
 
-/* The radios drive filtering via :has() below; only their labels are shown. */
+/* The label strip aligns to the shared column; the panels below it do not,
+   so the strip gets the inset and the panel keeps the full width. */
+.guide__tab:first-of-type {
+  margin-left: max(2rem, calc(50% - 42.5rem + 2rem));
+}
+
 .guide__radio {
   position: absolute;
   width: 1px;
@@ -39,142 +65,77 @@
   pointer-events: none;
 }
 
-.guide__chip {
-  padding: 0.45rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: var(--text-sm);
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.guide__chip:hover {
-  background: var(--nav-row-hover);
-}
-
-.guide__radio:checked + .guide__chip {
-  background: var(--teal);
-  border-color: var(--teal);
-  color: var(--white);
-}
-
-.guide__radio:focus-visible + .guide__chip {
-  outline: 2px solid var(--teal);
-  outline-offset: 2px;
-}
-
-.guide__count {
-  margin-left: auto;
-  padding-right: 0.4rem;
-  font-size: var(--text-sm);
-  color: var(--muted);
-}
-
-.guide__group + .guide__group {
-  margin-top: 2rem;
-}
-
-.guide__group-title {
-  margin: 0 0 0.75rem;
+.guide__tab {
+  padding: 0.7rem 1.1rem;
+  border-bottom: 2px solid transparent;
   font-size: var(--text-base);
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.guide__tab:hover {
   color: var(--ink);
 }
 
-.guide__item {
-  border: 1px solid var(--line);
-  border-radius: 0.625rem;
-  background: var(--white);
+.guide__radio:checked + .guide__tab {
+  border-bottom-color: var(--teal);
+  color: var(--ink);
 }
 
-.guide__item + .guide__item {
-  margin-top: 0.6rem;
+.guide__radio:focus-visible + .guide__tab {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
 }
 
-.guide__summary {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1rem;
-  padding: 0.9rem 1.1rem;
-  cursor: pointer;
-  list-style: none;
-}
-
-.guide__summary::-webkit-details-marker {
+/* Panels break out of the masthead's white onto the sunken ground. */
+.guide__panel {
   display: none;
+  order: 1;
+  width: 100%;
+  padding: 2rem 0 3.5rem;
+  border-top: 1px solid var(--line);
 }
 
-.guide__summary:hover {
-  background: var(--nav-row-hover);
-  border-radius: 0.5625rem;
+.guide__radio:checked + .guide__tab + .guide__panel {
+  display: block;
 }
 
-.guide__item[open] .guide__summary,
-.guide__item[open] .guide__summary:hover {
-  background: var(--nav-row-hover);
-  border-radius: 0.5625rem 0.5625rem 0 0;
+/* A guideline: heading over its text, separated from the next by a hairline
+   rather than a card. Measure is capped for reading, not for the page. */
+.guide__item + .guide__item {
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line-strong);
 }
 
 .guide__q {
-  grid-column: 1;
+  margin: 0;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--ink);
 }
 
-/* Plus that becomes a minus when open, drawn from two bars. */
-.guide__sign {
-  position: relative;
-  grid-column: 2;
-  align-self: center;
-  width: 0.875rem;
-  height: 0.875rem;
-  color: var(--muted);
-}
-
-.guide__sign::before,
-.guide__sign::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  border-radius: 1px;
-  background: currentColor;
-  transform: translateY(-50%);
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-
-.guide__sign::after {
-  transform: translateY(-50%) rotate(90deg);
-}
-
-.guide__item[open] .guide__sign::after {
-  opacity: 0;
-  transform: translateY(-50%) rotate(0deg);
-}
-
 .guide__a {
-  margin: 0;
-  padding: 0.9rem 1.1rem 1.1rem;
-  color: var(--ink);
+  max-width: 46rem;
+  margin: 0.4rem 0 0;
+  color: var(--muted);
   line-height: 1.75;
 }
 
-/* Filtering: hide every group, then reveal the one whose radio is checked.
-   #filter-all matches no group, so nothing is hidden in the default state. */
-.guide:has(#filter-image:checked) .guide__group:not([data-category="image"]),
-.guide:has(#filter-phenotype:checked) .guide__group:not([data-category="phenotype"]),
-.guide:has(#filter-exposure:checked) .guide__group:not([data-category="exposure"]),
-.guide:has(#filter-misc:checked) .guide__group:not([data-category="misc"]) {
-  display: none;
-}
-
 @media (max-width: 560px) {
-  .guide__count {
-    width: 100%;
-    margin-left: 0;
-    padding: 0.2rem 0 0 0.2rem;
+  .guide__head,
+  .guide__inner,
+  .guide__tabs {
+    padding-inline: 1.15rem;
+  }
+
+  .guide__tab {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .guide__tab:first-of-type {
+    padding-left: 0;
   }
 }
