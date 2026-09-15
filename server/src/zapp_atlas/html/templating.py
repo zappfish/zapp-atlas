@@ -15,7 +15,6 @@ from zapp_atlas.api.deps import open_session
 from zapp_atlas.auth.services import ORCID_AUTH_COOKIE, get_orcid_identity
 from zapp_atlas.html import nav
 
-
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 

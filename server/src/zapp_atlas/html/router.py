@@ -13,7 +13,6 @@ from zapp_atlas.html import curation_guidelines, dashboard_service
 from zapp_atlas.html.templating import templates
 from zapp_atlas.settings import AppSettings
 
-
 router = APIRouter(tags=["html"])
 
 

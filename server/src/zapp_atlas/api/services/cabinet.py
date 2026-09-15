@@ -21,9 +21,7 @@ def list_entries(
     )
 
 
-def get_entry(
-    session: Session, group_id: int, entry_id: int
-) -> ChemicalCabinetEntry | None:
+def get_entry(session: Session, group_id: int, entry_id: int) -> ChemicalCabinetEntry | None:
     # Scoped by group_id so a valid id under the wrong group reads as absent.
     return (
         session.query(ChemicalCabinetEntry)
@@ -35,9 +33,7 @@ def get_entry(
     )
 
 
-def add_entry(
-    session: Session, group_id: int, chemical_id: str
-) -> ChemicalCabinetEntry:
+def add_entry(session: Session, group_id: int, chemical_id: str) -> ChemicalCabinetEntry:
     entry = ChemicalCabinetEntry(research_group=group_id, chemical_id=chemical_id)
     session.add(entry)
     commit_or_conflict(session, "That chemical is already in this cabinet")

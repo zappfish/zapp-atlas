@@ -109,6 +109,20 @@ class StressorChemicalSynonym(Base):
         return f"StressorChemical_synonym(StressorChemical_id={self.StressorChemical_id},synonym={self.synonym},)"
 
 
+class VehicleOfTransmissionSynonym(Base):
+    """
+    None
+    """
+
+    __tablename__ = "VehicleOfTransmission_synonym"
+
+    VehicleOfTransmission_id: Mapped[int] = mapped_column(Integer(), ForeignKey("VehicleOfTransmission.id"), primary_key=True)
+    synonym: Mapped[str] = mapped_column(Text(), primary_key=True)
+
+    def __repr__(self):
+        return f"VehicleOfTransmission_synonym(VehicleOfTransmission_id={self.VehicleOfTransmission_id},synonym={self.synonym},)"
+
+
 class Study(ZappEntity):
     """
     A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
@@ -299,12 +313,13 @@ class StressorChemical(ZappEntity):
 
     chemical_id: Mapped[str | None] = mapped_column(Text())
     cas_id: Mapped[str | None] = mapped_column(Text())
-    chemical_name: Mapped[str | None] = mapped_column(Text())
-    manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', name='ManufacturerEnum'))
+    unrecognized_chemical_name: Mapped[str | None] = mapped_column(Text())
+    manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', 'other_not_listed', name='ManufacturerEnum'))
+    unrecognized_manufacturer_name: Mapped[str | None] = mapped_column(Text())
     comment: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     ExposureEvent_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ExposureEvent.id"))
-    concentration_id: Mapped[int] = mapped_column(Integer(), ForeignKey("QuantityValue.id"))
+    concentration_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("QuantityValue.id"))
     concentration: Mapped[QuantityValue | None] = relationship(foreign_keys=[concentration_id])
 
     synonym_rel: Mapped[list[StressorChemicalSynonym]] = relationship()
@@ -315,7 +330,7 @@ class StressorChemical(ZappEntity):
     )
 
     def __repr__(self):
-        return f"StressorChemical(chemical_id={self.chemical_id},cas_id={self.cas_id},chemical_name={self.chemical_name},manufacturer={self.manufacturer},comment={self.comment},id={self.id},ExposureEvent_id={self.ExposureEvent_id},concentration_id={self.concentration_id},)"
+        return f"StressorChemical(chemical_id={self.chemical_id},cas_id={self.cas_id},unrecognized_chemical_name={self.unrecognized_chemical_name},manufacturer={self.manufacturer},unrecognized_manufacturer_name={self.unrecognized_manufacturer_name},comment={self.comment},id={self.id},ExposureEvent_id={self.ExposureEvent_id},concentration_id={self.concentration_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -327,16 +342,27 @@ class VehicleOfTransmission(ZappEntity):
 
     __tablename__ = "VehicleOfTransmission"
 
-    vehicle_type: Mapped[str] = mapped_column(Enum('acetone', 'acetonitrile', 'albumin_bsa', 'butanone_mek', 'cyclodextrin_hpbcd', 'dimethyl_formamide', 'dmso', 'embryonic_media', 'ethanol', 'glycerol', 'isopropanol', 'methanol', 'methylcellulose', 'pbs', 'polyethylene_glycol', 'propylene_glycol', 'solketal', 'water', name='VehicleEnum'))
-    manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', name='ManufacturerEnum'))
+    vehicle_type: Mapped[str] = mapped_column(Enum('acetone', 'acetonitrile', 'bsa', 'butanone_mek', 'cyclodextrin_hpbcd', 'dimethyl_formamide', 'dmso', 'embryonic_media', 'ethanol', 'glycerol', 'isopropanol', 'methanol', 'methylcellulose', 'pbs', 'polyethylene_glycol', 'propylene_glycol', 'solketal', 'water', 'other_not_listed', name='VehicleEnum'))
+    chemical_id: Mapped[str | None] = mapped_column(Text())
+    cas_id: Mapped[str | None] = mapped_column(Text())
+    unrecognized_chemical_name: Mapped[str | None] = mapped_column(Text())
+    manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', 'other_not_listed', name='ManufacturerEnum'))
+    unrecognized_manufacturer_name: Mapped[str | None] = mapped_column(Text())
     comment: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     ExposureEvent_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ExposureEvent.id"))
     concentration_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("QuantityValue.id"))
     concentration: Mapped[QuantityValue | None] = relationship(foreign_keys=[concentration_id])
 
+    synonym_rel: Mapped[list[VehicleOfTransmissionSynonym]] = relationship()
+    synonym: AssociationProxy[list[str]] = association_proxy(
+        "synonym_rel",
+        "synonym",
+        creator=lambda x_: VehicleOfTransmissionSynonym(synonym=x_),
+    )
+
     def __repr__(self):
-        return f"VehicleOfTransmission(vehicle_type={self.vehicle_type},manufacturer={self.manufacturer},comment={self.comment},id={self.id},ExposureEvent_id={self.ExposureEvent_id},concentration_id={self.concentration_id},)"
+        return f"VehicleOfTransmission(vehicle_type={self.vehicle_type},chemical_id={self.chemical_id},cas_id={self.cas_id},unrecognized_chemical_name={self.unrecognized_chemical_name},manufacturer={self.manufacturer},unrecognized_manufacturer_name={self.unrecognized_manufacturer_name},comment={self.comment},id={self.id},ExposureEvent_id={self.ExposureEvent_id},concentration_id={self.concentration_id},)"
 
     __mapper_args__ = {"concrete": True}
 

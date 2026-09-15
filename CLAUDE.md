@@ -42,6 +42,23 @@ Two things about that codegen are easy to get wrong:
   usual; nothing needs restating in Python. Note that a slot does not always
   become a column of the same name — an inlined slot whose range has an
   identifier becomes `<slot>_<identifier>` (`fish` → `fish_zfin_id`).
+- **Class-level `rules` reach neither generated validators nor, unaided, the
+  client.** `pydanticgen` does not turn a `rule` into a validator, so anything
+  declared that way needs a guard in the service too — raise
+  `SchemaRuleViolation` and `create_app` answers 422. And a rule with no
+  `preconditions` is emitted as a bare `then` with no `if`, which JSON Schema
+  ignores; `schema/json_schema_post.py` hoists those so the client enforces
+  them.
+
+**A schema change is not finished until the deployed database can take it.**
+`create_all` adds missing tables but never alters an existing one, and the
+deployed app keeps its database on a persistent disk — so renaming or adding a
+column leaves production asking for columns its file does not have, and every
+query on that table fails. `db/migrate.py` runs from `init_db` and closes the
+gap: new optional columns are added generically, and anything else (a value
+rename, data moved between columns) needs its own idempotent step there. It is
+deliberately not a migration framework; if these start accumulating, that is
+the signal to adopt Alembic instead of extending it.
 
 **All HTML lives in Jinja templates.** Every document and fragment the app
 returns — pages, htmx partials, error states, and the React client's host
