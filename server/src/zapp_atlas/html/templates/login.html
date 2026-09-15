@@ -76,11 +76,14 @@
         /auth/dev/login for that. Never enabled in production.
       #}
       {% if dev_auth %}
-        <section class="login-card login-card--dev">
-          <h2 class="login-card__title">Development sign-in</h2>
-          <p>ORCID is bypassed because <code>ZAPP_DEV_AUTH</code> is enabled.</p>
-          <form method="post" action="/auth/dev/login" class="login-dev-form">
-            <button type="submit" class="btn btn--primary login-card__submit">
+        <section class="login-dev">
+          <p class="login-dev__tag">Development and preview only</p>
+          <p class="login-dev__text">
+            ORCID is bypassed because <code>ZAPP_DEV_AUTH</code> is enabled.
+            This never runs in production.
+          </p>
+          <form method="post" action="/auth/dev/login">
+            <button type="submit" class="btn login-dev__submit">
               Sign in as Josiah Carberry
             </button>
           </form>

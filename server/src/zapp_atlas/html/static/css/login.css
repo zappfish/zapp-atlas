@@ -216,27 +216,52 @@
   margin: 1.5rem 0 0;
 }
 
-.login-card--dev {
+/* Dev sign-in: deliberately unlike the ORCID card above it. A dashed amber
+   frame reads as scaffolding rather than a second way in, so nobody mistakes
+   it for a supported route. Only rendered when ZAPP_DEV_AUTH is on. */
+.login-dev {
   margin-top: 2rem;
-  background: #fafafa;
+  padding: 1.1rem 1.25rem 1.25rem;
+  border: 1px dashed #d9a441;
+  border-radius: var(--radius-lg);
+  background: #fdf9f0;
+  text-align: left;
 }
 
-.login-dev-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.login-dev-form label {
-  font-size: var(--text-sm);
+.login-dev__tag {
+  margin: 0;
+  font-size: var(--text-xs);
   font-weight: 600;
-  margin-top: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a6b12;
 }
 
-.login-dev-form input {
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 0.375rem;
-  font: inherit;
+.login-dev__text {
+  margin: 0.4rem 0 0.9rem;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.login-dev__text code {
+  padding: 0.05rem 0.3rem;
+  border-radius: 0.25rem;
+  background: #f3e7cd;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.95em;
+  color: #7a5410;
+}
+
+.login-dev__submit {
+  width: 100%;
+  border: 1px solid #d9a441;
+  background: var(--white);
+  color: #7a5410;
+  font-weight: 600;
+}
+
+.login-dev__submit:hover {
+  background: #fbf3e3;
 }
 
