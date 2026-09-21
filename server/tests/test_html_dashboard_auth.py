@@ -41,3 +41,26 @@ def test_group_page_404s_for_a_non_member(client: TestClient) -> None:
     # A group the caller does not belong to reads as absent, so membership
     # cannot be probed by id.
     assert client.get("/research-groups/999999").status_code == 404
+
+
+def test_client_dashboard_redirects_to_login_when_signed_out(
+    client: TestClient,
+) -> None:
+    # The React routes guard at the shell, so a signed-out deep link never
+    # reaches the browser as a frame that empties itself once React boots.
+    res = client.get("/dashboard", follow_redirects=False)
+
+    assert res.status_code == 303
+    assert res.headers["location"] == "/login"
+
+
+def test_client_dashboard_serves_the_shell_when_signed_in(
+    client: TestClient,
+) -> None:
+    _sign_in(client)
+
+    res = client.get("/dashboard")
+
+    assert res.status_code == 200
+    # The shell carries no page data: React fetches what it renders from /api.
+    assert '<div id="root"></div>' in res.text
