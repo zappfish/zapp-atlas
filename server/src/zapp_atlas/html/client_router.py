@@ -1,7 +1,12 @@
-"""The host route for the React editing client.
+"""The host routes for the React client.
 
-Registered *after* the /edit/assets mount in create_app, because the
-catch-all here would otherwise shadow the built asset files.
+Serves the shell document React mounts into. The routes here and the ones in
+html/router.py share a single URL space — Jinja renders the public pages,
+React the dashboard and the submission form — so this file names the paths it
+owns rather than claiming a subtree.
+
+Registered *after* the /assets mount in create_app, so that neither the
+catch-all below nor any route added later shadows the built asset files.
 """
 
 from pathlib import Path
@@ -16,7 +21,7 @@ from zapp_atlas.html.vite import ViteAssetsUnavailable, get_vite_assets
 from zapp_atlas.settings import AppSettings
 
 
-def make_edit_router(dist_dir: Path) -> APIRouter:
+def make_client_router(dist_dir: Path) -> APIRouter:
     router = APIRouter(tags=["html"])
 
     # A catch-all so client-side routes (/edit/studies/1, …) deep-link to the

@@ -36,10 +36,10 @@ class ViteAssets:
 def dev_assets(dev_server_url: str) -> ViteAssets:
     base = dev_server_url.rstrip("/")
     return ViteAssets(
-        scripts=(f"{base}/edit/{ENTRY}",),
+        scripts=(f"{base}/{ENTRY}",),
         # In dev, Vite injects styles at runtime; there is no stylesheet yet.
         stylesheets=(),
-        dev_client=f"{base}/edit/@vite/client",
+        dev_client=f"{base}/@vite/client",
     )
 
 
@@ -56,10 +56,13 @@ def built_assets(dist_dir: Path) -> ViteAssets:
     if entry is None:
         raise ViteAssetsUnavailable(f"Vite manifest at {manifest_path} has no entry for {ENTRY!r}.")
 
-    # Asset URLs are the build's `base` ('/edit/') joined to the manifest path.
+    # Asset URLs are the build's `base` ('/') joined to the manifest path, so
+    # the manifest's "assets/main-X.js" becomes "/assets/main-X.js" — which is
+    # where create_app mounts the build. Changing `base` in vite.config.ts
+    # means changing that mount and this prefix together.
     return ViteAssets(
-        scripts=(f"/edit/{entry['file']}",),
-        stylesheets=tuple(f"/edit/{href}" for href in entry.get("css", ())),
+        scripts=(f"/{entry['file']}",),
+        stylesheets=tuple(f"/{href}" for href in entry.get("css", ())),
     )
 
 

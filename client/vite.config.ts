@@ -20,7 +20,11 @@ export default defineConfig(({ mode }) => {
   const devPort = env.DEV_PORT ? Number(env.DEV_PORT) : 5173;
 
   return {
-    base: '/edit/',
+    // Asset URLs are absolute from the root: the compiled JS and CSS are
+    // shared by every React-rendered page, so they do not belong under any
+    // one route's prefix. Must match the /assets mount in the server's
+    // create_app, or the script tags this base generates 404.
+    base: '/',
     plugins: [react()],
     resolve: {
       alias: {

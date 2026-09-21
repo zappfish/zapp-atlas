@@ -40,8 +40,8 @@ def test_edit_page_uses_dev_server_when_configured(client: TestClient) -> None:
 
     assert res.status_code == 200
     # The dev client must be present for HMR, and load before the entry.
-    assert 'src="http://localhost:5173/edit/@vite/client"' in res.text
-    assert 'src="http://localhost:5173/edit/src/main.tsx"' in res.text
+    assert 'src="http://localhost:5173/@vite/client"' in res.text
+    assert 'src="http://localhost:5173/src/main.tsx"' in res.text
     assert res.text.index("@vite/client") < res.text.index("src/main.tsx")
 
 
@@ -62,8 +62,8 @@ def test_vite_assets_read_hashed_filenames_from_the_manifest(tmp_path) -> None:
 
     assets = get_vite_assets(tmp_path)
 
-    assert assets.scripts == ("/edit/assets/main-abc123.js",)
-    assert assets.stylesheets == ("/edit/assets/main-def456.css",)
+    assert assets.scripts == ("/assets/main-abc123.js",)
+    assert assets.stylesheets == ("/assets/main-def456.css",)
     assert assets.dev_client is None
 
 
@@ -76,12 +76,12 @@ def test_edit_page_explains_how_to_build_when_unavailable(tmp_path) -> None:
     from fastapi import FastAPI
 
     from zapp_atlas.api.deps import get_app_settings
-    from zapp_atlas.html.edit_router import make_edit_router
+    from zapp_atlas.html.client_router import make_client_router
     from zapp_atlas.settings import AppSettings
 
     # An app whose client has never been built and has no dev server.
     app = FastAPI()
-    app.include_router(make_edit_router(tmp_path))
+    app.include_router(make_client_router(tmp_path))
     app.dependency_overrides[get_app_settings] = lambda: AppSettings(vite_dev_server="")
 
     res = TestClient(app).get("/edit")
