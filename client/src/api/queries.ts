@@ -3,7 +3,6 @@ import {
   fetchCabinet,
   fetchFishTank,
   fetchGroup,
-  fetchGroups,
   fetchMembers,
 } from "./groups";
 
@@ -23,7 +22,6 @@ export const keys = {
 export const useGroupDashboard = (groupId: number) => {
   const results = useQueries({
     queries: [
-      { queryKey: keys.groups, queryFn: ({ signal }) => fetchGroups(signal) },
       {
         queryKey: keys.group(groupId),
         queryFn: ({ signal }) => fetchGroup(groupId, signal),
@@ -43,13 +41,11 @@ export const useGroupDashboard = (groupId: number) => {
     ],
   });
 
-  const [groups, group, members, fishTank, cabinet] = results;
+  const [group, members, fishTank, cabinet] = results;
 
   return {
-    isPending: group.isPending,
     error: group.error ?? null,
     group: group.data,
-    groups: { rows: groups.data ?? [], isPending: groups.isPending },
     members: members.data ?? [],
     fishTank: { rows: fishTank.data ?? [], isPending: fishTank.isPending },
     cabinet: { rows: cabinet.data ?? [], isPending: cabinet.isPending },

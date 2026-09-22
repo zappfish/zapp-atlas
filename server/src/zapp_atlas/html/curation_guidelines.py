@@ -26,8 +26,7 @@ GROUPS: list[dict] = [
             {
                 "summary": "Do not annotate phenotypes that are not visible",
                 "body": (
-                    "Phenotypes absent from the submitted image should not be "
-                    "annotated on it."
+                    "Phenotypes absent from the submitted image should not be annotated on it."
                 ),
             },
             {

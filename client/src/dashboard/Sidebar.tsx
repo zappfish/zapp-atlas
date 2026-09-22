@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchGroups } from "@/api/groups";
+import { keys } from "@/api/queries";
 import {
   DashSidebar,
   GroupCaret,
@@ -67,35 +70,43 @@ const SkeletonGroups = () => (
   </GroupList>
 );
 
-const Sidebar = ({
-  groups,
-  activeId,
-  isPending = false,
-}: {
-  groups: Group[];
-  activeId: number;
-  isPending?: boolean;
-}) => (
-  <DashSidebar>
-    <MySubmissionsLink href="/my-submissions">My Submissions</MySubmissionsLink>
+/** The open group, from /research-groups/{id}. Null on any other page. */
+const activeGroupId = (): number | null => {
+  const match = window.location.pathname.match(/^\/research-groups\/(\d+)/);
+  return match ? Number(match[1]) : null;
+};
 
-    <SidebarHeading>My Research Groups</SidebarHeading>
-    {isPending ? (
-      <SkeletonGroups />
-    ) : (
-      <GroupList>
-        {groups.map((group) => (
-          <GroupItem
-            key={group.id}
-            group={group}
-            isActive={group.id === activeId}
-          >
-            <GroupSections groupId={group.id} />
-          </GroupItem>
-        ))}
-      </GroupList>
-    )}
-  </DashSidebar>
-);
+const Sidebar = () => {
+  const { isPending, data } = useQuery({
+    queryKey: keys.groups,
+    queryFn: ({ signal }) => fetchGroups(signal),
+  });
+  const activeId = activeGroupId();
+
+  return (
+    <DashSidebar>
+      <MySubmissionsLink href="/my-submissions">
+        My Submissions
+      </MySubmissionsLink>
+
+      <SidebarHeading>My Research Groups</SidebarHeading>
+      {isPending ? (
+        <SkeletonGroups />
+      ) : (
+        <GroupList>
+          {(data ?? []).map((group) => (
+            <GroupItem
+              key={group.id}
+              group={group}
+              isActive={group.id === activeId}
+            >
+              <GroupSections groupId={group.id} />
+            </GroupItem>
+          ))}
+        </GroupList>
+      )}
+    </DashSidebar>
+  );
+};
 
 export default Sidebar;

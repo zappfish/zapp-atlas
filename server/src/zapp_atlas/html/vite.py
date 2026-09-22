@@ -25,7 +25,7 @@ class ViteAssetsUnavailable(RuntimeError):
 
 @dataclass(frozen=True)
 class ViteAssets:
-    """The tags edit.html needs in order to boot the React app."""
+    """The tags app.html needs in order to boot the React app."""
 
     scripts: tuple[str, ...] = ()
     stylesheets: tuple[str, ...] = ()
