@@ -408,6 +408,40 @@
   border-top: 1px solid var(--line);
 }
 
+/* Loading placeholders. Each holds the height of the content it stands in for,
+   so arriving data does not push the page down. React only. */
+.dash-skeleton,
+.dash-row--skeleton::after {
+  display: inline-block;
+  height: 1.05em;
+  border-radius: 0.25rem;
+  background: var(--line-strong);
+  animation: dash-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.dash-row--skeleton::after {
+  content: "";
+  width: 40%;
+  height: 1.4rem;
+}
+
+@keyframes dash-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-skeleton,
+  .dash-row--skeleton::after {
+    animation: none;
+  }
+}
+
 .dash-row--linked { position: relative; cursor: pointer; }
 .dash-row:has(.sub-menu[open]) { position: relative; z-index: 20; }
 /* Stretched link: covers the row so it is clickable, sitting under the action

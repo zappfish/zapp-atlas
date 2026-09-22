@@ -9,9 +9,10 @@ import {
   GroupText,
   MySubmissionsLink,
   SidebarHeading,
+  SkeletonText,
   SubNav,
 } from "./elements";
-import type { Group } from "./placeholder";
+import type { Group } from "@/api/groups";
 
 /** The group list beside every dashboard page. */
 
@@ -52,28 +53,48 @@ const GroupSections = ({ groupId }: { groupId: number }) => (
   </SubNav>
 );
 
+const SkeletonGroups = () => (
+  <GroupList aria-hidden="true">
+    {Array.from({ length: 3 }, (_, i) => (
+      <GroupListItem key={i}>
+        <GroupSummary isActive={false}>
+          <GroupText>
+            <SkeletonText width="8rem" />
+          </GroupText>
+        </GroupSummary>
+      </GroupListItem>
+    ))}
+  </GroupList>
+);
+
 const Sidebar = ({
   groups,
   activeId,
+  isPending = false,
 }: {
   groups: Group[];
   activeId: number;
+  isPending?: boolean;
 }) => (
   <DashSidebar>
     <MySubmissionsLink href="/my-submissions">My Submissions</MySubmissionsLink>
 
     <SidebarHeading>My Research Groups</SidebarHeading>
-    <GroupList>
-      {groups.map((group) => (
-        <GroupItem
-          key={group.id}
-          group={group}
-          isActive={group.id === activeId}
-        >
-          <GroupSections groupId={group.id} />
-        </GroupItem>
-      ))}
-    </GroupList>
+    {isPending ? (
+      <SkeletonGroups />
+    ) : (
+      <GroupList>
+        {groups.map((group) => (
+          <GroupItem
+            key={group.id}
+            group={group}
+            isActive={group.id === activeId}
+          >
+            <GroupSections groupId={group.id} />
+          </GroupItem>
+        ))}
+      </GroupList>
+    )}
   </DashSidebar>
 );
 

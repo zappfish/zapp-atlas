@@ -46,14 +46,12 @@ export const useGroupDashboard = (groupId: number) => {
   const [groups, group, members, fishTank, cabinet] = results;
 
   return {
-    // Pending until all of it arrives: a header over empty sections reads as
-    // "this group has nothing in it", which is a different claim.
-    isPending: results.some((r) => r.isPending),
-    error: results.find((r) => r.error)?.error ?? null,
-    groups: groups.data ?? [],
+    isPending: group.isPending,
+    error: group.error ?? null,
     group: group.data,
+    groups: { rows: groups.data ?? [], isPending: groups.isPending },
     members: members.data ?? [],
-    fishTank: fishTank.data ?? [],
-    cabinet: cabinet.data ?? [],
+    fishTank: { rows: fishTank.data ?? [], isPending: fishTank.isPending },
+    cabinet: { rows: cabinet.data ?? [], isPending: cabinet.isPending },
   };
 };

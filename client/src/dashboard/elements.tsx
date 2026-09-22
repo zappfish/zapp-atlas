@@ -69,6 +69,14 @@ export const RowMain = styled("div", "dash-row__main");
 export const RowLabel = styled("span", "dash-row__label");
 export const RowSub = styled("span", "dash-row__sub");
 export const MoreButton = styled("button", "dash-more");
+export const SkeletonRow = styled("div", "dash-row dash-row--skeleton");
+
+const SkeletonBar = styled("span", "dash-skeleton");
+
+/** A grey bar standing in for text that has not arrived. */
+export const SkeletonText = ({ width }: { width: string }) => (
+  <SkeletonBar style={{ width }} aria-hidden="true" />
+);
 
 /* ---- empty states ---- */
 

@@ -22,12 +22,31 @@ import {
   TabList,
   UpdatedOn,
 } from "./elements";
-import { STATUSES, type Status as StatusName, type Submission } from "./placeholder";
-
 /**
  * A group's submissions, filtered by status. The Jinja page's tabs are inert;
  * here the selection is state, so they filter.
+ *
+ * No endpoint serves submissions yet, so the list is always empty. The shape
+ * is the one the Jinja page assumes.
  */
+
+/** Not in the schema; the set the Jinja filter tabs assume. */
+export const STATUSES = [
+  "Published",
+  "In Progress",
+  "On Hold",
+  "Retracted",
+] as const;
+
+export type StatusName = (typeof STATUSES)[number];
+
+export interface Submission {
+  id: number;
+  title: string;
+  status: StatusName;
+  submittedBy: string;
+  date: string;
+}
 
 type Filter = StatusName | "All";
 

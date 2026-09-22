@@ -12,6 +12,7 @@ import {
   Section,
   SectionHead,
   SectionTitle,
+  SkeletonRow,
 } from "./elements";
 
 /**
@@ -45,17 +46,30 @@ const EmptyState = ({ text }: { text: string }) => (
   </Empty>
 );
 
+// Holds the section's height while it loads, so arriving rows do not push the
+// page down.
+const Skeleton = () => (
+  <Rows aria-hidden="true">
+    {Array.from({ length: VISIBLE }, (_, i) => (
+      <SkeletonRow key={i} />
+    ))}
+  </Rows>
+);
+
 const RecordSection = ({
   id,
   title,
   rows,
   emptyText,
+  isPending = false,
 }: {
   /** Anchor id, so the sidebar's section links land here. */
   id: string;
   title: string;
   rows: Row[];
-  emptyText: string;
+  /** Unused while pending. */
+  emptyText?: string;
+  isPending?: boolean;
 }) => {
   // The Jinja page does this with a CSS-only checkbox; here it is state.
   const [expanded, setExpanded] = useState(false);
@@ -68,12 +82,14 @@ const RecordSection = ({
       <SectionHead>
         <SectionTitle>
           {title}
-          {rows.length > 0 && <Count>{rows.length}</Count>}
+          {!isPending && rows.length > 0 && <Count>{rows.length}</Count>}
         </SectionTitle>
       </SectionHead>
 
-      {rows.length === 0 ? (
-        <EmptyState text={emptyText} />
+      {isPending ? (
+        <Skeleton />
+      ) : rows.length === 0 ? (
+        <EmptyState text={emptyText ?? ""} />
       ) : (
         <>
           <Rows>
