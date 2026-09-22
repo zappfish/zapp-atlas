@@ -1,19 +1,19 @@
-export default function App() {
-  return (
-    <div>
-      <header>
-        <h1>ZAPP Atlas — Edit</h1>
-        <p>Authoring application (React). Served under /edit.</p>
-      </header>
+import Dashboard from "./dashboard/Dashboard";
 
-      {/*
-        The editing UI goes here. This is the React content edit-point: build
-        out forms and components inside this section. Styling lives in
-        styles.css.
-      */}
-      <main id="content">
-        <p>Editing UI goes here.</p>
-      </main>
-    </div>
+/**
+ * Picks the view for the current path. Read once at mount: every client route
+ * is a full page load today. A router goes in with the first in-app link.
+ */
+const App = () => {
+  if (window.location.pathname === "/dashboard") {
+    return <Dashboard />;
+  }
+
+  return (
+    <main id="content">
+      <p>Editing UI goes here.</p>
+    </main>
   );
-}
+};
+
+export default App;
