@@ -3,13 +3,15 @@ import {
   type ComponentPropsWithoutRef,
   type ElementType,
 } from "react";
+import { Link } from "react-router";
 
 /**
  * Every class name the dashboard uses, so no component renders a raw className.
  * Rules live in ./dashboard.css.
  *
  * `styled` fixes a tag and a class and spreads the rest, so elements still take
- * href, onClick and so on.
+ * href, onClick and so on. The tag can be a component: navigation elements are
+ * built on Link, which swaps the view without reloading the page.
  */
 
 const styled = <T extends ElementType>(tag: T, className: string) => {
@@ -39,7 +41,7 @@ export const DashTitle = styled("h1", "dash-header__title");
 /* ---- sidebar ---- */
 
 export const DashSidebar = styled("aside", "dash-sidebar");
-export const MySubmissionsLink = styled("a", "dash-mysubs");
+export const MySubmissionsLink = styled(Link, "dash-mysubs");
 export const SidebarHeading = styled("h2", "dash-sidebar__heading");
 export const GroupList = styled("ul", "dash-groups");
 export const GroupListItem = styled("li", "dash-group");
@@ -48,14 +50,17 @@ export const GroupName = styled("span", "dash-group__name");
 export const GroupCaret = styled("span", "dash-group__caret");
 export const SubNav = styled("ul", "dash-subnav");
 
-const GroupSummaryLink = styled("a", "dash-group__summary");
+const GroupSummaryLink = styled(Link, "dash-group__summary");
 
 export const GroupSummary = ({
   isActive,
   ...rest
-}: ComponentPropsWithoutRef<"a"> & { isActive: boolean }) => (
+}: ComponentPropsWithoutRef<typeof Link> & { isActive: boolean }) => (
   <GroupSummaryLink className={modifier(isActive, "is-active")} {...rest} />
 );
+
+/** The same row with nowhere to go, for the loading state. */
+export const GroupSummaryBox = styled("div", "dash-group__summary");
 
 /* ---- record sections ---- */
 

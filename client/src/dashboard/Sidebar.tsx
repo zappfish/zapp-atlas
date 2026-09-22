@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link, useLocation } from "react-router";
 import { fetchGroups } from "@/api/groups";
 import { keys } from "@/api/queries";
 import {
@@ -9,6 +10,7 @@ import {
   GroupListItem,
   GroupName,
   GroupSummary,
+  GroupSummaryBox,
   GroupText,
   MySubmissionsLink,
   SidebarHeading,
@@ -30,7 +32,7 @@ const GroupItem = ({
   children?: ReactNode;
 }) => (
   <GroupListItem>
-    <GroupSummary isActive={isActive} href={`/research-groups/${group.id}`}>
+    <GroupSummary isActive={isActive} to={`/research-groups/${group.id}`}>
       <GroupText>
         <GroupName>{group.name}</GroupName>
       </GroupText>
@@ -50,7 +52,7 @@ const GroupSections = ({ groupId }: { groupId: number }) => (
   <SubNav>
     {SECTIONS.map(({ slug, label }) => (
       <li key={slug}>
-        <a href={`/research-groups/${groupId}#${slug}`}>{label}</a>
+        <Link to={`/research-groups/${groupId}#${slug}`}>{label}</Link>
       </li>
     ))}
   </SubNav>
@@ -60,32 +62,30 @@ const SkeletonGroups = () => (
   <GroupList aria-hidden="true">
     {Array.from({ length: 3 }, (_, i) => (
       <GroupListItem key={i}>
-        <GroupSummary isActive={false}>
+        <GroupSummaryBox>
           <GroupText>
             <SkeletonText width="8rem" />
           </GroupText>
-        </GroupSummary>
+        </GroupSummaryBox>
       </GroupListItem>
     ))}
   </GroupList>
 );
-
-/** The open group, from /research-groups/{id}. Null on any other page. */
-const activeGroupId = (): number | null => {
-  const match = window.location.pathname.match(/^\/research-groups\/(\d+)/);
-  return match ? Number(match[1]) : null;
-};
 
 const Sidebar = () => {
   const { isPending, data } = useQuery({
     queryKey: keys.groups,
     queryFn: ({ signal }) => fetchGroups(signal),
   });
-  const activeId = activeGroupId();
+  // Outside <Routes>, so it reads the location rather than route params: it
+  // has to mark the open group from any page.
+  const { pathname } = useLocation();
+  const match = pathname.match(/^\/research-groups\/(\d+)/);
+  const activeId = match ? Number(match[1]) : null;
 
   return (
     <DashSidebar>
-      <MySubmissionsLink href="/my-submissions">
+      <MySubmissionsLink to="/my-submissions">
         My Submissions
       </MySubmissionsLink>
 
