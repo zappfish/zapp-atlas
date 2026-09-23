@@ -75,3 +75,63 @@ export const fetchFishTank = (groupId: number, signal?: AbortSignal) =>
 
 export const fetchCabinet = (groupId: number, signal?: AbortSignal) =>
   get<CabinetEntry[]>(`/research-groups/${groupId}/chemical-cabinet`, signal);
+
+/** FastAPI puts the reason in `detail` — a 409 names what already exists. */
+const errorDetail = async (res: Response, fallback: string) => {
+  try {
+    const body = await res.json();
+    return typeof body?.detail === "string" ? body.detail : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const send = async <T,>(
+  method: "POST" | "PATCH" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<T | null> => {
+  const res = await fetch(`/api${path}`, {
+    method,
+    headers: {
+      Accept: "application/json",
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new ApiError(
+      res.status,
+      await errorDetail(res, `${method} /api${path} failed (${res.status})`),
+    );
+  }
+  // DELETE answers 204 with no body.
+  return res.status === 204 ? null : ((await res.json()) as T);
+};
+
+export const addFish = (
+  groupId: number,
+  fish: { zfin_id: string; name: string },
+) => send<FishTankEntry>("POST", `/research-groups/${groupId}/fish-tank`, { fish });
+
+export const deleteFish = (groupId: number, entryId: number) =>
+  send<null>("DELETE", `/research-groups/${groupId}/fish-tank/${entryId}`);
+
+export const addChemical = (groupId: number, chemicalId: string) =>
+  send<CabinetEntry>("POST", `/research-groups/${groupId}/chemical-cabinet`, {
+    chemical_id: chemicalId,
+  });
+
+export const updateChemical = (
+  groupId: number,
+  entryId: number,
+  chemicalId: string,
+) =>
+  send<CabinetEntry>(
+    "PATCH",
+    `/research-groups/${groupId}/chemical-cabinet/${entryId}`,
+    { chemical_id: chemicalId },
+  );
+
+export const deleteChemical = (groupId: number, entryId: number) =>
+  send<null>("DELETE", `/research-groups/${groupId}/chemical-cabinet/${entryId}`);

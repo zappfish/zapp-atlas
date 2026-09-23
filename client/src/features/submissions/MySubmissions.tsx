@@ -1,4 +1,4 @@
-import { DashEyebrow, DashHeader, DashTitle } from "./elements";
+import { DashEyebrow, DashHeader, DashTitle } from "@/styles/elements";
 import Submissions from "./Submissions";
 
 /**

@@ -1,8 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { useLocation } from "react-router";
-import { DashMain, DashboardLayout } from "./elements";
+import { DashMain, DashboardLayout } from "@/styles/elements";
 import Sidebar from "./Sidebar";
-import "./dashboard.css";
+import "@/styles/dashboard.css";
 
 /**
  * Scrolls to the section a #hash names. Link changes the URL through the

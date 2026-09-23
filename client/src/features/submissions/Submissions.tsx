@@ -21,7 +21,7 @@ import {
   TabCount,
   TabList,
   UpdatedOn,
-} from "./elements";
+} from "@/styles/elements";
 /**
  * A group's submissions, filtered by status. The Jinja page's tabs are inert;
  * here the selection is state, so they filter.

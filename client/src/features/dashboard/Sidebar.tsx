@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "react-router";
 import { fetchGroups } from "@/api/groups";
-import { keys } from "@/api/queries";
+import { keys } from "@/api/hooks";
 import {
   DashSidebar,
   GroupCaret,
@@ -16,7 +16,7 @@ import {
   SidebarHeading,
   SkeletonText,
   SubNav,
-} from "./elements";
+} from "@/styles/elements";
 import type { Group } from "@/api/groups";
 
 /** The group list beside every dashboard page. */

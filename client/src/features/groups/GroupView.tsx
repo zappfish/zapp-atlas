@@ -1,13 +1,15 @@
-import { useGroupDashboard } from "@/api/queries";
+import { useState } from "react";
+import { useGroupDashboard } from "@/api/hooks";
 import type { CabinetEntry, FishTankEntry } from "@/api/groups";
+import AddFishForm from "./AddFishForm";
 import {
   DashEyebrow,
   DashHeader,
   DashTitle,
   SkeletonText,
-} from "./elements";
+} from "@/styles/elements";
 import RecordSection, { type Row } from "./RecordSection";
-import Submissions from "./Submissions";
+import Submissions from "@/features/submissions/Submissions";
 
 /**
  * One research group: its fish tank, chemical cabinet and submissions. The
@@ -28,6 +30,7 @@ const cabinetRows = (entries: CabinetEntry[]): Row[] =>
 
 const GroupView = ({ groupId }: { groupId: number }) => {
   const { error, group, fishTank, cabinet } = useGroupDashboard(groupId);
+  const [addingFish, setAddingFish] = useState(false);
 
   // A 404 is a group the caller is not in; the API does not distinguish that
   // from one that does not exist.
@@ -52,6 +55,21 @@ const GroupView = ({ groupId }: { groupId: number }) => {
         rows={fishRows(fishTank.rows)}
         isPending={fishTank.isPending}
         emptyText="Add a fish line to start building this group's tank."
+        actions={
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={() => setAddingFish(true)}
+          >
+            + Add fish
+          </button>
+        }
+      />
+
+      <AddFishForm
+        groupId={groupId}
+        open={addingFish}
+        onClose={() => setAddingFish(false)}
       />
 
       <RecordSection

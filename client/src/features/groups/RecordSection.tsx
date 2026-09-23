@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Count,
   Empty,
@@ -12,8 +12,9 @@ import {
   Section,
   SectionHead,
   SectionTitle,
+  SectionTools,
   SkeletonRow,
-} from "./elements";
+} from "@/styles/elements";
 
 /**
  * Fish tank and chemical cabinet: one component, different rows. The caller
@@ -62,6 +63,7 @@ const RecordSection = ({
   rows,
   emptyText,
   isPending = false,
+  actions,
 }: {
   /** Anchor id, so the sidebar's section links land here. */
   id: string;
@@ -70,6 +72,8 @@ const RecordSection = ({
   /** Unused while pending. */
   emptyText?: string;
   isPending?: boolean;
+  /** Section-level controls, such as an add button. */
+  actions?: ReactNode;
 }) => {
   // The Jinja page does this with a CSS-only checkbox; here it is state.
   const [expanded, setExpanded] = useState(false);
@@ -84,6 +88,7 @@ const RecordSection = ({
           {title}
           {!isPending && rows.length > 0 && <Count>{rows.length}</Count>}
         </SectionTitle>
+        {actions && <SectionTools>{actions}</SectionTools>}
       </SectionHead>
 
       {isPending ? (

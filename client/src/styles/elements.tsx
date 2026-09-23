@@ -67,6 +67,7 @@ export const GroupSummaryBox = styled("div", "dash-group__summary");
 export const Section = styled("section", "dash-section");
 export const SectionHead = styled("header", "dash-section__head");
 export const SectionTitle = styled("h2", "dash-section__title");
+export const SectionTools = styled("div", "dash-section__tools");
 export const Count = styled("span", "dash-count");
 export const Rows = styled("div", "dash-rows");
 export const Row = styled("div", "dash-row");

@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes, useParams } from "react-router";
-import GroupView from "./dashboard/GroupView";
-import MySubmissions from "./dashboard/MySubmissions";
+import GroupView from "@/features/groups/GroupView";
+import MySubmissions from "@/features/submissions/MySubmissions";
 
 /** Mirrors the paths the server serves the shell for (html/client_router.py). */
 
