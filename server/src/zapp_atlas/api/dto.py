@@ -9,23 +9,28 @@ path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
 ``ResearchGroupCreate``/``ResearchGroupRead`` (they fit as-is).
 
-Fields for #113 (``nickname``) and #114 (``manufacturer``/``vehicle``) are
-intentionally absent; the shapes leave room to add them later.
+The #114 fields (``manufacturer``/``vehicle``) live on the generated exposure
+models; the tank's ``nickname`` (#113) is on ``TankEntryIn``/``Out``.
 """
 
 from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 
-from zapp_atlas.schema.pydantic_crud import ResearchGroupRoleEnum
+from zapp_atlas.schema.pydantic_crud import (
+    FishCreate,
+    FishRead,
+    ReagentTypeEnum,
+    ResearchGroupRoleEnum,
+    SequenceAlterationTypeEnum,
+)
 
 # Accepts a bare ORCID or an ``ORCID:`` CURIE; the service normalizes to CURIE.
 _ORCID_RE = re.compile(r"^(ORCID:)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
-# ZFIN line identifier, matching the schema's ``zfin_id`` pattern.
-_ZFIN_RE = re.compile(r"^ZFIN:ZDB-[A-Z]+-\d{6}-\d+$")
 
 
 class _FromAttributes(BaseModel):
@@ -71,26 +76,91 @@ class CabinetEntryOut(_FromAttributes):
     updated_at: datetime | None
 
 
-class FishRef(_FromAttributes):
-    zfin_id: str
-    name: str
-
-    @field_validator("zfin_id")
-    @classmethod
-    def _valid_zfin(cls, value: str) -> str:
-        if not _ZFIN_RE.match(value):
-            raise ValueError(f"Invalid ZFIN id: {value}")
-        return value
-
-
 class TankEntryIn(BaseModel):
-    """Add a fish line to a group's tank. ``research_group`` is path-derived."""
+    """Add a fish line to a group's tank. ``research_group`` is path-derived.
 
-    fish: FishRef
+    ``nickname`` is what the group calls the line — the handle the picker
+    shows, unique within the group. ``fish`` is the generated create model —
+    the same full Fish graph an experiment takes — so a line saved to the tank
+    can later pre-fill a submission without losing detail. Its ZFIN-id
+    patterns reject malformed identifiers with a 422.
+    """
+
+    nickname: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+    fish: FishCreate
 
 
 class TankEntryOut(_FromAttributes):
     id: int
-    fish: FishRef
+    nickname: str
+    fish: FishRead
     created_at: datetime | None
     updated_at: datetime | None
+
+
+class ZfinAffectedGeneOut(_FromAttributes):
+    gene_symbol: str
+    gene_id: str
+
+
+class ZfinConstructOut(_FromAttributes):
+    construct_id: str
+    construct_name: str
+
+
+class ZfinAlleleOut(_FromAttributes):
+    """One allele from the ZFIN reference index, shaped so a hit can pre-fill
+    a MutantAllele/TransgenicAllele form card directly (same field names,
+    CURIE-form ids that satisfy the generated models' patterns).
+
+    ``constructs`` is a list because a co-injected transgenic line is one
+    insertion event carrying several constructs (e.g. gz13Tg); the model's
+    scalar construct slots take the first, the form can display them all.
+    """
+
+    allele_symbol: str
+    allele_id: str
+    is_transgenic: bool
+    alteration_type: SequenceAlterationTypeEnum | None
+    alteration_label: str
+    mutagen: str | None
+    # Institution registered for the symbol's naming prefix. Deliberately not
+    # called "lab": ZFIN's per-feature Lab of Origin is curated separately
+    # (and can differ, e.g. cross-institution collaborations) — it is only on
+    # the ZFIN record page, which the UI links to.
+    institution: str | None
+    constructs: list[ZfinConstructOut]
+    affected_genes: list[ZfinAffectedGeneOut]
+
+
+class ZfinAlleleSearchOut(BaseModel):
+    query: str
+    total_matches: int
+    indexed_alleles: int
+    results: list[ZfinAlleleOut]
+
+
+class ZfinReagentOut(_FromAttributes):
+    """One transient reagent from the ZFIN reference index, shaped to pre-fill
+    a TransientReagent form card (same field names, CURIE-form ids). The
+    model's scalar gene slots take the first target; a few reagents hit
+    several paralogs, which the form can display."""
+
+    reagent_symbol: str
+    reagent_id: str
+    reagent_type: ReagentTypeEnum
+    targeted_genes: list[ZfinAffectedGeneOut]
+
+
+class ZfinReagentSearchOut(BaseModel):
+    query: str
+    total_matches: int
+    indexed_reagents: int
+    results: list[ZfinReagentOut]
+
+
+class ZfinWildtypeOut(_FromAttributes):
+    name: str
+    abbreviation: str
+    fish_id: str
+    genotype_id: str

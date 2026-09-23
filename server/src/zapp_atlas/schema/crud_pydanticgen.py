@@ -46,10 +46,10 @@ def _get_zapp_entity_classes(template: PydanticModule, sv: SchemaView) -> set[st
 def _get_all_read_entity_classes(template: PydanticModule, sv: SchemaView) -> set[str]:
     """Return class names for ALL types needing Read variants.
 
-    Includes ZappEntity, OntologyEntity, and ZfinEntity subclasses,
-    plus QuantityValue (matched by name).
+    Includes ZappEntity and OntologyEntity subclasses, plus QuantityValue
+    (matched by name).
     """
-    base_entities = {"ZappEntity", "OntologyEntity", "ZfinEntity"}
+    base_entities = {"ZappEntity", "OntologyEntity"}
     result: set[str] = set()
     for class_name in template.classes:
         cls_def = sv.get_class(class_name, strict=False)
@@ -172,6 +172,7 @@ class CrudPydanticGenerator(PydanticGenerator):
 
         new_classes: dict[str, PydanticClass] = {}
         create_variants: dict[str, PydanticClass] = {}
+        update_variants: dict[str, PydanticClass] = {}
         read_variants: dict[str, PydanticClass] = {}
 
         for class_name, cls in template.classes.items():
@@ -186,6 +187,7 @@ class CrudPydanticGenerator(PydanticGenerator):
                 new_classes[create_cls.name] = create_cls
                 new_classes[update_cls.name] = update_cls
                 create_variants[create_cls.name] = create_cls
+                update_variants[update_cls.name] = update_cls
 
             if class_name in read_classes:
                 read_cls = _make_read_variant(cls)
@@ -197,6 +199,16 @@ class CrudPydanticGenerator(PydanticGenerator):
             if create_cls.attributes:
                 create_cls.attributes = _swap_nested_references(
                     create_cls.attributes, zapp_classes, suffix="Create"
+                )
+
+        # Swap nested references in Update variants. A PATCH supplies a whole
+        # replacement for a nested object, so nested references point at the
+        # id-less Create variants (not the plain models, which would demand the
+        # server-generated id).
+        for update_cls in update_variants.values():
+            if update_cls.attributes:
+                update_cls.attributes = _swap_nested_references(
+                    update_cls.attributes, zapp_classes, suffix="Create"
                 )
 
         # Swap nested references in Read variants

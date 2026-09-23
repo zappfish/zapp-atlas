@@ -25,7 +25,6 @@ from zapp_atlas.schema.sqla import (
 
 ORCID = "ORCID:0000-0002-1825-0097"
 ETHANOL = "CHEBI:16236"
-AB_LINE = "ZFIN:ZDB-GENO-960809-7"
 
 
 @pytest.fixture
@@ -61,12 +60,13 @@ def test_cabinet_grain_is_unique_per_group_and_chemical(session, group):
     )
 
 
-def test_tank_grain_is_unique_per_group_and_fish(session, group):
-    session.add(Fish(zfin_id=AB_LINE, name="AB"))
+def test_tank_grain_is_unique_per_group_and_nickname(session, group):
+    fish = Fish(fish_zfin_id="ZFIN:ZDB-FISH-150901-27842")
+    session.add(fish)
     session.commit()
     assert_second_insert_rejected(
         session,
-        lambda: FishTankEntry(research_group=group.id, fish_zfin_id=AB_LINE),
+        lambda: FishTankEntry(research_group=group.id, nickname="AB stock", fish_id=fish.id),
     )
 
 

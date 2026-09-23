@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -23,6 +24,7 @@ from zapp_atlas.api.routers.images import router as images_router
 from zapp_atlas.api.routers.observations import router as observations_router
 from zapp_atlas.api.routers.research_groups import router as research_groups_router
 from zapp_atlas.api.routers.studies import router as studies_router
+from zapp_atlas.api.routers.zfin import router as zfin_router
 from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.html.edit_router import make_edit_router
@@ -87,7 +89,19 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     api.include_router(research_groups_router)
     api.include_router(cabinet_router)
     api.include_router(fish_tank_router)
+    api.include_router(zfin_router)
     app.include_router(api)
+
+    # Local prototyping only (see AppSettings.cors_dev): lets a widget page
+    # opened from file:// read the public lookup endpoints. Read-only methods,
+    # no credentials.
+    if app.state.settings.cors_dev:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["GET"],
+            allow_headers=["*"],
+        )
 
     # Static assets for the server-rendered (HTMX) viewing app.
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

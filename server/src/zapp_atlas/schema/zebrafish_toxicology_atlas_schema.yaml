@@ -20,6 +20,8 @@ prefixes:
   ECTO: http://purl.obolibrary.org/obo/ECTO_
   EXO: http://purl.obolibrary.org/obo/EXO_
   ZP: http://purl.obolibrary.org/obo/ZP_
+  GENO: http://purl.obolibrary.org/obo/GENO_
+  SO: http://purl.obolibrary.org/obo/SO_
   ORCID: https://orcid.org/
   ZFIN: https://zfin.org/
   UMLS: https://uts.nlm.nih.gov/uts/umls/concept/
@@ -44,12 +46,6 @@ classes:
   OntologyEntity:
     description: Entities representing ontology terms with URI identifiers.
     abstract: true
-
-  ZfinEntity:
-    description: Entities with ZFIN database identifiers.
-    abstract: true
-    slots:
-      - zfin_id
 
   # Internal entities (integer autoincrement)
   Study:
@@ -255,15 +251,88 @@ classes:
       term_label:
         required: true
 
-  # ZFIN entities (ZFIN database identifiers)
+  # Fish / genotype
   Fish:
-    is_a: ZfinEntity
-    description: Zebrafish used as subject in the study.
+    is_a: ZappEntity
+    description: >-
+      A zebrafish subject as the curator describes it: allele(s) on a wild-type
+      background, plus any injected transient reagents. The two ZFIN ids are
+      mapped from that description against ZFIN's registered records, never
+      entered.
     slots:
-      - name
+      - fish_zfin_id
+      - genotype_zfin_id
+      - mutant_allele
+      - transgenic_allele
+      - transient_reagent
+      - background_name
+      - background_zfin_id
+    exact_mappings:
+      - GENO:0000525
+
+  MutantAllele:
+    is_a: ZappEntity
+    description: >-
+      A mutant allele carried by the fish: which gene it damages, and its
+      zygosity in the fish and parents.
+    slots:
+      - allele_id
+      - allele_symbol
+      - alteration_type
+      - affected_gene_id
+      - affected_gene_symbol
+      - zygosity
+      - mother_zygosity
+      - father_zygosity
     slot_usage:
-      name:
+      allele_symbol:
         required: true
+
+  TransgenicAllele:
+    is_a: ZappEntity
+    description: >-
+      A transgenic insertion carried by the fish: the construct it carries, and
+      its zygosity in the fish and parents.
+    slots:
+      - allele_id
+      - allele_symbol
+      - construct_id
+      - construct_name
+      - alteration_type
+      - affected_gene_id
+      - affected_gene_symbol
+      - zygosity
+      - mother_zygosity
+      - father_zygosity
+    slot_usage:
+      allele_symbol:
+        required: true
+      alteration_type:
+        description: Usually transgenic_insertion.
+      affected_gene_id:
+        description: Gene id of the construct's driver / reporter gene, when recorded.
+      affected_gene_symbol:
+        description: Driver / reporter gene symbol, e.g. "fli1".
+
+  TransientReagent:
+    is_a: ZappEntity
+    description: >-
+      A sequence-targeting reagent injected into the embryos (morpholino,
+      CRISPR, TALEN). Transient and not heritable — part of the fish, not the
+      genotype. Dose and injection stage are experiment-side facts.
+    slots:
+      - reagent_id
+      - reagent_symbol
+      - reagent_type
+      - affected_gene_id
+      - affected_gene_symbol
+    slot_usage:
+      reagent_symbol:
+        required: true
+      affected_gene_id:
+        description: Gene id of the reagent's target, when recorded.
+      affected_gene_symbol:
+        description: The gene the reagent targets / knocks down, e.g. "gata1a".
 
   # Operational entities (research groups and what they keep on hand)
   ResearchGroup:
@@ -312,12 +381,14 @@ classes:
   FishTankEntry:
     is_a: ZappEntity
     description: >-
-      A fish line a research group maintains. Recorded once, then reused to
-      pre-fill curation instead of re-searching the line each time.
+      A fish line a research group maintains, under the group's own nickname.
+      Recorded once, then reused to pre-fill curation instead of re-searching
+      the line each time.
     annotations:
       timestamped: true
     slots:
       - research_group
+      - nickname
       - fish
     slot_usage:
       fish:
@@ -327,7 +398,7 @@ classes:
       tank_grain:
         unique_key_slots:
           - research_group
-          - fish
+          - nickname
 
   # Value objects (not entities, inlined)
   QuantityValue:
@@ -352,13 +423,6 @@ slots:
     range: uriorcurie
     required: true
 
-  zfin_id:
-    identifier: true
-    description: ZFIN database identifier.
-    range: string
-    required: true
-    pattern: "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$"
-
   # Other slots
   image_scope:
     description: >-
@@ -375,6 +439,97 @@ slots:
     multivalued: true
   name:
     description: Name or label of an entity.
+
+  # Fish / genotype slots
+  fish_zfin_id:
+    description: ZFIN fish id (ZDB-FISH-…), when registered.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-FISH-[0-9]{6}-[0-9]+$"
+  genotype_zfin_id:
+    description: >-
+      ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when
+      registered.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$"
+  mutant_allele:
+    description: Mutant allele(s) carried by the fish.
+    range: MutantAllele
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  transgenic_allele:
+    description: Transgenic insertion(s) carried by the fish.
+    range: TransgenicAllele
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  nickname:
+    description: >-
+      What the group calls this line, e.g. "our casper stock". The handle it is
+      picked by when pre-filling a submission; unique within the group.
+    range: string
+    required: true
+  transient_reagent:
+    description: Injected reagent(s) carried by the fish — transient, not heritable.
+    range: TransientReagent
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  reagent_id:
+    description: ZFIN reagent id (ZDB-MRPHLNO-…, ZDB-CRISPR-…, or ZDB-TALEN-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-[0-9]{6}-[0-9]+$"
+  reagent_symbol:
+    description: The reagent symbol, e.g. "MO1-gata1a", "CRISPR1-tp53".
+    range: string
+  reagent_type:
+    description: Which kind of injected reagent this is.
+    range: ReagentTypeEnum
+  background_name:
+    description: Wild-type background strain, e.g. "AB". Absent when unknown.
+    range: string
+  background_zfin_id:
+    description: >-
+      ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are
+      themselves genotype records in ZFIN.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$"
+  allele_id:
+    description: ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-ALT-[0-9]{6}-[0-9]+$"
+  allele_symbol:
+    description: The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg".
+    range: string
+  affected_gene_id:
+    description: >-
+      ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on
+      purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and
+      enhancers — the QC notebook's gene-like universe.
+    range: uriorcurie
+  affected_gene_symbol:
+    description: Symbol of the gene affected by the allele, e.g. "snapc1b".
+    range: string
+  construct_id:
+    description: ZFIN construct id (ZDB-TGCONSTRCT-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-TGCONSTRCT-[0-9]{6}-[0-9]+$"
+  construct_name:
+    description: Name of the transgenic construct, e.g. "Tg(mpeg1:YFP)".
+    range: string
+  alteration_type:
+    description: The class of sequence alteration, normalized to an SO term.
+    range: SequenceAlterationTypeEnum
+  zygosity:
+    description: Zygosity of the allele in the fish.
+    range: ZygosityEnum
+  mother_zygosity:
+    description: Zygosity of the allele in the maternal parent.
+    range: ZygosityEnum
+  father_zygosity:
+    description: Zygosity of the allele in the paternal parent.
+    range: ZygosityEnum
+
   exposure_type:
     description: An instance of exposure specifying the type of stressor a subject was exposed to.
     range: ExposureType
@@ -604,6 +759,79 @@ enums:
         description: Can manage group membership as well as the group's data.
       member:
         description: Can edit the group's data.
+
+  ZygosityEnum:
+    description: Zygosity of an allele in the fish or in one of its parents.
+    permissible_values:
+      homozygous:
+        description: The allele is on both homologous chromosomes.
+        meaning: GENO:0000136
+      heterozygous:
+        description: The allele is on one of the two homologous chromosomes.
+        meaning: GENO:0000135
+      unknown:
+        description: Not known or not recorded.
+        meaning: GENO:0000137
+      wild_type:
+        description: Zero copies of the allele (ZFIN's parental "W").
+
+  ReagentTypeEnum:
+    description: >-
+      The three sequence-targeting reagent kinds ZFIN registers, one per
+      reagent id prefix. Corpus evidence in notebooks/zfin_ingest_qc.ipynb.
+    permissible_values:
+      morpholino:
+        description: Antisense morpholino oligo — knocks down without editing.
+        meaning: SO:0000034
+      crispr:
+        description: Injected CRISPR guide (ZFIN types these by binding site; no reagent SO term fits).
+      talen:
+        description: Injected TALEN pair (likewise typed by binding site in ZFIN).
+
+  SequenceAlterationTypeEnum:
+    description: >-
+      Sequence-alteration classes, each normalized to an SO term. Corpus evidence
+      for the value set: notebooks/zfin_ingest_qc.ipynb.
+    permissible_values:
+      point_mutation:
+        description: A single-nucleotide substitution.
+        meaning: SO:1000008
+      substitution:
+        description: One or more nucleotides replaced by the same number of nucleotides.
+        meaning: SO:1000002
+      deletion:
+        description: Loss of one or more nucleotides.
+        meaning: SO:0000159
+      insertion:
+        description: Gain of one or more nucleotides.
+        meaning: SO:0000667
+      indel:
+        description: Combined insertion + deletion (SO calls it "delins"; "indel" is the bench term).
+        meaning: SO:1000032
+      inversion:
+        description: A segment reversed in orientation.
+        meaning: SO:1000036
+      duplication:
+        description: One or more copies of a segment added.
+        meaning: SO:1000035
+      transgenic_insertion:
+        description: An engineered transgenic construct inserted into the genome.
+        meaning: SO:0001218
+      complex_substitution:
+        description: A substitution involving a different number of nucleotides.
+        meaning: SO:1000005
+      deficiency:
+        description: Large chromosomal deletion (Df lines; SO calls it "chromosomal_deletion").
+        meaning: SO:1000029
+      translocation:
+        description: A segment moved to a different chromosomal location.
+        meaning: SO:0000199
+      multiple_variants:
+        description: Several distinct variants under one allele name (ZFIN types these SO:0001023).
+        meaning: SO:0001023
+      sequence_alteration:
+        description: Alteration of unspecified or other type (SO root term).
+        meaning: SO:0001059
 
   SeverityEnum:
     description: An enumeration of severity levels for phenotypes.

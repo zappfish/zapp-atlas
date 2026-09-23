@@ -83,12 +83,16 @@ linkml_meta = LinkMLMeta({'default_prefix': 'zebrafish_toxicology_atlas_schema',
                            'prefix_reference': 'http://purl.obolibrary.org/obo/ECTO_'},
                   'EXO': {'prefix_prefix': 'EXO',
                           'prefix_reference': 'http://purl.obolibrary.org/obo/EXO_'},
+                  'GENO': {'prefix_prefix': 'GENO',
+                           'prefix_reference': 'http://purl.obolibrary.org/obo/GENO_'},
                   'ORCID': {'prefix_prefix': 'ORCID',
                             'prefix_reference': 'https://orcid.org/'},
                   'PATO': {'prefix_prefix': 'PATO',
                            'prefix_reference': 'http://purl.obolibrary.org/obo/PATO_'},
                   'PUBCHEM.COMPOUND': {'prefix_prefix': 'PUBCHEM.COMPOUND',
                                        'prefix_reference': 'https://identifiers.org/pubchem.compound/'},
+                  'SO': {'prefix_prefix': 'SO',
+                         'prefix_reference': 'http://purl.obolibrary.org/obo/SO_'},
                   'UMLS': {'prefix_prefix': 'UMLS',
                            'prefix_reference': 'https://uts.nlm.nih.gov/uts/umls/concept/'},
                   'UNII': {'prefix_prefix': 'UNII',
@@ -355,6 +359,104 @@ class ResearchGroupRoleEnum(str, Enum):
     """
 
 
+class ZygosityEnum(str, Enum):
+    """
+    Zygosity of an allele in the fish or in one of its parents.
+    """
+    homozygous = "homozygous"
+    """
+    The allele is on both homologous chromosomes.
+    """
+    heterozygous = "heterozygous"
+    """
+    The allele is on one of the two homologous chromosomes.
+    """
+    unknown = "unknown"
+    """
+    Not known or not recorded.
+    """
+    wild_type = "wild_type"
+    """
+    Zero copies of the allele (ZFIN's parental "W").
+    """
+
+
+class ReagentTypeEnum(str, Enum):
+    """
+    The three sequence-targeting reagent kinds ZFIN registers, one per reagent id prefix. Corpus evidence in notebooks/zfin_ingest_qc.ipynb.
+    """
+    morpholino = "morpholino"
+    """
+    Antisense morpholino oligo — knocks down without editing.
+    """
+    crispr = "crispr"
+    """
+    Injected CRISPR guide (ZFIN types these by binding site; no reagent SO term fits).
+    """
+    talen = "talen"
+    """
+    Injected TALEN pair (likewise typed by binding site in ZFIN).
+    """
+
+
+class SequenceAlterationTypeEnum(str, Enum):
+    """
+    Sequence-alteration classes, each normalized to an SO term. Corpus evidence for the value set: notebooks/zfin_ingest_qc.ipynb.
+    """
+    point_mutation = "point_mutation"
+    """
+    A single-nucleotide substitution.
+    """
+    substitution = "substitution"
+    """
+    One or more nucleotides replaced by the same number of nucleotides.
+    """
+    deletion = "deletion"
+    """
+    Loss of one or more nucleotides.
+    """
+    insertion = "insertion"
+    """
+    Gain of one or more nucleotides.
+    """
+    indel = "indel"
+    """
+    Combined insertion + deletion (SO calls it "delins"; "indel" is the bench term).
+    """
+    inversion = "inversion"
+    """
+    A segment reversed in orientation.
+    """
+    duplication = "duplication"
+    """
+    One or more copies of a segment added.
+    """
+    transgenic_insertion = "transgenic_insertion"
+    """
+    An engineered transgenic construct inserted into the genome.
+    """
+    complex_substitution = "complex_substitution"
+    """
+    A substitution involving a different number of nucleotides.
+    """
+    deficiency = "deficiency"
+    """
+    Large chromosomal deletion (Df lines; SO calls it "chromosomal_deletion").
+    """
+    translocation = "translocation"
+    """
+    A segment moved to a different chromosomal location.
+    """
+    multiple_variants = "multiple_variants"
+    """
+    Several distinct variants under one allele name (ZFIN types these SO:0001023).
+    """
+    sequence_alteration = "sequence_alteration"
+    """
+    Alteration of unspecified or other type (SO root term).
+    """
+
+
 class SeverityEnum(str, Enum):
     """
     An enumeration of severity levels for phenotypes.
@@ -406,29 +508,6 @@ class OntologyEntity(ConfiguredBaseModel):
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
     pass
-
-
-class ZfinEntity(ConfiguredBaseModel):
-    """
-    Entities with ZFIN database identifiers.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True,
-         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
-
-    zfin_id: str = Field(default=..., description="""ZFIN database identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZfinEntity']} })
-
-    @field_validator('zfin_id')
-    def pattern_zfin_id(cls, v):
-        pattern=re.compile(r"^ZFIN:ZDB-[A-Z]+-\d{6}-\d+$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid zfin_id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid zfin_id format: {v}"
-            raise ValueError(err_msg)
-        return v
 
 
 class Study(ZappEntity):
@@ -703,26 +782,182 @@ class ExposureType(OntologyEntity):
     term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
 
 
-class Fish(ZfinEntity):
+class Fish(ZappEntity):
     """
-    Zebrafish used as subject in the study.
+    A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'name': {'name': 'name', 'required': True}}})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['GENO:0000525'],
+         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
-    zfin_id: str = Field(default=..., description="""ZFIN database identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZfinEntity']} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN fish id (ZDB-FISH-…), when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    mutant_allele: Optional[list[MutantAllele]] = Field(default=None, description="""Mutant allele(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    transgenic_allele: Optional[list[TransgenicAllele]] = Field(default=None, description="""Transgenic insertion(s) carried by the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    transient_reagent: Optional[list[TransientReagent]] = Field(default=None, description="""Injected reagent(s) carried by the fish — transient, not heritable.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_name: Optional[str] = Field(default=None, description="""Wild-type background strain, e.g. \"AB\". Absent when unknown.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    background_zfin_id: Optional[str] = Field(default=None, description="""ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
-    @field_validator('zfin_id')
-    def pattern_zfin_id(cls, v):
-        pattern=re.compile(r"^ZFIN:ZDB-[A-Z]+-\d{6}-\d+$")
+    @field_validator('fish_zfin_id')
+    def pattern_fish_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-FISH-[0-9]{6}-[0-9]+$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid zfin_id format: {element}"
+                    err_msg = f"Invalid fish_zfin_id format: {element}"
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid zfin_id format: {v}"
+            err_msg = f"Invalid fish_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('genotype_zfin_id')
+    def pattern_genotype_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid genotype_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid genotype_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('background_zfin_id')
+    def pattern_background_zfin_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-GENO-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid background_zfin_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid background_zfin_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class MutantAllele(ZappEntity):
+    """
+    A mutant allele carried by the fish: which gene it damages, and its zygosity in the fish and parents.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'allele_symbol': {'name': 'allele_symbol', 'required': True}}})
+
+    allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""The class of sequence alteration, normalized to an SO term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""Symbol of the gene affected by the allele, e.g. \"snapc1b\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the paternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('allele_id')
+    def pattern_allele_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-ALT-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid allele_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid allele_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class TransgenicAllele(ZappEntity):
+    """
+    A transgenic insertion carried by the fish: the construct it carries, and its zygosity in the fish and parents.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'affected_gene_id': {'description': 'Gene id of the '
+                                                            "construct's driver / "
+                                                            'reporter gene, when '
+                                                            'recorded.',
+                                             'name': 'affected_gene_id'},
+                        'affected_gene_symbol': {'description': 'Driver / reporter '
+                                                                'gene symbol, e.g. '
+                                                                '"fli1".',
+                                                 'name': 'affected_gene_symbol'},
+                        'allele_symbol': {'name': 'allele_symbol', 'required': True},
+                        'alteration_type': {'description': 'Usually '
+                                                           'transgenic_insertion.',
+                                            'name': 'alteration_type'}}})
+
+    allele_id: Optional[str] = Field(default=None, description="""ZFIN genomic feature identifier (ZDB-ALT-…) for the allele.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    allele_symbol: str = Field(default=..., description="""The allele symbol / designation, e.g. \"ti282a\", \"fh111\", \"w200Tg\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    construct_id: Optional[str] = Field(default=None, description="""ZFIN construct id (ZDB-TGCONSTRCT-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
+    construct_name: Optional[str] = Field(default=None, description="""Name of the transgenic construct, e.g. \"Tg(mpeg1:YFP)\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransgenicAllele']} })
+    alteration_type: Optional[SequenceAlterationTypeEnum] = Field(default=None, description="""Usually transgenic_insertion.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""Gene id of the construct's driver / reporter gene, when recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""Driver / reporter gene symbol, e.g. \"fli1\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the fish.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the maternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""Zygosity of the allele in the paternal parent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('allele_id')
+    def pattern_allele_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-ALT-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid allele_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid allele_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('construct_id')
+    def pattern_construct_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid construct_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid construct_id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+
+class TransientReagent(ZappEntity):
+    """
+    A sequence-targeting reagent injected into the embryos (morpholino, CRISPR, TALEN). Transient and not heritable — part of the fish, not the genotype. Dose and injection stage are experiment-side facts.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'affected_gene_id': {'description': "Gene id of the reagent's "
+                                                            'target, when recorded.',
+                                             'name': 'affected_gene_id'},
+                        'affected_gene_symbol': {'description': 'The gene the reagent '
+                                                                'targets / knocks '
+                                                                'down, e.g. "gata1a".',
+                                                 'name': 'affected_gene_symbol'},
+                        'reagent_symbol': {'name': 'reagent_symbol', 'required': True}}})
+
+    reagent_id: Optional[str] = Field(default=None, description="""ZFIN reagent id (ZDB-MRPHLNO-…, ZDB-CRISPR-…, or ZDB-TALEN-…).""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransientReagent']} })
+    reagent_symbol: str = Field(default=..., description="""The reagent symbol, e.g. \"MO1-gata1a\", \"CRISPR1-tp53\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransientReagent']} })
+    reagent_type: Optional[ReagentTypeEnum] = Field(default=None, description="""Which kind of injected reagent this is.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TransientReagent']} })
+    affected_gene_id: Optional[str] = Field(default=None, description="""Gene id of the reagent's target, when recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    affected_gene_symbol: Optional[str] = Field(default=None, description="""The gene the reagent targets / knocks down, e.g. \"gata1a\".""", json_schema_extra = { "linkml_meta": {'domain_of': ['MutantAllele', 'TransgenicAllele', 'TransientReagent']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('reagent_id')
+    def pattern_reagent_id(cls, v):
+        pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-[0-9]{6}-[0-9]+$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid reagent_id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid reagent_id format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -734,7 +969,7 @@ class ResearchGroup(ZappEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -787,7 +1022,7 @@ class ChemicalCabinetEntry(ZappEntity):
 
 class FishTankEntry(ZappEntity):
     """
-    A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
@@ -796,9 +1031,10 @@ class FishTankEntry(ZappEntity):
                                  'required': True}},
          'unique_keys': {'tank_grain': {'unique_key_name': 'tank_grain',
                                         'unique_key_slots': ['research_group',
-                                                             'fish']}}})
+                                                             'nickname']}}})
 
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -817,7 +1053,6 @@ class QuantityValue(ConfiguredBaseModel):
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
 ZappEntity.model_rebuild()
 OntologyEntity.model_rebuild()
-ZfinEntity.model_rebuild()
 Study.model_rebuild()
 Experiment.model_rebuild()
 PhenotypeObservationSet.model_rebuild()
@@ -833,6 +1068,9 @@ PhenotypeTerm.model_rebuild()
 ExposureRoute.model_rebuild()
 ExposureType.model_rebuild()
 Fish.model_rebuild()
+MutantAllele.model_rebuild()
+TransgenicAllele.model_rebuild()
+TransientReagent.model_rebuild()
 ResearchGroup.model_rebuild()
 ResearchGroupMember.model_rebuild()
 ChemicalCabinetEntry.model_rebuild()

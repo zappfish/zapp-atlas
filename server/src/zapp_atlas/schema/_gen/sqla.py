@@ -53,19 +53,6 @@ class OntologyEntity(Base):
         return f"OntologyEntity(id={self.id},)"
 
 
-class ZfinEntity(Base):
-    """
-    Entities with ZFIN database identifiers.
-    """
-
-    __tablename__ = "ZfinEntity"
-
-    zfin_id: Mapped[str] = mapped_column(Text(), primary_key=True)
-
-    def __repr__(self):
-        return f"ZfinEntity(zfin_id={self.zfin_id},)"
-
-
 class QuantityValue(Base):
     """
     A value of an attribute that is quantitative and measurable, expressed as a combination of a unit and a numeric value
@@ -161,8 +148,8 @@ class Experiment(ZappEntity):
     rearing_condition_comment: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     Study_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Study.id"))
-    fish_zfin_id: Mapped[str | None] = mapped_column(Text(), ForeignKey("Fish.zfin_id"))
-    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_zfin_id])
+    fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
+    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])
 
     # One-To-Many: OneToAnyMapping(source_class='Experiment', source_slot='control', mapping_type=None, target_class='Control', target_slot='Experiment_id', join_class=None, uses_join_table=None, multivalued=False)
     control: Mapped[list[Control]] = relationship(foreign_keys="[Control.Experiment_id]")
@@ -171,7 +158,7 @@ class Experiment(ZappEntity):
     exposure_event: Mapped[list[ExposureEvent]] = relationship(foreign_keys="[ExposureEvent.Experiment_id]")
 
     def __repr__(self):
-        return f"Experiment(standard_rearing_condition={self.standard_rearing_condition},rearing_condition_comment={self.rearing_condition_comment},id={self.id},Study_id={self.Study_id},fish_zfin_id={self.fish_zfin_id},)"
+        return f"Experiment(standard_rearing_condition={self.standard_rearing_condition},rearing_condition_comment={self.rearing_condition_comment},id={self.id},Study_id={self.Study_id},fish_id={self.fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -460,18 +447,101 @@ class ExposureType(OntologyEntity):
     __mapper_args__ = {"concrete": True}
 
 
-class Fish(ZfinEntity):
+class Fish(ZappEntity):
     """
-    Zebrafish used as subject in the study.
+    A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
     """
 
     __tablename__ = "Fish"
 
-    name: Mapped[str] = mapped_column(Text())
-    zfin_id: Mapped[str] = mapped_column(Text(), primary_key=True)
+    fish_zfin_id: Mapped[str | None] = mapped_column(Text())
+    genotype_zfin_id: Mapped[str | None] = mapped_column(Text())
+    background_name: Mapped[str | None] = mapped_column(Text())
+    background_zfin_id: Mapped[str | None] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='mutant_allele', mapping_type=None, target_class='MutantAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    mutant_allele: Mapped[list[MutantAllele]] = relationship(foreign_keys="[MutantAllele.Fish_id]")
+
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transgenic_allele', mapping_type=None, target_class='TransgenicAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    transgenic_allele: Mapped[list[TransgenicAllele]] = relationship(foreign_keys="[TransgenicAllele.Fish_id]")
+
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transient_reagent', mapping_type=None, target_class='TransientReagent', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    transient_reagent: Mapped[list[TransientReagent]] = relationship(foreign_keys="[TransientReagent.Fish_id]")
 
     def __repr__(self):
-        return f"Fish(name={self.name},zfin_id={self.zfin_id},)"
+        return f"Fish(fish_zfin_id={self.fish_zfin_id},genotype_zfin_id={self.genotype_zfin_id},background_name={self.background_name},background_zfin_id={self.background_zfin_id},id={self.id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class MutantAllele(ZappEntity):
+    """
+    A mutant allele carried by the fish: which gene it damages, and its zygosity in the fish and parents.
+    """
+
+    __tablename__ = "MutantAllele"
+
+    allele_id: Mapped[str | None] = mapped_column(Text())
+    allele_symbol: Mapped[str] = mapped_column(Text())
+    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'deficiency', 'translocation', 'multiple_variants', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
+    affected_gene_id: Mapped[str | None] = mapped_column(Text())
+    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
+    zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
+    mother_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
+    father_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
+
+    def __repr__(self):
+        return f"MutantAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class TransgenicAllele(ZappEntity):
+    """
+    A transgenic insertion carried by the fish: the construct it carries, and its zygosity in the fish and parents.
+    """
+
+    __tablename__ = "TransgenicAllele"
+
+    allele_id: Mapped[str | None] = mapped_column(Text())
+    allele_symbol: Mapped[str] = mapped_column(Text())
+    construct_id: Mapped[str | None] = mapped_column(Text())
+    construct_name: Mapped[str | None] = mapped_column(Text())
+    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'deficiency', 'translocation', 'multiple_variants', 'sequence_alteration', name='SequenceAlterationTypeEnum'))
+    affected_gene_id: Mapped[str | None] = mapped_column(Text())
+    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
+    zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
+    mother_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
+    father_zygosity: Mapped[str | None] = mapped_column(Enum('homozygous', 'heterozygous', 'unknown', 'wild_type', name='ZygosityEnum'))
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
+
+    def __repr__(self):
+        return f"TransgenicAllele(allele_id={self.allele_id},allele_symbol={self.allele_symbol},construct_id={self.construct_id},construct_name={self.construct_name},alteration_type={self.alteration_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
+
+    __mapper_args__ = {"concrete": True}
+
+
+class TransientReagent(ZappEntity):
+    """
+    A sequence-targeting reagent injected into the embryos (morpholino, CRISPR, TALEN). Transient and not heritable — part of the fish, not the genotype. Dose and injection stage are experiment-side facts.
+    """
+
+    __tablename__ = "TransientReagent"
+
+    reagent_id: Mapped[str | None] = mapped_column(Text())
+    reagent_symbol: Mapped[str] = mapped_column(Text())
+    reagent_type: Mapped[str | None] = mapped_column(Enum('morpholino', 'crispr', 'talen', name='ReagentTypeEnum'))
+    affected_gene_id: Mapped[str | None] = mapped_column(Text())
+    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
+
+    def __repr__(self):
+        return f"TransientReagent(reagent_id={self.reagent_id},reagent_symbol={self.reagent_symbol},reagent_type={self.reagent_type},affected_gene_id={self.affected_gene_id},affected_gene_symbol={self.affected_gene_symbol},id={self.id},Fish_id={self.Fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -529,18 +599,19 @@ class ChemicalCabinetEntry(ZappEntity):
 
 class FishTankEntry(ZappEntity):
     """
-    A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
     """
 
     __tablename__ = "FishTankEntry"
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    nickname: Mapped[str] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    fish_zfin_id: Mapped[str] = mapped_column(Text(), ForeignKey("Fish.zfin_id"))
-    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_zfin_id])
+    fish_id: Mapped[int] = mapped_column(Integer(), ForeignKey("Fish.id"))
+    fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])
 
     def __repr__(self):
-        return f"FishTankEntry(research_group={self.research_group},id={self.id},fish_zfin_id={self.fish_zfin_id},)"
+        return f"FishTankEntry(research_group={self.research_group},nickname={self.nickname},id={self.id},fish_id={self.fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

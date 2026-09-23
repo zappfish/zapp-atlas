@@ -68,6 +68,169 @@ def _add_missing_columns(engine: Engine) -> None:
             log.info("added column %s.%s", table.name, column.name)
 
 
+def _rebuild_legacy_fish(engine: Engine) -> None:
+    """Rebuild ``Fish`` from the layout that keyed fish by ZFIN id.
+
+    The fish data-model change re-keyed the table: the old layout was
+    ``name, zfin_id TEXT PRIMARY KEY``; the new one is integer-keyed, with
+    optional ``fish_zfin_id`` / ``genotype_zfin_id`` columns beside the
+    curator-entered description (alleles, background). SQLite cannot ADD a
+    primary key to an existing table, so the table is renamed aside, recreated
+    from the current models, and its rows copied over. Data that the copy
+    could not carry stops the rebuild BEFORE anything is renamed: the sqlite3
+    driver autocommits DDL, so a failure midway could not back the renames
+    out.
+
+    The legacy ``zfin_id`` slot accepted any ZDB type, and the old seed itself
+    stored AB's *genotype* id in it — so the copy routes each value by prefix:
+    ZDB-FISH ids land in ``fish_zfin_id``, ZDB-GENO ids in
+    ``genotype_zfin_id``. The read models enforce exactly those shapes;
+    copying verbatim would 500 every read of a seeded database. Any other
+    prefix has no column that will take it and is logged instead.
+    """
+    inspector = inspect(engine)
+    if "Fish" not in inspector.get_table_names():
+        return
+    if "zfin_id" not in _existing_columns(engine, "Fish"):
+        return  # already the integer-keyed layout
+
+    rebuild_tank = "fish_zfin_id" in _existing_columns(engine, "FishTankEntry")
+    # A real legacy database has the timestamp columns constraints.py
+    # attaches; carry their values over when they are there to carry.
+    stamps = [
+        column
+        for column in ("created_at", "updated_at")
+        if rebuild_tank and column in _existing_columns(engine, "FishTankEntry")
+    ]
+
+    with engine.begin() as connection:
+        unroutable = (
+            connection.execute(
+                text(
+                    """
+                    SELECT zfin_id FROM "Fish"
+                    WHERE zfin_id NOT LIKE 'ZFIN:ZDB-FISH-%'
+                      AND zfin_id NOT LIKE 'ZFIN:ZDB-GENO-%'
+                    """
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        if rebuild_tank:
+            # An entry whose fish row is missing (SQLite never enforced the
+            # legacy FK) or whose id shape neither new column accepts would
+            # silently fall out of the copy's joins — data loss. Refuse up
+            # front instead, while the legacy layout is still untouched.
+            uncarriable = connection.execute(
+                text(
+                    """
+                    SELECT COUNT(*) FROM "FishTankEntry" AS entry
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM "Fish" AS legacy
+                        WHERE legacy.zfin_id = entry.fish_zfin_id
+                          AND (legacy.zfin_id LIKE 'ZFIN:ZDB-FISH-%'
+                               OR legacy.zfin_id LIKE 'ZFIN:ZDB-GENO-%')
+                    )
+                    """
+                )
+            ).scalar()
+            if uncarriable:
+                raise RuntimeError(
+                    f"{uncarriable} tank entries reference a missing fish row or a "
+                    "ZFIN id shape neither new column accepts; the fish re-key "
+                    "cannot carry them. Nothing was changed — this needs a hand fix."
+                )
+
+        connection.execute(text('ALTER TABLE "Fish" RENAME TO "Fish_legacy"'))
+        Base.metadata.tables["Fish"].create(connection)
+        # The legacy display name is not copied — Fish has no name column any
+        # more (display strings are derived). Its one afterlife is below: it
+        # becomes the tank entry's nickname.
+        copied = connection.execute(
+            text(
+                """
+                INSERT INTO "Fish" (fish_zfin_id, genotype_zfin_id)
+                SELECT
+                    CASE WHEN zfin_id LIKE 'ZFIN:ZDB-FISH-%' THEN zfin_id END,
+                    CASE WHEN zfin_id LIKE 'ZFIN:ZDB-GENO-%' THEN zfin_id END
+                FROM "Fish_legacy"
+                """
+            )
+        ).rowcount
+
+        # FishTankEntry changed in the same release: it referenced fish by
+        # ZFIN id (fish_zfin_id NOT NULL) and had no nickname. Both
+        # replacement columns are NOT NULL, so the table is rebuilt too —
+        # fish_id by joining the ZFIN id each entry used to hold (in
+        # whichever column it was routed to), nickname from the legacy fish's
+        # display name (what the group called the line is exactly what the
+        # column now means).
+        entries = 0
+        if rebuild_tank:
+            connection.execute(text('ALTER TABLE "FishTankEntry" RENAME TO "FishTankEntry_legacy"'))
+            Base.metadata.tables["FishTankEntry"].create(connection)
+            stamp_cols = "".join(f", {column}" for column in stamps)
+            stamp_vals = "".join(f", entry.{column}" for column in stamps)
+            entries = connection.execute(
+                text(
+                    f"""
+                    INSERT INTO "FishTankEntry"
+                        (id, research_group, fish_id, nickname{stamp_cols})
+                    SELECT entry.id, entry.research_group, fish.id, legacy.name{stamp_vals}
+                    FROM "FishTankEntry_legacy" AS entry
+                    JOIN "Fish_legacy" AS legacy ON legacy.zfin_id = entry.fish_zfin_id
+                    JOIN "Fish" AS fish
+                        ON entry.fish_zfin_id IN (fish.fish_zfin_id, fish.genotype_zfin_id)
+                    """
+                )
+            ).rowcount
+            connection.execute(text('DROP TABLE "FishTankEntry_legacy"'))
+
+        connection.execute(text('DROP TABLE "Fish_legacy"'))
+
+    if unroutable:
+        log.warning(
+            "legacy Fish id(s) neither ZDB-FISH nor ZDB-GENO form, left unmapped: %s",
+            ", ".join(unroutable),
+        )
+    log.info("rebuilt Fish from the legacy zfin_id-keyed layout (%s row(s))", copied)
+    if rebuild_tank:
+        log.info("rebuilt FishTankEntry; legacy fish names became nicknames (%s row(s))", entries)
+
+
+def _relink_experiments_to_fish(engine: Engine) -> None:
+    """Fill ``Experiment.fish_id`` from the legacy ``fish_zfin_id`` column.
+
+    Legacy experiments referenced their fish by ZFIN id; ``fish_id`` is added
+    generically (it is nullable) and filled here from the id the row used to
+    hold — matching either column the rebuild routed that id into. The old
+    column stays in place, matching the chemical migration's
+    keep-for-rollback precedent. MIN() keeps the fill deterministic even after
+    the API starts inlining one Fish row per use.
+    """
+    columns = _existing_columns(engine, "Experiment")
+    if not {"fish_id", "fish_zfin_id"} <= columns:
+        return  # never legacy, or created after the re-key
+
+    with engine.begin() as connection:
+        relinked = connection.execute(
+            text(
+                """
+                UPDATE "Experiment" SET fish_id = (
+                    SELECT MIN(id) FROM "Fish"
+                    WHERE "Experiment".fish_zfin_id
+                        IN ("Fish".fish_zfin_id, "Fish".genotype_zfin_id)
+                )
+                WHERE fish_id IS NULL AND fish_zfin_id IS NOT NULL
+                """
+            )
+        ).rowcount
+    if relinked:
+        log.info("relinked %s experiment(s) to their rebuilt Fish row", relinked)
+
+
 def _move_chemical_names_into_synonyms(engine: Engine) -> None:
     """Carry the dropped ``chemical_name`` column over to ``synonym``.
 
@@ -113,7 +276,15 @@ def _rename_vehicle_types(engine: Engine) -> None:
 
 
 def migrate(engine: Engine) -> None:
-    """Apply every outstanding fix. Idempotent; safe on an up-to-date database."""
+    """Apply every outstanding fix. Idempotent; safe on an up-to-date database.
+
+    The fish rebuild runs before the generic column pass: until it has run,
+    a legacy database is missing ``Fish.id`` and ``FishTankEntry.fish_id`` —
+    primary key and NOT NULL respectively, which ``_add_missing_columns``
+    refuses rather than half-applies.
+    """
+    _rebuild_legacy_fish(engine)
     _add_missing_columns(engine)
+    _relink_experiments_to_fish(engine)
     _move_chemical_names_into_synonyms(engine)
     _rename_vehicle_types(engine)

@@ -22,7 +22,7 @@ $(PYDANTIC_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-pydantic $< >> $@
 
-$(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
+$(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS) $(SCHEMA_DIR)/crud_pydanticgen.py
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run python -m zapp_atlas.schema.crud_pydanticgen $< >> $@

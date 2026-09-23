@@ -22,7 +22,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-3", "name": "AB"},
+            "fish": {"background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },
@@ -70,7 +70,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
     assert body["publication"] == "PMID:333"
     assert len(body["experiment"]) == 1
     [got_exp] = body["experiment"]
-    assert got_exp["fish"]["name"] == "AB"
+    assert got_exp["fish"]["background_name"] == "AB"
     assert len(got_exp["exposure_event"]) == 1
     [got_ee] = got_exp["exposure_event"]
     assert got_ee["exposure_start_stage"] == "ZFS:0000011"

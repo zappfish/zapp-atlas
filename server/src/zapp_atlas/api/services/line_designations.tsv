@@ -1,0 +1,677 @@
+# ZFIN registered line designations (allele-symbol prefix -> lab of origin).
+# Source: https://zfin.org/action/feature/line-designations (fetched 2026-09-01).
+# Regenerate by re-running the parser in the PR that added this file against
+# a fresh copy of that page. Columns: prefix<TAB>institution<TAB>labs
+a	Harvard University	Cohen Lab , Dowling Lab , Engert Lab , Robson Lab
+aa	Academy of Athens	Beis Lab
+aac	University Hospital RWTH Aachen	Bremer Lab
+ae	Albert Einstein College of Medicine	Bowman Lab , Pereda Laboratory
+af	Institute of Anatomy and Cell Biology, University of Freiburg	Heermann Lab
+agu	Aoyama Gakuin University	Hirata Lab
+ah	University of Science and Technology of China in Hefei, Anhui	Bing Hu Lab
+ahc	Amherst College	Trapani Lab
+ai	National Institute of Advanced Industrial Science and Technology	Oishi Lab
+aik	University of South Carolina Aiken	DeLaurier Lab
+alv	University of the Algarve	Canário Lab , Thyroid hormone in development
+ama	Institut National de la Recherche Agronomique, Centre National de la Recherche Scientifique	UMS AMAGEN CNRS INRA (Closed)
+amc	Academic Medical Center	Baas Lab
+ams	University of Amsterdam	Huveneers Lab
+amu	Adam Mickiewicz University	Anbalagan Lab
+ari	Agharkar Research Institute	Cardiovascular biology Lab
+aro	Agricultural Research Organization - Volcani Center.	
+as	Academia Sinica Nankang	Chang-Jen Huang Lab , Chen-Hui Chen Lab , Chung Bon-chu Lab , Fish Molecular Physiology Laboratory , Hwang Lab , Jen-Leih Wu Lab , Ruey-Bing Yang Lab , Shih-Lei Lai Laboratory
+asj	Academia Sinica Jiaushi	JY Chen Lab
+asu	Ashland University	Mason Posner Lab
+atu	Arkansas Tech University	Arkansas Tech University Zebrafish Facility
+au	University of Texas at Austin	Eberhart Lab
+az	Advanced Telecommunications Research Institute International	Sato Lab
+b	Oregon	Adam C Miller Lab , Aquatic Animal Care Services , Eisen Lab , Grimes Lab , Guillemin Lab , Kimmel Lab , Postlethwait Zebrafish Genetics Laboratory , Stankunas Lab , Streisinger Lab , Washbourne Lab , Westerfield Lab , Weston Lab
+ba	University of Bath	Bath Zebrafish Development Lab , Foley Lab
+bbc	Berkeley (Advanced) Bioimaging Center	The Cell Observatory
+bbu	Northeastern Illinois University	Cantú Lab
+bc	Centre de Regulacio Genomica - PRBB, Barcelona	
+bcm	Baylor College of Medicine	Gorelick Lab , Williams Lab
+bcn	University of Barcelona -Bellvitge Campus	Barrallo Gimeno Lab
+bcz	Boston College	Gonzalez-Rosa Lab , McMenamin Lab
+be	Gene Expression Laboratories	Izpisúa Belmonte Lab
+ber	Max Planck Institute for Infection Biology	Cronan Lab
+bgu	Ben-Gurion University of the Negev	Birnbaum Lab
+bhs	Baptist University College of Osteopathic Medicine	Camarata Lab
+bi	University of Sydney	Becker Lab
+biu	Bar-Ilan University	Appelbaum Lab , Karasik Lab
+biz	Beth Israel Deaconess Medical Center	Asnani Lab , Nath Lab
+bj	Capital Institute of Pediatrics, Beijing	Shuyan Yang Lab
+bjz	Chinese Academy of Sciences, Beijing	Jiang Liu Laboratory , Shunji Jia Lab
+bk	University of California Berkeley	Craig Miller Lab , Isacoff Lab , Ngai Lab , Richard H. Kramer Lab , Swinburne Lab
+bmc	Biomedical Center	Biomedical Center, University of Iceland
+bn	University of Bonn	Ben Odermatt Lab , Zebrafish Core Facility, University of Bonn
+bns	Max Planck Institute, Bad Nauheim	Stainier Lab
+bo	Bowdoin College	Jackman Lab
+bps	Institute of Biology Paris-Seine (IBPS)	Developmental Biology Laboratory, Institute of Biology Paris-Seine (IBPS) , Mechanics of neuronal development
+br	Brown University	Plavicki Lab
+brn	University of Bern	Mercader Lab
+bsl	University of Bristol	Hammond Lab , Martin Lab , Rebecca Richardson Lab
+bsu	Boise State University	Oxford Lab
+bu	Boston University	Cifuentes Lab , Feng Lab , Garcia-Marcos Lab , Hagedorn Lab , Zhdanova Lab
+bw	Brigham and Women's Hospital	Bonventre Lab , David Chiang Lab , Fong Lab , MacRae Lab , Nissim Lab , Paw Lab , Vandana Gupta Lab
+by	Brigham Young University	Jonathon Hill Lab , Suli Lab
+bz	Technische Universität Braunschweig	Köster Lab
+c	Carnegie Institute	Farber Lab
+ca	University of Calgary	Childs Lab , Kurrasch Lab , McFarlane Lab , Peng Huang Lab , Vijayan Lab
+cas	Chinese Academy of Science	Lin Li Lab , Weijun Pan Lab
+cbg	Max Planck Institute of Molecular Cell Biology and Genetics	Elisabeth Knust Lab , Mateus Lab , Norden Lab
+cbm	Centro de Biologia Molecular Severo Ochoa	Bovolenta Lab , Martin-Belmonte Lab
+cc	Army Medical University, Chongqing, China	Chao Wang Lab , Chi Liu Lab
+ccu	Champalimaud Center for the Unknown	Visio to Action - Orger Lab
+cd	Dartmouth College	Halpern Lab , Kasper Lab , Walker Lab
+cdf	Collège de France	Regeneration and morphogenesis in zebrafish
+cdz	Chengdu Medical College	Sizhou Huang Lab
+ced	German Center for Neurodegenerative Diseases (DZNE) Dresden	Kizil Lab
+cf	Cornell University	Joe Fetcho Lab
+cg	Colgate University	Meyers Lab
+ch	University of Chicago	Anderson Group , Chuan He Lab , Prince Lab , Robert Ho Lab , Shubin Lab
+chb	Boston Children's Hospital	Burns Lab , Joanne Chan Lab , Mably Lab , Poduri Lab
+chh	Changsha Hospital for Maternal and Child Health Care	Xiangwen Peng lab
+chi	Chiba University	Itoh Lab
+chk	Chinese University of Hong Kong	Bo Gao's Lab , Gu Lab
+ci	Cincinnati Children's Hospital Medical Center	Barske Lab , Chunyue Yin Lab , Ozbudak Lab , Slavotinek Lab , Waxman Lab
+cif	ICAR-Central Institute of Fisheries Education	Chaudhari Lab
+cig	Chongqing Institute of Green and Intelligent Technology	Pei Lab, Research Center for Environment and Health (RCEH)
+cj	Cancer Research UK London Research Institute	Vertebrate Development Laboratory
+ck	Chungnam National University	Cheol-Hee Kim Lab , Laboratory of cellular differentiation
+cku	National Cheng-Kung University	TF Fu Lab
+cl	Children's Hospital, Boston	Aquatic Resources Program , Beggs Lab , Engle Lab , Hildebrandt Lab , Kunkel Lab , Lencer Lab
+clm	Clemson University	Rosowski Lab
+cm	Cornell University	McCune Lab
+cmg	Ghent University - Center for Medical Genetics Ghent (CMGG)	Callewaert Lab , Center for Medical Genetics Ghent (CMGG) , Center for medical genetics, Lab for cancer predisposition and precision oncology , Speleman Lab
+cmr	Center for Regenerative Medicine in Barcelona	Raya Lab
+cms	Chonnam National University Medical School	Seok-Yong Choi Lab
+cn	Centro Nacional de Investigaciones Cardiovasculares CNIC	de la Pompa Lab
+cnu	National Changhua University of Education	CF Ken Lab
+co	University of Colorado Denver Anschutz Medical Campus	Appel Lab , Artinger Lab , Burger Lab , Clouthier Lab , Jessica Nelson Lab , Macklin Lab , Mosimann Lab , Nancy Miller Lab , Nichols Lab , Ribera Lab , Sagerström Lab , Watt Lab
+con	Conicet, National Council for Scientific and Technical Research	Genetics and Molecular Evolution
+cph	University of Copenhagen	Lundegaard Lab , Ober Lab
+cpu	China Pharmaceutical University	Jing Shang Lab
+cq	School of Life Sciences, Southwest University, China	Jianlong Ma Lab , Li Li Lab , Lingfei Luo Lab , Yun Li Lab
+cqu	Chongqing University	Wang GX Lab
+crg	Centre for Genomic Regulation	Irimia Lab
+cri	Children's Hospital of Philadelphia	Falk lab
+cru	Creighton University	Kramer Lab
+cs	University of Colorado	Medeiros Lab , Stock Lab
+csl	California State University Long Beach	Holland Lab
+csu	California State University	Nissen Lab
+csz	Cedar-Sinai	Melmed Lab , Traver Lab
+ct	California Institute of Technology	Bronner-Fraser Lab , Prober Lab , Scott Fraser Lab
+cu	Cambridge University	Adams Lab , Buckley Lab , Fleming Lab , Harris Lab , Horvath Lab , Ramakrishnan Lab , Sarris Lab
+cub	Charité Universitätsmedizin, Berlin	Anja IH Hagemann Lab
+cw	Cornell University	
+cwr	Case Western Reserve University	Alagramam Lab , McDermott Lab
+cy	Chung Yuan Christian Univ.	Epidermal Stem Cell Lab
+cz	Howard Hughes Medical Institute	The Zon Lab
+czb	Chan Zuckerberg Biohub	Keir Balla
+czf	the Czech Academy of Sciences	Laboratory of Cellular Neurophysiology
+e	Institute of Science and Technology Austria	Heisenberg Lab
+ecn	East China Normal University	Zhen-Yu Du Lab
+ecu	East Carolina University	Fadi Issa Lab , Mruk Lab , Myon Hee Lee Lab , Schwalbe Lab , Yong Zhu Lab
+ed	MRC Edinburgh	Abbott lab , Minchin Lab , Rossi Lab , Sieger Lab , Yi Feng Lab
+eib	East China University of Science and Technology	Dahai Yang Lab
+el	USC Keck School of Medicine	Crump Lab
+elu	Eötvös Loránd University	Varga Lab
+em	Emory University	Fritz Lab , Henke Lab , Jinhu Wang Lab , Shepherd Lab
+en	University Erlangen-Nuremberg	Jobst-Schwan Lab
+ens	Ecole Normale Supérieure	Charnay Lab , Kapsimali Lab , SUMBRE Lab
+epf	École Polytechnique Fédérale de Lausanne	LEAGO group , Oates Lab
+er	University of Muenster	
+f	Mass General Hospital - Cardiovascular Research Center	Milan Lab , Peterson Lab , Randall Peterson Lab , The Fishman Laboratory , Yeh Lab , Yuan Lab
+fb	Massachusetts General Hospital	Drummond Lab , Galloway Lab , Geoff Burns Lab , Hung Lab , Langenau Lab
+fcc	Fox Chase Cancer Center	Rhodes Lab
+fci	Francis Crick Institute	Hill Lab , Jim Smith Lab , Pachnis Lab , Tooze lab/Molecular Cell Biology of Autophagy , Wilkinson Lab
+fcu	Columbia University	Targoff Lab
+fds	University of Ferrara	Bertolucci Lab
+fdu	Fudan University	Dai Lab , Qiang Li Lab , Song Lab , Xui Xu Lab , Xu Wang Lab
+fgi	Institut de Génomique Fonctionnelle	Ruggiero Lab
+fh	Fred Hutchinson Cancer Research Center	Moens Lab
+fi	Università di Firenze	Vanzi Lab
+fl	Florida State University	Fadool Lab
+fla	Florida Atlantic University	Fontenas Lab
+fmi	Friedrich Miescher Institute for Biomedical Research	Friedrich Lab
+fp	Fondazione Istituto di Ricerca Pediatrica	Aveic Lab
+fr	Max Planck Institute of Immunobiology and Epigenetics, Freiburg	Boehm Lab , Hammerschmidt Lab , Trompouki Lab
+fri	University of Fribourg	Jazwinska Lab
+fu	Frankfurt University	Acker-Palmer lab , Gottschalk lab , Lecaudey Lab
+g	Houston	Lekven Lab
+ga	University of Georgia	Dougan Lab , Goll Lab , Lauderdale Lab
+gd	Institute of Genetics and Developmental Biology	Jian Zhang Laboratory
+ge	Georg-August University Goettingen	Dosch Lab , Huisken Lab
+gf	Gifu University	Takashima Lab
+ggc	Greenwood Genetic Center and Clemson University	Steet/Flanagan-Steet Lab
+gi	Garvan Institute of Medical Research	Hesselson Lab , Transplantation Immunology
+gib	Institute of Genomics and Integrative Biology	Pillai Lab , Sivasubbu Lab
+gl	Walter and Eliza Hall Institute of Medical Research	Lieschke Laboratory
+gmc	Georgia Health Sciences University	Kozlowski Lab
+gmu	Guizhou Medical University	Zhi-Xu He Lab
+gnu	Gyeongsang National University	Chong Pyo Choe Lab
+gnv	University of Genova	Laboratory of Developmental Neurobiology
+gsz	Universidad de Granada	Dario's Lab
+gt	Georgia Institute of Technology	Chong Shin lab
+gu	Georgetown University	Glasgow Lab
+gue	University of Guelph	Van Raay Lab
+gus	Gothenburg University Sweden	Neurochemical pathophysiology and diagnostics
+gw	Washington University School of Medicine	Goldsmith Lab
+gy	Institute of Neurobiology Alfred Fessard	Vernier Lab
+gyf	Guangdong Medical University	Development and functional regulation of BBB , Laboratory of Neural System Development and Regeneration
+gz	The National University of Singapore	Zhiyuan Gong Lab
+ha	Hiroshima University	Aizawa Lab , Kikuchi Lab
+hcp	Cal Poly Humboldt	Gahtan Lab
+hd	Max Planck Institute for Medical Research	Ryu Lab Heidelberg
+hdb	EMBL Heidelberg	Diz-Muñoz Group , Maria Leptin Lab
+he	Henan University	Xiukun Cui Lab
+hg	NHGRI/NIH	Burgess Lab , P. Paul Liu Lab , Puertollano Lab , Sood Lab
+hh	University of Sheffield	
+hi	MIT	Hopkins Lab
+hj	Heilongjiang River Fisheries Research Institute	Kuang Lab
+hjr	Hebrew University of Jeruselem	Fish Reproduction , Golan Lab
+hkb	Hong Kong Baptist University	KL Yung Lab
+hki	University of Helsinki	Panula Lab
+hkk	Hokkaido University	Kotani Lab
+hku	University of Hong Kong	Anskar Leung Lab
+hkz	Hong Kong University of Science and Technology	Laboratory of Dr. Andrew L. Miller , Wen Lab
+hm	Harvard Medical School	Megason Lab
+hmr	Houston Methodist Research Institute (HMRI)	Longhou Fang Lab
+hn	Hunan Normal University	Deng Lab , Laboratory of Animal Nutrition and Human Health , The Center for Heart Development, Hunan Normal University
+hnu	Hanbat National University	Yeo Lab
+hsc	The Hospital for Sick Children, Toronto	Ciruna Lab , Jim Dowling Lab , Pearson Lab , Saadet Andrews Lab , Scott Laboratory
+hsi	Dalhousie Univeristy	Berman Lab , Quinn Lab
+hu	Hubrecht Lab, Utrecht	Bakkers Lab , Catherine Robin Lab , Clevers Lab , Cuppen Lab , den Hertog Lab , Hubrecht Institute , Plasterk Lab
+huh	Haukeland University Hospital	Renal Research Group
+huj	Hebrew University of Jerusalem	Inbal Lab , The Elkouby Lab
+hv	Haverford College	Jain Lab
+hyo	University of Hyogo	Hatta Lab
+hza	HuaZhong Agricultural University	Guangfu Hu Lab , Jie Mei Lab , Jing-Xia Liu Lab , Ze-Xia Gao Lab
+hzm	Helmholtz Zentrum München	Lopez-Schier Lab
+hzu	Huazhong University of Science and Technology	Haibo Jia Lab , Mugen Liu Lab , Xianqin Zhang Lab
+i	ICRF	Ingham Sheffield Lab (Closed) , Ingham Singapore Lab
+ia	Universita' di Padova	Argenton Lab , Dalla Valle Lab , Moro Lab , Sandona Lab , Tiso Lab
+iaf	Institut national de la recherche scientifique (INRS)	Patten Lab
+ib	CSIC-Institut de Biologia Molecular de Barcelona	Minguillon Lab
+ibg	İBG-izmir Institute, Dokuz Eylül University Turkey	Cakan Lab
+ibl	Leiden University	Bussmann Lab , Haramis Lab , Meijer Lab , Schaaf Lab , Spaink Lab
+ibr	Instituto de Biología Molecular y Celular de Rosario (IBR-CONICET/Univ. Nac. Rosario)	Calcaterra Lab
+ic	Institut Curie	Development of Mucosal Immunity and Tissue Integrity , Hernández Lab
+icl	Imperial College London	Dallman Lab , Thomas Brand Lab
+icm	L'Institut du Cerveau et de la Moelle épinère	PHENO-Zfish , Wyart Lab
+idb	IDIBAPS Barcelona	Translational research group in new therapeutic and diagnostic strategies in liver diseases
+idc	National Institute on Deafness and Other Communication Disorders	Kindt Lab
+idv	Institut de la Vision	Del Bene Lab
+idz	Indian Institute of Science	Developmental and Biomedical Genetics Laboratory
+iem	Institute of Experimental Medicine Prague, Czechia	Ond&#345;ej Macho&#328; Laboratory
+ig	Institut de génétique et de biologie moléculaire et cellulaire (IGBMC)	Vermot Lab
+igb	CSIR-Institute of Genomics and Integrative Biology	Fate & Fault Lab
+ihb	Inst of Hydrobiology	Aquatic Bioinformatics Lab , Cui Lab , Fish RNA Biology , Gui Lab , Hong Cao Lab , Mingxian Chang Lab , Qing Wang Lab , Wei Hu lab , Xiao Lab , Yi-bing Zhang Lab , Yonghua Sun Lab , Yuhua Sun Lab , Zhan Yin Lab , Zhen Xu Lab
+ii	Imagine Institute	Laboratory of Embryology and genetics of human malformations , Saunier's lab
+iim	Institute of Marine Research (IIM-CSIC)	Rotllant Lab
+iis	i3s - Instituto de Investigação e Inovação em Saúde, Porto	Vertebrate Development and Regeneration Lab
+ils	Institute of Life Sciences, Bhubaneswar	Developmental Biology and Human Disease Models
+imb	Institute of Medical Biology, A-STAR	Human Embryology
+img	University of Belgrade, Institute of Molecular Genetics and Genetic Engineering	Muscle Cellular and Molecular Biology, IMGGE
+imm	Instituto de Medicina Molecular	Leonor Saude Lab
+in	Instituto de Neurociencias, Alicante, Spain	Nieto Lab
+inj	INRAE, Jouy en Josas	Langevin Lab
+inr	Institut National de la Recherche Agronomique	Bobe Lab , Institut National de la Recherche Agronomique, Laboratoire de Physiologie et Génomique des Poissons
+io	IFOM	Zebrafish Unit - Cogentech Srl
+ioh	Institute of Hematology & Blood Diseases Hospital, Chinese Academy of Medical Sciences	Lu Wang Lab
+ion	Chinese Academy of Sciences, Institute of Neuroscience	Jie He Lab , Jiu-Lin Du Lab , Mu Lab , Zebrafish Brain Atlas Research Group
+ioz	State Key Laboratory of Biomembrane and Membrane Biotechnology Institute of Zoology Chinese Academy of Sciences	Liu Lab
+ip	Institut Pasteur	Bally-Cuif Lab , Herbomel Lab
+ipk	Department of Pharmacology, University of Cologne	Gründemann Lab
+ipm	Institut Pasteur de Montevideo	Cell Biology of Neural Development , Molecular and Human Genetics Lab
+ir	University of California Irvine	Eom Lab , Parsons Lab , Schilling Lab
+irc	IRCCS Fondazione Stella Maris, Italy	Santorelli Lab
+iro	Institute for Research in Ophthalmology	Institut de Recherche en Ophtalmologie (IRO) (Closed)
+is	Iowa State University	Campbell Lab , Espin Lab , Essner Lab , McGrail Lab
+isc	Institut de Neurobiologie Alfred Fessard	Peyriéras Lab
+it	University of Tsukuba	Kobayashi Lab
+itm	University of Milan	Vaccari Lab
+itz	Royan Institute for Stem Cell Biology and Technology, Tehran	Royan Zebrafish Core Facility
+iu	Indiana University School of Medicine	Marrs Lab
+ivb	InVivo Biosystems	InVivo Biosytems
+j	Washington University	Stephen L. Johnson Lab , Ting Wang Lab
+ja	University of Tokyo, Graduate School of Science	Fukada Lab (Closed) , Group of Animal Morphogenesis During Development , Kikkawa lab , Kojima Lab
+jf	HHMI Janelia Farm Research Campus	Ahrens Lab , Schreiter Lab
+jg	University Medical Center, Johannes Gutenberg University Mainz	
+jh	Johns Hopkins University	Jimenez Lab , McCallion Lab , Mumm Lab
+ji	Jichi Medical University	Nakajo Lab, Division of Integrative Physiology
+jj	Massachusetts Eye and Ear Infirmary	
+jk	University of Tokyo, School of Biological Science	
+js	Tohoku University	Gembu Abe Lab , Ogura Lab , Shoji Lab , Suzuki Lab
+jt	University of Tokyo, School of Medicine	Fujiwara Lab , Mishina Lab , Mizushima Lab
+jz	Laboratory of Organ Morphogenesis	Laboratory of Organ Morphogenesis
+k	Northwestern University	McLean Lab , Takahashi Lab
+ka	Karlsruhe Institute for Technology (KIT)	Bastmeyer Lab , Blattner Lab , Dickmeis Lab , Foulkes Lab , Grabher Lab , Le Noble Lab , Rastegar Lab , Strähle Lab (Closed)
+kan	Kangwon National University	Yun Kee Lab
+kb	Kobe University	Inoue Lab
+kbc	Hospital Kremlin Biocetre	Tawk Lab
+kc	Pennsylvania State University	Cheng Lab
+kca	University of Koln	Reugels / Campos-Ortega Lab
+kco	Kenyon College, Ohio	Petersen Lab
+kd	Duke University Medical Center	Bagnat Lab , Di Talia Lab , Munjal Lab , Naumann Lab , Tobin Lab
+kg	Kings College London	Brand-Saberi Lab , Hindges Lab , Hinits Lab , Houart Lab , Jon Clarke Lab , Linker Lab , Meyer Lab , Rodaway Lab , Simon M. Hughes Lab
+kgs	Kagoshima University	Shiozaki Lab
+kh	Kyung Hee University	Molecular Genetics Laboratory
+ki	Karolinska Institute	Adameyko Lab , Andersson Lab , Andersson-Lendahl Lab , Helleday Lab , Tryggvason Lab , Zebrafish core facility Karolinska Institutet
+kj	University of Tokyo	Kawamura Lab , Watabe Lab
+km	Korea University Medical Center (Ansan Hospital)	Disease modeling Lab , Hae-Chul Park Lab
+kn	University of Konstanz	Axel Meyer Lab , Bahl Lab , Stürmer Lab
+knu	Kyungpook National University	Huh Lab
+ko	Kyoto University	Maegawa Lab , Sehara-Fujisawa Lab , Shukunami Lab
+krb	Korea Research Institute of Bioscience and Biotechnology	Jeong-Soo Lee lab
+ks	Kansas State University	Thorpe Lab
+kst	Stowers Institute for Medical Research	Krumlauf Lab
+ksu	Kyoto Sangyo University	Laboratory of RNA regulation
+kt	Japan Science and Technology Corporation	Kondoh ERATO Lab
+kts	Kitasato University	Wada Lab
+ku	University of Kansas Medical Center	Cellular and Developmental Neuroscience , Godwin Lab , Kinsey Lab , Long Zheng Lab
+kum	Kumamoto University	Sugimoto Lab
+kut	Kochi University of Technology	Kamachi Lab
+kw	Western Michigan University	Kane Lab
+ky	National Institute of Environmental Studies	Section of Experimental Pathology and Toxicology
+kyu	Kyushu University	
+kz	Kanazawa University	Araiso Laboratory , Isao Kobayashi Lab
+l	University of Notre Dame	Lei Li Lab
+la	University of California Los Angeles	Bronstein Lab , Burgess & Lin Lab , Jau-Nian Chen Lab , Koehler Lab , Papazian Lab , Sagasti lab UCLA , Shuo Lin Lab , Thao Nguyen Lab
+laf	Lafayette College	Ezra Lencer Lab
+lc	Lewis and Clark College	Weissman Lab
+lcr	Ludwig Institute for Cancer Research, Oxford University	De Val Lab
+ld	Duke University	Linney Lab
+lh	Lehigh University	Iovine Lab
+li	Fritz Lipmann Institute (FLI)	Englert Lab
+lkc	Lee Kong Chian School of Medicine	Carney Lab , Dunn Lab , Jesuthasan Lab
+lmb	MRC-Laboratory of Molecular Biology (LMB)	
+lmc	Luminomics	Luminomics Inc
+lou	University of Louisville	Lovely Lab
+lp	Laboratoire de Physique de L Ecole Normale Superieure (LPENS)	Bensimon Lab
+lri	Cleveland Clinic	Anand-Apte Lab , Brian Perkins Lab , Corey Lab , Matsuoka Lab , Sakaguchi Lab
+ls	London School of Hygiene & Tropical Medicine	Mostowy Lab
+ltu	La Trobe University	Dworkin Lab
+lu	Loyola University Chicago	Pickett Lab
+lux	University of Luxembourg	Linster Lab
+lv	KU Leuven	Darras Lab , de Witte Lab , Porto Lab
+lvp	L V Prasad Eye Institute (LVPEI)	Indumathi Mariappan Lab
+ly	University of Lyon	Owen Randlett Lab
+m	University of Freiburg	Driever Lab , Onichtchouk Lab
+ma	Tokyo University of Marine Science and Technology	Aoki Lab , Yoshizaki Lab
+mai	University of Maine	Carol H. Kim Lab , Henry Lab , Jared Talbot Lab
+mb	Center of Marine Biotechnology, University of Maryland	Du Lab , Shengyun Fang Lab , Zohar Lab
+mbc	University of Maryland Baltimore County	Brewster Lab
+mbg	Marine Biological Laboratory	Gitlin Lab
+mcp	University of Maryland, College Park	Angueyra Lab
+md	Max Delbruck Center for Molecular Medicine	Gerhardt Lab , Panáková Lab , Sawamiphak Lab
+mde	Ludwig-Maximilians University Munich	Maier-Begandt Lab , Schmid Lab
+mdi	Mount Desert Island Biological Laboratory	Coffman Lab , Madelaine Lab , Rieger Lab , Voot Yin Lab
+mdu	School of Medicine, Deakin University	Ward Lab
+mg	McGill University	Armstrong Lab
+mh	Harvard Medical School	Matthew Harris Lab
+mhh	Medizinische Hochschule Hannover	Abdelilah-Seyfried Lab Hannover
+mhn	Museum National d’Histoire Naturelle	Tostivint and Pézeron Lab
+mi	University of Michigan	Cunming Duan Lab , Goldman Lab , Hitchcock Lab , Kuwada Lab , Lyons Lab , Parent Lab , Raymond Lab , Shavit Lab , Tzumin Lee Lab , Yunlu Zhu Lab
+mie	Mie University	Nishimura Lab
+mil	UWM Great Lakes WATER Institute	Udvadia Lab
+mit	Massachusetts Institute of Technology (MIT)	Boyden Lab , Lees Lab
+mk	Memorial Sloan Kettering Cancer Center	Niethammer Lab , White Lab
+mkc	University of Missouri-Kansas City	McGraw Lab
+mke	University of Wisconsin-Milwaukee	Gutzman Lab
+ml	University of Innsbruck	Dirk Meyer Lab
+mmc	Mackay Medical College	Tsai Laboratory
+mmr	Institut de Génomique Fonctionnelle	Molecular Mechanisms of Regeneration
+mn	Mayo Clinic	Burghardt Lab , Jane Zhu Lab , Mukhopadhyay Lab , Schimmenti Lab
+mnu	Monash University	Bird Lab , Bryson-Richardson Lab , Kaslin Lab , Ramialison Lab , Renee Chow Lab
+mo	Monash University	
+mpb	Max Planck Institute for Brain Research, Frankfurt	Schuman Lab
+mpn	Max Planck Institute of Neurobiology	Baier Lab
+mps	Max Planck Instiute for the Science of Light	Wehner Lab
+mq	Macquaire University	Laird Lab , Morsch Lab , Nicholas Cole Lab , Roger Chung Lab
+mr	University Marburg	Helker Lab
+mss	Mount Sinai School of Medicine	Chu Lab , Marlow Lab , Zebrafish Lab for Translational Medicine
+msu	Michigan State University	Braasch Lab , Ganz Lab
+mu	Munster University	Herzog Lab , Raz Lab , Schulte-Merker
+mun	Masaryk University	Fabian Lab
+muo	Miami University Oxford, Ohio	Schumacher Lab
+muu	Musashino University	Ohata Lab
+muz	Medical University of South Carolina	Jiaxing Li Lab , Lobo Lab , Seok-Hyung Kim Lab , Sherine Chan Lab , Tew Lab
+mw	Medical College of Wisconsin	Besharse Lab , Link Lab , Mayer Lab , Miesfeld Lab , Ramchandran Lab , Semina Lab , Veldman Lab
+myz	University of Miyazaki	Kenmochi Lab
+mz	Institute of Molecular Biology gGmbH (IMB), Mainz	Ketting Lab
+n	University of Newcastle upon Tyne	Bassett Lab , Chaudhry Lab , Jowett Lab
+nau	Northern Arizona University	Salanga Lab
+nc	University of North Carolina at Chapel Hill	Bautch Lab , Cho Lab , Ellen R. Weiss Lab , Jiandong Liu Lab , Jin Lab , Shiau Lab
+ncb	National Centre for Biological Sciences	Neural Circuits and Development lab
+ncc	North Carolina Central University	Chatterjee Lab , XL Chen Lab
+nce	Université Côte d’Azur	Fürthauer Lab , Telomere and Genome Stability Laboratory
+nch	Nationwide Children’s Hospital.	Genevieve Kendall Lab
+nci	National Cancer Institute	Hickstein Lab , Sheue-yann Cheng Lab
+ncu	North Carolina State University	Marsden Lab , Yoder Lab
+ncv	National Cerebral and Cardiovascular Center Research Institute	Mochizuki Lab
+ncz	Nanchang University	Key Laboratory of Aquatic Resources and Utilization of Jiangxi
+nds	NIH/NINDS	Hejtmancik Lab , Ralph Nelson Lab
+ne	Zebrafish Neurogenetics Group	
+nei	Nestlé Institute of Health Sciences	Chemical Biology Nestlé Institute of Health Sciences
+nf	Nanfang Hospital	Xinping Yang Lab
+nfl	University of Newfoundland	Curtis French lab
+nhi	Netherlands Institute for Neuroscience	Kamermans Lab
+ni	Nara Institute of Science and Technology	Gene Regulation Research Lab , Inagaki Lab
+nia	National Institute of Alcohol Abuse and Alcoholism	
+nig	National Institute of Genetics (NIG), Japan	
+nii	Niigata University	Matsui Lab
+nim	National Institute for Medical Research	Elgar Lab - Fugu Comparative Genomics Group
+nj	Rutgers University	Copeland Lab , Kelvin Y. Kwan Lab , Manzini lab , Nakamura Lab , O'Brown Lab , Sabaawy Lab
+nja	Nanjing Agricultural University	Dingdong Zhang Lab
+njm	Children's Hospital of Nanjing Medical University	Nanjing Key Laboratory of Pediatrics
+nju	Nanjing University	Xin Lou Lab , Zhao Lab
+nk	National Institute of Genetics, Japan	K. Kawakami Lab , Neurobiology and Pathology Lab
+nkf	National Kaohsiung University	Chieh-Yu Pan Lab
+nku	Nankai University	Yuhao Li Lab
+nl	OHSU School of Medicine	Nechiporuk Lab
+nm	Washington University School of Medicine	Nonet Lab
+nn	National Tsing Hua University & National Health Research Institutes, Taiwan	Jiang Lab , YJ Chuang Lab , Yuh Lab
+nni	National Eye Institute, NIH	Brooks Lab , Ophthalmic Genomics Laboratory
+nns	Okazaki Institute for Integrative Bioscience	Higashijima Lab , Takada Lab
+nnu	Northwest Normal University, Lanzhou, China	Jianzhen Li Lab
+np	Nippon Medical School	Fukuhara Lab
+ns	National University of Singapore	Mathuru Lab , Shifeng Xue Lab , Takaomi Sanda Lab , Winkler Lab , Wohland Lab , Zebrafish Radiobiology Lab
+nt	University of Notre Dame	Cody Smith Lab , University of Notre Dame Center for Zebrafish Research , Wingert Lab
+ntu	Nantong University	Hui Xu Lab , Liu Dong Lab , Zhangji Dong Lab , Zhang Lab
+nu	Northwestern University School of Medicine/CMIER	Ahlgren Lab , Erica Davis Lab , Topczewski Lab
+nub	Nagoya University	Hibi Lab
+nuz	Northeastern University	Detrich Lab
+nv	Novartis Institutes for Biomedical Research	Peixin Zhu Lab , Schebesta Lab
+nw	Norwegian University of Science and Technology	Yaksi Lab
+nwc	Northwest University (China)	Jing Tian Lab
+nya	New York University Abu Dhabi	Sadler Lab
+nyc	NYU Neuroscience Institute	Schoppik Lab
+nyu	New York University	Brian Dynlacht Lab
+nz	The University of Auckland School of Medical Sciences	Astin Lab , Christopher Hall Lab , Chromosome Structure and Development Group , Crosier Lab , Davidson Lab
+o	University of Warmia and Mazury in Olsztyn, Poland	Laboratory of Genomics and Transcriptomics
+obu	National Institute for Geriatrics and Gerontology	Functional Genomics Unit
+ohz	Ohio State University Medical Center	Ye Lab
+oi	Oita University	Reiko Hanada Lab , Toshikatsu Hanada Lab
+oki	Okinawa Institute of Science and Technology (OIST)	Masai Lab
+omc	Osaka Medical and Pharmaceutical University	Department of Physiology, Osaka Medical and Pharmaceutical University
+omf	Oklahoma Medical Research Foundation	Sansam Lab , Varshney Lab
+omi	The University of Mississippi Medical Center	Michael Hebert Lab
+omx	University of Mississippi in Oxford	Bloomekatz Lab
+os	Ohio State University	Aaron Goldman Lab , Beattie Lab , Henion Lab , Jontes Lab
+osu	Oregon State University	Tanguay Lab
+ot	University of Ottawa	Akimenko Lab , Kathleen M Gilmour Lab , Marc Ekker Lab , Steve F. Perry Lab
+ou	Osaka University	Ishitani Lab , Kondo Lab , Okamura Lab
+ouc	Ocean University of China	Chengtian Zhao Lab , Gen He Lab , Hongyan Li Lab , Laboratory for Development &amp; Regeneration , Laboratory of Molecular Medicine , Ling Lu Lab , Zhenhui Lab
+ovi	Oregon Vollum Institute	
+ox	University of Oxford	Mommersteeg lab , Patient Lab , Sauka-Spengler Lab
+oz	Ohio State University	Amacher Lab
+p	University of Pennsylvania	Balice-Gordon Lab , Eric Liao Lab , Fisher Lab , Matthews Lab , Michael Granato Lab , Mullins Laboratory , Pack Lab , Raj Lab , Raper Lab , Siekmann Lab , Weinberg Lab
+pbb	Universität Potsdam	Abdelilah-Seyfried Lab Potsdam
+pc	Australian Regenerative Medicine Institute (ARMI)	Peter Currie Lab
+pd	Duke University Medical Center	
+pfu	Universitat Pompeu Fabra-PRBB	Alsina Lab , Pujades Lab
+pgt	Pentagrit Discovery	Pentagrit Discovery
+phk	The Hong Kong Polytechnic University	Alvin Ma Lab
+pkm	Peking Union Medical College	Xiaowei Chen&#39;s Lab , Ying Han Lab
+pku	Peking University	Jing-Wei Xiong Lab , Liangyi Chen Lab , PKU Zebrafish Functional Genomics Group
+pm	Morgridge Institute for Research	Poss Lab
+pmc	Universite Pierre et Marie Curie	Vertebrate Brain Patterning
+pr	Princeton University	Burdine Lab
+psi	Stowers Institute for Medical Research	Piotrowski Lab , Rohner Lab
+psu	Pennsylvania State University	Rolls Lab
+pt	University of Pittsburgh	Bahary Lab , Beth Roman Lab , Burton Lab , Gross Lab , Hukriede Lab , Shin Lab , Tsang Lab , Wei Lab
+pu	Purdue University	Collodi Lab , GuangJun Zhang Lab , Qing Deng Lab , Suter Lab
+q	University of Washington	Wong Lab
+qdu	Qingdao University	Cardiac and Aging-related Genetic Disorders
+qm	Queen Mary College, University of London	Brennan Lab
+qmc	University of Nottingham	Gering Lab
+r	Institut National de la Santé et de la Recherche Médicale	Groupe Danio
+rc	Zebrafish International Resource Center	Zebrafish International Resource Center (ZIRC)
+rco	Reed College, Oregon	Cerveny Visual System Development Lab
+rdb	Radboud University	Department of Organismal Animal Physiology
+rdd	Dr. Reddy’s Institute of Life Sciences	Aarti Sevilimedu Lab , Chatti Lab
+rdu	Duke University Medical Center, Dept. of Molecular Genetics & Microbiology	Center for Human Disease Modeling , Rawls Lab
+re	Erasmus MC	Barakat Lab , Emma de Pater Lab , French Lab , Iglesias Lab , Maria Alves Lab , van Ham Lab
+rg	Regeneron Pharmaceuticals	Regeneron Pharmaceuticals
+rj	Chinese Academy of Sciences & Shanghai Jiao Tong University School of Medicine	Huaidong Song Lab , Jun Zhu Lab , Ting Xi Liu Lab , Xiao-Jian Sun Lab , Zhou Lab
+rji	Chinese Academy of Sciences & Shanghai Jiao Tong University School of Medicine (Renji Hospital)	Fangyuan Chen Lab
+rk	RIKEN - Kobe	Laboratory for Vascular Morphogenesis , Vertebrate Body Plan Group
+rm	Ruppin Academic Center School of Marine Sciences	Daya Lab
+rmc	Radboud University Medical Centre Nijmegen, Netherlands	de Voer Lab , Functional genomics and therapeutics / ENT , Internal Medicinte, section Endocrinology , Molecular Therapies for Inherited Eye Disorders
+rr	National Rehabilitation Center for Persons with Disabilities	Seko Lab
+rts	Ritsumeikan University	Matsuda Lab
+ru	Rockefeller University	Hudspeth Lab
+rw	RIKEN - Wako	Kubo Lab , Miyawaki Lab , Okamoto Lab , Yoshihara Lab
+s	UCSF	Baraban Lab , Guo Lab , Wagner Lab UCSF
+sa	Welcome Trust Sanger Institute	Stemple Lab , Vertebrate Genetics and Genomics
+sao	University of São Paulo	Laboratory of Human Genetics
+sb	Strasbourg	
+sbu	SUNY Stony Brook	Benjamin Martin Lab , Gary Matthews Lab , Sirotkin Lab
+sbz	Suzhou Murui Biotechnology Co., Ltd.(苏州木芮生物科技有限公司)	Suzhou Murui Biotechnology Co., Ltd.(苏州木芮生物科技有限公司)
+sc	Stedman Center Duke University	Moss Lab
+sca	South China Agricultural University	Jun Jiang Lab
+scf	The Scripps Research Institute	Kishi Lab
+scm	Seattle Children's Research Institute	Beier Lab , Maves Lab
+scu	Sichuan University	Hsiao Chang Chan Lab , Jing Chen Lab , Laboratory of Molecular and Translational Medicine, Lin Zhang Lab , Xianming Mo Lab , Yao Lab
+scz	Smith College	Barresi Lab
+sd	University of California, San Diego	Neil C. Chi Lab , Yelon Lab , Yury Miller Lab
+sdm	Duke-NUS Medical School	Lena Ho Lab
+sdu	Shandong University	De-Li Shi Lab , Lei Li Lab (SDU) , Ming Shao Lab
+sdz	San Diego State University	
+sfc	UCSF	Black Lab , Deo Lab , Hata Lab , SCVRI (Smith Cardiovascular Research Institute) , Shaun Coughlin Lab
+sfl	University of South Florida	Sumanas Lab
+sg	Temasek Life Sciences Laboratory	Orban Lab , Zebrafish Screening Laboratory
+sgd	Shenzhen university,	Qiong Shi Lab
+sgf	Gladstone Institute of Cardiovascular Disease/UCSF	Finkbeiner Lab
+sgu	St George's University of London	Cavodeassi Lab , Osborn Lab
+sh	The Bateson Centre	Bandmann Lab , Cunliffe Lab , Elks Lab , Johnston Lab , Lab D38 , Malicki Lab , Noel Lab , Paul C. Evans Lab , Renshaw Sheffield Lab , Rob Wilkinson , Roehl Lab , Tennore Ramesh Lab , van Eeden Lab , Whitfield Lab
+sht	ShanghaiTech University	Antos Lab
+shz	Shenzhen Peking University-the Hong Kong University of Science and Technology Medical Center	Tao YU Lab
+sib	Suzhou Institute of Biomedical Engineering and Technology, Chinese Academic of Sciences	Jian Yin Lab
+sid	Sanford-Burnham Medical Research Institute	Dong Lab , Duester Lab , Freeze Lab
+sih	Institute of Health Sciences, Shanghai Institutes for Biological Sciences	Qing Jing Lab
+sir	CSIR-Centre for Cellular and Molecular Biology	Parnaik Lab
+sj	St. Jude Children's Research Hospital	Clements Lab
+sjr	CHU Sainte Justine Research Center	Marín-Juez Lab , Moldovan Lab
+sk	Skirball Institute	Knaut Lab
+skk	Sungkyunkwan University	Ji Eun Lee Lab
+skt	Skirball Institute	Torres-Vázquez Lab
+sl	St. Louis University School of Medicine	Voigt Lab
+sm	Southern Medical University	Zebrafish Platform of the Biomedical Research Center , ZQW Lab
+smb	Sars International Centre for Marine Molecular Biology, Norway	Suster Lab
+sme	Sidra Medicine Zebrafish Facility	Sahar Da&#39;as Lab
+smh	St. Michael's Hospital, Toronto	Montandon Lab , Xiao-Yan Wen Lab
+smw	Semmelweis University	Enyedi Lab
+snu	Seoul National University	Hyunsook Lee Lab
+sny	State University of New York	Amack Lab
+sou	Shanghai Ocean University	Bao Lab , Fan Lab , Laboratory of Epigenetics and Environmental adaptation , Liangbiao Chen Lab
+sq	Institute of Molecular and Cell Biology, Singapore	David P. Lane Lab , Korzh Lab (closed down) , Sudipto Roy Lab , Venkatesh Lab
+sr	The Saban Research Institute	Lien Lab
+st	Stanford	James Chen Lab , Nicolson Lab , Talbot Lab , Translational Genomics of Diabetes Lab
+stl	Washington University School of Medicine	Bagnall Lab , Colin G. Nichols Lab , Corbo Lab , Gurnett Lab , John Cooper Lab , Lila Solnica-Krezel lab , Mokalled Lab , Stratman Lab , Tony Tsai
+su	Syracuse University	Hehnly Lab , Lewis Lab - Syracuse
+sud	Saitama University	Akinori Kawamura Lab , Tsuda Lab , Yamasu Lab
+sus	Soochow University	Chun-Feng Liu Lab , The Wang Laboratory , Yanchao Han Lab
+svn	Shiv Nadar University	Galande Lab
+sw	University of Texas Southwestern	Amatruda Lab , Elizabeth Chen Lab
+swu	Southwestern University	Huang&Ruan Lab
+sx	Shanxi University	Human Genetic Disease and Animal Model
+syd	University of Sydney, Centenary Institute	Oehlers Lab
+syu	Sun Yat-sen University	HDT Lab , Linjia Jiang Lab , Shengfeng Huang’s Lab in Sun Yat-sen University , Shulan Yang Lab , ShuYi Chen , Wu Zebrafish Laboratory (SYSU/SML)
+sz	South University of Science and Technology of China	Hanbing Zhong Lab
+szu	Shizuoka University	Tokumoto Lab
+szy	South China University of Technology	Hematogen and Functional Genomics Laboratory , Jin Xu Lab , Qiang Wang Lab , Yiyue ZHANG Lab
+t	Tübingen	Bajoghli Lab , Bonhoeffer Lab , Haffter Lab , Müller Lab , Nüsslein-Volhard Lab
+tbz	University of Tübingen	Philipp Lab
+tcb	Turku Centre for Biotechnology, University of Turku and Åbo Akademi University	Ivaska lab , Zebrafish Core
+tft	Tufts University	Yelick Laboratory
+tif	Tata Institute of Fundamental Research	Nair Lab , Sonawane Lab
+tju	Tongji University	Cao Lab
+tku	Tamkang University	YH Chen Lab
+tlv	Tel Aviv University	Gothilf Lab
+tmd	Tokyo Medical and Dental University	Nishina Lab
+tmu	Taipei Medical University	Chia-Hsiung Cheng Lab
+tpl	Temple University	Balciunas Lab Temple , Biemar Lab
+tpu	Tampere University	Protein Dynamics Lab , Rämet Lab
+tsu	Tsinghua University	Meng Lab
+tud	Technical University of Dresden	Biology of bone regeneration , Brand Lab , Catherina & Thomas Becker Lab , Ninov Lab
+tum	Technical University Munich	Godinho Lab , Mikael Simons Lab
+tup	UC Davis School of Medicine	Dennis Lab , Jao Lab
+two	National Taiwan Ocean University	Hong-Yi Gong Lab
+twu	National Taiwan University	Chang Lab , I-Hsuan Liu Lab , IJ Wang Lab , Liang-In Lin Lab , Shyh-Jye Lee Lab
+tyt	Tokyo Institute of Technology	A. Kawakami Lab , Nubuhiro Nakamura Lab , Tanaka Lab
+u	University College London	Bianco Lab , Efthymiou Lab , Jenkins Lab , MacDonald Lab , Mongera Lab , Payne Lab , Rihel Lab , Steve Wilson Lab , Tada Lab , William D. Richardson Lab , Young Lab
+ua	University of Alberta	Allison Lab , Lehmann Lab , Pilgrim Lab , Waskiewicz Lab
+uaa	University of Adelaide	Lardelli Lab
+uab	University of Alabama Birmingham	Alexander Lab , Ankur Saxena Lab , Crowder Lab , Falany Lab , Parant Lab
+ub	University of Bergen	Fjose Lab , Fladmark Lab
+ubs	Biozentrum der Uni Basel	Affolter Lab , Salzburger Lab , Schier Lab
+ubt	Universitat Bayreuth	Begemann Lab
+ubx	University of Brescia, Italy	Neurodegeneration and Iron Metabolism Group , Presta Lab
+uc	University of California - Davis	Draper Laboratory , Sean Burgess Lab
+ucd	University College Dublin	Kennedy Lab
+ucl	Universidad de Castilla-La Mancha	Escribano Martínez Lab , Physiology and Cell Dynamics
+ucm	University of California Merced	Ni Lab , Woo Lab
+ucs	University of California San Fransisco	Ahituv Lab
+ud	DePaul University	LeClair Lab
+udc	Universidad de Chile	Allende Lab
+udm	Université de Montréal	Alex Parker Lab , Ghislain Lab , Kibar Lab , Pierre Drapeau Lab , Samarut Lab
+ue	University of Edinburgh	Almeida Lab , Badrock Lab , Bhatia Lab , David Lyons Lab , E. Elizabeth Patton Lab , Hannah Long Lab , John Mullins Lab , Tim Czopka Lab
+uex	University of Exeter	Kudoh Lab , Ryu Lab , Santos Lab , Scholpp Lab , Tyler Lab
+uf	University Hospital Freiburg	Carsten Bergmann Lab , Elisabeth Ott Lab , Kramer-Zucker Lab
+ufb	Fundacao Universidade Federal do Rio Grande, Brazil	Marins Lab
+ug	University of Geneva	Bertrand Lab , Lydie Lane Lab , Marcos Gonzalez-Gaitán Laboratory , Neerman-Arbez Lab , Zebrafish Core Facility, Faculty of Medicine, University of Geneva
+uh	University of Heidelberg	Centanin Lab , Jochen Wittbrodt Lab SFB 271 Junior Group , Kroll Lab , Meder Lab
+uhd	University Hospital Heidelberg	Mechanisms of Cardiac Regeneration and Repair Lab
+uhh	University of Hamburg	Fabrizius Lab
+uhm	University of Heidelberg, Mannheim	Dobreva Lab
+uhn	University Health Network, Toronto General Research Institute	J. Fish Lab
+ui	University of Iowa	Cornell Lab , Kenny Lab , Lin Lab , Slusarski Lab
+uic	University of Illinois	
+uio	University of Oslo	Esguerra Lab , Simonsen Lab
+uk	Universität zu Köln (University of Cologne)	Michel Lab , Molecular and Systems Neurobiology Group
+uky	University of Kentucky	Famulski Lab , Galperin Lab , Morris Lab
+ul	University of Lille	Angrand Lab
+ula	University of Lausanne	Amati Lab , Larsch Lab
+ulb	Universite Libre de Bruxelles	Costagliola Lab , Laboratory of Neurovascular Signaling , Pirson Lab , Sumeet Singh Lab , Wittamer Lab
+ulg	University of Liege	Laboratory of Zebrafish Development and Disease Models , Martial Lab
+ulm	University of Ulm	Just Lab , Rottbauer Lab , Weidinger Lab
+um	University of Massachusetts Medical School	Ceol Lab , Lawson Lab , Thyme Lab
+umb	University of Massachusetts Boston	Siegfried Lab
+umc	University of Manchester	Amaya Lab , Herbert Lab , Hurlstone Lab , Kasher Lab , Lennon Lab , Lowe Lab , Papalopulu Lab , Soto Lab
+umd	University of Maryland School of Medicine	Bannister Laboratory (defunct) , Zaghloul Lab
+umi	University of Miami	Julia Dallman Lab , University of Miami Zebrafish Facility
+umk	University of Michigan, Kellogg Eye Center	Bohnsack Lab , Kahana Lab
+umn	University of Minnesota	Lund Lab , Masino Lab , Yasu Kawakami Lab
+umo	University of Macau	Kathy Qian Luo Lab , Vivien Ya-Fan WANG‘s lab , Wei Ge Lab
+ump	University of Montpellier	Genetics of Neural Development , Kissa Lab , Lutfalla Lab , Molecular Mechanisms in Neurodegenerative Diseases (MMDN) - U1198 , Nguyen-Chi Lab , Yatime Lab
+ums	University of Murcia	Mulero Lab
+umu	Umeå University	von Hofsten Lab
+umz	University of Massachusetts	Downes lab , Jensen Lab , Karlstrom Lab
+una	Universidad Nacional Autónoma de México	Fernando Lopez Casillas Laboratory , Lomeli Lab , Molecular and Cellular Neurobiology
+unb	University of new Brunswick	Erickson Lab , Matrix Dynamic Lab
+unt	University of North Texas	Jag's Lab
+uob	University of Birmingham	Ferenc Müller Lab , Monteiro Lab
+uog	University of Groningen	Giepmans lab
+uoi	University of Idaho	Mitchell Lab , Stenkamp Lab
+uol	University of Leicester	Norton Lab
+uom	University of Melbourne	Cox Lab , Hogan Lab , Jusuf Lab , Kelly Smith Lab , Ruparelia Lab
+uot	University of Toronto	Bruce Lab , Thiele Lab , Tropepe Lab
+upo	Centro Andaluz de Biología del Desarrollo, Universidad Pablo de Olavide	Martinez-Morales Lab , Skarmeta Lab , Tena Lab
+upr	University of Puerto Rico	Behra Lab
+ups	Université Paul Sabatier	Blader Lab , Cavaille Lab , Soula Lab
+upv	University of Pavia	Forlino Lab
+uq	University of Queensland, Brisbane, Australia	Alpha Yap Lab , Jean Giacomotto Lab , Palpant Lab , Parton Lab , Scott Lab
+urv	University of Richmond	Skromne Lab
+usc	University of South Carolina	Poulain Lab
+usk	University of Saskatchewan	Collins Lab , Eames Lab , Gauvrit Lab
+usm	University Sains, Malaysia	Alexander Chong Lab
+uss	University of Sussex	Baden Lab , Guthrie Lab , Lagnado Lab , Yoshimatsu Lab
+ut	University of Texas at Austin	Gray Lab , Stephen C. Ekker Laboratory
+uta	The University of Texas at Arlington	Quintana Lab
+ute	University of Texas at El Paso	
+uth	University of Texas Houston	O'Brien Lab
+utm	University of Texas MD Anderson	Eisenhoffer Lab
+utn	University of Trento	Laboratory of Molecular and Cellular Ophthalmology , Mione Lab
+uto	University of Torino	Santoro Lab
+utz	University of Texas Marine Science Institute	Peter Thomas Lab
+uu	Uppsala University Zebrafish Facility	Betsholtz Lab , Boije Lab , Haitina Lab , Juan Lab , Lymphatics lab , Uppsala University Zebrafish Facility, Regional SciLifeLab Facility , Villablanca Lab
+uua	Utrecht University Aquarium	Bogerd Lab , Schulz Lab
+uv	Universidad de Valparaiso	Whitlock Lab
+uva	University of Virginia	Kucenas Lab
+uvm	University of Vermont	Ebert Lab
+uvr	University of Verona	Laboratory of Neurogenetics and Translational Biology
+uw	University of Wisconsin-Madison	Grinblat Lab , Halloran Lab , Heideman Lab , Pelegri Lab , Taylor Lab
+uwd	University of Wisconsin-Madison	Drerup Lab
+uwk	University of Wisconsin -Madison	Kang Lab
+uwm	University of Wisconsin-Madison	Huttenlocher Lab
+uy	University of Yamanashi	Kawahara Lab
+v	Wesleyan University	Devoto Lab
+va	University of Virginia School of Medicine	Thisse's Lab , Wythe Lab
+vai	Van Andel Institute	Grainger Lab
+vbc	Vienna BioCenter	Pauli Lab
+vc	Virginia Commonwealth University	Lister Lab , Walsh Lab
+vcc	Victor Chang Cardiac Research Institute	Emily Wong Lab , Fatkin Lab , Kazu Kikuchi Lab
+vi	Children's Cancer Research Institute	Distel Lab
+vln	Vilnius University	Balciunas Lab Vilnius
+vmc	Vanderbilt University Medical Center	Knapik Lab
+vo	OHSU Oregon Hearing and Research Center and Vollum Institute	Monk Lab
+vp	University of Virginia	Parichy Lab
+vt	Virginia Tech	Pan Lab
+vu	Vanderbilt University	Chen Lab , Cone Lab , Ess Lab , Gamse Lab , James G. Patton Lab , Jessen Lab , Lila Solnica-Krezel Lab - Vanderbilt University , Mchaourab Laboratory , Mortlock Lab , Roden Lab , Skaar Lab , Wente Lab , Zhong Lab
+vum	VU University Medical Center	Van der Sar Lab
+w	University of Washington	Brockerhoff Lab , David Raible Lab , Gallagher Lab , Hurley Lab , Kimelman Lab , Kwon Lab , Randall Moon Lab , Rasmussen Lab , Wordeman Lab
+wa	Waseda University	Ohshima Lab
+waw	International Institute of Molecular and Cell Biology (IIMCB)	Bochtler Lab , Laboratory of Cell Biology (Miaczynska Laboratory) , Laboratory of Neurodegeneration (Kuznicki Laboratory) , Laboratory of Zebrafish Developmental Genomics
+wcm	Weill Cornell Medical College	Cao Lab Weill Cornell Medical College , Evans Lab , Harrison Lab , Yariv Houvras Laboratory
+wh	Woods Hole Oceanographic Institution	Hahn Lab , Stegeman Lab
+whu	Wuhan University	Fang Zheng Lab , Hudan Liu Lab , Rongjia Zhou Lab , Ruilin Zhang Lab
+wi	Whitehead Institute	Hazel Sive Lab
+win	Winona State University	Hines Neural Development Lab
+wk	Wonkwang University School of Medicine	Choe Lab
+wmr	Rice University	Uribe Lab
+wmu	Wenzhou Medical University	Xi Li Lab
+wp	University of Washington	
+ws	Warwick Medical School	Sampath Lab
+wsu	Wayne State University	Thummel Lab
+wsz	Washington State University, Pullman	Shelden Lab
+wue	Universität Würzburg	Gerull Lab , Klopocki Lab , Neurodevelopment and disease mechanisms
+wv	Washington State University, Vancouver	Coffin Lab , Cooper Lab
+wvz	West Virginia University	Bergeron Lab , Horstick Lab
+wz	Weizmann Institute of Science	Gur Lab , Levkowitz Lab , Yaniv Lab
+x	Texas A&M	Clark Lab , Riley Lab
+xj	Nanjing XinJia Medical Technology Co., LTD	Nanjing XinJia Medical Technology Co., LTD
+xmu	Xiamen University	Mingyu Li Lab , Shi-Xi Chen Lab , Zhenghong Lab
+xt	Duke University, Center for AIDS Research	
+xu	Mayo Clinic College of Medicine	Xu Lab
+xz	University of Texas Health Science Center at Houston	The Zhao Laboratory
+y	NICHD/NIH	Chitnis Lab , Dawid Lab , Farrell Lab , Feldman Lab , Harold Burgess Lab , Jung Lab , Porter Lab , Rogers Lab, Unit on Developmental Signaling , Sargent Lab , Weinstein Lab
+ya	Yale University	Giraldez Lab , Hoffman Lab , Holley Lab , Nicoli Lab , Zenisek Lab , Zhaoxia Sun lab
+yg	Yamaguchi University	Department of Otolaryngology (Sugahara Lab)
+yku	York University	Zoidl Lab
+ym	National Yang-Ming University, Taipei, Taiwan	Her Lab , Tsay Lab
+ync	Yale-NUS College	
+yo	University of York	Pownall Lab
+yu	Yonsei University	Seung Park Lab
+yzu	Yangzhou University	Chengyi Song Lab
+z	University of Utah	Bernstein Lab , Elde Lab , Evason Lab , Grunwald Lab , Jurynec Lab , Kwan Lab , Schlegel Lab , Trede Lab
+zc	University of Utah	Bonkowsky Lab , Chien Lab
+zd	University of Utah	Cicely Jette Lab , Dorsky Lab , Douglass Lab , Rodney Stewart Lab
+zdf	Dana-Farber Cancer Institute	A. Thomas Look Lab
+ze	ZeClinics	ZeClinics , ZECLINICS
+zf	Zebrafish Model Organism Database	ZFIN Database Team
+zh	ETH Zürich/University of Zürich	Bachmann Lab , Devuyst Lab , Neuhauss Lab , Pantazis Lab , Peri Lab
+zj	University of Utah	Gagnon Lab , Roh-Johnson Lab
+zju	Zhejiang University	Caiyong Chen Lab , Fudi Wang Lab , Jinrong Peng Lab , Jun Chen Lab , Laboratory of Development and Organogenesis , Laboratory of Heart Development and Diseases , LO Li JAN Lab , Shao Lab , Yan Li Lab , Zou Lab
+zk	National Cancer Center, Korea	Young Ki-Bae Lab
+zko	China Zebrafish Resource Center (CZRC)	China Zebrafish Resource Center (CZRC)
+zm	Znomics	Znomics, Inc.
+zn	Zygogen	Zygogen Research Department
+zou	University of Missouri	Chandrasekhar Lab
+zp	Children's Hospital, Boston	Keating Lab
+zps	TEFOR Paris-Saclay	Team Neuro-Infection and Immunity , TEFOR Paris-Saclay
+zsc	South China Normal University	Ren Lab , Yanmei Liu Lab
+zu	UMC Utrecht	Koeleman Lab
+zy	University of Utah	Yost Lab

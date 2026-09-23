@@ -29,7 +29,7 @@ def _build_study_graph(client: TestClient) -> dict:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-960809-7", "name": "AB"},
+            "fish": {"background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },
@@ -138,7 +138,7 @@ def _exposure_with_synonyms(client: TestClient) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-1", "name": "AB"},
+            "fish": {"background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },
