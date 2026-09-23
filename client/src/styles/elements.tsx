@@ -37,6 +37,8 @@ export const DashMain = styled("div", "dash-main");
 export const DashHeader = styled("header", "dash-header");
 export const DashEyebrow = styled("p", "dash-header__eyebrow");
 export const DashTitle = styled("h1", "dash-header__title");
+export const GroupIdentity = styled("div", "dash-identity");
+export const GroupTile = styled("span", "dash-identity__tile");
 
 /* ---- sidebar ---- */
 
@@ -61,6 +63,17 @@ export const GroupSummary = ({
 
 /** The same row with nowhere to go, for the loading state. */
 export const GroupSummaryBox = styled("div", "dash-group__summary");
+
+/* ---- record detail pages ---- */
+
+export const Crumbs = styled("nav", "crumbs");
+export const CrumbSeparator = styled("span", "crumbs__sep");
+export const DetailSummary = styled("section", "detail-summary");
+export const DetailList = styled("dl", "detail-list");
+export const DetailHead = styled("div", "detail-list__head");
+export const DetailItem = styled("div", "detail-item");
+export const DetailLabel = styled("dt", "detail-item__label");
+export const DetailValue = styled("dd", "detail-item__value");
 
 /* ---- record sections ---- */
 

@@ -1,14 +1,18 @@
 import {
   useMutation,
   useQueries,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import {
   addChemical,
   addFish,
+  createGroup,
   deleteChemical,
   deleteFish,
   fetchCabinet,
+  fetchCabinetEntry,
+  fetchFishEntry,
   fetchFishTank,
   fetchGroup,
   fetchMembers,
@@ -22,7 +26,24 @@ export const keys = {
   members: (id: number) => ["group", id, "members"] as const,
   fishTank: (id: number) => ["group", id, "fish-tank"] as const,
   cabinet: (id: number) => ["group", id, "cabinet"] as const,
+  fishEntry: (id: number, entryId: number) =>
+    ["group", id, "fish-tank", entryId] as const,
+  cabinetEntry: (id: number, entryId: number) =>
+    ["group", id, "cabinet", entryId] as const,
 };
+
+/** One record, for its detail page. */
+export const useFishEntry = (groupId: number, entryId: number) =>
+  useQuery({
+    queryKey: keys.fishEntry(groupId, entryId),
+    queryFn: ({ signal }) => fetchFishEntry(groupId, entryId, signal),
+  });
+
+export const useCabinetEntry = (groupId: number, entryId: number) =>
+  useQuery({
+    queryKey: keys.cabinetEntry(groupId, entryId),
+    queryFn: ({ signal }) => fetchCabinetEntry(groupId, entryId, signal),
+  });
 
 /**
  * Everything one group's dashboard reads. Separate queries so each section can
@@ -65,6 +86,14 @@ export const useGroupDashboard = (groupId: number) => {
  * Each mutation refetches only the section it changed, so the rest of the page
  * keeps its data and does not fall back to a skeleton.
  */
+
+export const useCreateGroup = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => createGroup(name),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.groups }),
+  });
+};
 
 export const useAddFish = (groupId: number) => {
   const client = useQueryClient();

@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "react-router";
 import { fetchGroups } from "@/api/groups";
 import { keys } from "@/api/hooks";
+import AddGroupForm from "./AddGroupForm";
 import {
   DashSidebar,
   GroupCaret,
@@ -48,15 +49,26 @@ const SECTIONS = [
   { slug: "submissions", label: "Submissions" },
 ];
 
-const GroupSections = ({ groupId }: { groupId: number }) => (
-  <SubNav>
-    {SECTIONS.map(({ slug, label }) => (
-      <li key={slug}>
-        <Link to={`/research-groups/${groupId}#${slug}`}>{label}</Link>
-      </li>
-    ))}
-  </SubNav>
-);
+const GroupSections = ({ groupId }: { groupId: number }) => {
+  // The section being read, from the hash the sidebar's own links set.
+  const { hash } = useLocation();
+  const active = hash.slice(1);
+
+  return (
+    <SubNav>
+      {SECTIONS.map(({ slug, label }) => (
+        <li key={slug}>
+          <Link
+            to={`/research-groups/${groupId}#${slug}`}
+            className={slug === active ? "is-active" : undefined}
+          >
+            {label}
+          </Link>
+        </li>
+      ))}
+    </SubNav>
+  );
+};
 
 const SkeletonGroups = () => (
   <GroupList aria-hidden="true">
@@ -82,6 +94,7 @@ const Sidebar = () => {
   const { pathname } = useLocation();
   const match = pathname.match(/^\/research-groups\/(\d+)/);
   const activeId = match ? Number(match[1]) : null;
+  const [creating, setCreating] = useState(false);
 
   return (
     <DashSidebar>
@@ -105,6 +118,16 @@ const Sidebar = () => {
           ))}
         </GroupList>
       )}
+
+      <button
+        className="btn btn--secondary dash-new-group"
+        type="button"
+        onClick={() => setCreating(true)}
+      >
+        + New Group
+      </button>
+
+      <AddGroupForm open={creating} onClose={() => setCreating(false)} />
     </DashSidebar>
   );
 };

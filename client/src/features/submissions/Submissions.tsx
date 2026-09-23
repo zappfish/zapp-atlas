@@ -106,7 +106,14 @@ const SubmissionRow = ({ submission }: { submission: Submission }) => (
   </SubmissionItem>
 );
 
-const Submissions = ({ submissions }: { submissions: Submission[] }) => {
+const Submissions = ({
+  submissions,
+  emptyText,
+}: {
+  submissions: Submission[];
+  /** What to do about it, which differs per page. */
+  emptyText: string;
+}) => {
   const [filter, setFilter] = useState<Filter>("All");
 
   const shown =
@@ -147,10 +154,15 @@ const Submissions = ({ submissions }: { submissions: Submission[] }) => {
               : `No ${filter.toLowerCase()} submissions`}
           </EmptyTitle>
           <EmptyText>
-            {submissions.length === 0
-              ? "Create a submission to share this group's observations."
-              : "Try another status."}
+            {submissions.length === 0 ? emptyText : "Try another status."}
           </EmptyText>
+          {/* Only when there is nothing at all: a filter with no matches is
+              not a reason to start something new. */}
+          {submissions.length === 0 && (
+            <button className="btn btn--secondary" type="button">
+              + New Submission
+            </button>
+          )}
         </Empty>
       )}
     </SubmissionsSection>

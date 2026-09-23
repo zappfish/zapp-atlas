@@ -1,9 +1,12 @@
 import { useGroupDashboard } from "@/api/hooks";
 import Submissions from "@/features/submissions/Submissions";
+import { MicroscopeIcon } from "@/components/icons";
 import {
   DashEyebrow,
   DashHeader,
   DashTitle,
+  GroupIdentity,
+  GroupTile,
   SkeletonText,
 } from "@/styles/elements";
 import CabinetSection from "./CabinetSection";
@@ -25,12 +28,17 @@ const GroupView = ({ groupId }: { groupId: number }) => {
   return (
     <>
       <DashHeader>
-        <div>
-          <DashEyebrow>Research group</DashEyebrow>
-          <DashTitle>
-            {group ? group.name : <SkeletonText width="12rem" />}
-          </DashTitle>
-        </div>
+        <GroupIdentity>
+          <GroupTile>
+            <MicroscopeIcon />
+          </GroupTile>
+          <div>
+            <DashEyebrow>Research group</DashEyebrow>
+            <DashTitle>
+              {group ? group.name : <SkeletonText width="12rem" />}
+            </DashTitle>
+          </div>
+        </GroupIdentity>
       </DashHeader>
 
       <FishTankSection
@@ -45,7 +53,10 @@ const GroupView = ({ groupId }: { groupId: number }) => {
         isPending={cabinet.isPending}
       />
 
-      <Submissions submissions={[]} />
+      <Submissions
+        submissions={[]}
+        emptyText="Create a submission to share this group's observations."
+      />
     </>
   );
 };

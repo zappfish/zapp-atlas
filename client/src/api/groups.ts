@@ -76,6 +76,26 @@ export const fetchFishTank = (groupId: number, signal?: AbortSignal) =>
 export const fetchCabinet = (groupId: number, signal?: AbortSignal) =>
   get<CabinetEntry[]>(`/research-groups/${groupId}/chemical-cabinet`, signal);
 
+export const fetchFishEntry = (
+  groupId: number,
+  entryId: number,
+  signal?: AbortSignal,
+) =>
+  get<FishTankEntry>(
+    `/research-groups/${groupId}/fish-tank/${entryId}`,
+    signal,
+  );
+
+export const fetchCabinetEntry = (
+  groupId: number,
+  entryId: number,
+  signal?: AbortSignal,
+) =>
+  get<CabinetEntry>(
+    `/research-groups/${groupId}/chemical-cabinet/${entryId}`,
+    signal,
+  );
+
 /** FastAPI puts the reason in `detail` — a 409 names what already exists. */
 const errorDetail = async (res: Response, fallback: string) => {
   try {
@@ -108,6 +128,10 @@ const send = async <T,>(
   // DELETE answers 204 with no body.
   return res.status === 204 ? null : ((await res.json()) as T);
 };
+
+/** The caller becomes the new group's first admin. */
+export const createGroup = (name: string) =>
+  send<Group>("POST", "/research-groups", { name });
 
 export const addFish = (
   groupId: number,

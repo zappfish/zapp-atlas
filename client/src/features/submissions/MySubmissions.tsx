@@ -1,4 +1,4 @@
-import { DashEyebrow, DashHeader, DashTitle } from "@/styles/elements";
+import { DashHeader, DashTitle } from "@/styles/elements";
 import Submissions from "./Submissions";
 
 /**
@@ -8,13 +8,13 @@ import Submissions from "./Submissions";
 const MySubmissions = () => (
   <>
     <DashHeader>
-      <div>
-        <DashEyebrow>Your work</DashEyebrow>
-        <DashTitle>My Submissions</DashTitle>
-      </div>
+      <DashTitle>My Submissions</DashTitle>
     </DashHeader>
 
-    <Submissions submissions={[]} />
+    <Submissions
+      submissions={[]}
+      emptyText="Create a submission to share your observations."
+    />
   </>
 );
 

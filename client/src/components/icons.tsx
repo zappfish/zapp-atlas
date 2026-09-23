@@ -5,6 +5,20 @@
  * Font Awesome Free 6, CC BY 4.0 (https://fontawesome.com/icons).
  */
 
+/** A research group: the work it does, not the people in it. */
+export const MicroscopeIcon = () => (
+  <svg
+    className="icon icon--microscope"
+    viewBox="0 0 512 512"
+    aria-hidden="true"
+  >
+    <path
+      fill="currentColor"
+      d="M160 32c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 256 0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32c-17.7 0-32-14.3-32-32s14.3-32 32-32l0-192c-17.7 0-32-14.3-32-32s14.3-32 32-32zM288 32l19.6 0c8.5 0 16.6 3.4 22.6 9.4l45.3 45.3c12.5 12.5 12.5 32.8 0 45.3l-9.4 9.4-96-96L288 32zM64 128l32 0 0 64-32 0 0-64zM32 448l96 0 32 0 96 0c53 0 96-43 96-96s-43-96-96-96l0-64c88.4 0 160 71.6 160 160c0 36.5-12.2 70.1-32.8 97l0 0 129.4 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-160 0-32 0-96 0-32 0L32 512c-17.7 0-32-14.3-32-32s14.3-32 32-32z"
+    />
+  </svg>
+);
+
 export const DotsIcon = () => (
   <svg className="icon icon--dots" viewBox="0 0 128 512" aria-hidden="true">
     <path
