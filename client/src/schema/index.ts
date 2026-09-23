@@ -138,6 +138,16 @@ export enum ManufacturerEnum {
     other_not_listed = "other_not_listed",
 };
 /**
+* An enumeration of how much of the organism an image shows.
+*/
+export enum ImageScopeEnum {
+    
+    /** The entire fish, head to tail. */
+    whole_organism = "whole_organism",
+    /** A specific region, organ, or structure (e.g., head, heart, fin, eye). */
+    partial_organism = "partial_organism",
+};
+/**
 * An enumeration of permission levels within a research group.
 */
 export enum ResearchGroupRoleEnum {
@@ -373,6 +383,8 @@ export interface Image extends ZappEntity {
     resolution?: string,
     /** Scale bar information, including the physical length it represents and the unit of measurement. */
     scale_bar?: string,
+    /** Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region. */
+    image_scope?: string,
 }
 
 

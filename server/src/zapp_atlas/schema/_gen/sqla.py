@@ -377,11 +377,12 @@ class Image(ZappEntity):
     magnification: Mapped[str | None] = mapped_column(Text())
     resolution: Mapped[str | None] = mapped_column(Text())
     scale_bar: Mapped[str | None] = mapped_column(Text())
+    image_scope: Mapped[str | None] = mapped_column(Enum('whole_organism', 'partial_organism', name='ImageScopeEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     PhenotypeObservationSet_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("PhenotypeObservationSet.id"))
 
     def __repr__(self):
-        return f"Image(magnification={self.magnification},resolution={self.resolution},scale_bar={self.scale_bar},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},)"
+        return f"Image(magnification={self.magnification},resolution={self.resolution},scale_bar={self.scale_bar},image_scope={self.image_scope},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},)"
 
     __mapper_args__ = {"concrete": True}
 
