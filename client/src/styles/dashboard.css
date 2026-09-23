@@ -480,18 +480,22 @@
 
 .dash-row__actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
 
-.dash-more-toggle { position: absolute; opacity: 0; pointer-events: none; }
+/* A text control, not a button: it reveals rows already on the page rather
+   than acting on anything, so it carries no border or fill. */
 .dash-more {
-  display: inline-flex; align-items: center;
-  margin-top: 0.6rem; padding: 0.25rem 0.1rem;
-  color: var(--teal); font-size: var(--text-sm); font-weight: 600; cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.6rem;
+  padding: 0.25rem 0.1rem;
+  border: 0;
+  background: none;
+  color: var(--teal);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
 }
 .dash-more:hover { text-decoration: underline; }
-.dash-more__hide { display: none; }
-
-.dash-more-toggle:not(:checked) ~ .dash-rows .dash-row-slot.is-extra { display: none; }
-.dash-more-toggle:checked ~ .dash-more .dash-more__show { display: none; }
-.dash-more-toggle:checked ~ .dash-more .dash-more__hide { display: inline; }
 
 /* ---- Record detail pages (fish, chemical) ------------------------------- */
 /* The detail page sets its own vertical rhythm, so the shared column gap is

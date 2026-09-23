@@ -74,6 +74,7 @@ export const Row = styled("div", "dash-row");
 export const RowMain = styled("div", "dash-row__main");
 export const RowLabel = styled("span", "dash-row__label");
 export const RowSub = styled("span", "dash-row__sub");
+export const RowActions = styled("div", "dash-row__actions");
 export const MoreButton = styled("button", "dash-more");
 export const SkeletonRow = styled("div", "dash-row dash-row--skeleton");
 

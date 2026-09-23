@@ -4,6 +4,7 @@ import {
   Empty,
   EmptyText,
   MoreButton,
+  RowActions,
   Row as RowBox,
   RowLabel,
   RowMain,
@@ -28,9 +29,9 @@ export interface Row {
 }
 
 /** Rows shown before "View more". */
-const VISIBLE = 2;
+const VISIBLE = 4;
 
-const RecordRow = ({ row }: { row: Row }) => (
+const RecordRow = ({ row, actions }: { row: Row; actions?: ReactNode }) => (
   <RowBox>
     <RowMain>
       <RowLabel>
@@ -38,6 +39,7 @@ const RecordRow = ({ row }: { row: Row }) => (
         {row.sublabel && <RowSub>{row.sublabel}</RowSub>}
       </RowLabel>
     </RowMain>
+    {actions && <RowActions>{actions}</RowActions>}
   </RowBox>
 );
 
@@ -48,10 +50,13 @@ const EmptyState = ({ text }: { text: string }) => (
 );
 
 // Holds the section's height while it loads, so arriving rows do not push the
-// page down.
+// page down. Fewer than VISIBLE, since most groups hold a handful of records
+// and overshooting leaves a gap to collapse.
+const SKELETON_ROWS = 2;
+
 const Skeleton = () => (
   <Rows aria-hidden="true">
-    {Array.from({ length: VISIBLE }, (_, i) => (
+    {Array.from({ length: SKELETON_ROWS }, (_, i) => (
       <SkeletonRow key={i} />
     ))}
   </Rows>
@@ -64,6 +69,7 @@ const RecordSection = ({
   emptyText,
   isPending = false,
   actions,
+  rowActions,
 }: {
   /** Anchor id, so the sidebar's section links land here. */
   id: string;
@@ -74,6 +80,8 @@ const RecordSection = ({
   isPending?: boolean;
   /** Section-level controls, such as an add button. */
   actions?: ReactNode;
+  /** A row's menu, built by the caller from the record it came from. */
+  rowActions?: (row: Row) => ReactNode;
 }) => {
   // The Jinja page does this with a CSS-only checkbox; here it is state.
   const [expanded, setExpanded] = useState(false);
@@ -99,7 +107,7 @@ const RecordSection = ({
         <>
           <Rows>
             {shown.map((row) => (
-              <RecordRow key={row.id} row={row} />
+              <RecordRow key={row.id} row={row} actions={rowActions?.(row)} />
             ))}
           </Rows>
 
