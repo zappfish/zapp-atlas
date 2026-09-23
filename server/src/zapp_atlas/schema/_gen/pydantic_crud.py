@@ -349,6 +349,54 @@ class ImageScopeEnum(str, Enum):
     """
 
 
+class ImageModalityEnum(str, Enum):
+    """
+    An enumeration of image acquisition modalities.
+    """
+    brightfield = "brightfield"
+    """
+    Brightfield microscopy.
+    """
+    fluorescence = "fluorescence"
+    """
+    Fluorescence microscopy.
+    """
+    other = "other"
+    """
+    Another acquisition modality, described in the image comment.
+    """
+
+
+class LabelKindEnum(str, Enum):
+    """
+    An enumeration of kinds of reagents or signals shown in an image.
+    """
+    transgene_reporter = "transgene_reporter"
+    """
+    A transgenic reporter, e.g. Tg(-6.35drl:EGFP).
+    """
+    ish_probe = "ish_probe"
+    """
+    An in situ hybridization probe, e.g. myl7.
+    """
+    antibody = "antibody"
+    """
+    An antibody used for immunostaining.
+    """
+    chemical_stain = "chemical_stain"
+    """
+    A chemical stain, e.g. Alcian blue or Alizarin red.
+    """
+    vital_dye = "vital_dye"
+    """
+    A vital dye, e.g. BODIPY or acridine orange.
+    """
+    other = "other"
+    """
+    Another kind of label, described in the label comment.
+    """
+
+
 class ResearchGroupRoleEnum(str, Enum):
     """
     An enumeration of permission levels within a research group.
@@ -730,7 +778,8 @@ class Control(ZappEntity):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     control_image: Optional[list[ControlImage]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -744,7 +793,8 @@ class ControlCreate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     control_image: Optional[list[ControlImageCreate]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
 
 
@@ -757,7 +807,8 @@ class ControlUpdate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     control_image: Optional[list[ControlImage]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
 
 
@@ -770,7 +821,8 @@ class ControlRead(ReadBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     control_image: Optional[list[ControlImageRead]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -791,7 +843,8 @@ class ExposureEvent(ZappEntity):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     exposure_type: Optional[ExposureType] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     phenotype_observation: Optional[list[PhenotypeObservationSet]] = Field(default=None, description="""The phenotype observation resulting from an exposure event.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -811,7 +864,8 @@ class ExposureEventCreate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     exposure_type: Optional[ExposureType] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     phenotype_observation: Optional[list[PhenotypeObservationSetCreate]] = Field(default=None, description="""The phenotype observation resulting from an exposure event.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -830,7 +884,8 @@ class ExposureEventUpdate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     exposure_type: Optional[ExposureType] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     phenotype_observation: Optional[list[PhenotypeObservationSet]] = Field(default=None, description="""The phenotype observation resulting from an exposure event.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -849,7 +904,8 @@ class ExposureEventRead(ReadBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     exposure_type: Optional[ExposureTypeRead] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     phenotype_observation: Optional[list[PhenotypeObservationSetRead]] = Field(default=None, description="""The phenotype observation resulting from an exposure event.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -939,7 +995,8 @@ class StressorChemical(ZappEntity):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -959,7 +1016,8 @@ class StressorChemicalCreate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
 
 
 class StressorChemicalUpdate(ConfiguredBaseModel):
@@ -978,7 +1036,8 @@ class StressorChemicalUpdate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
 
 
 class StressorChemicalRead(ReadBaseModel):
@@ -997,7 +1056,8 @@ class StressorChemicalRead(ReadBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1036,7 +1096,8 @@ class VehicleOfTransmission(ZappEntity):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1057,7 +1118,8 @@ class VehicleOfTransmissionCreate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
 
 
 class VehicleOfTransmissionUpdate(ConfiguredBaseModel):
@@ -1077,7 +1139,8 @@ class VehicleOfTransmissionUpdate(ConfiguredBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
 
 
 class VehicleOfTransmissionRead(ReadBaseModel):
@@ -1097,7 +1160,8 @@ class VehicleOfTransmissionRead(ReadBaseModel):
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
-                       'VehicleOfTransmission']} })
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1111,6 +1175,8 @@ class Image(ZappEntity):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    modality: Optional[ImageModalityEnum] = Field(default=None, description="""How the image was acquired. The biology shown (reporters, probes, antibodies, stains) is carried by the label list, not the modality.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    label: Optional[list[ImageLabel]] = Field(default=None, description="""The labels (reagents or signals) shown in this image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1122,6 +1188,8 @@ class ImageCreate(ConfiguredBaseModel):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    modality: Optional[ImageModalityEnum] = Field(default=None, description="""How the image was acquired. The biology shown (reporters, probes, antibodies, stains) is carried by the label list, not the modality.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    label: Optional[list[ImageLabelCreate]] = Field(default=None, description="""The labels (reagents or signals) shown in this image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
 
 
 class ImageUpdate(ConfiguredBaseModel):
@@ -1132,6 +1200,8 @@ class ImageUpdate(ConfiguredBaseModel):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    modality: Optional[ImageModalityEnum] = Field(default=None, description="""How the image was acquired. The biology shown (reporters, probes, antibodies, stains) is carried by the label list, not the modality.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    label: Optional[list[ImageLabel]] = Field(default=None, description="""The labels (reagents or signals) shown in this image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
 
 
 class ImageRead(ReadBaseModel):
@@ -1142,6 +1212,73 @@ class ImageRead(ReadBaseModel):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    modality: Optional[ImageModalityEnum] = Field(default=None, description="""How the image was acquired. The biology shown (reporters, probes, antibodies, stains) is carried by the label list, not the modality.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    label: Optional[list[ImageLabelRead]] = Field(default=None, description="""The labels (reagents or signals) shown in this image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class ImageLabel(ZappEntity):
+    """
+    A reagent or signal shown in an image: a transgenic reporter, in situ probe, antibody, chemical stain, or vital dye. An image may carry several (multi-channel fluorescence, Alcian blue + Alizarin red double staining).
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'name': {'description': 'Name of the label as reported, e.g. '
+                                                'Tg(-6.35drl:EGFP), myl7, anti-MF20, '
+                                                'Alcian blue.',
+                                 'name': 'name',
+                                 'required': True}}})
+
+    label_kind: LabelKindEnum = Field(default=..., description="""The kind of reagent or signal this label is.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    name: str = Field(default=..., description="""Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7, anti-MF20, Alcian blue.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
+    label_id: Optional[str] = Field(default=None, description="""Identifier for the label where one exists, e.g. a ZFIN construct ID for a transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a CHEBI ID for a chemical stain.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
+                       'ExposureEvent',
+                       'StressorChemical',
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+
+class ImageLabelCreate(ConfiguredBaseModel):
+    """
+    Create schema for ImageLabel — id is server-generated.
+    """
+    label_kind: LabelKindEnum = Field(default=..., description="""The kind of reagent or signal this label is.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    name: str = Field(default=..., description="""Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7, anti-MF20, Alcian blue.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
+    label_id: Optional[str] = Field(default=None, description="""Identifier for the label where one exists, e.g. a ZFIN construct ID for a transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a CHEBI ID for a chemical stain.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
+                       'ExposureEvent',
+                       'StressorChemical',
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
+
+
+class ImageLabelUpdate(ConfiguredBaseModel):
+    """
+    Update schema for ImageLabel — all fields optional for partial updates.
+    """
+    label_kind: Optional[LabelKindEnum] = Field(default=None, description="""The kind of reagent or signal this label is.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    name: Optional[str] = Field(default=None, description="""Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7, anti-MF20, Alcian blue.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
+    label_id: Optional[str] = Field(default=None, description="""Identifier for the label where one exists, e.g. a ZFIN construct ID for a transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a CHEBI ID for a chemical stain.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
+                       'ExposureEvent',
+                       'StressorChemical',
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
+
+
+class ImageLabelRead(ReadBaseModel):
+    """
+    Read schema for ImageLabel — from_attributes=True, extra=ignore.
+    """
+    label_kind: LabelKindEnum = Field(default=..., description="""The kind of reagent or signal this label is.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    name: str = Field(default=..., description="""Name of the label as reported, e.g. Tg(-6.35drl:EGFP), myl7, anti-MF20, Alcian blue.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
+    label_id: Optional[str] = Field(default=None, description="""Identifier for the label where one exists, e.g. a ZFIN construct ID for a transgenic reporter (ZFIN:ZDB-TGCONSTRCT-160129-1), a ZFIN gene ID for an in situ probe (ZFIN:ZDB-GENE-991019-3), an RRID for an antibody, or a CHEBI ID for a chemical stain.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel']} })
+    comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
+                       'ExposureEvent',
+                       'StressorChemical',
+                       'VehicleOfTransmission',
+                       'ImageLabel']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1260,7 +1397,7 @@ class Fish(ZfinEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
     zfin_id: str = Field(default=..., description="""ZFIN database identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZfinEntity']} })
 
     @field_validator('zfin_id')
@@ -1281,7 +1418,7 @@ class FishRead(ReadBaseModel):
     """
     Read schema for Fish — from_attributes=True, extra=ignore.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
     zfin_id: str = Field(default=..., description="""ZFIN database identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZfinEntity']} })
 
     @field_validator('zfin_id')
@@ -1305,7 +1442,7 @@ class ResearchGroup(ZappEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1313,21 +1450,21 @@ class ResearchGroupCreate(ConfiguredBaseModel):
     """
     Create schema for ResearchGroup — id is server-generated.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
 
 
 class ResearchGroupUpdate(ConfiguredBaseModel):
     """
     Update schema for ResearchGroup — all fields optional for partial updates.
     """
-    name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: Optional[str] = Field(default=None, description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
 
 
 class ResearchGroupRead(ReadBaseModel):
     """
     Read schema for ResearchGroup — from_attributes=True, extra=ignore.
     """
-    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish', 'ResearchGroup']} })
+    name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ImageLabel', 'Fish', 'ResearchGroup']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1582,6 +1719,10 @@ Image.model_rebuild()
 ImageCreate.model_rebuild()
 ImageUpdate.model_rebuild()
 ImageRead.model_rebuild()
+ImageLabel.model_rebuild()
+ImageLabelCreate.model_rebuild()
+ImageLabelUpdate.model_rebuild()
+ImageLabelRead.model_rebuild()
 ControlImage.model_rebuild()
 ControlImageCreate.model_rebuild()
 ControlImageUpdate.model_rebuild()
