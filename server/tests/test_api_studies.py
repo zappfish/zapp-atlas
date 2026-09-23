@@ -10,7 +10,6 @@ Note: per project direction, these may not run yet until:
 * dependencies like uvicorn/httpx are installed
 """
 
-import pytest
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine

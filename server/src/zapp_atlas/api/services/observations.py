@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.services.images import delete_image_row
@@ -12,12 +10,10 @@ from zapp_atlas.api.services.studies import (
     _phenotype_from_create,
 )
 from zapp_atlas.db.image_storage import Storage
-
 from zapp_atlas.schema.pydantic_crud import (
     PhenotypeObservationSetCreate,
     PhenotypeObservationSetUpdate,
 )
-
 from zapp_atlas.schema.sqla import (  # type: ignore
     ExposureEvent,
     PhenotypeObservationSet,
@@ -29,7 +25,7 @@ def create_observation_for_exposure(
     *,
     exposure_id: int,
     payload: PhenotypeObservationSetCreate,
-) -> Optional[PhenotypeObservationSet]:
+) -> PhenotypeObservationSet | None:
     exposure = session.get(ExposureEvent, exposure_id)
     if exposure is None:
         return None
@@ -42,9 +38,7 @@ def create_observation_for_exposure(
     return obs
 
 
-def get_observation_by_id(
-    session: Session, observation_id: int
-) -> Optional[PhenotypeObservationSet]:
+def get_observation_by_id(session: Session, observation_id: int) -> PhenotypeObservationSet | None:
     return session.get(PhenotypeObservationSet, observation_id)
 
 
@@ -52,7 +46,7 @@ def patch_observation(
     session: Session,
     observation_id: int,
     patch: PhenotypeObservationSetUpdate,
-) -> Optional[PhenotypeObservationSet]:
+) -> PhenotypeObservationSet | None:
     obs = get_observation_by_id(session, observation_id)
     if obs is None:
         return None
@@ -79,9 +73,7 @@ def delete_observation_row(
     session.delete(obs)
 
 
-def delete_observation(
-    session: Session, observation_id: int, *, storage: Storage
-) -> bool:
+def delete_observation(session: Session, observation_id: int, *, storage: Storage) -> bool:
     obs = get_observation_by_id(session, observation_id)
     if obs is None:
         return False

@@ -14,7 +14,6 @@ from fastapi.templating import Jinja2Templates
 from zapp_atlas.api.deps import open_session
 from zapp_atlas.auth.services import ORCID_AUTH_COOKIE, get_orcid_identity
 
-
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 

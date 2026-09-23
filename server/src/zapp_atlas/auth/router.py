@@ -16,7 +16,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.deps import get_app_settings, get_session
-from zapp_atlas.html.templating import templates
 from zapp_atlas.auth.services import (
     ORCID_AUTH_COOKIE,
     ORCID_STATE_COOKIE,
@@ -30,8 +29,8 @@ from zapp_atlas.auth.services import (
     state_matches,
     store_orcid_identity,
 )
+from zapp_atlas.html.templating import templates
 from zapp_atlas.settings import AppSettings
-
 
 router = APIRouter(tags=["auth"])
 

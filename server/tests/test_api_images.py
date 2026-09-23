@@ -8,7 +8,6 @@ exercised here.
 
 from fastapi.testclient import TestClient
 
-
 # Tiny valid PNG: 1x1 pixel, red. Small enough to embed.
 _PNG_1X1_RED = bytes.fromhex(
     "89504E470D0A1A0A0000000D49484452000000010000000108020000"

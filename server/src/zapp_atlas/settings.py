@@ -4,7 +4,6 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_DIR = PACKAGE_DIR / "db" / "data"
 DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "zapp.db"

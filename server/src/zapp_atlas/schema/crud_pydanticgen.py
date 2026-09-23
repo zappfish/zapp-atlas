@@ -22,13 +22,13 @@ from linkml.generators.pydanticgen.template import (
 )
 from linkml_runtime.utils.schemaview import SchemaView
 
-READBASEMODEL_SRC = '''class ReadBaseModel(BaseModel):
+READBASEMODEL_SRC = """class ReadBaseModel(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         extra="ignore",
         arbitrary_types_allowed=True,
         use_enum_values=True,
-    )'''
+    )"""
 
 
 def _get_zapp_entity_classes(template: PydanticModule, sv: SchemaView) -> set[str]:
@@ -56,9 +56,7 @@ def _get_all_read_entity_classes(template: PydanticModule, sv: SchemaView) -> se
         if cls_def is None or cls_def.abstract:
             continue
         ancestors = sv.class_ancestors(class_name)
-        if base_entities & set(ancestors):
-            result.add(class_name)
-        elif class_name == "QuantityValue":
+        if base_entities & set(ancestors) or class_name == "QuantityValue":
             result.add(class_name)
     return result
 
@@ -165,9 +163,7 @@ def _swap_nested_references(
 class CrudPydanticGenerator(PydanticGenerator):
     """PydanticGenerator subclass that adds Create/Update/Read model variants."""
 
-    def before_render_template(
-        self, template: PydanticModule, sv: SchemaView
-    ) -> PydanticModule:
+    def before_render_template(self, template: PydanticModule, sv: SchemaView) -> PydanticModule:
         zapp_classes = _get_zapp_entity_classes(template, sv)
         read_classes = _get_all_read_entity_classes(template, sv)
 
@@ -197,14 +193,14 @@ class CrudPydanticGenerator(PydanticGenerator):
                 read_variants[read_cls.name] = read_cls
 
         # Swap nested references in Create variants
-        for name, create_cls in create_variants.items():
+        for create_cls in create_variants.values():
             if create_cls.attributes:
                 create_cls.attributes = _swap_nested_references(
                     create_cls.attributes, zapp_classes, suffix="Create"
                 )
 
         # Swap nested references in Read variants
-        for name, read_cls in read_variants.items():
+        for read_cls in read_variants.values():
             if read_cls.attributes:
                 read_cls.attributes = _swap_nested_references(
                     read_cls.attributes, read_classes, suffix="Read"
