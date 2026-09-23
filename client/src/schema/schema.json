@@ -395,6 +395,10 @@
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "image_scope": {
+          "$ref": "#/$defs/ImageScopeEnum",
+          "description": "Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region."
+        },
         "magnification": {
           "description": "The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.",
           "type": [
@@ -422,6 +426,15 @@
       ],
       "title": "Image",
       "type": "object"
+    },
+    "ImageScopeEnum": {
+      "description": "An enumeration of how much of the organism an image shows.",
+      "enum": [
+        "whole_organism",
+        "partial_organism"
+      ],
+      "title": "ImageScopeEnum",
+      "type": "string"
     },
     "ManufacturerEnum": {
       "description": "An enumeration of manufacturers and suppliers of chemicals used in exposure events.",

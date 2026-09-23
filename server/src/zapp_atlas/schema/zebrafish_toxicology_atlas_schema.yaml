@@ -210,6 +210,7 @@ classes:
       - magnification
       - resolution
       - scale_bar
+      - image_scope
 
   ControlImage:
     is_a: ZappEntity
@@ -359,6 +360,12 @@ slots:
     pattern: "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$"
 
   # Other slots
+  image_scope:
+    description: >-
+      Whether the image shows the entire organism or only a region, organ, or
+      structure. Phenotype annotations on a partial-organism image should be
+      limited to what is visible in the imaged region.
+    range: ImageScopeEnum
   publication:
     description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
     range: string
@@ -581,6 +588,14 @@ slots:
     required: true
 
 enums:
+
+  ImageScopeEnum:
+    description: An enumeration of how much of the organism an image shows.
+    permissible_values:
+      whole_organism:
+        description: The entire fish, head to tail.
+      partial_organism:
+        description: A specific region, organ, or structure (e.g., head, heart, fin, eye).
 
   ResearchGroupRoleEnum:
     description: An enumeration of permission levels within a research group.
