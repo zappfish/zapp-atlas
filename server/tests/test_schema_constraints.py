@@ -21,6 +21,7 @@ from zapp_atlas.schema.sqla import (
     FishTankEntry,
     ResearchGroup,
     ResearchGroupMember,
+    Study,
 )
 
 ORCID = "ORCID:0000-0002-1825-0097"
@@ -95,3 +96,13 @@ def test_annotated_classes_get_audit_timestamps(session, group):
 
     assert entry.created_at is not None
     assert entry.updated_at is not None
+
+
+def test_study_records_submission_date(session):
+    # created_at is the submission date (#140, #118).
+    study = Study(publication="not published")
+    session.add(study)
+    session.commit()
+
+    assert study.created_at is not None
+    assert study.updated_at is not None

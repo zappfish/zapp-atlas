@@ -55,6 +55,8 @@ classes:
   Study:
     is_a: ZappEntity
     description: A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
+    annotations:
+      timestamped: true
     slots:
       - experiment
       - publication
