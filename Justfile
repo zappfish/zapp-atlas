@@ -37,6 +37,16 @@ build-client:
 test:
     cd server && uv run pytest
 
+# Check linting and formatting (no changes written)
+lint:
+    cd server && uv run ruff check
+    cd server && uv run ruff format --check
+
+# Auto-fix lint violations and reformat
+fix:
+    cd server && uv run ruff check --fix
+    cd server && uv run ruff format
+
 # Seed the dev database
 seed:
     cd server && uv run python -m zapp_atlas.seed

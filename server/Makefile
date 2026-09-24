@@ -6,25 +6,33 @@ SQLA_OUTPUT := $(SCHEMA_DIR)/_gen/sqla.py
 TS_OUTPUT := ../client/src/schema/index.ts
 JSON_SCHEMA_OUTPUT := ../client/src/schema/schema.json
 
+# Every recipe here redirects into its target, so a failing command leaves a
+# truncated file behind — which make would then consider up to date, silently
+# shipping an empty artifact. Delete such targets so the next run rebuilds.
+.DELETE_ON_ERROR:
+
+# Files imported by the main schema — a change here must also trigger regen.
+SCHEMA_IMPORTS := $(SCHEMA_DIR)/chemical_enums.yaml
+
 .PHONY: schema
 schema: $(PYDANTIC_OUTPUT) $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
 
-$(PYDANTIC_OUTPUT): $(LINKML_SCHEMA)
+$(PYDANTIC_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-pydantic $< >> $@
 
-$(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA)
+$(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run python -m zapp_atlas.schema.crud_pydanticgen $< >> $@
 
-$(SQLA_OUTPUT): $(LINKML_SCHEMA)
+$(SQLA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-sqla --declarative --sqla-style 2 $< >> $@
 
-$(TS_OUTPUT): $(LINKML_SCHEMA)
+$(TS_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "/*" > $@
 	echo "GENERATED FILE. DO NOT EDIT." >> $@
@@ -33,9 +41,9 @@ $(TS_OUTPUT): $(LINKML_SCHEMA)
 	uv run gen-typescript $< >>$@
 
 # JSON Schema for the client: runtime validation (Ajv) + type-safe unmarshalling.
-# JSON has no comments, so the "do not edit" notice rides in the standard JSON Schema
-# `$$comment` keyword, injected as the first key. ($$ escapes $ for Make.)
-$(JSON_SCHEMA_OUTPUT): $(LINKML_SCHEMA)
+# The post-processor injects the "do not edit" notice and makes LinkML's
+# unconditional class rules effective -- see zapp_atlas/schema/json_schema_post.py.
+# Python rather than jq so the codegen needs nothing outside the uv environment.
+$(JSON_SCHEMA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
-	uv run gen-json-schema $< \
-		| jq '{"$$comment": "GENERATED FILE. DO NOT EDIT. Regenerate with `make schema`."} + .' > $@
+	uv run gen-json-schema $< | uv run python -m zapp_atlas.schema.json_schema_post > $@

@@ -1,7 +1,8 @@
 {#
-  Host document for the React editing client.
+  Host document for the React client, served on every route it owns
+  (html/client_router.py).
 
-  The SPA mounts into #root *inside* the normal site shell, so it inherits
+  React mounts into #root *inside* the normal site shell, so it inherits
   the header, nav, footer, and stylesheet from base.html. React owns the
   content region only — not the page.
 

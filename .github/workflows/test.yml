@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          working-directory: server
+      - name: Install dependencies
+        working-directory: server
+        run: uv sync --frozen
+      # The /edit tests hit routes that render the built React client, so the
+      # client must be built before pytest runs (mirrors the Docker image).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Build client
+        working-directory: client
+        run: |
+          npm ci
+          npm run build
+      - name: Run tests
+        working-directory: server
+        run: uv run --no-sync pytest

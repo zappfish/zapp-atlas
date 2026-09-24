@@ -22,8 +22,8 @@ def _session_factory():
 
 def test_seed_creates_studies_with_full_graph() -> None:
     from zapp_atlas.schema.sqla import (
-        ExposureEvent,
         Experiment,
+        ExposureEvent,
         Phenotype,
         Study,
     )

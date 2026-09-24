@@ -23,7 +23,13 @@ def client(tmp_path) -> TestClient:
     init_db(engine)
     SessionLocal = sessionmaker(bind=engine)
 
-    app = create_app(AppSettings(skip_seed=True, upload_dir=tmp_path))
+    # Build settings hermetically: `_env_file=None` stops pydantic-settings from
+    # reading the developer's server/.env, so tests don't depend on local config.
+    # In particular ZAPP_DEV_AUTH (which CLAUDE.md tells you to enable for UI work)
+    # must not leak in, or test_dev_login_is_absent_by_default fails on your machine
+    # while passing on CI.
+    settings = AppSettings(skip_seed=True, upload_dir=tmp_path, _env_file=None)
+    app = create_app(settings)
 
     def _override_get_session():
         session = SessionLocal()

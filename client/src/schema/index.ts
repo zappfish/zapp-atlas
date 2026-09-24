@@ -19,28 +19,10 @@ export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishZfinId = string;
-/**
-* An enumeration of severity levels for phenotypes.
-*/
-export enum SeverityEnum {
-    
-    /** Mild severity */
-    mild = "mild",
-    /** Moderate severity */
-    moderate = "moderate",
-    /** Severe severity */
-    severe = "severe",
-};
-/**
-* An enumeration of exposure regimen types.
-*/
-export enum ExposureRegimenTypeEnum {
-    
-    /** Continuous exposure */
-    continuous = "continuous",
-    /** Repeated exposure */
-    repeated = "repeated",
-};
+export type ResearchGroupId = string;
+export type ResearchGroupMemberId = string;
+export type ChemicalCabinetEntryId = string;
+export type FishTankEntryId = string;
 /**
 * An enumeration of vehicles used to deliver stressors in exposure events.
 */
@@ -50,8 +32,8 @@ export enum VehicleEnum {
     acetone = "acetone",
     /** Acetonitrile */
     acetonitrile = "acetonitrile",
-    /** Albumin (BSA) */
-    albumin_bsa = "albumin_bsa",
+    /** Bovine serum albumin (BSA) */
+    bsa = "bsa",
     /** Butanone (MEK) */
     butanone_mek = "butanone_mek",
     /** Cyclodextrin (HPBCD) */
@@ -82,6 +64,8 @@ export enum VehicleEnum {
     solketal = "solketal",
     /** Water */
     water = "water",
+    /** Other vehicle not in the controlled list */
+    other_not_listed = "other_not_listed",
 };
 /**
 * An enumeration of manufacturers and suppliers of chemicals used in exposure events.
@@ -150,6 +134,40 @@ export enum ManufacturerEnum {
     thomas_scientific = "thomas_scientific",
     /** Cole-Parmer */
     cole_parmer = "cole_parmer",
+    /** Other manufacturer not in the controlled list */
+    other_not_listed = "other_not_listed",
+};
+/**
+* An enumeration of permission levels within a research group.
+*/
+export enum ResearchGroupRoleEnum {
+    
+    /** Can manage group membership as well as the group's data. */
+    admin = "admin",
+    /** Can edit the group's data. */
+    member = "member",
+};
+/**
+* An enumeration of severity levels for phenotypes.
+*/
+export enum SeverityEnum {
+    
+    /** Mild severity */
+    mild = "mild",
+    /** Moderate severity */
+    moderate = "moderate",
+    /** Severe severity */
+    severe = "severe",
+};
+/**
+* An enumeration of exposure regimen types.
+*/
+export enum ExposureRegimenTypeEnum {
+    
+    /** Continuous exposure */
+    continuous = "continuous",
+    /** Repeated exposure */
+    repeated = "repeated",
 };
 
 
@@ -305,14 +323,16 @@ export interface StressorChemical extends ZappEntity {
     chemical_id?: string,
     /** CAS identifier for the chemical. */
     cas_id?: string,
-    /** Name of the chemical. */
-    chemical_name?: string,
-    /** Other names for the chemical. */
+    /** Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier. */
+    unrecognized_chemical_name?: string,
+    /** Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id. */
     synonym?: string[],
     /** The manufacturer or supplier of the chemical. */
     manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
     /** The dose or concentration of the chemical to which the subject was exposed to. */
-    concentration: QuantityValue,
+    concentration?: QuantityValue,
     /** Additional comments. */
     comment?: string,
 }
@@ -324,8 +344,18 @@ export interface StressorChemical extends ZappEntity {
 export interface VehicleOfTransmission extends ZappEntity {
     /** The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary. */
     vehicle_type: string,
+    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    chemical_id?: string,
+    /** CAS identifier for the chemical. */
+    cas_id?: string,
+    /** Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier. */
+    unrecognized_chemical_name?: string,
+    /** Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id. */
+    synonym?: string[],
     /** The manufacturer or supplier of the chemical. */
     manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
     /** The dose or concentration of the chemical to which the subject was exposed to. */
     concentration?: QuantityValue,
     /** Additional comments. */
@@ -405,6 +435,50 @@ export interface ExposureType extends OntologyEntity {
 export interface Fish extends ZfinEntity {
     /** Name or label of an entity. */
     name: string,
+}
+
+
+/**
+ * A named collection of users that have shared editing access.
+ */
+export interface ResearchGroup extends ZappEntity {
+    /** Name or label of an entity. */
+    name: string,
+}
+
+
+/**
+ * Membership of an ORCID identity in a research group.
+ */
+export interface ResearchGroupMember extends ZappEntity {
+    /** The research group an entry belongs to. */
+    research_group: ResearchGroupId,
+    /** ORCID identifier of a research group member. */
+    member: string,
+    /** A member's permission level within a research group. */
+    role: string,
+}
+
+
+/**
+ * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+ */
+export interface ChemicalCabinetEntry extends ZappEntity {
+    /** The research group an entry belongs to. */
+    research_group: ResearchGroupId,
+    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    chemical_id: string,
+}
+
+
+/**
+ * A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+ */
+export interface FishTankEntry extends ZappEntity {
+    /** The research group an entry belongs to. */
+    research_group: ResearchGroupId,
+    /** The fish line the group maintains. */
+    fish: Fish,
 }
 
 

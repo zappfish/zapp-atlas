@@ -183,10 +183,10 @@ export function StressorChemicalFields({ value, onChange }: Props) {
   return (
     <fieldset>
       <label>
-        Chemical name
+        Chemical name (if it could not be resolved to an identifier)
         <input
-          value={value.chemical_name ?? ""}
-          onChange={(e) => set({ chemical_name: e.target.value })}
+          value={value.unrecognized_chemical_name ?? ""}
+          onChange={(e) => set({ unrecognized_chemical_name: e.target.value })}
         />
       </label>
       <label>

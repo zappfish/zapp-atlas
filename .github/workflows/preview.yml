@@ -1,0 +1,105 @@
+name: Preview
+
+# Per-PR preview apps on Fly.io, opt-in via the `preview` label.
+#
+# Label a PR -> a `zapp-atlas-pr-<n>` app is created and deployed from
+# fly.preview.toml. Remove the label or close the PR -> the app is destroyed.
+# Pushes to a labelled PR redeploy the same app, so the URL never changes.
+#
+# Needs the FLY_PREVIEW_TOKEN secret: an *org*-scoped token, because creating
+# apps is beyond what the app-scoped FLY_API_TOKEN used by fly-deploy.yml can
+# do. Production deploys are unaffected by anything here.
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, synchronize, reopened, closed]
+
+env:
+  FLY_ORG: sabrina-toro
+  FLY_API_TOKEN: ${{ secrets.FLY_PREVIEW_TOKEN }}
+  APP: zapp-atlas-pr-${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    name: Deploy preview
+    # Fork PRs never receive secrets, so a preview could not be deployed for
+    # them; skip rather than fail. Closing is handled by the destroy job.
+    #
+    # The state check matters: `labeled` fires on closed PRs too, so without it
+    # labelling a merged PR would deploy an app that nothing ever destroys —
+    # `closed` has already fired and won't fire again.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.state == 'open'
+      && github.event.action != 'closed'
+      && github.event.action != 'unlabeled'
+      && contains(github.event.pull_request.labels.*.name, 'preview')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6
+
+      - name: Create the app if it does not exist
+        run: flyctl apps create "$APP" --org "$FLY_ORG" || true
+
+      # --ha=false: flyctl creates two machines on an app's first deploy for
+      # high availability. A preview does not need zero-downtime deploys, and
+      # min_machines_running does not prevent it — that only sets how many stay
+      # running once idle, not how many get created.
+      - name: Deploy
+        run: flyctl deploy --app "$APP" --config fly.preview.toml --remote-only --ha=false
+
+      - name: Comment the preview URL
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          # One line per paragraph: GitHub renders single newlines in comments
+          # as hard breaks, so wrapping the source wraps the rendered comment.
+          BODY: |
+            ### Preview deployed
+
+            https://zapp-atlas-pr-${{ github.event.pull_request.number }}.fly.dev
+
+            Built from ${{ github.event.pull_request.head.sha }}. (*If this is not the latest commit, then the last deploy failed or is in progress.*)
+
+            ORCID authentication is not functional in previews. Instead, sign in with a test identity with the **Development sign-in** button on `/login`.
+
+            Changes made in this preview are transient. The database will be reset to dummy seed data whenever the machine idles down (usually ~5 minutes).
+
+            The app will be destroyed when the PR closes, or the `preview` label is removed.
+        run: gh pr comment "$PR" --edit-last --create-if-none --body "$BODY"
+
+  destroy:
+    name: Destroy preview
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && (github.event.action == 'closed'
+          || (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6
+
+      # `|| true` so closing a PR that never had a preview is not a failure.
+      - name: Destroy the app
+        run: flyctl apps destroy "$APP" --yes || true
+
+      # No --create-if-none: if this PR never had a preview there is nothing to
+      # announce, and `|| true` keeps that from failing the job.
+      - name: Update the comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          BODY: |
+            ### Preview destroyed
+
+            The preview app for this PR has been torn down. While the PR is open, re-adding the `preview` label will bring it back.
+        run: gh pr comment "$PR" --edit-last --body "$BODY" || true

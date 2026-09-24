@@ -31,10 +31,8 @@ from zapp_atlas.api.services.images import (
     load_image_bytes,
 )
 from zapp_atlas.db.image_storage import Storage, get_storage
-from zapp_atlas.settings import AppSettings
-
 from zapp_atlas.schema.pydantic_crud import ImageRead
-
+from zapp_atlas.settings import AppSettings
 
 router = APIRouter(tags=["images"])
 
@@ -91,9 +89,7 @@ async def upload_image_endpoint(
         ) from exc
 
     if image is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
     return image  # type: ignore[return-value]
 
 
@@ -104,9 +100,7 @@ def fetch_image_endpoint(
     storage: StorageDep,
 ):
     if get_image_by_id(session, image_id) is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
 
     url = image_url(image_id, storage)
     if url:
@@ -114,9 +108,7 @@ def fetch_image_endpoint(
 
     stored = load_image_bytes(image_id, storage)
     if stored is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Image blob missing"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image blob missing")
     return Response(content=stored.data, media_type=stored.content_type)
 
 
@@ -127,6 +119,4 @@ def delete_image_endpoint(
     storage: StorageDep,
 ) -> None:
     if not delete_image(session, image_id, storage=storage):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")

@@ -1,0 +1,54 @@
+# Fly config for per-PR preview apps. NOT production — see fly.toml for that.
+#
+# Used by .github/workflows/preview.yml, which deploys this against a per-PR
+# app (`zapp-atlas-pr-<n>`) and destroys it when the PR closes or loses its
+# `preview` label. Two deliberate differences from fly.toml:
+#
+#   * No [[mounts]]. Preview apps have no volume, so the database and uploads
+#     live on the machine's ephemeral rootfs. That is the point: a reviewer's
+#     edits disappear when the machine stops and it comes back with clean seed
+#     data. (get_engine() creates the parent directory, so /data need not be a
+#     real mount.)
+#   * ZAPP_DEV_AUTH is on. ORCID cannot work here — it only redirects to
+#     pre-registered URIs, and per-PR hostnames can't be registered — and a
+#     preview is only useful with data already in it. The one-click dev sign-in
+#     puts reviewers straight into the signed-in state. Safe only because these
+#     apps hold nothing but throwaway seed data and die with the PR.
+#
+# `app` is intentionally absent; the workflow passes --app per PR.
+
+primary_region = 'sjc'
+
+[build]
+
+[env]
+  ZAPP_DB_PATH = '/data/zapp.db'
+  ZAPP_UPLOAD_DIR = '/data/uploads'
+  ZAPP_DEV_AUTH = 'true'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  # Previews idle down to zero: stopped machines bill only for rootfs storage.
+  # Raising this to 1 would keep each open preview running around the clock.
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 250
+    soft_limit = 200
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
