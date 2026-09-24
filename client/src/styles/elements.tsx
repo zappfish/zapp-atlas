@@ -163,7 +163,6 @@ export const Status = ({
 export const FormLayout = styled("div", "form-layout");
 export const FormMain = styled("div", "form-main");
 export const FormIntro = styled("header", "form-intro");
-export const FormIntroTitle = styled("h1", "form-intro__title");
 export const FormIntroText = styled("p", "form-intro__text");
 export const RequiredMark = styled("span", "form-required");
 
@@ -209,5 +208,33 @@ export const FormSectionHeading = styled("div", "form-section__heading");
 export const FormSectionTitle = styled("h2", "form-section__title");
 export const FormSectionToggle = styled("button", "form-section__toggle");
 export const FormSectionBody = styled("div", "form-section__body");
+export const FormActionBar = styled("div", "form-actions");
 export const VisuallyHidden = styled("span", "visually-hidden");
 
+
+/* ---- form fields ---- */
+
+export const FieldBox = styled("div", "field");
+export const FieldLabel = styled("label", "field__label");
+export const FieldHint = styled("p", "field__hint");
+export const TextInput = styled("input", "field__input");
+export const TextArea = styled("textarea", "field__input field__input--area");
+
+
+export const EntryCard = styled("div", "form-entry");
+export const EntryBody = styled("div", "form-entry__body");
+export const AddRow = styled("div", "form-add");
+export const AddButton = styled("button", "form-add__button");
+
+export const Upload = styled("div", "upload");
+export const UploadPane = styled("div", "upload__pane");
+export const UploadHint = styled("p", "upload__hint");
+export const UploadPreview = styled("div", "upload__preview");
+export const PreviewTitle = styled("h4", "upload__preview-title");
+export const PreviewNote = styled("p", "upload__preview-note");
+export const PreviewActions = styled("div", "upload__preview-actions");
+
+export const MeasureRow = styled("div", "measure");
+export const RadioGroup = styled("div", "radio-group");
+export const RadioLabel = styled("label", "radio-group__option");
+export const NotesToggle = styled("button", "notes-toggle");

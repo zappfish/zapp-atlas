@@ -6,13 +6,16 @@ import {
   Crumbs,
   FormIntro,
   FormIntroText,
-  FormIntroTitle,
   FormLayout,
   FormMain,
   RequiredMark,
+  TextInput,
 } from "@/styles/elements";
+import Field from "./Field";
+import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
+import ImagesSection from "./sections/ImagesSection";
 import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
 import "./form.css";
 
@@ -65,7 +68,19 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
       <FormMain>
         {groupId !== undefined && <GroupCrumbs groupId={groupId} />}
         <FormIntro>
-          <FormIntroTitle>New Submission</FormIntroTitle>
+          <Field
+            label="Submission title"
+            required
+            hint="Give your submission a short, descriptive name."
+          >
+            {(id) => (
+              <TextInput
+                id={id}
+                placeholder="e.g. Zebrafish cardiac development study"
+              />
+            )}
+          </Field>
+
           <FormIntroText>
             Complete all required fields marked with{" "}
             <RequiredMark>*</RequiredMark> before submitting. You may save a
@@ -80,8 +95,12 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             slug={slug}
             title={label}
             isActive={slug === active}
-          />
+          >
+            {slug === "images" && <ImagesSection />}
+          </FormSection>
         ))}
+
+        <FormActions />
       </FormMain>
     </FormLayout>
   );
