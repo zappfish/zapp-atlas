@@ -32,9 +32,7 @@ import type { Group } from "@/api/groups";
 /** The group list beside every dashboard page. */
 
 /**
- * Two letters for the collapsed rail: one from each of the first two words, or
- * the first two letters when there is only one word, so every tile is the same
- * width.
+ * Two letters for the collapsed rail
  */
 const initials = (name: string) => {
   const words = name.trim().split(/\s+/);
@@ -45,7 +43,8 @@ const initials = (name: string) => {
   return letters.join("").toUpperCase();
 };
 
-const onForm = (pathname: string) => pathname.startsWith("/submissions/");
+/** Either submission form: the bare one, or a group's. */
+const onForm = (pathname: string) => pathname.endsWith("/submissions/new");
 
 const GroupItem = ({
   group,

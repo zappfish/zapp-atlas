@@ -13,7 +13,7 @@ import {
 } from "@/styles/elements";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
-import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
+import { SECTIONS, type SectionSlug } from "./sections";
 import "./form.css";
 
 /**
@@ -34,15 +34,6 @@ const DESCRIPTIONS: Record<SectionSlug, string> = {
   control: "The untreated or vehicle-treated fish this observation is measured against.",
   phenotype:
     "What was observed, at what stage, and how prevalent and severe it was.",
-};
-
-const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
-  images: "in-progress",
-  provenance: "not-started",
-  fish: "not-started",
-  experiment: "not-started",
-  control: "not-started",
-  phenotype: "not-started",
 };
 
 /** Where the form was started from, when it was started from a group. */
@@ -68,7 +59,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
 
   return (
     <FormLayout>
-      <FormNav statuses={PLACEHOLDER_STATUS} active={active} onJump={jumpTo} />
+      <FormNav active={active} onJump={jumpTo} />
 
       <FormMain>
         {groupId !== undefined && <GroupCrumbs groupId={groupId} />}

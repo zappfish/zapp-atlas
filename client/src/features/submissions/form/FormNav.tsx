@@ -18,13 +18,11 @@ import {
 const NavItem = ({
   slug,
   label,
-  status,
   isActive,
   onJump,
 }: {
   slug: SectionSlug;
   label: string;
-  status: SectionStatus;
   isActive: boolean;
   onJump: (slug: SectionSlug) => void;
 }) => {
@@ -39,7 +37,6 @@ const NavItem = ({
         onClick={jump}
       >
         <NavLabel>{label}</NavLabel>
-        <StatusDot status={status} />
       </NavButton>
     </li>
   );
@@ -62,11 +59,9 @@ const Legend = () => (
  * reads across sections while filling them.
  */
 const FormNav = ({
-  statuses,
   active,
   onJump,
 }: {
-  statuses: Record<SectionSlug, SectionStatus>;
   active: SectionSlug;
   onJump: (slug: SectionSlug) => void;
 }) => (
@@ -78,7 +73,6 @@ const FormNav = ({
           key={slug}
           slug={slug}
           label={label}
-          status={statuses[slug]}
           isActive={slug === active}
           onJump={onJump}
         />

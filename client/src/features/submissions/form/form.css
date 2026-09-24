@@ -31,13 +31,18 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-.form-nav__heading + .form-nav__list { margin-bottom: 1.5rem; }
+/* Separates the key below from the sections above it. The last row's own
+   0.5rem padding sits above the rule, so the margin makes up the difference. */
+.form-nav__list + .form-nav__heading {
+  margin-top: 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
 
 .form-nav__list {
   list-style: none;
-  margin: 0 0 1.5rem;
+  margin: 0;
   padding: 0;
-  counter-reset: none;
 }
 
 .form-nav__item {
@@ -66,11 +71,17 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  font-size: var(--text-sm);
+  gap: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
-.form-nav__legend li { display: flex; align-items: center; gap: 0.6rem; }
+/* Indented to match the nav rows above, so both columns of text line up. */
+.form-nav__legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-left: 0.6rem;
+}
 
 /* ---- Status ---- */
 
@@ -90,19 +101,8 @@
   border: 1.5px solid var(--line-strong);
   background: var(--white);
 }
-.form-dot--in-progress {
-  border: 1.5px solid var(--teal);
-  background: var(--white);
-  color: var(--teal);
-}
-/* A filled centre reads as "started but not finished". */
-.form-dot--in-progress::after {
-  content: "";
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--teal);
-}
+/* Filled, like the other two that carry a state; only "not started" is hollow. */
+.form-dot--in-progress { background: var(--teal); }
 .form-dot--complete { background: var(--status-published, #15803d); color: var(--white); }
 .form-dot--has-errors { background: #b91c1c; color: var(--white); }
 
