@@ -23,19 +23,6 @@ import "./form.css";
  * statuses are placeholders — each will be derived from its own fields.
  */
 
-const DESCRIPTIONS: Record<SectionSlug, string> = {
-  images:
-    "Upload and describe all images associated with this specimen submission. Each image entry requires a file, type, and anatomical view. Acquisition metadata applies to all images in this submission unless overridden per image.",
-  provenance:
-    "Who produced this data and where it was published, so an entry can be traced back to its source.",
-  fish: "The fish this submission describes — chosen from your group's tank, or described here.",
-  experiment:
-    "The substance the fish was exposed to, and how that exposure was carried out.",
-  control: "The untreated or vehicle-treated fish this observation is measured against.",
-  phenotype:
-    "What was observed, at what stage, and how prevalent and severe it was.",
-};
-
 /** Where the form was started from, when it was started from a group. */
 const GroupCrumbs = ({ groupId }: { groupId: number }) => {
   const { group } = useGroupDashboard(groupId);
@@ -92,7 +79,6 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             key={slug}
             slug={slug}
             title={label}
-            description={DESCRIPTIONS[slug]}
             isActive={slug === active}
           />
         ))}

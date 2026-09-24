@@ -131,7 +131,6 @@
 }
 .form-intro__text {
   margin: 0;
-  max-width: 60ch;
   font-size: var(--text-sm);
   color: var(--muted);
 }
@@ -158,7 +157,6 @@
   box-shadow: none;
 }
 .form-section--collapsed .form-section__head { padding: 0.75rem 1.1rem; }
-.form-section--collapsed .form-section__description { display: none; }
 
 .form-section__head {
   display: flex;
@@ -174,13 +172,6 @@
   font-weight: 600;
   letter-spacing: -0.01em;
 }
-.form-section__description {
-  margin: 0.35rem 0 0;
-  max-width: 70ch;
-  font-size: var(--text-sm);
-  color: var(--muted);
-}
-
 .form-section__toggle {
   flex-shrink: 0;
   padding: 0.25rem 0.5rem;

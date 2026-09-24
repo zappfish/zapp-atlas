@@ -2,7 +2,6 @@ import { useCallback, useState, type ReactNode } from "react";
 import {
   FormSectionBody,
   FormSectionBox,
-  FormSectionDescription,
   FormSectionHead,
   FormSectionHeading,
   FormSectionTitle,
@@ -17,14 +16,12 @@ import {
 const FormSection = ({
   slug,
   title,
-  description,
   isActive,
   children,
 }: {
   /** Anchor id, so the nav can scroll to it. */
   slug: string;
   title: string;
-  description: string;
   /** The section the nav points at. */
   isActive: boolean;
   children?: ReactNode;
@@ -37,7 +34,6 @@ const FormSection = ({
       <FormSectionHead>
         <FormSectionHeading>
           <FormSectionTitle>{title}</FormSectionTitle>
-          <FormSectionDescription>{description}</FormSectionDescription>
         </FormSectionHeading>
         <FormSectionToggle
           type="button"

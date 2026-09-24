@@ -207,7 +207,6 @@ export const FormSectionBox = ({
 export const FormSectionHead = styled("header", "form-section__head");
 export const FormSectionHeading = styled("div", "form-section__heading");
 export const FormSectionTitle = styled("h2", "form-section__title");
-export const FormSectionDescription = styled("p", "form-section__description");
 export const FormSectionToggle = styled("button", "form-section__toggle");
 export const FormSectionBody = styled("div", "form-section__body");
 export const VisuallyHidden = styled("span", "visually-hidden");
