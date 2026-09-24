@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   Count,
   Empty,
@@ -22,6 +23,7 @@ import {
   TabList,
   UpdatedOn,
 } from "@/styles/elements";
+
 /**
  * A group's submissions, filtered by status. The Jinja page's tabs are inert;
  * here the selection is state, so they filter.
@@ -159,9 +161,9 @@ const Submissions = ({
           {/* Only when there is nothing at all: a filter with no matches is
               not a reason to start something new. */}
           {submissions.length === 0 && (
-            <button className="btn btn--secondary" type="button">
+            <Link className="btn btn--secondary" to="/submissions/new">
               + New Submission
-            </button>
+            </Link>
           )}
         </Empty>
       )}

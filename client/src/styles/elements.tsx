@@ -143,3 +143,38 @@ export const Status = ({
     {...rest}
   />
 );
+
+/* ---- submission form ---- */
+
+export const FormLayout = styled("div", "form-layout");
+export const FormMain = styled("div", "form-main");
+export const FormIntro = styled("header", "form-intro");
+export const FormIntroTitle = styled("h1", "form-intro__title");
+export const FormIntroText = styled("p", "form-intro__text");
+export const RequiredMark = styled("span", "form-required");
+
+export const Nav = styled("aside", "form-nav");
+export const NavHeading = styled("h2", "form-nav__heading");
+export const NavList = styled("ol", "form-nav__list");
+export const NavNumber = styled("span", "form-nav__number");
+export const NavLabel = styled("span", "form-nav__label");
+export const NavLegend = styled("ul", "form-nav__legend");
+
+const NavItemButton = styled("button", "form-nav__item");
+
+export const NavButton = ({
+  isActive,
+  ...rest
+}: ComponentPropsWithoutRef<"button"> & { isActive: boolean }) => (
+  <NavItemButton className={modifier(isActive, "is-active")} {...rest} />
+);
+
+export const FormSectionBox = styled("section", "form-section");
+export const FormSectionHead = styled("header", "form-section__head");
+export const FormSectionNumber = styled("span", "form-section__number");
+export const FormSectionHeading = styled("div", "form-section__heading");
+export const FormSectionTitle = styled("h2", "form-section__title");
+export const FormSectionDescription = styled("p", "form-section__description");
+export const FormSectionToggle = styled("button", "form-section__toggle");
+export const FormSectionBody = styled("div", "form-section__body");
+export const VisuallyHidden = styled("span", "visually-hidden");

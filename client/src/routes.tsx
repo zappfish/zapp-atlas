@@ -3,6 +3,7 @@ import ChemicalDetail from "@/features/groups/ChemicalDetail";
 import FishDetail from "@/features/groups/FishDetail";
 import GroupView from "@/features/groups/GroupView";
 import MySubmissions from "@/features/submissions/MySubmissions";
+import SubmissionForm from "@/features/submissions/form/SubmissionForm";
 
 /** Mirrors the paths the server serves the shell for (html/client_router.py). */
 
@@ -34,6 +35,7 @@ const ChemicalDetailRoute = () => {
 const AppRoutes = () => (
   <Routes>
     <Route path="/my-submissions" element={<MySubmissions />} />
+    <Route path="/submissions/new" element={<SubmissionForm />} />
     <Route path="/research-groups/:groupId" element={<GroupRoute />} />
     <Route
       path="/research-groups/:groupId/fish-tank/:entryId"
