@@ -13,7 +13,7 @@ const StatusDot = ({
 }) => (
   <span className={`form-dot form-dot--${status}`} aria-hidden="true">
     {status === "complete" && "✓"}
-    {status === "has-errors" && (errorCount ?? "!")}
+    {status === "has-errors" && errorCount}
   </span>
 );
 

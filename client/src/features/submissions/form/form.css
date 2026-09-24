@@ -97,6 +97,13 @@
   font-weight: 700;
   line-height: 1;
 }
+/* Smaller beside a section name than in the key, where it is the subject. */
+.form-nav__item .form-dot {
+  width: 0.9rem;
+  height: 0.9rem;
+  font-size: 0.6rem;
+}
+
 .form-dot--not-started {
   border: 1.5px solid var(--line-strong);
   background: var(--white);
