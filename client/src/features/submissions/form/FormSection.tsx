@@ -5,37 +5,36 @@ import {
   FormSectionDescription,
   FormSectionHead,
   FormSectionHeading,
-  FormSectionNumber,
   FormSectionTitle,
   FormSectionToggle,
   VisuallyHidden,
 } from "@/styles/elements";
 
 /**
- * One numbered section of the form. Collapsible, so a curator can fold away
+ * One section of the form. Collapsible, so a curator can fold away
  * what they have finished and keep the rest reachable.
  */
 const FormSection = ({
   slug,
-  number,
   title,
   description,
+  isActive,
   children,
 }: {
   /** Anchor id, so the nav can scroll to it. */
   slug: string;
-  number: number;
   title: string;
   description: string;
+  /** The section the nav points at. */
+  isActive: boolean;
   children?: ReactNode;
 }) => {
   const [open, setOpen] = useState(true);
   const toggle = useCallback(() => setOpen((wasOpen) => !wasOpen), []);
 
   return (
-    <FormSectionBox id={slug}>
+    <FormSectionBox id={slug} isOpen={open} isActive={isActive}>
       <FormSectionHead>
-        <FormSectionNumber>{number}</FormSectionNumber>
         <FormSectionHeading>
           <FormSectionTitle>{title}</FormSectionTitle>
           <FormSectionDescription>{description}</FormSectionDescription>

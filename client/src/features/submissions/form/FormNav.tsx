@@ -6,7 +6,6 @@ import {
   NavLabel,
   NavLegend,
   NavList,
-  NavNumber,
 } from "@/styles/elements";
 import StatusDot from "./StatusDot";
 import {
@@ -19,14 +18,12 @@ import {
 const NavItem = ({
   slug,
   label,
-  number,
   status,
   isActive,
   onJump,
 }: {
   slug: SectionSlug;
   label: string;
-  number: number;
   status: SectionStatus;
   isActive: boolean;
   onJump: (slug: SectionSlug) => void;
@@ -41,7 +38,6 @@ const NavItem = ({
         aria-current={isActive ? "step" : undefined}
         onClick={jump}
       >
-        <NavNumber>{number}</NavNumber>
         <NavLabel>{label}</NavLabel>
         <StatusDot status={status} />
       </NavButton>
@@ -77,12 +73,11 @@ const FormNav = ({
   <Nav>
     <NavHeading>Form sections</NavHeading>
     <NavList>
-      {SECTIONS.map(({ slug, label }, i) => (
+      {SECTIONS.map(({ slug, label }) => (
         <NavItem
           key={slug}
           slug={slug}
           label={label}
-          number={i + 1}
           status={statuses[slug]}
           isActive={slug === active}
           onJump={onJump}

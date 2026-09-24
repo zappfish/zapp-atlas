@@ -14,6 +14,7 @@ const MySubmissions = () => (
     <Submissions
       submissions={[]}
       emptyText="Create a submission to share your observations."
+      newHref="/submissions/new"
     />
   </>
 );

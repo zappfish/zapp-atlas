@@ -42,7 +42,20 @@ export const GroupTile = styled("span", "dash-identity__tile");
 
 /* ---- sidebar ---- */
 
-export const DashSidebar = styled("aside", "dash-sidebar");
+const SidebarPanel = styled("aside", "dash-sidebar");
+
+export const DashSidebar = ({
+  isCollapsed,
+  ...rest
+}: ComponentPropsWithoutRef<"aside"> & { isCollapsed: boolean }) => (
+  <SidebarPanel
+    className={modifier(isCollapsed, "dash-sidebar--collapsed")}
+    {...rest}
+  />
+);
+
+export const SidebarTop = styled("div", "dash-sidebar__top");
+export const SidebarToggle = styled("button", "dash-sidebar__toggle");
 export const MySubmissionsLink = styled(Link, "dash-mysubs");
 export const SidebarHeading = styled("h2", "dash-sidebar__heading");
 export const GroupList = styled("ul", "dash-groups");
@@ -50,6 +63,7 @@ export const GroupListItem = styled("li", "dash-group");
 export const GroupText = styled("span", "dash-group__text");
 export const GroupName = styled("span", "dash-group__name");
 export const GroupCaret = styled("span", "dash-group__caret");
+export const GroupAvatar = styled("span", "dash-group__avatar");
 export const SubNav = styled("ul", "dash-subnav");
 
 const GroupSummaryLink = styled(Link, "dash-group__summary");
@@ -156,7 +170,6 @@ export const RequiredMark = styled("span", "form-required");
 export const Nav = styled("aside", "form-nav");
 export const NavHeading = styled("h2", "form-nav__heading");
 export const NavList = styled("ol", "form-nav__list");
-export const NavNumber = styled("span", "form-nav__number");
 export const NavLabel = styled("span", "form-nav__label");
 export const NavLegend = styled("ul", "form-nav__legend");
 
@@ -169,12 +182,33 @@ export const NavButton = ({
   <NavItemButton className={modifier(isActive, "is-active")} {...rest} />
 );
 
-export const FormSectionBox = styled("section", "form-section");
+const FormSectionFrame = styled("section", "form-section");
+
+export const FormSectionBox = ({
+  isOpen,
+  isActive,
+  ...rest
+}: ComponentPropsWithoutRef<"section"> & {
+  isOpen: boolean;
+  isActive: boolean;
+}) => (
+  <FormSectionFrame
+    className={
+      [
+        isOpen ? null : "form-section--collapsed",
+        isActive ? "form-section--active" : null,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined
+    }
+    {...rest}
+  />
+);
 export const FormSectionHead = styled("header", "form-section__head");
-export const FormSectionNumber = styled("span", "form-section__number");
 export const FormSectionHeading = styled("div", "form-section__heading");
 export const FormSectionTitle = styled("h2", "form-section__title");
 export const FormSectionDescription = styled("p", "form-section__description");
 export const FormSectionToggle = styled("button", "form-section__toggle");
 export const FormSectionBody = styled("div", "form-section__body");
 export const VisuallyHidden = styled("span", "visually-hidden");
+

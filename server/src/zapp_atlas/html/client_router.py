@@ -73,6 +73,20 @@ def make_client_router(dist_dir: Path) -> APIRouter:
             return RedirectResponse("/login", status_code=303)
         return shell(request, settings)
 
+    @router.get(
+        "/research-groups/{group_id}/submissions/new",
+        response_class=HTMLResponse,
+    )
+    def new_group_submission_page(
+        request: Request,
+        identity: CurrentIdentity,
+        settings: Annotated[AppSettings, Depends(get_app_settings)],
+        group_id: int,
+    ) -> Response:
+        if identity is None:
+            return RedirectResponse("/login", status_code=303)
+        return shell(request, settings)
+
     @router.get("/research-groups/{group_id}", response_class=HTMLResponse)
     def research_group_page(
         request: Request,

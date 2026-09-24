@@ -58,25 +58,6 @@
 .form-nav__item:hover { background: var(--nav-row-hover); }
 .form-nav__item.is-active { background: var(--teal-tint); color: var(--teal); }
 
-/* The step number, filled once you are on it. */
-.form-nav__number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 0.375rem;
-  background: var(--surface-sunken);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--muted);
-}
-.form-nav__item.is-active .form-nav__number {
-  background: var(--teal);
-  color: var(--white);
-}
-
 .form-nav__label { flex: 1; }
 
 .form-nav__legend {
@@ -137,9 +118,9 @@
 
 .form-intro__title {
   margin: 0 0 0.5rem;
-  font-size: var(--text-lg);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .form-intro__text {
   margin: 0;
@@ -154,7 +135,23 @@
   border-radius: 0.625rem;
   background: var(--white);
   box-shadow: var(--shadow-card);
+  transition:
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
+
+/* The section the nav points at, outlined rather than barred so the card keeps
+   its shape. */
+.form-section--active { border-color: var(--teal-soft); }
+
+/* Folded away: no lift, header on the tinted band, so a finished section
+   recedes and the one being filled stands out. */
+.form-section--collapsed {
+  background: var(--surface-sunken);
+  box-shadow: none;
+}
+.form-section--collapsed .form-section__head { padding: 0.75rem 1.1rem; }
+.form-section--collapsed .form-section__description { display: none; }
 
 .form-section__head {
   display: flex;
@@ -163,25 +160,11 @@
   padding: 1.1rem;
 }
 
-.form-section__number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.375rem;
-  background: var(--teal);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--white);
-}
-
 .form-section__heading { flex: 1; min-width: 0; }
 .form-section__title {
   margin: 0;
   font-size: var(--text-md);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .form-section__description {
@@ -220,4 +203,19 @@
 @media (max-width: 960px) {
   .form-layout { flex-direction: column; }
   .form-nav { position: static; width: 100%; }
+}
+
+/* ---- Beside the dashboard sidebar ---------------------------------------- */
+/* The form is the work; the group nav beside it is not. Where both appear, the
+   outer sidebar recedes so the two do not carry equal weight. */
+.dashboard:has(.form-layout) .dash-sidebar {
+  background: var(--surface-sunken);
+}
+.dashboard:has(.form-layout) .dash-sidebar .dash-group__name,
+.dashboard:has(.form-layout) .dash-sidebar .dash-mysubs {
+  color: var(--muted);
+}
+.dashboard:has(.form-layout) .dash-sidebar .dash-group__summary.is-active .dash-group__name,
+.dashboard:has(.form-layout) .dash-sidebar .dash-mysubs.is-active {
+  color: var(--teal);
 }

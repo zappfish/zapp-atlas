@@ -56,6 +56,7 @@ const GroupView = ({ groupId }: { groupId: number }) => {
       <Submissions
         submissions={[]}
         emptyText="Create a submission to share this group's observations."
+        newHref={`/research-groups/${groupId}/submissions/new`}
       />
     </>
   );

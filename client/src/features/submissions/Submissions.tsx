@@ -25,14 +25,11 @@ import {
 } from "@/styles/elements";
 
 /**
- * A group's submissions, filtered by status. The Jinja page's tabs are inert;
- * here the selection is state, so they filter.
- *
- * No endpoint serves submissions yet, so the list is always empty. The shape
- * is the one the Jinja page assumes.
+ * A group's submissions, filtered by status. No endpoint serves them yet, so
+ * the list is always empty.
  */
 
-/** Not in the schema; the set the Jinja filter tabs assume. */
+/** Not in the schema yet. */
 export const STATUSES = [
   "Published",
   "In Progress",
@@ -111,10 +108,13 @@ const SubmissionRow = ({ submission }: { submission: Submission }) => (
 const Submissions = ({
   submissions,
   emptyText,
+  newHref,
 }: {
   submissions: Submission[];
   /** What to do about it, which differs per page. */
   emptyText: string;
+  /** Where "New Submission" goes: a group's page carries its id. */
+  newHref: string;
 }) => {
   const [filter, setFilter] = useState<Filter>("All");
 
@@ -161,7 +161,7 @@ const Submissions = ({
           {/* Only when there is nothing at all: a filter with no matches is
               not a reason to start something new. */}
           {submissions.length === 0 && (
-            <Link className="btn btn--secondary" to="/submissions/new">
+            <Link className="btn btn--secondary" to={newHref}>
               + New Submission
             </Link>
           )}

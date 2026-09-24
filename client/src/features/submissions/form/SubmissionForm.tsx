@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
+import { Link } from "react-router";
+import { useGroupDashboard } from "@/api/hooks";
 import {
+  CrumbSeparator,
+  Crumbs,
   FormIntro,
   FormIntroText,
   FormIntroTitle,
@@ -41,7 +45,20 @@ const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
   phenotype: "not-started",
 };
 
-const SubmissionForm = () => {
+/** Where the form was started from, when it was started from a group. */
+const GroupCrumbs = ({ groupId }: { groupId: number }) => {
+  const { group } = useGroupDashboard(groupId);
+
+  return (
+    <Crumbs aria-label="Breadcrumb">
+      <Link to={`/research-groups/${groupId}`}>{group?.name ?? "Group"}</Link>
+      <CrumbSeparator aria-hidden="true">›</CrumbSeparator>
+      <span aria-current="page">New submission</span>
+    </Crumbs>
+  );
+};
+
+const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   const [active, setActive] = useState<SectionSlug>("images");
 
   const jumpTo = useCallback((slug: SectionSlug) => {
@@ -54,8 +71,9 @@ const SubmissionForm = () => {
       <FormNav statuses={PLACEHOLDER_STATUS} active={active} onJump={jumpTo} />
 
       <FormMain>
+        {groupId !== undefined && <GroupCrumbs groupId={groupId} />}
         <FormIntro>
-          <FormIntroTitle>Specimen Submission</FormIntroTitle>
+          <FormIntroTitle>New Submission</FormIntroTitle>
           <FormIntroText>
             Complete all required fields marked with{" "}
             <RequiredMark>*</RequiredMark> before submitting. You may save a
@@ -64,13 +82,13 @@ const SubmissionForm = () => {
           </FormIntroText>
         </FormIntro>
 
-        {SECTIONS.map(({ slug, label }, i) => (
+        {SECTIONS.map(({ slug, label }) => (
           <FormSection
             key={slug}
             slug={slug}
-            number={i + 1}
             title={label}
             description={DESCRIPTIONS[slug]}
+            isActive={slug === active}
           />
         ))}
       </FormMain>
