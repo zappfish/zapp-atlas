@@ -83,7 +83,6 @@ const RecordSection = ({
   /** A row's menu, built by the caller from the record it came from. */
   rowActions?: (row: Row) => ReactNode;
 }) => {
-  // The Jinja page does this with a CSS-only checkbox; here it is state.
   const [expanded, setExpanded] = useState(false);
 
   const hidden = rows.length - VISIBLE;
