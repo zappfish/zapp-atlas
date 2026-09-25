@@ -223,18 +223,27 @@ export const TextArea = styled("textarea", "field__input field__input--area");
 
 export const EntryCard = styled("div", "form-entry");
 export const EntryBody = styled("div", "form-entry__body");
+export const EntryMeta = styled("div", "form-entry__meta");
 export const AddRow = styled("div", "form-add");
 export const AddButton = styled("button", "form-add__button");
 
 export const Upload = styled("div", "upload");
-export const UploadPane = styled("div", "upload__pane");
+const UploadPaneBox = styled("div", "upload__pane");
+
+export const UploadPane = ({
+  isDragging,
+  ...rest
+}: ComponentPropsWithoutRef<"div"> & { isDragging: boolean }) => (
+  <UploadPaneBox className={modifier(isDragging, "is-dragging")} {...rest} />
+);
+export const UploadChosen = styled("div", "upload__chosen");
+export const PreviewImage = styled("img", "upload__image");
 export const UploadHint = styled("p", "upload__hint");
-export const UploadPreview = styled("div", "upload__preview");
-export const PreviewTitle = styled("h4", "upload__preview-title");
-export const PreviewNote = styled("p", "upload__preview-note");
 export const PreviewActions = styled("div", "upload__preview-actions");
 
 export const MeasureRow = styled("div", "measure");
 export const RadioGroup = styled("div", "radio-group");
 export const RadioLabel = styled("label", "radio-group__option");
 export const NotesToggle = styled("button", "notes-toggle");
+export const Notes = styled("div", "notes");
+export const NotesRemove = styled("button", "notes__remove");

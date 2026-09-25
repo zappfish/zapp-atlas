@@ -270,11 +270,23 @@
   border-radius: 0.5rem;
   background: var(--white);
 }
+/* Image beside its metadata, stacking where the column is too narrow to hold
+   both. */
 .form-entry__body {
+  display: grid;
+  grid-template-columns: minmax(16rem, 2fr) minmax(18rem, 3fr);
+  gap: 1.5rem;
+  padding: 1rem;
+  align-items: start;
+}
+.form-entry__meta {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .form-entry__body { grid-template-columns: 1fr; }
 }
 
 .form-add { display: flex; justify-content: center; margin-top: 1rem; }
@@ -293,29 +305,42 @@
 
 /* ---- Image upload -------------------------------------------------------- */
 
-.upload {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: 1.25rem;
-  align-items: start;
-}
+.upload { display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* The box is the control: clicking anywhere in it opens the picker. */
 .upload__pane {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.9rem;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+  padding: 1rem;
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
 }
+.upload__pane:hover,
+.upload__pane.is-dragging { border-color: var(--teal); background: var(--teal-tint); }
+.upload__pane.is-dragging { border-style: solid; }
+/* So dragover and dragleave fire on the box, not on the text inside it. */
+.upload__pane > * { pointer-events: none; }
 .upload__hint { margin: 0; font-size: var(--text-xs); color: var(--muted); }
 
-.upload__preview-title {
-  margin: 0 0 0.35rem;
-  font-size: var(--text-sm);
-  font-weight: 600;
+/* A fixed frame, so entries do not jump as images of different sizes load. */
+.upload__chosen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  overflow: hidden;
 }
-.upload__preview-note { margin: 0; font-size: var(--text-sm); color: var(--muted); }
-.upload__preview-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+.upload__image { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.upload__preview-actions { display: flex; gap: 0.5rem; }
 .upload__preview-actions .btn { font-size: var(--text-sm); }
 
 /* ---- A number and its unit ----------------------------------------------- */
@@ -357,3 +382,17 @@
   cursor: pointer;
 }
 .notes-toggle:hover { border-color: var(--teal); color: var(--teal); }
+
+.notes { display: flex; flex-direction: column; gap: 0.4rem; }
+/* Only the link is narrow; the field fills the column like every other. */
+.notes__remove { align-self: flex-start; }
+.notes__remove {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  cursor: pointer;
+}
+.notes__remove:hover { color: #b91c1c; }
