@@ -30,6 +30,9 @@ def client(tmp_path) -> TestClient:
     # while passing on CI.
     settings = AppSettings(skip_seed=True, upload_dir=tmp_path, _env_file=None)
     app = create_app(settings)
+    # Never let tests reach the ORCID public API; individual tests replace this
+    # stub when they care about the looked-up name.
+    app.state.orcid_name_lookup = lambda orcid_id: None
 
     def _override_get_session():
         session = SessionLocal()
