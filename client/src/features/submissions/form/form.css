@@ -260,6 +260,16 @@
 .field__input:focus { outline: none; border-color: var(--teal); }
 .field__input--area { resize: vertical; }
 .field__hint { margin: 0; font-size: var(--text-xs); color: var(--muted); }
+.field__note { margin: 0.35rem 0 0; font-size: var(--text-xs); color: var(--muted); }
+.field__input--select { appearance: auto; }
+
+/* Two columns where there is room, one where there is not. */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
 
 
 /* ---- Repeating entries --------------------------------------------------- */

@@ -219,6 +219,9 @@ export const FieldLabel = styled("label", "field__label");
 export const FieldHint = styled("p", "field__hint");
 export const TextInput = styled("input", "field__input");
 export const TextArea = styled("textarea", "field__input field__input--area");
+export const SelectInput = styled("select", "field__input field__input--select");
+export const FieldGrid = styled("div", "field-grid");
+export const FieldNote = styled("p", "field__note");
 
 
 export const EntryCard = styled("div", "form-entry");

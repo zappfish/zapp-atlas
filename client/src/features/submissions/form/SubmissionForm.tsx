@@ -16,6 +16,7 @@ import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
 import ImagesSection from "./sections/ImagesSection";
+import ProvenanceSection from "./sections/ProvenanceSection";
 import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
 import "./form.css";
 
@@ -97,6 +98,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             isActive={slug === active}
           >
             {slug === "images" && <ImagesSection />}
+            {slug === "provenance" && <ProvenanceSection />}
           </FormSection>
         ))}
 
