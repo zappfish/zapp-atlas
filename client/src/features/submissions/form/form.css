@@ -285,6 +285,8 @@
   gap: 1rem;
 }
 
+.form-entry__footer { padding: 0 1rem 1rem; }
+
 @media (max-width: 1100px) {
   .form-entry__body { grid-template-columns: 1fr; }
 }
@@ -310,6 +312,7 @@
 /* The box is the control: clicking anywhere in it opens the picker. */
 .upload__pane {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 16rem;
@@ -324,7 +327,9 @@
 .upload__pane.is-dragging { border-style: solid; }
 /* So dragover and dragleave fire on the box, not on the text inside it. */
 .upload__pane > * { pointer-events: none; }
-.upload__hint { margin: 0; font-size: var(--text-xs); color: var(--muted); }
+.upload__hint { margin: 0; font-size: var(--text-sm); color: var(--muted); }
+/* What is allowed, a step quieter than what to do. */
+.upload__limits { margin: 0.35rem 0 0; font-size: var(--text-xs); color: var(--muted); opacity: 0.8; }
 
 /* A fixed frame, so entries do not jump as images of different sizes load. */
 .upload__chosen {
@@ -351,16 +356,40 @@
   align-items: flex-start;
   gap: 1rem 1.5rem;
 }
-.measure .field { flex: 0 1 14rem; }
+/* The value is a fixed width; the units take the rest of the row, so they do
+   not wrap while space is left. Keyed on what each holds, since a measure
+   without units has only one child. */
+.measure > .field:has(.measure__input),
+.measure > .field:has(> .field__input) { flex: 0 0 11rem; }
+.measure > .field:has(.radio-group) { flex: 1; min-width: 0; }
+
+/* The unit sits inside the field, where it reads as notation rather than a
+   choice. */
+.measure__input { position: relative; }
+.measure__suffix {
+  position: absolute;
+  top: 50%;
+  right: 0.7rem;
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  pointer-events: none;
+}
+.measure__input .field__input { padding-right: 2rem; }
 
 .radio-group {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   /* Level with the input beside it, whose padding and border add up to this. */
   padding-top: 0.6rem;
+  /* Reserves the unit box's height before it appears, so choosing Other does
+     not push the rows below down. Added to the padding above, not counted
+     within it. */
+  min-height: calc(0.6rem + 2.2rem);
 }
+.radio-group .field__input { width: 4.5rem; padding: 0.3rem 0.5rem; }
 .radio-group__option {
   display: inline-flex;
   align-items: center;

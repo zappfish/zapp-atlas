@@ -11,10 +11,13 @@ import {
   AddRow,
   EntryBody,
   EntryCard,
+  EntryFooter,
   EntryMeta,
   FieldBox,
   FieldLabel,
+  MeasureInput,
   MeasureRow,
+  MeasureSuffix,
   Notes,
   NotesRemove,
   NotesToggle,
@@ -28,13 +31,15 @@ import {
   Upload,
   UploadChosen,
   UploadHint,
+  UploadLimits,
   UploadPane,
 } from "@/styles/elements";
 import Field from "../Field";
 
 const MEASURES = [
-  { label: "Scale bar", placeholder: "e.g. 100", units: ["um", "mm", "Other"] },
-  { label: "Magnification", placeholder: "e.g. 40", units: ["X"] },
+  { label: "Scale bar", placeholder: "e.g. 100", units: ["µm", "mm", "Other"] },
+  // One unit is notation, not a choice, so it reads as a suffix.
+  { label: "Magnification", placeholder: "e.g. 40", suffix: "X" },
   { label: "Resolution", placeholder: "e.g. 300", units: ["dpi", "Other"] },
 ];
 
@@ -42,29 +47,53 @@ const Measure = ({
   label,
   placeholder,
   units,
+  suffix,
 }: {
   label: string;
   placeholder: string;
-  units: string[];
+  units?: string[];
+  suffix?: string;
 }) => {
   const name = useId();
+  const [unit, setUnit] = useState("");
 
   return (
     <MeasureRow>
       <Field label={label}>
-        {(id) => <TextInput id={id} placeholder={placeholder} />}
+        {(id) => (
+          <MeasureInput>
+            <TextInput id={id} placeholder={placeholder} />
+            {suffix && <MeasureSuffix>{suffix}</MeasureSuffix>}
+          </MeasureInput>
+        )}
       </Field>
-      <FieldBox>
-        <FieldLabel>Unit</FieldLabel>
-        <RadioGroup>
-          {units.map((unit) => (
-            <RadioLabel key={unit}>
-              <input type="radio" name={name} value={unit} />
-              {unit}
-            </RadioLabel>
-          ))}
-        </RadioGroup>
-      </FieldBox>
+      {units && (
+        <FieldBox>
+          <FieldLabel>Unit</FieldLabel>
+          <RadioGroup>
+            {units.map((option) => (
+              <RadioLabel key={option}>
+                <input
+                  type="radio"
+                  name={name}
+                  value={option}
+                  checked={unit === option}
+                  onChange={() => setUnit(option)}
+                />
+                {option}
+              </RadioLabel>
+            ))}
+            {/* "Other" says the unit is none of the above; this says what. */}
+            {unit === "Other" && (
+              <TextInput
+                aria-label={`${label} unit`}
+                placeholder="Unit"
+                size={6}
+              />
+            )}
+          </RadioGroup>
+        </FieldBox>
+      )}
     </MeasureRow>
   );
 };
@@ -133,10 +162,8 @@ const ImageUpload = () => {
           onDragLeave={leave}
           onDrop={drop}
         >
-          <UploadHint>
-            Drag &amp; drop an image here, or click to browse. Accepted: .jpeg,
-            .png, .tiff
-          </UploadHint>
+          <UploadHint>Drag &amp; drop an image here, or click to browse.</UploadHint>
+          <UploadLimits>JPG, PNG or TIFF, up to 50MB.</UploadLimits>
         </UploadPane>
       )}
 
@@ -181,23 +208,25 @@ const ImageEntry = () => {
           <Field label="Microscope information">
             {(id) => <TextInput id={id} placeholder="Enter text" />}
           </Field>
-
-          {notesOpen ? (
-            <Notes>
-              <Field label="Notes">
-                {(id) => <TextArea id={id} rows={3} />}
-              </Field>
-              <NotesRemove type="button" onClick={closeNotes}>
-                Remove notes
-              </NotesRemove>
-            </Notes>
-          ) : (
-            <NotesToggle type="button" onClick={openNotes}>
-              Add notes
-            </NotesToggle>
-          )}
         </EntryMeta>
       </EntryBody>
+
+      {/* Below both columns: a note is wider than it is tall, and keeping it
+          out of the column stops that column outgrowing the image beside it. */}
+      <EntryFooter>
+        {notesOpen ? (
+          <Notes>
+            <Field label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
+            <NotesRemove type="button" onClick={closeNotes}>
+              Remove notes
+            </NotesRemove>
+          </Notes>
+        ) : (
+          <NotesToggle type="button" onClick={openNotes}>
+            Add notes
+          </NotesToggle>
+        )}
+      </EntryFooter>
     </EntryCard>
   );
 };

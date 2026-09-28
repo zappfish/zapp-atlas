@@ -224,6 +224,7 @@ export const TextArea = styled("textarea", "field__input field__input--area");
 export const EntryCard = styled("div", "form-entry");
 export const EntryBody = styled("div", "form-entry__body");
 export const EntryMeta = styled("div", "form-entry__meta");
+export const EntryFooter = styled("div", "form-entry__footer");
 export const AddRow = styled("div", "form-add");
 export const AddButton = styled("button", "form-add__button");
 
@@ -239,9 +240,12 @@ export const UploadPane = ({
 export const UploadChosen = styled("div", "upload__chosen");
 export const PreviewImage = styled("img", "upload__image");
 export const UploadHint = styled("p", "upload__hint");
+export const UploadLimits = styled("p", "upload__limits");
 export const PreviewActions = styled("div", "upload__preview-actions");
 
 export const MeasureRow = styled("div", "measure");
+export const MeasureInput = styled("div", "measure__input");
+export const MeasureSuffix = styled("span", "measure__suffix");
 export const RadioGroup = styled("div", "radio-group");
 export const RadioLabel = styled("label", "radio-group__option");
 export const NotesToggle = styled("button", "notes-toggle");
