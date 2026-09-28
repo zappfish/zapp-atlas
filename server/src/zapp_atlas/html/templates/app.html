@@ -12,6 +12,18 @@
 {% extends "base.html" %}
 
 {% block head %}
+  {#
+    The signed-in identity, for the client to read synchronously rather than
+    fetch. `tojson` escapes for a <script> body. Null when signed out, though
+    every route this document serves redirects to /login in that case.
+  #}
+  {% set signed_in_user = {
+       "orcid_id": current_identity.orcid_id,
+       "name": current_identity.name,
+     } if current_identity else None %}
+  <script>
+    window.ZAPP_SIGNED_IN_USER = {{ signed_in_user | tojson }};
+  </script>
   {% for href in vite.stylesheets %}
     <link rel="stylesheet" href="{{ href }}">
   {% endfor %}

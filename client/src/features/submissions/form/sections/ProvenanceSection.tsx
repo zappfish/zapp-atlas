@@ -13,6 +13,17 @@ import {
 } from "@/styles/elements";
 import Field from "../Field";
 
+/**
+ * Written into the document by app.html, so it is there on the first render
+ * with no request. Display only — the server derives a submission's annotator
+ * from the session cookie, it is never sent in the payload.
+ */
+declare global {
+  interface Window {
+    ZAPP_SIGNED_IN_USER?: { orcid_id: string; name: string | null } | null;
+  }
+}
+
 const SOURCES = [
   "PMID",
   "Internal database",
@@ -25,19 +36,24 @@ const ProvenanceSection = () => {
   const [notesOpen, setNotesOpen] = useState(false);
   const openNotes = useCallback(() => setNotesOpen(true), []);
   const closeNotes = useCallback(() => setNotesOpen(false), []);
+  const identity = window.ZAPP_SIGNED_IN_USER;
 
   return (
     <EntryCard>
       <FieldGrid>
-        {/* Read-only: you signed in with ORCID to reach this form, so these
-            are known rather than asked for. Empty until the client can read
-            the signed-in identity. */}
-        <Field label="Annotator / submitter ORCID" required>
-          {(id) => <TextInput id={id} readOnly placeholder="0000-0000-0000-0000" />}
+        {/* Read-only: the ORCID sign-in already established who this is. */}
+        <Field
+          label="Annotator / submitter ORCID"
+          required
+          hint="From your ORCID sign-in."
+        >
+          {(id) => (
+            <TextInput id={id} readOnly value={identity?.orcid_id ?? ""} />
+          )}
         </Field>
 
-        <Field label="Annotator / submitter name">
-          {(id) => <TextInput id={id} readOnly />}
+        <Field label="Annotator / submitter name" hint="From your ORCID sign-in.">
+          {(id) => <TextInput id={id} readOnly value={identity?.name ?? ""} />}
         </Field>
 
         <Field label="Principal investigator ORCID">
