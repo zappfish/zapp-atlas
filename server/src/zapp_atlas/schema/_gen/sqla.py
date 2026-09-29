@@ -601,13 +601,13 @@ class ChemicalCabinetEntry(ZappEntity):
 
 class FishTankEntry(ZappEntity):
     """
-    A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    A fish line a research group maintains, optionally under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
     """
 
     __tablename__ = "FishTankEntry"
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
-    nickname: Mapped[str] = mapped_column(Text())
+    nickname: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     fish_id: Mapped[int] = mapped_column(Integer(), ForeignKey("Fish.id"))
     fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])

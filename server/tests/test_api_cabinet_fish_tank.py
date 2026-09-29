@@ -286,7 +286,31 @@ def test_tank_grain_conflict(client: TestClient) -> None:
     assert client.post(url, json={"nickname": "AB stock", "fish": AB_FISH}).status_code == 201
     assert client.post(url, json={"nickname": "AB stock", "fish": AB_FISH}).status_code == 409
     assert client.post(url, json={"nickname": "AB backup", "fish": AB_FISH}).status_code == 201
-    assert client.post(url, json={"nickname": "", "fish": AB_FISH}).status_code == 422
+    # Surrounding whitespace does not make a nickname a different one.
+    assert client.post(url, json={"nickname": " AB stock ", "fish": AB_FISH}).status_code == 409
+    assert client.post(url, json={"nickname": "x" * 201, "fish": AB_FISH}).status_code == 422
+
+
+def test_tank_nickname_is_optional(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/fish-tank"
+
+    # Without a nickname the entry is listed by its ZFIN details, which the
+    # response carries in full.
+    plain = client.post(url, json={"fish": AB_FISH})
+    assert plain.status_code == 201, plain.text
+    assert plain.json()["nickname"] is None
+    assert plain.json()["fish"]["fish_zfin_id"] == AB_FISH_ID
+
+    # A blank nickname is no nickname, and entries without one never collide.
+    for blank in ("", "   ", None):
+        res = client.post(url, json={"nickname": blank, "fish": AB_FISH})
+        assert res.status_code == 201, res.text
+        assert res.json()["nickname"] is None
+
+    listed = client.get(url).json()
+    assert [entry["nickname"] for entry in listed] == [None] * 4
 
 
 def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:

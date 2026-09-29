@@ -79,20 +79,29 @@ class CabinetEntryOut(_FromAttributes):
 class TankEntryIn(BaseModel):
     """Add a fish line to a group's tank. ``research_group`` is path-derived.
 
-    ``nickname`` is what the group calls the line — the handle the picker
-    shows, unique within the group. ``fish`` is the generated create model —
-    the same full Fish graph an experiment takes — so a line saved to the tank
-    can later pre-fill a submission without losing detail. Its ZFIN-id
-    patterns reject malformed identifiers with a 422.
+    ``nickname`` is what the group calls the line. It is optional: when given
+    it is what the picker shows, and it is unique within the group; without
+    one the picker falls back to the line's ZFIN details. A blank nickname is
+    no nickname. ``fish`` is the generated create model — the same full Fish
+    graph an experiment takes — so a line saved to the tank can later pre-fill
+    a submission without losing detail. Its ZFIN-id patterns reject malformed
+    identifiers with a 422.
     """
 
-    nickname: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+    nickname: Annotated[str, StringConstraints(max_length=200)] | None = None
     fish: FishCreate
+
+    @field_validator("nickname", mode="before")
+    @classmethod
+    def _blank_is_none(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
 
 
 class TankEntryOut(_FromAttributes):
     id: int
-    nickname: str
+    nickname: str | None
     fish: FishRead
     created_at: datetime | None
     updated_at: datetime | None

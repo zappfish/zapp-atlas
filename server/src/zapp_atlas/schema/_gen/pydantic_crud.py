@@ -2159,7 +2159,7 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
 
 class FishTankEntry(ZappEntity):
     """
-    A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+    A fish line a research group maintains, optionally under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
@@ -2167,18 +2167,20 @@ class FishTankEntry(ZappEntity):
                                  'name': 'fish',
                                  'required': True},
                         'nickname': {'description': 'What the group calls this line, '
-                                                    'e.g. "our casper stock". The '
-                                                    'handle it is picked by when '
-                                                    'pre-filling a submission; unique '
-                                                    'within the group.',
-                                     'name': 'nickname',
-                                     'required': True}},
+                                                    'e.g. "our casper stock". '
+                                                    'Optional; when given it is what '
+                                                    'the line is listed under when '
+                                                    'pre-filling a submission, in '
+                                                    'place of its ZFIN details, and no '
+                                                    'two entries in the group may '
+                                                    'share it.',
+                                     'name': 'nickname'}},
          'unique_keys': {'tank_grain': {'unique_key_name': 'tank_grain',
                                         'unique_key_slots': ['research_group',
                                                              'nickname']}}})
 
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -2188,7 +2190,7 @@ class FishTankEntryCreate(ConfiguredBaseModel):
     Create schema for FishTankEntry — id is server-generated.
     """
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: FishCreate = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -2197,7 +2199,7 @@ class FishTankEntryUpdate(ConfiguredBaseModel):
     Update schema for FishTankEntry — all fields optional for partial updates.
     """
     research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: Optional[FishCreate] = Field(default=None, description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -2206,7 +2208,7 @@ class FishTankEntryRead(ReadBaseModel):
     Read schema for FishTankEntry — from_attributes=True, extra=ignore.
     """
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 

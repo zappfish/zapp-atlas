@@ -618,13 +618,13 @@ export interface ChemicalCabinetEntry extends ZappEntity {
 
 
 /**
- * A fish line a research group maintains, under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+ * A fish line a research group maintains, optionally under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
  */
 export interface FishTankEntry extends ZappEntity {
     /** The research group an entry belongs to. */
     research_group: ResearchGroupId,
-    /** What the group calls this line, e.g. "our casper stock". The handle it is picked by when pre-filling a submission; unique within the group. */
-    nickname: string,
+    /** What the group calls this line, e.g. "our casper stock". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it. */
+    nickname?: string,
     /** The fish line the group maintains. */
     fish: Fish,
 }

@@ -1,6 +1,6 @@
 """Fish tank endpoints (a research group's maintained fish lines).
 
-Scoped to a group in the path and requires membership. Each entry is filed
+Scoped to a group in the path and requires membership. An entry may be filed
 under a nickname — what the group calls the line, unique within the group;
 reusing one is a 409 — and stores its own Fish graph from the payload;
 malformed ZFIN ids are rejected by the generated model's patterns (422).

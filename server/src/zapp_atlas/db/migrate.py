@@ -161,8 +161,8 @@ def _rebuild_legacy_fish(engine: Engine) -> None:
         ).rowcount
 
         # FishTankEntry changed in the same release: it referenced fish by
-        # ZFIN id (fish_zfin_id NOT NULL) and had no nickname. Both
-        # replacement columns are NOT NULL, so the table is rebuilt too —
+        # ZFIN id (fish_zfin_id NOT NULL) and had no nickname. Its
+        # replacement, fish_id, is NOT NULL, so the table is rebuilt too —
         # fish_id by joining the ZFIN id each entry used to hold (in
         # whichever column it was routed to), nickname from the legacy fish's
         # display name (what the group called the line is exactly what the

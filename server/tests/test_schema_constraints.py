@@ -70,6 +70,15 @@ def test_tank_grain_is_unique_per_group_and_nickname(session, group):
     )
 
 
+def test_tank_entries_without_a_nickname_do_not_collide(session, group):
+    fish = Fish(fish_zfin_id="ZFIN:ZDB-FISH-150901-27842")
+    session.add(fish)
+    session.commit()
+    session.add(FishTankEntry(research_group=group.id, fish_id=fish.id))
+    session.add(FishTankEntry(research_group=group.id, fish_id=fish.id))
+    session.commit()
+
+
 def test_membership_grain_is_unique_per_group_and_member(session, group):
     assert_second_insert_rejected(
         session,

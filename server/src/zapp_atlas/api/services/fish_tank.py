@@ -6,6 +6,9 @@ on (two labs' "AB" may differ in zygosity detail). The handle is the group's
 own NICKNAME for the line — the thing the picker shows — so that is the
 dedup key: ``add_entry`` answers 409 when the group already uses the nickname,
 and the ``tank_grain`` unique index (research_group, nickname) backs it up.
+
+The nickname is optional. An entry saved without one is listed by its ZFIN
+details instead and has no dedup key, so it never collides with another.
 """
 
 from __future__ import annotations
@@ -57,8 +60,10 @@ def _is_duplicate(session: Session, group_id: int, nickname: str) -> bool:
     )
 
 
-def add_entry(session: Session, group_id: int, nickname: str, payload: FishCreate) -> FishTankEntry:
-    if _is_duplicate(session, group_id, nickname):
+def add_entry(
+    session: Session, group_id: int, nickname: str | None, payload: FishCreate
+) -> FishTankEntry:
+    if nickname is not None and _is_duplicate(session, group_id, nickname):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_DUPLICATE)
     entry = FishTankEntry(
         research_group=group_id, nickname=nickname, fish=fish_from_create(payload)
