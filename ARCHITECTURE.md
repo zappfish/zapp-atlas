@@ -126,7 +126,7 @@ and regenerate, never edit the outputs.
 | `schema/_gen/pydantic.py` | `gen-pydantic` | request/response validation |
 | `schema/_gen/pydantic_crud.py` | `crud_pydanticgen.py` (custom) | create/read API variants |
 | `schema/_gen/sqla.py` | `gen-sqla` | ORM tables |
-| `client/src/schema/index.ts` | `gen-typescript` | React app's types |
+| `client/src/schema/index.ts` | `gen-typescript` + `typescript_post` | React app's types |
 
 ```sh
 cd server && make schema      # regenerate all four after editing the YAML

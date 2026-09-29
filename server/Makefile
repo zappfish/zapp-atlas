@@ -32,13 +32,15 @@ $(SQLA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-sqla --declarative --sqla-style 2 $< >> $@
 
+# The post-processor gives identifier aliases their real type -- see
+# zapp_atlas/schema/typescript_post.py.
 $(TS_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "/*" > $@
 	echo "GENERATED FILE. DO NOT EDIT." >> $@
 	echo "*/" >> $@
 	echo "" >> $@
-	uv run gen-typescript $< >>$@
+	uv run gen-typescript $< | uv run python -m zapp_atlas.schema.typescript_post $< >> $@
 
 # JSON Schema for the client: runtime validation (Ajv) + type-safe unmarshalling.
 # The post-processor injects the "do not edit" notice and makes LinkML's
