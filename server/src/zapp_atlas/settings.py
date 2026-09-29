@@ -8,6 +8,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_DIR = PACKAGE_DIR / "db" / "data"
 DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "zapp.db"
 DEFAULT_UPLOAD_DIR = DEFAULT_DATA_DIR / "uploads"
+DEFAULT_ZFIN_DATA_DIR = DEFAULT_DATA_DIR / "zfin"
 DEFAULT_MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 DEFAULT_ORCID_BASE_URL = "https://orcid.org"
 DEFAULT_ORCID_REDIRECT_URI = "http://127.0.0.1:8000/registered"
@@ -26,6 +27,14 @@ class AppSettings(BaseSettings):
     upload_dir: Path = DEFAULT_UPLOAD_DIR
     max_upload_bytes: int = DEFAULT_MAX_UPLOAD_BYTES
     skip_seed: bool = False
+
+    # ZFIN bulk-download files backing /api/zfin lookups (`just fetch-zfin`).
+    zfin_data_dir: Path = DEFAULT_ZFIN_DATA_DIR
+
+    # Local development only: adds permissive CORS (GET only) so a widget
+    # prototype opened from file:// can call the lookup endpoints. MUST stay
+    # false in any deployment.
+    cors_dev: bool = False
 
     aws_endpoint_url_s3: str | None = None
     bucket_name: str | None = None

@@ -31,7 +31,7 @@ def _column(view: SchemaView, table: Table, class_name: str, slot_name: str) -> 
     """Resolve a LinkML slot to the column ``gen-sqla`` generated for it.
 
     An inlined slot whose range carries an identifier becomes
-    ``<slot>_<identifier>`` (``fish`` -> ``fish_zfin_id``); every other slot
+    ``<slot>_<identifier>`` (``fish`` -> ``fish_id``); every other slot
     keeps its own name.
     """
     if slot_name in table.c:

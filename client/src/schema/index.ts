@@ -3,7 +3,6 @@ GENERATED FILE. DO NOT EDIT.
 */
 
 export type ZappEntityId = string;
-export type ZfinEntityZfinId = string;
 export type StudyId = string;
 export type ExperimentId = string;
 export type PhenotypeObservationSetId = string;
@@ -18,7 +17,10 @@ export type ControlImageId = string;
 export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
-export type FishZfinId = string;
+export type FishId = string;
+export type MutantAlleleId = string;
+export type TransgenicAlleleId = string;
+export type TransientReagentId = string;
 export type ResearchGroupId = string;
 export type ResearchGroupMemberId = string;
 export type ChemicalCabinetEntryId = string;
@@ -158,6 +160,64 @@ export enum ResearchGroupRoleEnum {
     member = "member",
 };
 /**
+* Zygosity of an allele in the fish or in one of its parents.
+*/
+export enum ZygosityEnum {
+    
+    /** The allele is on both homologous chromosomes. */
+    homozygous = "homozygous",
+    /** The allele is on one of the two homologous chromosomes. */
+    heterozygous = "heterozygous",
+    /** Not known or not recorded. */
+    unknown = "unknown",
+    /** Zero copies of the allele (ZFIN's parental "W"). */
+    wild_type = "wild_type",
+};
+/**
+* The three sequence-targeting reagent kinds ZFIN registers, one per reagent id prefix. Corpus evidence in notebooks/zfin_ingest_qc.ipynb.
+*/
+export enum ReagentTypeEnum {
+    
+    /** Antisense morpholino oligo — knocks down without editing. */
+    morpholino = "morpholino",
+    /** Injected CRISPR guide (ZFIN types these by binding site; no reagent SO term fits). */
+    crispr = "crispr",
+    /** Injected TALEN pair (likewise typed by binding site in ZFIN). */
+    talen = "talen",
+};
+/**
+* Sequence-alteration classes, each normalized to an SO term. Corpus evidence for the value set: notebooks/zfin_ingest_qc.ipynb.
+*/
+export enum SequenceAlterationTypeEnum {
+    
+    /** A single-nucleotide substitution. */
+    point_mutation = "point_mutation",
+    /** One or more nucleotides replaced by the same number of nucleotides. */
+    substitution = "substitution",
+    /** Loss of one or more nucleotides. */
+    deletion = "deletion",
+    /** Gain of one or more nucleotides. */
+    insertion = "insertion",
+    /** Combined insertion + deletion (SO calls it "delins"; "indel" is the bench term). */
+    indel = "indel",
+    /** A segment reversed in orientation. */
+    inversion = "inversion",
+    /** One or more copies of a segment added. */
+    duplication = "duplication",
+    /** An engineered transgenic construct inserted into the genome. */
+    transgenic_insertion = "transgenic_insertion",
+    /** A substitution involving a different number of nucleotides. */
+    complex_substitution = "complex_substitution",
+    /** Large chromosomal deletion (Df lines; SO calls it "chromosomal_deletion"). */
+    deficiency = "deficiency",
+    /** A segment moved to a different chromosomal location. */
+    translocation = "translocation",
+    /** Several distinct variants under one allele name (ZFIN types these SO:0001023). */
+    multiple_variants = "multiple_variants",
+    /** Alteration of unspecified or other type (SO root term). */
+    sequence_alteration = "sequence_alteration",
+};
+/**
 * An enumeration of severity levels for phenotypes.
 */
 export enum SeverityEnum {
@@ -198,22 +258,19 @@ export interface OntologyEntity {
 
 
 /**
- * Entities with ZFIN database identifiers.
- */
-export interface ZfinEntity {
-    /** ZFIN database identifier. */
-    zfin_id: string,
-}
-
-
-/**
  * A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
  */
 export interface Study extends ZappEntity {
+    /** The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid. */
+    research_group?: ResearchGroupId,
     /** The experiment in a study. */
     experiment?: Experiment[],
-    /** The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished. */
+    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
     publication?: string,
+    /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one. */
+    nickname?: string,
+    /** A free-text summary of what the study set out to do. */
+    description?: string,
     /** ORCID identifier of the indidvidual submitting the study data. */
     annotator?: string[],
     /** ZFIN lab identifier of the laboratory that produced the study data. */
@@ -442,11 +499,90 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * Zebrafish used as subject in the study.
+ * A zebrafish subject as the curator describes it: allele(s) on a wild-type background, plus any injected transient reagents. The two ZFIN ids are mapped from that description against ZFIN's registered records, never entered.
  */
-export interface Fish extends ZfinEntity {
-    /** Name or label of an entity. */
-    name: string,
+export interface Fish extends ZappEntity {
+    /** ZFIN fish id (ZDB-FISH-…), when registered. */
+    fish_zfin_id?: string,
+    /** ZFIN genotype id (ZDB-GENO-…) the allele set + background maps to, when registered. */
+    genotype_zfin_id?: string,
+    /** Mutant allele(s) carried by the fish. */
+    mutant_allele?: MutantAllele[],
+    /** Transgenic insertion(s) carried by the fish. */
+    transgenic_allele?: TransgenicAllele[],
+    /** Injected reagent(s) carried by the fish — transient, not heritable. */
+    transient_reagent?: TransientReagent[],
+    /** Wild-type background strain, e.g. "AB". Absent when unknown. */
+    background_name?: string,
+    /** ZFIN genotype id of the background strain (ZDB-GENO-…) — backgrounds are themselves genotype records in ZFIN. */
+    background_zfin_id?: string,
+}
+
+
+/**
+ * A mutant allele carried by the fish: which gene it damages, and its zygosity in the fish and parents.
+ */
+export interface MutantAllele extends ZappEntity {
+    /** ZFIN genomic feature identifier (ZDB-ALT-…) for the allele. */
+    allele_id?: string,
+    /** The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg". */
+    allele_symbol: string,
+    /** The class of sequence alteration, normalized to an SO term. */
+    alteration_type?: string,
+    /** ZFIN id of the affected gene (usually ZDB-GENE-…). Unpatterned on purpose: real alleles also hit miRNA/lincRNA genes, pseudogenes and enhancers — the QC notebook's gene-like universe. */
+    affected_gene_id?: string,
+    /** Symbol of the gene affected by the allele, e.g. "snapc1b". */
+    affected_gene_symbol?: string,
+    /** Zygosity of the allele in the fish. */
+    zygosity?: string,
+    /** Zygosity of the allele in the maternal parent. */
+    mother_zygosity?: string,
+    /** Zygosity of the allele in the paternal parent. */
+    father_zygosity?: string,
+}
+
+
+/**
+ * A transgenic insertion carried by the fish: the construct it carries, and its zygosity in the fish and parents.
+ */
+export interface TransgenicAllele extends ZappEntity {
+    /** ZFIN genomic feature identifier (ZDB-ALT-…) for the allele. */
+    allele_id?: string,
+    /** The allele symbol / designation, e.g. "ti282a", "fh111", "w200Tg". */
+    allele_symbol: string,
+    /** ZFIN construct id (ZDB-TGCONSTRCT-…). */
+    construct_id?: string,
+    /** Name of the transgenic construct, e.g. "Tg(mpeg1:YFP)". */
+    construct_name?: string,
+    /** Usually transgenic_insertion. */
+    alteration_type?: string,
+    /** Gene id of the construct's driver / reporter gene, when recorded. */
+    affected_gene_id?: string,
+    /** Driver / reporter gene symbol, e.g. "fli1". */
+    affected_gene_symbol?: string,
+    /** Zygosity of the allele in the fish. */
+    zygosity?: string,
+    /** Zygosity of the allele in the maternal parent. */
+    mother_zygosity?: string,
+    /** Zygosity of the allele in the paternal parent. */
+    father_zygosity?: string,
+}
+
+
+/**
+ * A sequence-targeting reagent injected into the embryos (morpholino, CRISPR, TALEN). Transient and not heritable — part of the fish, not the genotype. Dose and injection stage are experiment-side facts.
+ */
+export interface TransientReagent extends ZappEntity {
+    /** ZFIN reagent id (ZDB-MRPHLNO-…, ZDB-CRISPR-…, or ZDB-TALEN-…). */
+    reagent_id?: string,
+    /** The reagent symbol, e.g. "MO1-gata1a", "CRISPR1-tp53". */
+    reagent_symbol: string,
+    /** Which kind of injected reagent this is. */
+    reagent_type?: string,
+    /** Gene id of the reagent's target, when recorded. */
+    affected_gene_id?: string,
+    /** The gene the reagent targets / knocks down, e.g. "gata1a". */
+    affected_gene_symbol?: string,
 }
 
 
@@ -480,15 +616,19 @@ export interface ChemicalCabinetEntry extends ZappEntity {
     research_group: ResearchGroupId,
     /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
     chemical_id: string,
+    /** What the group calls this chemical, e.g. "BPA stock". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it. */
+    nickname?: string,
 }
 
 
 /**
- * A fish line a research group maintains. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
+ * A fish line a research group maintains, optionally under the group's own nickname. Recorded once, then reused to pre-fill curation instead of re-searching the line each time.
  */
 export interface FishTankEntry extends ZappEntity {
     /** The research group an entry belongs to. */
     research_group: ResearchGroupId,
+    /** What the group calls this line, e.g. "our casper stock". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it. */
+    nickname?: string,
     /** The fish line the group maintains. */
     fish: Fish,
 }

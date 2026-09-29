@@ -46,12 +46,19 @@ SEEDED_PUBLICATIONS = {
 # ---------------------------------------------------------------------------
 
 
-def _upsert_fish(session: Session, *, zfin_id: str, name: str) -> Fish:
-    fish = session.query(Fish).filter_by(zfin_id=zfin_id).one_or_none()
-    if fish is None:
-        fish = Fish(zfin_id=zfin_id, name=name)
-        session.add(fish)
-    return fish
+def _build_ab_fish() -> Fish:
+    """A wild-type AB fish.
+
+    AB carries no alterations, so it is its own background. ``ZDB-GENO-960809-7``
+    is ZFIN's genotype id for AB and ``ZDB-FISH-150901-27842`` its fish id. A
+    fresh row is built per call because Fish is inlined per experiment.
+    """
+    return Fish(
+        fish_zfin_id="ZFIN:ZDB-FISH-150901-27842",
+        genotype_zfin_id="ZFIN:ZDB-GENO-960809-7",
+        background_name="AB",
+        background_zfin_id="ZFIN:ZDB-GENO-960809-7",
+    )
 
 
 def _upsert_phenotype_term(session: Session, *, term_uri: str, term_label: str) -> PhenotypeTerm:
@@ -100,7 +107,7 @@ def _build_bpa_study(session: Session) -> Study:
     embryos produces pericardial edema at 72 hpf.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _build_ab_fish()
     bpa = {
         "chemical_id": "CHEBI:33216",
         "cas_id": "80-05-7",
@@ -166,7 +173,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     embryos from dome stage (ZFS:0000013) through hatching-day larva.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _build_ab_fish()
     bpa = {
         "chemical_id": "CHEBI:33216",
         "cas_id": "80-05-7",
@@ -245,7 +252,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     seed are simplified representative concentrations.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _build_ab_fish()
     malathion = {
         "chemical_id": "CHEBI:6651",
         "cas_id": "121-75-5",

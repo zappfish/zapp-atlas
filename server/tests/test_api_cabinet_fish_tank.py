@@ -16,7 +16,14 @@ OUTSIDER = "0000-0003-3333-4444"
 
 ETHANOL = "CHEBI:16236"
 BPA = "CHEBI:33216"
-AB_LINE = "ZFIN:ZDB-GENO-960809-7"
+# AB wild-type line: the fish and its intrinsic genotype carry distinct ZFIN ids.
+AB_FISH_ID = "ZFIN:ZDB-FISH-150901-27842"
+AB_GENO_ID = "ZFIN:ZDB-GENO-960809-7"
+AB_FISH = {
+    "fish_zfin_id": AB_FISH_ID,
+    "genotype_zfin_id": AB_GENO_ID,
+    "background_name": "AB",
+}
 TU_LINE = "ZFIN:ZDB-GENO-990623-3"
 
 
@@ -241,6 +248,98 @@ def test_cabinet_patch_into_existing_grain_conflicts(client: TestClient) -> None
     assert res.status_code == 409
 
 
+def test_cabinet_nickname_is_optional(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    plain = client.post(url, json={"chemical_id": ETHANOL})
+    assert plain.status_code == 201, plain.text
+    assert plain.json()["nickname"] is None
+
+    named = client.post(url, json={"chemical_id": BPA, "nickname": "  BPA stock "})
+    assert named.status_code == 201, named.text
+    assert named.json()["nickname"] == "BPA stock"
+    assert named.json()["chemical_id"] == BPA
+
+    # A blank nickname is no nickname.
+    blank = client.post(url, json={"chemical_id": "CHEBI:15377", "nickname": "   "})
+    assert blank.status_code == 201, blank.text
+    assert blank.json()["nickname"] is None
+    assert (
+        client.post(url, json={"chemical_id": "CHEBI:1", "nickname": "x" * 201}).status_code == 422
+    )
+
+
+def test_cabinet_nickname_is_unique_within_the_group(client: TestClient) -> None:
+    group_a = make_group(client, "Lab A")
+    group_b = make_group(client, "Lab B")
+    signin(client, ADMIN)
+    url_a = f"/api/research-groups/{group_a}/chemical-cabinet"
+    url_b = f"/api/research-groups/{group_b}/chemical-cabinet"
+
+    assert client.post(url_a, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+    # A different chemical under the same nickname is still a clash ...
+    clash = client.post(url_a, json={"chemical_id": ETHANOL, "nickname": "stock"})
+    assert clash.status_code == 409
+    assert "nickname" in clash.text
+    # ... but another group may use the nickname for its own.
+    assert client.post(url_b, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+
+
+def test_cabinet_patch_sets_and_changes_the_nickname(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    client.post(url, json={"chemical_id": ETHANOL, "nickname": "solvent"})
+    bpa_id = client.post(url, json={"chemical_id": BPA}).json()["id"]
+
+    res = client.patch(f"{url}/{bpa_id}", json={"nickname": "BPA stock"})
+    assert res.status_code == 200, res.text
+    assert res.json()["nickname"] == "BPA stock"
+    assert res.json()["chemical_id"] == BPA
+
+    # Sending an entry its own nickname back is not a clash; taking another's is.
+    assert client.patch(f"{url}/{bpa_id}", json={"nickname": "BPA stock"}).status_code == 200
+    assert client.patch(f"{url}/{bpa_id}", json={"nickname": "solvent"}).status_code == 409
+    assert client.get(f"{url}/{bpa_id}").json()["nickname"] == "BPA stock"
+
+
+def test_cabinet_patch_that_breaks_both_keys_is_a_conflict(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    client.post(url, json={"chemical_id": ETHANOL, "nickname": "solvent"})
+    bpa_id = client.post(url, json={"chemical_id": BPA}).json()["id"]
+
+    # A chemical that is already there, with a nickname of its own.
+    res = client.patch(f"{url}/{bpa_id}", json={"chemical_id": ETHANOL, "nickname": "fresh"})
+    assert res.status_code == 409, res.text
+    assert "chemical" in res.json()["detail"]
+    # The entry is as it was, and the cabinet still answers.
+    entry = client.get(f"{url}/{bpa_id}").json()
+    assert entry["chemical_id"] == BPA
+    assert entry["nickname"] is None
+
+
+def test_cabinet_conflict_names_the_key_that_was_broken(client: TestClient, monkeypatch) -> None:
+    """With the check out of the way, the database's refusal still blames the nickname."""
+    from zapp_atlas.api.services import cabinet
+
+    monkeypatch.setattr(cabinet, "_check_nickname_is_free", lambda *args, **kwargs: None)
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    assert client.post(url, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+    res = client.post(url, json={"chemical_id": ETHANOL, "nickname": "stock"})
+    assert res.status_code == 409, res.text
+    assert "nickname" in res.json()["detail"]
+    res = client.post(url, json={"chemical_id": BPA})
+    assert res.status_code == 409, res.text
+    assert "chemical" in res.json()["detail"]
+
+
 def test_cabinet_delete(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
@@ -255,16 +354,18 @@ def test_cabinet_delete(client: TestClient) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_tank_add_get_or_creates_fish(client: TestClient) -> None:
+def test_tank_add_stores_fish_graph(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     created = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": AB_LINE, "name": "AB"}},
+        json={"nickname": "AB stock", "fish": AB_FISH},
     )
     assert created.status_code == 201, created.text
     body = created.json()
-    assert body["fish"] == {"zfin_id": AB_LINE, "name": "AB"}
+    assert body["nickname"] == "AB stock"
+    assert body["fish"]["fish_zfin_id"] == AB_FISH_ID
+    assert body["fish"]["genotype_zfin_id"] == AB_GENO_ID
     assert body["created_at"] is not None
 
 
@@ -272,9 +373,36 @@ def test_tank_grain_conflict(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     url = f"/api/research-groups/{group_id}/fish-tank"
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
-    assert client.post(url, json=fish).status_code == 201
-    assert client.post(url, json=fish).status_code == 409
+    # The nickname is the handle the picker shows, so it is the duplicate key —
+    # the same fish under a second nickname is allowed, the same nickname is not.
+    assert client.post(url, json={"nickname": "AB stock", "fish": AB_FISH}).status_code == 201
+    assert client.post(url, json={"nickname": "AB stock", "fish": AB_FISH}).status_code == 409
+    assert client.post(url, json={"nickname": "AB backup", "fish": AB_FISH}).status_code == 201
+    # Surrounding whitespace does not make a nickname a different one.
+    assert client.post(url, json={"nickname": " AB stock ", "fish": AB_FISH}).status_code == 409
+    assert client.post(url, json={"nickname": "x" * 201, "fish": AB_FISH}).status_code == 422
+
+
+def test_tank_nickname_is_optional(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/fish-tank"
+
+    # Without a nickname the entry is listed by its ZFIN details, which the
+    # response carries in full.
+    plain = client.post(url, json={"fish": AB_FISH})
+    assert plain.status_code == 201, plain.text
+    assert plain.json()["nickname"] is None
+    assert plain.json()["fish"]["fish_zfin_id"] == AB_FISH_ID
+
+    # A blank nickname is no nickname, and entries without one never collide.
+    for blank in ("", "   ", None):
+        res = client.post(url, json={"nickname": blank, "fish": AB_FISH})
+        assert res.status_code == 201, res.text
+        assert res.json()["nickname"] is None
+
+    listed = client.get(url).json()
+    assert [entry["nickname"] for entry in listed] == [None] * 4
 
 
 def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
@@ -282,17 +410,18 @@ def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
     signin(client, ADMIN)
     res = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": "not-a-zfin", "name": "Mystery"}},
+        json={"nickname": "Mystery", "fish": {"fish_zfin_id": "not-a-zfin"}},
     )
     assert res.status_code == 422
 
 
 def test_two_groups_may_tank_the_same_fish(client: TestClient) -> None:
-    # The second entry reuses the existing Fish row rather than re-creating it.
+    # Each group's entry owns its own Fish graph; the line is only unique
+    # within a tank, not across groups.
     group_a = make_group(client, "Lab A")
     group_b = make_group(client, "Lab B")
     signin(client, ADMIN)
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
+    fish = {"nickname": "AB stock", "fish": AB_FISH}
     a = client.post(f"/api/research-groups/{group_a}/fish-tank", json=fish)
     b = client.post(f"/api/research-groups/{group_b}/fish-tank", json=fish)
     assert a.status_code == 201 and b.status_code == 201

@@ -30,7 +30,7 @@ def _create_observation(client: TestClient) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-4", "name": "AB"},
+            "fish": {"background_name": "AB"},
             "control": [],
             "exposure_event": [],
         },

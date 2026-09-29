@@ -21,11 +21,11 @@ from zapp_atlas.schema.sqla import (
     FishTankEntry,
     ResearchGroup,
     ResearchGroupMember,
+    Study,
 )
 
 ORCID = "ORCID:0000-0002-1825-0097"
 ETHANOL = "CHEBI:16236"
-AB_LINE = "ZFIN:ZDB-GENO-960809-7"
 
 
 @pytest.fixture
@@ -61,13 +61,55 @@ def test_cabinet_grain_is_unique_per_group_and_chemical(session, group):
     )
 
 
-def test_tank_grain_is_unique_per_group_and_fish(session, group):
-    session.add(Fish(zfin_id=AB_LINE, name="AB"))
+def test_cabinet_nickname_is_unique_per_group(session, group):
+    chemicals = iter([ETHANOL, "CHEBI:33216"])
+    assert_second_insert_rejected(
+        session,
+        lambda: ChemicalCabinetEntry(
+            research_group=group.id, chemical_id=next(chemicals), nickname="stock"
+        ),
+    )
+
+
+def test_cabinet_entries_without_a_nickname_do_not_collide(session, group):
+    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL))
+    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id="CHEBI:33216"))
+    session.commit()
+
+
+def test_study_nickname_is_unique_per_group(session, group):
+    assert_second_insert_rejected(
+        session,
+        lambda: Study(research_group=group.id, nickname="BPA pilot"),
+    )
+
+
+def test_two_groups_may_give_a_study_the_same_nickname(session, group):
+    other = ResearchGroup(name="Other Lab")
+    session.add(other)
+    session.commit()
+    session.add(Study(research_group=group.id, nickname="BPA pilot"))
+    session.add(Study(research_group=other.id, nickname="BPA pilot"))
+    session.commit()
+
+
+def test_tank_grain_is_unique_per_group_and_nickname(session, group):
+    fish = Fish(fish_zfin_id="ZFIN:ZDB-FISH-150901-27842")
+    session.add(fish)
     session.commit()
     assert_second_insert_rejected(
         session,
-        lambda: FishTankEntry(research_group=group.id, fish_zfin_id=AB_LINE),
+        lambda: FishTankEntry(research_group=group.id, nickname="AB stock", fish_id=fish.id),
     )
+
+
+def test_tank_entries_without_a_nickname_do_not_collide(session, group):
+    fish = Fish(fish_zfin_id="ZFIN:ZDB-FISH-150901-27842")
+    session.add(fish)
+    session.commit()
+    session.add(FishTankEntry(research_group=group.id, fish_id=fish.id))
+    session.add(FishTankEntry(research_group=group.id, fish_id=fish.id))
+    session.commit()
 
 
 def test_membership_grain_is_unique_per_group_and_member(session, group):

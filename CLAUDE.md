@@ -41,7 +41,7 @@ Two things about that codegen are easy to get wrong:
   import and attaches them to the generated tables. Declare them in the schema as
   usual; nothing needs restating in Python. Note that a slot does not always
   become a column of the same name — an inlined slot whose range has an
-  identifier becomes `<slot>_<identifier>` (`fish` → `fish_zfin_id`).
+  identifier becomes `<slot>_<identifier>` (`fish` → `fish_id`).
 - **Class-level `rules` reach neither generated validators nor, unaided, the
   client.** `pydanticgen` does not turn a `rule` into a validator, so anything
   declared that way needs a guard in the service too — raise

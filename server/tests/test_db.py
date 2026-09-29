@@ -5,6 +5,7 @@ from zapp_atlas.schema.sqla import (
     Experiment,
     ExposureEvent,
     Fish,
+    MutantAllele,
     Phenotype,
     PhenotypeObservationSet,
     PhenotypeTerm,
@@ -27,6 +28,9 @@ def test_init_db_creates_expected_tables():
         "PhenotypeObservationSet",
         "Control",
         "Fish",
+        "MutantAllele",
+        "TransgenicAllele",
+        "TransientReagent",
         "PhenotypeTerm",
         "QuantityValue",
         "Image",
@@ -61,7 +65,22 @@ def test_study_round_trip():
 
     # --- leaf / reference entities ----------------------------------------
 
-    fish = Fish(zfin_id="ZDB-GENO-960809-7", name="AB")
+    # The fgf8a single-mutant from the curation slides: alleles + background
+    # directly on the fish, with the mapped ZFIN fish and genotype ids.
+    fish = Fish(
+        fish_zfin_id="ZFIN:ZDB-FISH-150901-20282",
+        genotype_zfin_id="ZFIN:ZDB-GENO-071127-8",
+        background_name="AB",
+        background_zfin_id="ZFIN:ZDB-GENO-960809-7",
+        mutant_allele=[
+            MutantAllele(
+                allele_id="ZFIN:ZDB-ALT-980203-1091",
+                allele_symbol="ti282a",
+                affected_gene_symbol="fgf8a",
+                zygosity="homozygous",
+            )
+        ],
+    )
 
     concentration = QuantityValue(unit="µg/L", numeric_value="100")
 
@@ -136,8 +155,15 @@ def test_study_round_trip():
 
     [loaded_exp] = loaded_study.experiment
     assert loaded_exp.standard_rearing_condition is True
-    assert loaded_exp.fish.zfin_id == "ZDB-GENO-960809-7"
-    assert loaded_exp.fish.name == "AB"
+    assert loaded_exp.fish.fish_zfin_id == "ZFIN:ZDB-FISH-150901-20282"
+    loaded_fish = loaded_exp.fish
+    assert loaded_fish.genotype_zfin_id == "ZFIN:ZDB-GENO-071127-8"
+    assert loaded_fish.background_name == "AB"
+    assert loaded_fish.background_zfin_id == "ZFIN:ZDB-GENO-960809-7"
+    [loaded_ma] = loaded_fish.mutant_allele
+    assert loaded_ma.allele_symbol == "ti282a"
+    assert loaded_ma.affected_gene_symbol == "fgf8a"
+    assert loaded_ma.zygosity == "homozygous"
 
     [loaded_ee] = loaded_exp.exposure_event
     assert loaded_ee.exposure_start_stage == "ZFS:0000011"
