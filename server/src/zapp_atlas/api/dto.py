@@ -9,16 +9,26 @@ path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
 ``ResearchGroupCreate``/``ResearchGroupRead`` (they fit as-is).
 
-Fields for #113 (``nickname``) and #114 (``manufacturer``/``vehicle``) are
-intentionally absent; the shapes leave room to add them later.
+A cabinet entry may carry a ``nickname`` (#113): what the group calls the
+chemical, and what it is listed under when picked. ``Nickname`` is the one
+definition of what counts as one, shared with the study service. Fields for
+#114 (``manufacturer``/``vehicle``) are intentionally absent; the shapes leave
+room to add them later.
 """
 
 from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    StringConstraints,
+    field_validator,
+)
 
 from zapp_atlas.schema.pydantic_crud import ResearchGroupRoleEnum
 
@@ -54,19 +64,40 @@ class MemberOut(_FromAttributes):
     updated_at: datetime | None
 
 
+def clean_nickname(value: object) -> object:
+    """Trim a nickname; one that is blank is no nickname at all."""
+    if isinstance(value, str):
+        return value.strip() or None
+    return value
+
+
+# A group's own name for something it works with. Optional wherever it appears,
+# and unique within the group when given.
+Nickname = Annotated[
+    Annotated[str, StringConstraints(max_length=200)] | None,
+    BeforeValidator(clean_nickname),
+]
+
+
 class CabinetEntryIn(BaseModel):
     """Add a chemical to a group's cabinet. ``research_group`` is path-derived."""
 
     chemical_id: str
+    nickname: Nickname = None
 
 
 class CabinetEntryPatch(BaseModel):
+    """``None`` leaves a field as it is, so a nickname can be set or changed here
+    but not removed."""
+
     chemical_id: str | None = None
+    nickname: Nickname = None
 
 
 class CabinetEntryOut(_FromAttributes):
     id: int
     chemical_id: str
+    nickname: str | None
     created_at: datetime | None
     updated_at: datetime | None
 

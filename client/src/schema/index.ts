@@ -210,11 +210,13 @@ export interface ZfinEntity {
  * A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
  */
 export interface Study extends ZappEntity {
+    /** The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid. */
+    research_group?: ResearchGroupId,
     /** The experiment in a study. */
     experiment?: Experiment[],
     /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
     publication?: string,
-    /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one. */
+    /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one. */
     nickname?: string,
     /** A free-text summary of what the study set out to do. */
     description?: string,
@@ -484,6 +486,8 @@ export interface ChemicalCabinetEntry extends ZappEntity {
     research_group: ResearchGroupId,
     /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
     chemical_id: string,
+    /** What the group calls this chemical, e.g. "BPA stock". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it. */
+    nickname?: string,
 }
 
 

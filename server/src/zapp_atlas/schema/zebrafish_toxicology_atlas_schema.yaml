@@ -56,6 +56,7 @@ classes:
     is_a: ZappEntity
     description: A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
     slots:
+      - research_group
       - experiment
       - publication
       - nickname
@@ -63,11 +64,16 @@ classes:
       - annotator
       - lab
     slot_usage:
+      research_group:
+        required: false
+        description: >-
+          The research group the study belongs to. Optional only so that
+          studies recorded before groups existed remain valid.
       nickname:
         description: >-
           A short working name for the study, and what it is listed under when
           picking a study. Required while the study has no publication
-          identifier; no two studies may share one.
+          identifier; no two studies in a research group may share one.
       description:
         description: A free-text summary of what the study set out to do.
     rules:
@@ -84,8 +90,9 @@ classes:
             nickname:
               required: true
     unique_keys:
-      study_nickname:
+      study_nickname_grain:
         unique_key_slots:
+          - research_group
           - nickname
 
   Experiment:
@@ -327,14 +334,24 @@ classes:
     slots:
       - research_group
       - chemical_id
+      - nickname
     slot_usage:
       chemical_id:
         required: true
+      nickname:
+        description: >-
+          What the group calls this chemical, e.g. "BPA stock". Optional; when
+          given it is what the chemical is listed under when pre-filling a
+          submission, and no two entries in the group may share it.
     unique_keys:
       cabinet_grain:
         unique_key_slots:
           - research_group
           - chemical_id
+      cabinet_nickname_grain:
+        unique_key_slots:
+          - research_group
+          - nickname
 
   FishTankEntry:
     is_a: ZappEntity
@@ -401,9 +418,10 @@ slots:
     range: string
   nickname:
     description: >-
-      An informal label chosen by the people who work with something, shown
-      in place of its formal name when picking it. Unlike a synonym it is not
-      a formally recognised name.
+      An informal label a research group gives to something it works with,
+      shown in place of its formal name when picking it. Unlike a synonym it
+      is not a formally recognised name, and it is unique only within the
+      group that chose it.
     range: string
   description:
     description: A free-text description of an entity.

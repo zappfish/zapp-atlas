@@ -452,14 +452,27 @@ class Study(ZappEntity):
                                                     'under when picking a study. '
                                                     'Required while the study has no '
                                                     'publication identifier; no two '
-                                                    'studies may share one.',
-                                     'name': 'nickname'}},
-         'unique_keys': {'study_nickname': {'unique_key_name': 'study_nickname',
-                                            'unique_key_slots': ['nickname']}}})
+                                                    'studies in a research group may '
+                                                    'share one.',
+                                     'name': 'nickname'},
+                        'research_group': {'description': 'The research group the '
+                                                          'study belongs to. Optional '
+                                                          'only so that studies '
+                                                          'recorded before groups '
+                                                          'existed remain valid.',
+                                           'name': 'research_group',
+                                           'required': False}},
+         'unique_keys': {'study_nickname_grain': {'unique_key_name': 'study_nickname_grain',
+                                                  'unique_key_slots': ['research_group',
+                                                                       'nickname']}}})
 
+    research_group: Optional[int] = Field(default=None, description="""The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
@@ -770,7 +783,10 @@ class ResearchGroupMember(ZappEntity):
                                               'unique_key_slots': ['research_group',
                                                                    'member']}}})
 
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -795,15 +811,30 @@ class ChemicalCabinetEntry(ZappEntity):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'chemical_id': {'name': 'chemical_id', 'required': True}},
+         'slot_usage': {'chemical_id': {'name': 'chemical_id', 'required': True},
+                        'nickname': {'description': 'What the group calls this '
+                                                    'chemical, e.g. "BPA stock". '
+                                                    'Optional; when given it is what '
+                                                    'the chemical is listed under when '
+                                                    'pre-filling a submission, and no '
+                                                    'two entries in the group may '
+                                                    'share it.',
+                                     'name': 'nickname'}},
          'unique_keys': {'cabinet_grain': {'unique_key_name': 'cabinet_grain',
                                            'unique_key_slots': ['research_group',
-                                                                'chemical_id']}}})
+                                                                'chemical_id']},
+                         'cabinet_nickname_grain': {'unique_key_name': 'cabinet_nickname_grain',
+                                                    'unique_key_slots': ['research_group',
+                                                                         'nickname']}}})
 
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -820,7 +851,10 @@ class FishTankEntry(ZappEntity):
                                         'unique_key_slots': ['research_group',
                                                              'fish']}}})
 
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
