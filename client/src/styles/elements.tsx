@@ -218,6 +218,10 @@ export const FieldBox = styled("div", "field");
 export const FieldLabel = styled("label", "field__label");
 export const FieldHint = styled("p", "field__hint");
 export const TextInput = styled("input", "field__input");
+/** A value the form shows but does not collect. Text, not a box. */
+export const FieldValue = styled("p", "field__value");
+/** Its label: a span, since `<label for>` binds only to form controls. */
+export const FieldValueLabel = styled("span", "field__label");
 export const TextArea = styled("textarea", "field__input field__input--area");
 export const SelectInput = styled("select", "field__input field__input--select");
 export const FieldGrid = styled("div", "field-grid");

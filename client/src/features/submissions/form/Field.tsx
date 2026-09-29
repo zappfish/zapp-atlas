@@ -3,6 +3,7 @@ import {
   FieldBox,
   FieldHint,
   FieldLabel,
+  FieldValueLabel,
   RequiredMark,
 } from "@/styles/elements";
 
@@ -14,23 +15,35 @@ const Field = ({
   label,
   required = false,
   hint,
+  labels = "control",
   children,
 }: {
   label: string;
   required?: boolean;
   /** An example, under the control. */
   hint?: string;
-  children: (id: string) => ReactNode;
+  /**
+   * What the label describes. `<label for>` binds only to form controls, so a
+   * displayed value is labelled by aria-labelledby from the other direction.
+   */
+  labels?: "control" | "value";
+  /** `labelId` is for a displayed value, which is labelled by aria-labelledby. */
+  children: (id: string, labelId: string) => ReactNode;
 }) => {
   const id = useId();
+  const labelId = `${id}-label`;
 
   return (
     <FieldBox>
-      <FieldLabel htmlFor={id}>
-        {label}
-        {required && <RequiredMark aria-hidden="true"> *</RequiredMark>}
-      </FieldLabel>
-      {children(id)}
+      {labels === "control" ? (
+        <FieldLabel id={labelId} htmlFor={id}>
+          {label}
+          {required && <RequiredMark aria-hidden="true"> *</RequiredMark>}
+        </FieldLabel>
+      ) : (
+        <FieldValueLabel id={labelId}>{label}</FieldValueLabel>
+      )}
+      {children(id, labelId)}
       {hint && <FieldHint>{hint}</FieldHint>}
     </FieldBox>
   );

@@ -4,6 +4,7 @@ import {
   EntryFooter,
   FieldGrid,
   FieldNote,
+  FieldValue,
   Notes,
   NotesRemove,
   NotesToggle,
@@ -41,26 +42,29 @@ const ProvenanceSection = () => {
   return (
     <EntryCard>
       <FieldGrid>
-        {/* Read-only: the ORCID sign-in already established who this is. */}
-        <Field
-          label="Annotator / submitter ORCID"
-          required
-          hint="From your ORCID sign-in."
-        >
-          {(id) => (
-            <TextInput id={id} readOnly value={identity?.orcid_id ?? ""} />
+        {/* Shown, not asked for: the server takes the annotator from the
+            session, so these are not inputs and are not submitted. */}
+        <Field label="Annotator / submitter ORCID" labels="value">
+          {(id, labelId) => (
+            <FieldValue id={id} aria-labelledby={labelId}>
+              {identity?.orcid_id}
+            </FieldValue>
           )}
         </Field>
 
-        <Field label="Annotator / submitter name" hint="From your ORCID sign-in.">
-          {(id) => <TextInput id={id} readOnly value={identity?.name ?? ""} />}
+        <Field label="Annotator / submitter name" labels="value">
+          {(id, labelId) => (
+            <FieldValue id={id} aria-labelledby={labelId}>
+              {identity?.name}
+            </FieldValue>
+          )}
         </Field>
 
         <Field label="Principal investigator ORCID">
           {(id) => <TextInput id={id} placeholder="0000-0000-0000-0000" />}
         </Field>
 
-        <Field label="Principal investigator name" hint="Filled in from the ORCID above.">
+        <Field label="Principal investigator name">
           {(id) => <TextInput id={id} />}
         </Field>
 
@@ -71,7 +75,7 @@ const ProvenanceSection = () => {
               <FieldNote>
                 No ZFIN lab ID?{" "}
                 <a
-                  href="https://zfin.org/action/lab/new"
+                  href="https://zfin.org/action/profile/organization/submit"
                   target="_blank"
                   rel="noreferrer"
                 >
