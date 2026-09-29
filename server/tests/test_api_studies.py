@@ -95,3 +95,143 @@ def test_study_patch_updates_top_level_fields():
     assert patch_res.status_code == 200, patch_res.text
     patched = patch_res.json()
     assert patched["publication"] == "PMID:654321"
+
+
+# --------------------------------------------------------------------------- #
+# Unpublished studies (#157): no PMID/DOI yet, identified by nickname
+# --------------------------------------------------------------------------- #
+
+UNPUBLISHED = {
+    "nickname": "BPA dose-response pilot",
+    "description": "Pilot exposure of AB embryos to a BPA dilution series, 6-96 hpf.",
+    "lab": "ZFIN:ZDB-LAB-1-1",
+    "experiment": [],
+}
+
+
+def test_unpublished_study_needs_only_a_nickname():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    bare = client.post("/api/studies", json={"nickname": "just a name", "experiment": []})
+    assert bare.status_code == 201, bare.text
+    assert bare.json()["publication"] is None
+    assert bare.json()["description"] is None
+
+    res = client.post("/api/studies", json=UNPUBLISHED)
+    assert res.status_code == 201, res.text
+    created = res.json()
+    assert created["publication"] is None
+    assert created["nickname"] == UNPUBLISHED["nickname"]
+    assert created["description"] == UNPUBLISHED["description"]
+
+    got = client.get(f"/api/studies/{created['id']}").json()
+    assert got["nickname"] == UNPUBLISHED["nickname"]
+    assert got["description"] == UNPUBLISHED["description"]
+
+
+def test_unpublished_study_without_a_nickname_is_rejected():
+    """The schema rule: no publication means a nickname is required."""
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post("/api/studies", json={"description": "no handle at all", "experiment": []})
+    assert res.status_code == 422, res.text
+    assert "nickname" in res.text
+
+    # A blank nickname is not a way around the rule.
+    for blank in ("", "   "):
+        res = client.post("/api/studies", json={"nickname": blank, "experiment": []})
+        assert res.status_code == 422, res.text
+
+
+def test_a_published_study_may_also_carry_a_nickname():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post(
+        "/api/studies",
+        json={"publication": "PMID:123456", "nickname": "the 2012 BPA paper", "experiment": []},
+    )
+    assert res.status_code == 201, res.text
+    assert res.json()["nickname"] == "the 2012 BPA paper"
+    # ... and the rule does not bite once a publication is present.
+    assert res.json()["description"] is None
+
+
+def test_two_studies_cannot_share_a_nickname():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    assert client.post("/api/studies", json=UNPUBLISHED).status_code == 201
+    res = client.post("/api/studies", json=UNPUBLISHED)
+    assert res.status_code == 409, res.text
+
+    # Surrounding whitespace does not make a nickname a different one ...
+    padded = {**UNPUBLISHED, "nickname": f"  {UNPUBLISHED['nickname']}  "}
+    assert client.post("/api/studies", json=padded).status_code == 409
+    # ... and a published study is held to the same rule.
+    published = {"publication": "PMID:123456", "nickname": UNPUBLISHED["nickname"]}
+    assert client.post("/api/studies", json=published).status_code == 409
+
+    # Studies with no nickname at all never collide with each other.
+    for pmid in ("PMID:1", "PMID:2"):
+        res = client.post("/api/studies", json={"publication": pmid, "experiment": []})
+        assert res.status_code == 201, res.text
+
+
+def test_patch_cannot_take_another_studys_nickname():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    client.post("/api/studies", json=UNPUBLISHED)
+    other = client.post("/api/studies", json={"nickname": "second pilot", "experiment": []}).json()
+
+    res = client.patch(f"/api/studies/{other['id']}", json={"nickname": UNPUBLISHED["nickname"]})
+    assert res.status_code == 409, res.text
+    assert client.get(f"/api/studies/{other['id']}").json()["nickname"] == "second pilot"
+
+    # Sending a study its own nickname back is not a clash.
+    res = client.patch(f"/api/studies/{other['id']}", json={"nickname": "second pilot"})
+    assert res.status_code == 200, res.text
+
+
+def test_study_patch_renames_a_study():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    created = client.post("/api/studies", json=UNPUBLISHED).json()
+    res = client.patch(
+        f"/api/studies/{created['id']}",
+        json={"nickname": "BPA pilot, round 2", "description": "Repeat with a wider series."},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["nickname"] == "BPA pilot, round 2"
+    assert res.json()["description"] == "Repeat with a wider series."
+
+
+def test_reconciling_an_unpublished_study_to_a_pmid_is_a_patch():
+    """The transition #157 describes: the temp handle gives way to a PMID."""
+    app = _make_test_app()
+    client = TestClient(app)
+
+    created = client.post("/api/studies", json=UNPUBLISHED).json()
+    res = client.patch(f"/api/studies/{created['id']}", json={"publication": "PMID:99999"})
+    assert res.status_code == 200, res.text
+    assert res.json()["publication"] == "PMID:99999"
+    # The nickname survives reconciliation: it is still how the lab refers to it.
+    assert res.json()["nickname"] == UNPUBLISHED["nickname"]
+
+
+def test_patch_cannot_leave_an_unpublished_study_anonymous():
+    """The rule is re-checked on PATCH, not just POST."""
+    app = _make_test_app()
+    client = TestClient(app)
+
+    created = client.post(
+        "/api/studies", json={"publication": "PMID:123456", "experiment": []}
+    ).json()
+    # Blanking the publication on a study with no nickname would strand it.
+    res = client.patch(f"/api/studies/{created['id']}", json={"publication": ""})
+    assert res.status_code == 422, res.text
+    assert client.get(f"/api/studies/{created['id']}").json()["publication"] == "PMID:123456"

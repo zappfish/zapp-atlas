@@ -140,6 +140,16 @@ export enum ManufacturerEnum {
     other_not_listed = "other_not_listed",
 };
 /**
+* An enumeration of how much of the organism an image shows.
+*/
+export enum ImageScopeEnum {
+    
+    /** The entire fish, head to tail. */
+    whole_organism = "whole_organism",
+    /** A specific region, organ, or structure (e.g., head, heart, fin, eye). */
+    partial_organism = "partial_organism",
+};
+/**
 * An enumeration of permission levels within a research group.
 */
 export enum ResearchGroupRoleEnum {
@@ -253,8 +263,12 @@ export interface OntologyEntity {
 export interface Study extends ZappEntity {
     /** The experiment in a study. */
     experiment?: Experiment[],
-    /** The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished. */
+    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
     publication?: string,
+    /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one. */
+    nickname?: string,
+    /** A free-text summary of what the study set out to do. */
+    description?: string,
     /** ORCID identifier of the indidvidual submitting the study data. */
     annotator?: string[],
     /** ZFIN lab identifier of the laboratory that produced the study data. */
@@ -424,6 +438,8 @@ export interface Image extends ZappEntity {
     resolution?: string,
     /** Scale bar information, including the physical length it represents and the unit of measurement. */
     scale_bar?: string,
+    /** Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region. */
+    image_scope?: string,
 }
 
 

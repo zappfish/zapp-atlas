@@ -54,8 +54,35 @@ classes:
     slots:
       - experiment
       - publication
+      - nickname
+      - description
       - annotator
       - lab
+    slot_usage:
+      nickname:
+        description: >-
+          A short working name for the study, and what it is listed under when
+          picking a study. Required while the study has no publication
+          identifier; no two studies may share one.
+      description:
+        description: A free-text summary of what the study set out to do.
+    rules:
+      - description: >-
+          A study that has no publication identifier yet must still be
+          recognisable to the people working on it, so an unpublished study
+          carries a nickname instead.
+        preconditions:
+          slot_conditions:
+            publication:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            nickname:
+              required: true
+    unique_keys:
+      study_nickname:
+        unique_key_slots:
+          - nickname
 
   Experiment:
     is_a: ZappEntity
@@ -206,6 +233,7 @@ classes:
       - magnification
       - resolution
       - scale_bar
+      - image_scope
 
   ControlImage:
     is_a: ZappEntity
@@ -390,6 +418,12 @@ classes:
       - nickname
       - fish
     slot_usage:
+      nickname:
+        required: true
+        description: >-
+          What the group calls this line, e.g. "our casper stock". The handle
+          it is picked by when pre-filling a submission; unique within the
+          group.
       fish:
         required: true
         description: The fish line the group maintains.
@@ -423,8 +457,26 @@ slots:
     required: true
 
   # Other slots
+  image_scope:
+    description: >-
+      Whether the image shows the entire organism or only a region, organ, or
+      structure. Phenotype annotations on a partial-organism image should be
+      limited to what is visible in the imaged region.
+    range: ImageScopeEnum
   publication:
-    description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
+    description: >-
+      The persistent publication identifier (e.g., PMID, DOI) for the study.
+      Absent while the study is unpublished, in which case its nickname
+      identifies it instead.
+    range: string
+  nickname:
+    description: >-
+      An informal label chosen by the people who work with something, shown
+      in place of its formal name when picking it. Unlike a synonym it is not
+      a formally recognised name.
+    range: string
+  description:
+    description: A free-text description of an entity.
     range: string
   synonym:
     description: Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.
@@ -456,12 +508,6 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: true
-  nickname:
-    description: >-
-      What the group calls this line, e.g. "our casper stock". The handle it is
-      picked by when pre-filling a submission; unique within the group.
-    range: string
-    required: true
   transient_reagent:
     description: Injected reagent(s) carried by the fish — transient, not heritable.
     range: TransientReagent
@@ -736,6 +782,14 @@ slots:
     required: true
 
 enums:
+
+  ImageScopeEnum:
+    description: An enumeration of how much of the organism an image shows.
+    permissible_values:
+      whole_organism:
+        description: The entire fish, head to tail.
+      partial_organism:
+        description: A specific region, organ, or structure (e.g., head, heart, fin, eye).
 
   ResearchGroupRoleEnum:
     description: An enumeration of permission levels within a research group.

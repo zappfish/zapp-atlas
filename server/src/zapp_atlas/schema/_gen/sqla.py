@@ -118,6 +118,8 @@ class Study(ZappEntity):
     __tablename__ = "Study"
 
     publication: Mapped[str | None] = mapped_column(Text())
+    nickname: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[str | None] = mapped_column(Text())
     lab: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
@@ -132,7 +134,7 @@ class Study(ZappEntity):
     )
 
     def __repr__(self):
-        return f"Study(publication={self.publication},lab={self.lab},id={self.id},)"
+        return f"Study(publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -364,11 +366,12 @@ class Image(ZappEntity):
     magnification: Mapped[str | None] = mapped_column(Text())
     resolution: Mapped[str | None] = mapped_column(Text())
     scale_bar: Mapped[str | None] = mapped_column(Text())
+    image_scope: Mapped[str | None] = mapped_column(Enum('whole_organism', 'partial_organism', name='ImageScopeEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     PhenotypeObservationSet_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("PhenotypeObservationSet.id"))
 
     def __repr__(self):
-        return f"Image(magnification={self.magnification},resolution={self.resolution},scale_bar={self.scale_bar},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},)"
+        return f"Image(magnification={self.magnification},resolution={self.resolution},scale_bar={self.scale_bar},image_scope={self.image_scope},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},)"
 
     __mapper_args__ = {"concrete": True}
 

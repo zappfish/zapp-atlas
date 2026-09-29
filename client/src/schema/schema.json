@@ -455,6 +455,10 @@
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "image_scope": {
+          "$ref": "#/$defs/ImageScopeEnum",
+          "description": "Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region."
+        },
         "magnification": {
           "description": "The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.",
           "type": [
@@ -482,6 +486,15 @@
       ],
       "title": "Image",
       "type": "object"
+    },
+    "ImageScopeEnum": {
+      "description": "An enumeration of how much of the organism an image shows.",
+      "enum": [
+        "whole_organism",
+        "partial_organism"
+      ],
+      "title": "ImageScopeEnum",
+      "type": "string"
     },
     "ManufacturerEnum": {
       "description": "An enumeration of manufacturers and suppliers of chemicals used in exposure events.",
@@ -1002,6 +1015,16 @@
     "Study": {
       "additionalProperties": false,
       "description": "A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.",
+      "if": {
+        "not": {
+          "required": [
+            "publication"
+          ]
+        },
+        "properties": {
+          "publication": {}
+        }
+      },
       "properties": {
         "annotator": {
           "description": "ORCID identifier of the indidvidual submitting the study data.",
@@ -1011,6 +1034,13 @@
           },
           "type": [
             "array",
+            "null"
+          ]
+        },
+        "description": {
+          "description": "A free-text summary of what the study set out to do.",
+          "type": [
+            "string",
             "null"
           ]
         },
@@ -1036,8 +1066,15 @@
             "null"
           ]
         },
+        "nickname": {
+          "description": "A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "publication": {
-          "description": "The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.",
+          "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
           "type": [
             "string",
             "null"
@@ -1047,6 +1084,14 @@
       "required": [
         "id"
       ],
+      "then": {
+        "properties": {
+          "nickname": {}
+        },
+        "required": [
+          "nickname"
+        ]
+      },
       "title": "Study",
       "type": "object"
     },

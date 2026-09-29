@@ -339,6 +339,20 @@ class ManufacturerEnum(str, Enum):
     """
 
 
+class ImageScopeEnum(str, Enum):
+    """
+    An enumeration of how much of the organism an image shows.
+    """
+    whole_organism = "whole_organism"
+    """
+    The entire fish, head to tail.
+    """
+    partial_organism = "partial_organism"
+    """
+    A specific region, organ, or structure (e.g., head, heart, fin, eye).
+    """
+
+
 class ResearchGroupRoleEnum(str, Enum):
     """
     An enumeration of permission levels within a research group.
@@ -508,10 +522,32 @@ class Study(ZappEntity):
     """
     A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'rules': [{'description': 'A study that has no publication identifier yet '
+                                   'must still be recognisable to the people working '
+                                   'on it, so an unpublished study carries a nickname '
+                                   'instead.',
+                    'postconditions': {'slot_conditions': {'nickname': {'name': 'nickname',
+                                                                        'required': True}}},
+                    'preconditions': {'slot_conditions': {'publication': {'name': 'publication',
+                                                                          'value_presence': 'ABSENT'}}}}],
+         'slot_usage': {'description': {'description': 'A free-text summary of what '
+                                                       'the study set out to do.',
+                                        'name': 'description'},
+                        'nickname': {'description': 'A short working name for the '
+                                                    'study, and what it is listed '
+                                                    'under when picking a study. '
+                                                    'Required while the study has no '
+                                                    'publication identifier; no two '
+                                                    'studies may share one.',
+                                     'name': 'nickname'}},
+         'unique_keys': {'study_nickname': {'unique_key_name': 'study_nickname',
+                                            'unique_key_slots': ['nickname']}}})
 
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -548,7 +584,9 @@ class StudyCreate(ConfiguredBaseModel):
     Create schema for Study — id is server-generated.
     """
     experiment: Optional[list[ExperimentCreate]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
 
@@ -584,7 +622,9 @@ class StudyUpdate(ConfiguredBaseModel):
     Update schema for Study — all fields optional for partial updates.
     """
     experiment: Optional[list[ExperimentCreate]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
 
@@ -620,7 +660,9 @@ class StudyRead(ReadBaseModel):
     Read schema for Study — from_attributes=True, extra=ignore.
     """
     experiment: Optional[list[ExperimentRead]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -1175,6 +1217,7 @@ class Image(ZappEntity):
     magnification: Optional[str] = Field(default=None, description="""The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
+    image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -1185,6 +1228,7 @@ class ImageCreate(ConfiguredBaseModel):
     magnification: Optional[str] = Field(default=None, description="""The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
+    image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
 
 
 class ImageUpdate(ConfiguredBaseModel):
@@ -1194,6 +1238,7 @@ class ImageUpdate(ConfiguredBaseModel):
     magnification: Optional[str] = Field(default=None, description="""The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
+    image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
 
 
 class ImageRead(ReadBaseModel):
@@ -1203,6 +1248,7 @@ class ImageRead(ReadBaseModel):
     magnification: Optional[str] = Field(default=None, description="""The factor by which a microscope enlarges the apparent size of a subject compared to its actual size.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
+    image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
 
@@ -2119,13 +2165,20 @@ class FishTankEntry(ZappEntity):
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'fish': {'description': 'The fish line the group maintains.',
                                  'name': 'fish',
-                                 'required': True}},
+                                 'required': True},
+                        'nickname': {'description': 'What the group calls this line, '
+                                                    'e.g. "our casper stock". The '
+                                                    'handle it is picked by when '
+                                                    'pre-filling a submission; unique '
+                                                    'within the group.',
+                                     'name': 'nickname',
+                                     'required': True}},
          'unique_keys': {'tank_grain': {'unique_key_name': 'tank_grain',
                                         'unique_key_slots': ['research_group',
                                                              'nickname']}}})
 
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -2135,7 +2188,7 @@ class FishTankEntryCreate(ConfiguredBaseModel):
     Create schema for FishTankEntry — id is server-generated.
     """
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: FishCreate = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -2144,7 +2197,7 @@ class FishTankEntryUpdate(ConfiguredBaseModel):
     Update schema for FishTankEntry — all fields optional for partial updates.
     """
     research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: Optional[FishCreate] = Field(default=None, description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -2153,7 +2206,7 @@ class FishTankEntryRead(ReadBaseModel):
     Read schema for FishTankEntry — from_attributes=True, extra=ignore.
     """
     research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['FishTankEntry']} })
+    nickname: str = Field(default=..., description="""What the group calls this line, e.g. \"our casper stock\". The handle it is picked by when pre-filling a submission; unique within the group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'FishTankEntry']} })
     fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
