@@ -11,6 +11,7 @@ import logging
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from zapp_atlas.api.dto import clean_nickname
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.services.fish import fish_from_create
 from zapp_atlas.schema.pydantic_crud import (
@@ -35,6 +36,7 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     PhenotypeTerm,
     QuantityValue,
     Regimen,
+    ResearchGroup,
     StressorChemical,
     Study,
     StudyAnnotator,
@@ -128,11 +130,6 @@ def _check_escape_hatch(payload: object, choice_slot: str, name_slot: str, noun:
         )
 
 
-def _clean_nickname(nickname: str | None) -> str | None:
-    """Trim a nickname; one that is blank is no nickname at all."""
-    return (nickname or "").strip() or None
-
-
 def _check_unpublished_study_is_named(study: Study) -> None:
     """Enforce the Study rule: no publication means a nickname is required.
 
@@ -147,15 +144,34 @@ def _check_unpublished_study_is_named(study: Study) -> None:
     raise SchemaRuleViolation("A study with no publication identifier must have a nickname.")
 
 
-def _check_nickname_is_free(session: Session, study: Study) -> None:
-    """Answer 409 when another study already goes by this nickname.
+def _check_research_group_exists(session: Session, study: Study) -> None:
+    if study.research_group is None:
+        return
+    # Looked up without flushing: on a PATCH the study is already changed in
+    # the session, and the nickname check below has yet to vouch for it.
+    with session.no_autoflush:
+        group = session.get(ResearchGroup, study.research_group)
+    if group is None:
+        raise SchemaRuleViolation(f"Research group {study.research_group} does not exist.")
 
-    The nickname is what a study is listed under, so two studies sharing one
-    could not be told apart. The ``study_nickname`` unique index backs this up.
+
+def _check_nickname_is_free(session: Session, study: Study) -> None:
+    """Answer 409 when another study in the group already goes by this nickname.
+
+    The nickname is what a study is listed under, so two of a group's studies
+    sharing one could not be told apart; two groups may use the same one. The
+    ``study_nickname_grain`` unique index backs this up. Studies that belong
+    to no group are held to the rule among themselves -- the index cannot do
+    that, since it never treats two absent groups as equal.
     """
     if study.nickname is None:
         return
-    query = session.query(Study).filter(Study.nickname == study.nickname)
+    query = session.query(Study).filter(
+        Study.nickname == study.nickname,
+        Study.research_group.is_(None)
+        if study.research_group is None
+        else Study.research_group == study.research_group,
+    )
     if study.id is not None:
         query = query.filter(Study.id != study.id)
     with session.no_autoflush:
@@ -163,7 +179,7 @@ def _check_nickname_is_free(session: Session, study: Study) -> None:
     if taken:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="That nickname is already used by another study",
+            detail="That nickname is already used by another study in this research group",
         )
 
 
@@ -296,11 +312,13 @@ def _experiment_from_create(session: Session, payload: ExperimentCreate) -> Expe
 
 def _study_from_create(session: Session, payload: StudyCreate) -> Study:
     study = Study(
+        research_group=payload.research_group,
         publication=payload.publication,
-        nickname=_clean_nickname(payload.nickname),
+        nickname=clean_nickname(payload.nickname),
         description=payload.description,
         lab=payload.lab,
     )
+    _check_research_group_exists(session, study)
     _check_unpublished_study_is_named(study)
     _check_nickname_is_free(session, study)
     # association_proxy list assignment should work for annotator
@@ -356,12 +374,15 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Study | 
     # NOTE: This is deliberately a shallow patch for now.
     if patch.publication is not None:
         study.publication = patch.publication
-    if _clean_nickname(patch.nickname) is not None:
-        study.nickname = _clean_nickname(patch.nickname)
+    if patch.research_group is not None:
+        study.research_group = patch.research_group
+    if clean_nickname(patch.nickname) is not None:
+        study.nickname = clean_nickname(patch.nickname)
     if patch.description is not None:
         study.description = patch.description
     if patch.lab is not None:
         study.lab = patch.lab
+    _check_research_group_exists(session, study)
     _check_unpublished_study_is_named(study)
     _check_nickname_is_free(session, study)
     if patch.annotator is not None:

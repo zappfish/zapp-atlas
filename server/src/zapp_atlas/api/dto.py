@@ -9,8 +9,11 @@ path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
 ``ResearchGroupCreate``/``ResearchGroupRead`` (they fit as-is).
 
-The #114 fields (``manufacturer``/``vehicle``) live on the generated exposure
-models; the tank's ``nickname`` (#113) is on ``TankEntryIn``/``Out``.
+A cabinet or tank entry may carry a ``nickname`` (#113): what the group calls
+the chemical or line, and what it is listed under when picked. ``Nickname`` is
+the one definition of what counts as one, shared with the study service. The
+#114 fields (``manufacturer``/``vehicle``) live on the generated exposure
+models.
 """
 
 from __future__ import annotations
@@ -19,7 +22,13 @@ import re
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    StringConstraints,
+    field_validator,
+)
 
 from zapp_atlas.schema.pydantic_crud import (
     FishCreate,
@@ -59,19 +68,40 @@ class MemberOut(_FromAttributes):
     updated_at: datetime | None
 
 
+def clean_nickname(value: object) -> object:
+    """Trim a nickname; one that is blank is no nickname at all."""
+    if isinstance(value, str):
+        return value.strip() or None
+    return value
+
+
+# A group's own name for something it works with. Optional wherever it appears,
+# and unique within the group when given.
+Nickname = Annotated[
+    Annotated[str, StringConstraints(max_length=200)] | None,
+    BeforeValidator(clean_nickname),
+]
+
+
 class CabinetEntryIn(BaseModel):
     """Add a chemical to a group's cabinet. ``research_group`` is path-derived."""
 
     chemical_id: str
+    nickname: Nickname = None
 
 
 class CabinetEntryPatch(BaseModel):
+    """``None`` leaves a field as it is, so a nickname can be set or changed here
+    but not removed."""
+
     chemical_id: str | None = None
+    nickname: Nickname = None
 
 
 class CabinetEntryOut(_FromAttributes):
     id: int
     chemical_id: str
+    nickname: str | None
     created_at: datetime | None
     updated_at: datetime | None
 
@@ -88,15 +118,8 @@ class TankEntryIn(BaseModel):
     identifiers with a 422.
     """
 
-    nickname: Annotated[str, StringConstraints(max_length=200)] | None = None
+    nickname: Nickname = None
     fish: FishCreate
-
-    @field_validator("nickname", mode="before")
-    @classmethod
-    def _blank_is_none(cls, value: object) -> object:
-        if isinstance(value, str):
-            return value.strip() or None
-        return value
 
 
 class TankEntryOut(_FromAttributes):

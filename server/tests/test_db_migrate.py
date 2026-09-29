@@ -153,25 +153,43 @@ def test_migrate_is_idempotent(legacy_db) -> None:
         )
 
 
-# Columns the study nickname change (#113, #157) introduced. Both optional, so
-# the generic column step covers them. The unique key on the nickname is what
+# Columns the nickname change (#113, #157) introduced. All optional, so the
+# generic column step covers them. The unique keys on the nicknames are what
 # needed the index step: create_all never adds an index to an existing table.
-STUDY_NICKNAME_ADDED = [
+NICKNAME_ADDED = [
+    ("Study", "research_group"),
     ("Study", "nickname"),
     ("Study", "description"),
+    ("ChemicalCabinetEntry", "nickname"),
 ]
+NICKNAME_INDEXES = {
+    "Study": "uq_Study_study_nickname_grain",
+    "ChemicalCabinetEntry": "uq_ChemicalCabinetEntry_cabinet_nickname_grain",
+}
 
 
 @pytest.fixture
 def pre_nickname_db(tmp_path):
-    """A database created before study nicknames existed, holding a published study."""
+    """A database created before nicknames existed, holding two published studies.
+
+    ``Study`` is recreated wholesale in its earlier layout: SQLite will not
+    DROP a foreign-key column such as ``research_group``.
+    """
     path = tmp_path / "zapp.db"
     init_db(create_engine(f"sqlite:///{path}"))
 
     con = sqlite3.connect(path)
-    con.execute('DROP INDEX "uq_Study_study_nickname"')
-    for table, column in STUDY_NICKNAME_ADDED:
-        con.execute(f'ALTER TABLE "{table}" DROP COLUMN "{column}"')
+    con.executescript(
+        """
+        DROP TABLE "Study";
+        CREATE TABLE "Study" (publication TEXT, lab TEXT, id INTEGER NOT NULL PRIMARY KEY);
+        DROP INDEX "uq_ChemicalCabinetEntry_cabinet_nickname_grain";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "nickname";
+        INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
+        INSERT INTO "ChemicalCabinetEntry" (id, research_group, chemical_id)
+            VALUES (1, 1, 'CHEBI:16236');
+        """
+    )
     con.execute("INSERT INTO Study (id, publication) VALUES (1, 'PMID:22194820')")
     con.execute("INSERT INTO Study (id, publication) VALUES (2, 'PMID:40359302')")
     con.commit()
@@ -179,38 +197,46 @@ def pre_nickname_db(tmp_path):
     return path
 
 
-def test_migrate_adds_the_study_nickname_columns(pre_nickname_db) -> None:
+def test_migrate_adds_the_nickname_columns(pre_nickname_db) -> None:
     from sqlalchemy.orm import sessionmaker
 
-    from zapp_atlas.schema.sqla import Study
+    from zapp_atlas.schema.sqla import ChemicalCabinetEntry, Study
 
     engine = create_engine(f"sqlite:///{pre_nickname_db}")
 
     migrate(engine)
 
-    for table, column in STUDY_NICKNAME_ADDED:
+    for table, column in NICKNAME_ADDED:
         assert column in {c["name"] for c in inspect(engine).get_columns(table)}
     with sessionmaker(bind=engine)() as session:
         study = session.get(Study, 1)
         assert study.publication == "PMID:22194820"
-        # Existing rows are published and simply have no nickname yet.
+        # Existing rows are published, belong to no group, and have no nickname yet.
+        assert study.research_group is None
         assert study.nickname is None
         assert study.description is None
+        entry = session.get(ChemicalCabinetEntry, 1)
+        assert entry.chemical_id == "CHEBI:16236"
+        assert entry.nickname is None
 
 
-def test_migrate_makes_study_nicknames_unique(pre_nickname_db) -> None:
+def test_migrate_makes_nicknames_unique_within_a_group(pre_nickname_db) -> None:
     from sqlalchemy.exc import IntegrityError
 
     engine = create_engine(f"sqlite:///{pre_nickname_db}")
 
     migrate(engine)
 
-    indexes = {i["name"]: i for i in inspect(engine).get_indexes("Study")}
-    assert indexes["uq_Study_study_nickname"]["unique"]
+    for table, name in NICKNAME_INDEXES.items():
+        indexes = {i["name"]: i for i in inspect(engine).get_indexes(table)}
+        assert indexes[name]["unique"]
+        assert indexes[name]["column_names"] == ["research_group", "nickname"]
+
+    named = "UPDATE Study SET research_group = 1, nickname = 'BPA pilot' WHERE id = :id"
     with engine.begin() as connection:
-        connection.execute(text("UPDATE Study SET nickname = 'BPA pilot' WHERE id = 1"))
+        connection.execute(text(named), {"id": 1})
     with pytest.raises(IntegrityError), engine.begin() as connection:
-        connection.execute(text("UPDATE Study SET nickname = 'BPA pilot' WHERE id = 2"))
+        connection.execute(text(named), {"id": 2})
 
 
 def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:

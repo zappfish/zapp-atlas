@@ -13,6 +13,13 @@
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "nickname": {
+          "description": "What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "research_group": {
           "description": "The research group an entry belongs to.",
           "type": "integer"
@@ -1069,7 +1076,7 @@
           ]
         },
         "nickname": {
-          "description": "A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.",
+          "description": "A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.",
           "type": [
             "string",
             "null"
@@ -1079,6 +1086,13 @@
           "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "research_group": {
+          "description": "The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.",
+          "type": [
+            "integer",
             "null"
           ]
         }

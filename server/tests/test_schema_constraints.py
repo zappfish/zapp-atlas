@@ -21,6 +21,7 @@ from zapp_atlas.schema.sqla import (
     FishTankEntry,
     ResearchGroup,
     ResearchGroupMember,
+    Study,
 )
 
 ORCID = "ORCID:0000-0002-1825-0097"
@@ -58,6 +59,38 @@ def test_cabinet_grain_is_unique_per_group_and_chemical(session, group):
         session,
         lambda: ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL),
     )
+
+
+def test_cabinet_nickname_is_unique_per_group(session, group):
+    chemicals = iter([ETHANOL, "CHEBI:33216"])
+    assert_second_insert_rejected(
+        session,
+        lambda: ChemicalCabinetEntry(
+            research_group=group.id, chemical_id=next(chemicals), nickname="stock"
+        ),
+    )
+
+
+def test_cabinet_entries_without_a_nickname_do_not_collide(session, group):
+    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL))
+    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id="CHEBI:33216"))
+    session.commit()
+
+
+def test_study_nickname_is_unique_per_group(session, group):
+    assert_second_insert_rejected(
+        session,
+        lambda: Study(research_group=group.id, nickname="BPA pilot"),
+    )
+
+
+def test_two_groups_may_give_a_study_the_same_nickname(session, group):
+    other = ResearchGroup(name="Other Lab")
+    session.add(other)
+    session.commit()
+    session.add(Study(research_group=group.id, nickname="BPA pilot"))
+    session.add(Study(research_group=other.id, nickname="BPA pilot"))
+    session.commit()
 
 
 def test_tank_grain_is_unique_per_group_and_nickname(session, group):

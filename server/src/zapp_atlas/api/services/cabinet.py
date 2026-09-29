@@ -1,7 +1,13 @@
-"""Chemical cabinet persistence (a group's on-hand chemicals)."""
+"""Chemical cabinet persistence (a group's on-hand chemicals).
+
+An entry may carry the group's own nickname for the chemical. It is what the
+picker lists the chemical under, so no two entries in a group may share one:
+a reused nickname is a 409, backed by the ``cabinet_nickname_grain`` index.
+"""
 
 from __future__ import annotations
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.persistence import commit_or_conflict
@@ -33,8 +39,31 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> ChemicalCabinet
     )
 
 
-def add_entry(session: Session, group_id: int, chemical_id: str) -> ChemicalCabinetEntry:
-    entry = ChemicalCabinetEntry(research_group=group_id, chemical_id=chemical_id)
+def _check_nickname_is_free(
+    session: Session, group_id: int, nickname: str | None, *, entry_id: int | None = None
+) -> None:
+    if nickname is None:
+        return
+    query = session.query(ChemicalCabinetEntry).filter(
+        ChemicalCabinetEntry.research_group == group_id,
+        ChemicalCabinetEntry.nickname == nickname,
+    )
+    if entry_id is not None:
+        query = query.filter(ChemicalCabinetEntry.id != entry_id)
+    if query.first() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That nickname is already used in this cabinet",
+        )
+
+
+def add_entry(
+    session: Session, group_id: int, chemical_id: str, *, nickname: str | None = None
+) -> ChemicalCabinetEntry:
+    _check_nickname_is_free(session, group_id, nickname)
+    entry = ChemicalCabinetEntry(
+        research_group=group_id, chemical_id=chemical_id, nickname=nickname
+    )
     session.add(entry)
     commit_or_conflict(session, "That chemical is already in this cabinet")
     session.refresh(entry)
@@ -42,13 +71,21 @@ def add_entry(session: Session, group_id: int, chemical_id: str) -> ChemicalCabi
 
 
 def update_entry(
-    session: Session, group_id: int, entry_id: int, *, chemical_id: str | None
+    session: Session,
+    group_id: int,
+    entry_id: int,
+    *,
+    chemical_id: str | None,
+    nickname: str | None = None,
 ) -> ChemicalCabinetEntry | None:
     entry = get_entry(session, group_id, entry_id)
     if entry is None:
         return None
     if chemical_id is not None:
         entry.chemical_id = chemical_id
+    if nickname is not None:
+        _check_nickname_is_free(session, group_id, nickname, entry_id=entry.id)
+        entry.nickname = nickname
     commit_or_conflict(session, "That chemical is already in this cabinet")
     session.refresh(entry)
     return entry
