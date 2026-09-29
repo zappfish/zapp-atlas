@@ -154,8 +154,8 @@ def test_migrate_is_idempotent(legacy_db) -> None:
 
 
 # Columns the study nickname change (#113, #157) introduced. Both optional, so
-# the generic column step covers them and nothing new is needed in migrate.py --
-# this holds that in place.
+# the generic column step covers them. The unique key on the nickname is what
+# needed the index step: create_all never adds an index to an existing table.
 STUDY_NICKNAME_ADDED = [
     ("Study", "nickname"),
     ("Study", "description"),
@@ -169,9 +169,11 @@ def pre_nickname_db(tmp_path):
     init_db(create_engine(f"sqlite:///{path}"))
 
     con = sqlite3.connect(path)
+    con.execute('DROP INDEX "uq_Study_study_nickname"')
     for table, column in STUDY_NICKNAME_ADDED:
         con.execute(f'ALTER TABLE "{table}" DROP COLUMN "{column}"')
     con.execute("INSERT INTO Study (id, publication) VALUES (1, 'PMID:22194820')")
+    con.execute("INSERT INTO Study (id, publication) VALUES (2, 'PMID:40359302')")
     con.commit()
     con.close()
     return path
@@ -194,6 +196,21 @@ def test_migrate_adds_the_study_nickname_columns(pre_nickname_db) -> None:
         # Existing rows are published and simply have no nickname yet.
         assert study.nickname is None
         assert study.description is None
+
+
+def test_migrate_makes_study_nicknames_unique(pre_nickname_db) -> None:
+    from sqlalchemy.exc import IntegrityError
+
+    engine = create_engine(f"sqlite:///{pre_nickname_db}")
+
+    migrate(engine)
+
+    indexes = {i["name"]: i for i in inspect(engine).get_indexes("Study")}
+    assert indexes["uq_Study_study_nickname"]["unique"]
+    with engine.begin() as connection:
+        connection.execute(text("UPDATE Study SET nickname = 'BPA pilot' WHERE id = 1"))
+    with pytest.raises(IntegrityError), engine.begin() as connection:
+        connection.execute(text("UPDATE Study SET nickname = 'BPA pilot' WHERE id = 2"))
 
 
 def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:

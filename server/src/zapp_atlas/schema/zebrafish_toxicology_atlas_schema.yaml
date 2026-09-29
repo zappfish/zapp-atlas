@@ -65,15 +65,16 @@ classes:
     slot_usage:
       nickname:
         description: >-
-          A short working name for the study, used to refer to it before (or
-          instead of) a persistent publication identifier exists.
+          A short working name for the study, and what it is listed under when
+          picking a study. Required while the study has no publication
+          identifier; no two studies may share one.
       description:
         description: A free-text summary of what the study set out to do.
     rules:
       - description: >-
           A study that has no publication identifier yet must still be
           recognisable to the people working on it, so an unpublished study
-          carries a nickname and a description instead.
+          carries a nickname instead.
         preconditions:
           slot_conditions:
             publication:
@@ -82,8 +83,10 @@ classes:
           slot_conditions:
             nickname:
               required: true
-            description:
-              required: true
+    unique_keys:
+      study_nickname:
+        unique_key_slots:
+          - nickname
 
   Experiment:
     is_a: ZappEntity
@@ -393,14 +396,14 @@ slots:
   publication:
     description: >-
       The persistent publication identifier (e.g., PMID, DOI) for the study.
-      Absent while the study is unpublished, in which case its nickname and
-      description identify it instead.
+      Absent while the study is unpublished, in which case its nickname
+      identifies it instead.
     range: string
   nickname:
     description: >-
-      An informal label chosen by the people who work with something. Unlike
-      a synonym it is not a formally recognised name, and it is scoped to
-      whoever assigned it rather than shared globally.
+      An informal label chosen by the people who work with something, shown
+      in place of its formal name when picking it. Unlike a synonym it is not
+      a formally recognised name.
     range: string
   description:
     description: A free-text description of an entity.

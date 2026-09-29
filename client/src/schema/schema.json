@@ -919,14 +919,14 @@
           ]
         },
         "nickname": {
-          "description": "A short working name for the study, used to refer to it before (or instead of) a persistent publication identifier exists.",
+          "description": "A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one.",
           "type": [
             "string",
             "null"
           ]
         },
         "publication": {
-          "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname and description identify it instead.",
+          "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
           "type": [
             "string",
             "null"
@@ -938,12 +938,10 @@
       ],
       "then": {
         "properties": {
-          "description": {},
           "nickname": {}
         },
         "required": [
-          "nickname",
-          "description"
+          "nickname"
         ]
       },
       "title": "Study",

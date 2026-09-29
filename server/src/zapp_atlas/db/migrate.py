@@ -68,6 +68,31 @@ def _add_missing_columns(engine: Engine) -> None:
             log.info("added column %s.%s", table.name, column.name)
 
 
+def _add_missing_unique_indexes(engine: Engine) -> None:
+    """Create every unique index the models declare that the database lacks.
+
+    ``create_all`` skips a table that already exists, indexes and all, so a
+    ``unique_keys`` entry added to an existing class never reaches a deployed
+    database on its own. Runs after the column pass, since a new key may sit on
+    a new column. If the rows already there break the key, the database says so
+    and nothing is created -- that needs a hand-written fix, not a guess about
+    which row to keep.
+    """
+    inspector = inspect(engine)
+    present_tables = set(inspector.get_table_names())
+
+    for table in Base.metadata.sorted_tables:
+        if table.name not in present_tables:
+            continue
+        existing = {index["name"] for index in inspector.get_indexes(table.name)}
+        for index in table.indexes:
+            if not index.unique or index.name in existing:
+                continue
+            with engine.begin() as connection:
+                index.create(connection)
+            log.info("added unique index %s on %s", index.name, table.name)
+
+
 def _move_chemical_names_into_synonyms(engine: Engine) -> None:
     """Carry the dropped ``chemical_name`` column over to ``synonym``.
 
@@ -115,5 +140,6 @@ def _rename_vehicle_types(engine: Engine) -> None:
 def migrate(engine: Engine) -> None:
     """Apply every outstanding fix. Idempotent; safe on an up-to-date database."""
     _add_missing_columns(engine)
+    _add_missing_unique_indexes(engine)
     _move_chemical_names_into_synonyms(engine)
     _rename_vehicle_types(engine)

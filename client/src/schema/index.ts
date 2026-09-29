@@ -212,9 +212,9 @@ export interface ZfinEntity {
 export interface Study extends ZappEntity {
     /** The experiment in a study. */
     experiment?: Experiment[],
-    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname and description identify it instead. */
+    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
     publication?: string,
-    /** A short working name for the study, used to refer to it before (or instead of) a persistent publication identifier exists. */
+    /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies may share one. */
     nickname?: string,
     /** A free-text summary of what the study set out to do. */
     description?: string,

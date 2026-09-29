@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.errors import SchemaRuleViolation
@@ -153,22 +154,42 @@ def _check_escape_hatch(payload: object, choice_slot: str, name_slot: str, noun:
         )
 
 
+def _clean_nickname(nickname: str | None) -> str | None:
+    """Trim a nickname; one that is blank is no nickname at all."""
+    return (nickname or "").strip() or None
+
+
 def _check_unpublished_study_is_named(study: Study) -> None:
-    """Enforce the Study rule: no publication means nickname and description.
+    """Enforce the Study rule: no publication means a nickname is required.
 
     A study without a persistent identifier (#157) still has to be findable by
-    the people entering it, so the schema requires a working name and a
-    description in that case. Checked on the ORM row rather than the payload so
-    it holds for a PATCH as well as a POST -- a patch could blank the
-    publication out from under an otherwise anonymous study.
+    the people entering it, so the schema requires a working name in that case.
+    Checked on the ORM row rather than the payload so it holds for a PATCH as
+    well as a POST -- a patch could blank the publication out from under an
+    otherwise anonymous study.
     """
-    if study.publication:
+    if study.publication or study.nickname:
         return
-    missing = [slot for slot in ("nickname", "description") if not getattr(study, slot)]
-    if missing:
-        raise SchemaRuleViolation(
-            "A study with no publication identifier must have a nickname and a description; "
-            f"missing: {', '.join(missing)}."
+    raise SchemaRuleViolation("A study with no publication identifier must have a nickname.")
+
+
+def _check_nickname_is_free(session: Session, study: Study) -> None:
+    """Answer 409 when another study already goes by this nickname.
+
+    The nickname is what a study is listed under, so two studies sharing one
+    could not be told apart. The ``study_nickname`` unique index backs this up.
+    """
+    if study.nickname is None:
+        return
+    query = session.query(Study).filter(Study.nickname == study.nickname)
+    if study.id is not None:
+        query = query.filter(Study.id != study.id)
+    with session.no_autoflush:
+        taken = query.first() is not None
+    if taken:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That nickname is already used by another study",
         )
 
 
@@ -302,11 +323,12 @@ def _experiment_from_create(session: Session, payload: ExperimentCreate) -> Expe
 def _study_from_create(session: Session, payload: StudyCreate) -> Study:
     study = Study(
         publication=payload.publication,
-        nickname=payload.nickname,
+        nickname=_clean_nickname(payload.nickname),
         description=payload.description,
         lab=payload.lab,
     )
     _check_unpublished_study_is_named(study)
+    _check_nickname_is_free(session, study)
     # association_proxy list assignment should work for annotator
     if payload.annotator is not None:
         study.annotator = payload.annotator
@@ -360,13 +382,14 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Study | 
     # NOTE: This is deliberately a shallow patch for now.
     if patch.publication is not None:
         study.publication = patch.publication
-    if patch.nickname is not None:
-        study.nickname = patch.nickname
+    if _clean_nickname(patch.nickname) is not None:
+        study.nickname = _clean_nickname(patch.nickname)
     if patch.description is not None:
         study.description = patch.description
     if patch.lab is not None:
         study.lab = patch.lab
     _check_unpublished_study_is_named(study)
+    _check_nickname_is_free(session, study)
     if patch.annotator is not None:
         # The annotator_rel relationship doesn't have `cascade="all,
         # delete-orphan"` (generator gap — tracked on the schema repo),
