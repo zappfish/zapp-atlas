@@ -51,7 +51,8 @@ const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
 };
 
 const SubmissionForm = ({ groupId }: { groupId?: number }) => {
-  const [active, setActive] = useState<SectionSlug>("images");
+  // The first section, whatever the order in sections.ts says it is.
+  const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
 
   const jumpTo = useCallback((slug: SectionSlug) => {
     setActive(slug);

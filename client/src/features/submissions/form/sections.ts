@@ -1,7 +1,7 @@
 /** The form's sections, in the order they are filled. */
 export const SECTIONS = [
-  { slug: "images", label: "Images" },
   { slug: "provenance", label: "Provenance" },
+  { slug: "images", label: "Images" },
   { slug: "fish", label: "Fish Information" },
   { slug: "experiment", label: "Experiment Information" },
   { slug: "control", label: "Control" },
