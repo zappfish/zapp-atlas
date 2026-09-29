@@ -243,6 +243,10 @@ def legacy_fish_db(tmp_path):
     only the legacy column is restored (SQLite will not DROP a foreign-key
     column such as ``fish_id``), which still exercises the relink — a real
     legacy database gets ``fish_id`` from the generic column pass first.
+
+    The tank keeps the unique index a deployed database has on it. Its name
+    is the one the rebuilt table needs, so leaving it out would hide the
+    collision the rebuild has to get past.
     """
     path = tmp_path / "zapp.db"
     init_db(create_engine(f"sqlite:///{path}"))
@@ -260,6 +264,8 @@ def legacy_fish_db(tmp_path):
             created_at TIMESTAMP,
             updated_at TIMESTAMP
         );
+        CREATE UNIQUE INDEX "uq_FishTankEntry_tank_grain"
+            ON "FishTankEntry" (research_group, fish_zfin_id);
         ALTER TABLE "Experiment" ADD COLUMN fish_zfin_id TEXT REFERENCES "Fish" (zfin_id);
 
         INSERT INTO "Fish" (name, zfin_id) VALUES ('AB', '{AB_GENO_ID}');

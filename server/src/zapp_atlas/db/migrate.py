@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Engine, inspect, text
+from sqlalchemy import Connection, Engine, inspect, text
 from sqlalchemy.schema import CreateColumn
 
 from zapp_atlas.schema.sqla import Base
@@ -66,6 +66,18 @@ def _add_missing_columns(engine: Engine) -> None:
             with engine.begin() as connection:
                 connection.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN {spec}'))
             log.info("added column %s.%s", table.name, column.name)
+
+
+def _drop_indexes(connection: Connection, table: str) -> None:
+    """Drop a table's named indexes ahead of renaming it aside.
+
+    SQLite index names are database-wide and follow a table through a rename,
+    so a legacy table keeps hold of names its replacement needs
+    (``uq_FishTankEntry_tank_grain``) and the replacement cannot be created.
+    The indexes would go with the legacy table when it is dropped anyway.
+    """
+    for index in inspect(connection).get_indexes(table):
+        connection.execute(text(f'DROP INDEX "{index["name"]}"'))
 
 
 def _rebuild_legacy_fish(engine: Engine) -> None:
@@ -143,6 +155,7 @@ def _rebuild_legacy_fish(engine: Engine) -> None:
                     "cannot carry them. Nothing was changed — this needs a hand fix."
                 )
 
+        _drop_indexes(connection, "Fish")
         connection.execute(text('ALTER TABLE "Fish" RENAME TO "Fish_legacy"'))
         Base.metadata.tables["Fish"].create(connection)
         # The legacy display name is not copied — Fish has no name column any
@@ -169,6 +182,7 @@ def _rebuild_legacy_fish(engine: Engine) -> None:
         # column now means).
         entries = 0
         if rebuild_tank:
+            _drop_indexes(connection, "FishTankEntry")
             connection.execute(text('ALTER TABLE "FishTankEntry" RENAME TO "FishTankEntry_legacy"'))
             Base.metadata.tables["FishTankEntry"].create(connection)
             stamp_cols = "".join(f", {column}" for column in stamps)
