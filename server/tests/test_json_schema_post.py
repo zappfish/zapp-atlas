@@ -13,8 +13,9 @@ import json
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft201909Validator
 
-from zapp_atlas.schema.json_schema_post import hoist_unconditional_then
+from zapp_atlas.schema.json_schema_post import blank_counts_as_absent, hoist_unconditional_then
 
 CLIENT_SCHEMA = Path(__file__).resolve().parents[2] / "client" / "src" / "schema" / "schema.json"
 
@@ -79,10 +80,9 @@ def test_the_unpublished_study_rule_reaches_the_client_as_a_conditional() -> Non
     """A rule *with* a precondition must come through as a real if/then.
 
     ``value_presence: ABSENT`` on ``publication`` is what makes a nickname
-    required for an unpublished study (#157). The generator emits
-    it as ``if: {not: {required: [publication]}}``; the post-processor must
-    leave that pair alone rather than hoisting the ``then`` unconditionally,
-    which would demand a nickname of every study.
+    required for an unpublished study (#157). The post-processor must keep it
+    a conditional rather than hoisting the ``then`` unconditionally, which
+    would demand a nickname of every study.
     """
     study = json.loads(CLIENT_SCHEMA.read_text())["$defs"]["Study"]
 
@@ -90,3 +90,44 @@ def test_the_unpublished_study_rule_reaches_the_client_as_a_conditional() -> Non
     assert study["then"]["required"] == ["nickname"]
     # And the unconditional `required` list still asks for nothing but `id`.
     assert study["required"] == ["id"]
+
+
+def test_only_absence_rules_are_rewritten() -> None:
+    other = {"if": {"required": ["x"]}, "then": {"required": ["y"]}}
+
+    assert blank_counts_as_absent(dict(other)) == other
+
+
+def test_an_absence_rule_leaves_slots_that_are_not_text_alone() -> None:
+    rule = {
+        "properties": {"count": {"type": "integer"}, "name": {"type": ["string", "null"]}},
+        "if": {"not": {"required": ["count"]}},
+        "then": {"required": ["name"]},
+    }
+
+    rewritten = blank_counts_as_absent(rule)
+
+    assert rewritten["if"] == {"not": {"required": ["count"], "properties": {}}}
+    assert set(rewritten["then"]["properties"]) == {"name"}
+
+
+# What the unpublished-study rule makes of a study, as the client's Ajv would
+# see it. The first is `makeEmpty`'s blank form: every text field present as "".
+STUDIES = [
+    ({"publication": "", "nickname": ""}, False),
+    ({"publication": "", "nickname": "   "}, False),
+    ({"publication": None, "nickname": None}, False),
+    ({}, False),
+    ({"publication": "  ", "nickname": "BPA pilot"}, True),
+    ({"nickname": "BPA pilot"}, True),
+    ({"publication": "PMID:123456", "nickname": ""}, True),
+    ({"publication": "PMID:123456"}, True),
+]
+
+
+@pytest.mark.parametrize(("study", "valid"), STUDIES)
+def test_a_blank_publication_counts_as_unpublished_on_the_client(study, valid) -> None:
+    definition = json.loads(CLIENT_SCHEMA.read_text())["$defs"]["Study"]
+    rule = {key: definition[key] for key in ("if", "then")}
+
+    assert Draft201909Validator(rule).is_valid(study) is valid

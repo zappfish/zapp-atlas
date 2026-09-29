@@ -139,10 +139,33 @@ def test_unpublished_study_without_a_nickname_is_rejected():
     assert res.status_code == 422, res.text
     assert "nickname" in res.text
 
-    # A blank nickname is not a way around the rule.
+    # A blank nickname is not a way around the rule ...
     for blank in ("", "   "):
         res = client.post("/api/studies", json={"nickname": blank, "experiment": []})
         assert res.status_code == 422, res.text
+    # ... and neither is a blank publication.
+    for blank in ("", "   "):
+        res = client.post("/api/studies", json={"publication": blank, "experiment": []})
+        assert res.status_code == 422, res.text
+
+
+def test_a_blank_publication_is_stored_as_none():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post("/api/studies", json={**UNPUBLISHED, "publication": "   "})
+    assert res.status_code == 201, res.text
+    assert res.json()["publication"] is None
+
+
+def test_a_study_nickname_has_the_same_length_limit_as_the_others():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post("/api/studies", json={"nickname": "x" * 200, "experiment": []})
+    assert res.status_code == 201, res.text
+    res = client.post("/api/studies", json={"nickname": "x" * 201, "experiment": []})
+    assert res.status_code == 422, res.text
 
 
 def test_a_published_study_may_also_carry_a_nickname():
@@ -279,15 +302,49 @@ def test_reconciling_an_unpublished_study_to_a_pmid_is_a_patch():
     assert res.json()["nickname"] == UNPUBLISHED["nickname"]
 
 
-def test_patch_cannot_leave_an_unpublished_study_anonymous():
-    """The rule is re-checked on PATCH, not just POST."""
+def test_patch_cannot_blank_out_a_publication():
+    """A blank field in a PATCH is left as it is, so a study cannot be stranded."""
     app = _make_test_app()
     client = TestClient(app)
 
     created = client.post(
         "/api/studies", json={"publication": "PMID:123456", "experiment": []}
     ).json()
-    # Blanking the publication on a study with no nickname would strand it.
-    res = client.patch(f"/api/studies/{created['id']}", json={"publication": ""})
+    for blank in ("", "   "):
+        res = client.patch(f"/api/studies/{created['id']}", json={"publication": blank})
+        assert res.status_code == 200, res.text
+        assert res.json()["publication"] == "PMID:123456"
+
+
+def test_the_study_rules_are_checked_on_patch_too(monkeypatch):
+    """A study that reached the database without a name cannot be edited until it has one."""
+    from zapp_atlas.api.services import studies
+
+    app = _make_test_app()
+    client = TestClient(app)
+
+    with monkeypatch.context() as unchecked:
+        unchecked.setattr(studies, "_check_study_rules", lambda session, study: None)
+        stranded = client.post("/api/studies", json={"experiment": []}).json()
+
+    res = client.patch(f"/api/studies/{stranded['id']}", json={"lab": "ZFIN:ZDB-LAB-1-1"})
     assert res.status_code == 422, res.text
-    assert client.get(f"/api/studies/{created['id']}").json()["publication"] == "PMID:123456"
+    res = client.patch(f"/api/studies/{stranded['id']}", json={"nickname": "found again"})
+    assert res.status_code == 200, res.text
+
+
+def test_two_saves_at_the_same_instant_are_a_conflict_not_a_crash(monkeypatch):
+    """With the check out of the way, the database's own refusal reads the same."""
+    from zapp_atlas.api.services import studies
+
+    app = _make_test_app()
+    client = TestClient(app)
+    lab = _make_group(app, "Lab A")
+    monkeypatch.setattr(studies, "_check_nickname_is_free", lambda session, study: None)
+
+    assert (
+        client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab}).status_code == 201
+    )
+    res = client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab})
+    assert res.status_code == 409, res.text
+    assert "nickname" in res.json()["detail"]

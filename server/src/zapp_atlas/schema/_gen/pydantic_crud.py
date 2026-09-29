@@ -565,6 +565,19 @@ class Study(ZappEntity):
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
+
     @field_validator('annotator')
     def pattern_annotator(cls, v):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
@@ -606,6 +619,19 @@ class StudyCreate(ConfiguredBaseModel):
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('annotator')
     def pattern_annotator(cls, v):
@@ -649,6 +675,19 @@ class StudyUpdate(ConfiguredBaseModel):
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
 
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
+
     @field_validator('annotator')
     def pattern_annotator(cls, v):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
@@ -691,6 +730,19 @@ class StudyRead(ReadBaseModel):
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('annotator')
     def pattern_annotator(cls, v):
@@ -2177,6 +2229,19 @@ class ChemicalCabinetEntry(ZappEntity):
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class ChemicalCabinetEntryCreate(ConfiguredBaseModel):
     """
@@ -2190,6 +2255,19 @@ class ChemicalCabinetEntryCreate(ConfiguredBaseModel):
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class ChemicalCabinetEntryUpdate(ConfiguredBaseModel):
@@ -2205,6 +2283,19 @@ class ChemicalCabinetEntryUpdate(ConfiguredBaseModel):
                        'ChemicalCabinetEntry']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
 
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class ChemicalCabinetEntryRead(ReadBaseModel):
     """
@@ -2219,6 +2310,19 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
                        'ChemicalCabinetEntry']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class FishTankEntry(ZappEntity):
@@ -2251,6 +2355,19 @@ class FishTankEntry(ZappEntity):
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class FishTankEntryCreate(ConfiguredBaseModel):
     """
@@ -2262,6 +2379,19 @@ class FishTankEntryCreate(ConfiguredBaseModel):
                        'FishTankEntry']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     fish: FishCreate = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class FishTankEntryUpdate(ConfiguredBaseModel):
@@ -2275,6 +2405,19 @@ class FishTankEntryUpdate(ConfiguredBaseModel):
     nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     fish: Optional[FishCreate] = Field(default=None, description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class FishTankEntryRead(ReadBaseModel):
     """
@@ -2287,6 +2430,19 @@ class FishTankEntryRead(ReadBaseModel):
     nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our casper stock\". Optional; when given it is what the line is listed under when pre-filling a submission, in place of its ZFIN details, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class QuantityValue(ConfiguredBaseModel):

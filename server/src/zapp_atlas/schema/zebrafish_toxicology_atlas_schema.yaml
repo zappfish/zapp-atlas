@@ -491,8 +491,10 @@ slots:
       An informal label a research group gives to something it works with,
       shown in place of its formal name when picking it. Unlike a synonym it
       is not a formally recognised name, and it is unique only within the
-      group that chose it.
+      group that chose it. At most 200 characters.
     range: string
+    # LinkML has no length limit of its own; the pattern is how one is said.
+    pattern: "^.{0,200}$"
   description:
     description: A free-text description of an entity.
     range: string

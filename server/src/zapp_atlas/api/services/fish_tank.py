@@ -16,6 +16,7 @@ from __future__ import annotations
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from zapp_atlas.api.persistence import commit_or_conflict
 from zapp_atlas.api.services.fish import fish_from_create
 from zapp_atlas.schema.pydantic_crud import FishCreate
 from zapp_atlas.schema.sqla import FishTankEntry  # type: ignore
@@ -69,7 +70,9 @@ def add_entry(
         research_group=group_id, nickname=nickname, fish=fish_from_create(payload)
     )
     session.add(entry)
-    session.commit()
+    # The check above catches a taken nickname in normal use; this covers two
+    # saves landing at the same instant, which only the database can see.
+    commit_or_conflict(session, _DUPLICATE)
     session.refresh(entry)
     return entry
 
