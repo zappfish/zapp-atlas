@@ -153,6 +153,25 @@ def _check_escape_hatch(payload: object, choice_slot: str, name_slot: str, noun:
         )
 
 
+def _check_unpublished_study_is_named(study: Study) -> None:
+    """Enforce the Study rule: no publication means nickname and description.
+
+    A study without a persistent identifier (#157) still has to be findable by
+    the people entering it, so the schema requires a working name and a
+    description in that case. Checked on the ORM row rather than the payload so
+    it holds for a PATCH as well as a POST -- a patch could blank the
+    publication out from under an otherwise anonymous study.
+    """
+    if study.publication:
+        return
+    missing = [slot for slot in ("nickname", "description") if not getattr(study, slot)]
+    if missing:
+        raise SchemaRuleViolation(
+            "A study with no publication identifier must have a nickname and a description; "
+            f"missing: {', '.join(missing)}."
+        )
+
+
 def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> StressorChemical:
     if not (payload.chemical_id or getattr(payload, "unrecognized_chemical_name", None)):
         raise SchemaRuleViolation(
@@ -283,8 +302,11 @@ def _experiment_from_create(session: Session, payload: ExperimentCreate) -> Expe
 def _study_from_create(session: Session, payload: StudyCreate) -> Study:
     study = Study(
         publication=payload.publication,
+        nickname=payload.nickname,
+        description=payload.description,
         lab=payload.lab,
     )
+    _check_unpublished_study_is_named(study)
     # association_proxy list assignment should work for annotator
     if payload.annotator is not None:
         study.annotator = payload.annotator
@@ -338,8 +360,13 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Study | 
     # NOTE: This is deliberately a shallow patch for now.
     if patch.publication is not None:
         study.publication = patch.publication
+    if patch.nickname is not None:
+        study.nickname = patch.nickname
+    if patch.description is not None:
+        study.description = patch.description
     if patch.lab is not None:
         study.lab = patch.lab
+    _check_unpublished_study_is_named(study)
     if patch.annotator is not None:
         # The annotator_rel relationship doesn't have `cascade="all,
         # delete-orphan"` (generator gap — tracked on the schema repo),

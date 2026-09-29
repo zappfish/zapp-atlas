@@ -435,10 +435,30 @@ class Study(ZappEntity):
     """
     A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'rules': [{'description': 'A study that has no publication identifier yet '
+                                   'must still be recognisable to the people working '
+                                   'on it, so an unpublished study carries a nickname '
+                                   'and a description instead.',
+                    'postconditions': {'slot_conditions': {'description': {'name': 'description',
+                                                                           'required': True},
+                                                           'nickname': {'name': 'nickname',
+                                                                        'required': True}}},
+                    'preconditions': {'slot_conditions': {'publication': {'name': 'publication',
+                                                                          'value_presence': 'ABSENT'}}}}],
+         'slot_usage': {'description': {'description': 'A free-text summary of what '
+                                                       'the study set out to do.',
+                                        'name': 'description'},
+                        'nickname': {'description': 'A short working name for the '
+                                                    'study, used to refer to it before '
+                                                    '(or instead of) a persistent '
+                                                    'publication identifier exists.',
+                                     'name': 'nickname'}}})
 
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname and description identify it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, used to refer to it before (or instead of) a persistent publication identifier exists.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })

@@ -153,6 +153,49 @@ def test_migrate_is_idempotent(legacy_db) -> None:
         )
 
 
+# Columns the study nickname change (#113, #157) introduced. Both optional, so
+# the generic column step covers them and nothing new is needed in migrate.py --
+# this holds that in place.
+STUDY_NICKNAME_ADDED = [
+    ("Study", "nickname"),
+    ("Study", "description"),
+]
+
+
+@pytest.fixture
+def pre_nickname_db(tmp_path):
+    """A database created before study nicknames existed, holding a published study."""
+    path = tmp_path / "zapp.db"
+    init_db(create_engine(f"sqlite:///{path}"))
+
+    con = sqlite3.connect(path)
+    for table, column in STUDY_NICKNAME_ADDED:
+        con.execute(f'ALTER TABLE "{table}" DROP COLUMN "{column}"')
+    con.execute("INSERT INTO Study (id, publication) VALUES (1, 'PMID:22194820')")
+    con.commit()
+    con.close()
+    return path
+
+
+def test_migrate_adds_the_study_nickname_columns(pre_nickname_db) -> None:
+    from sqlalchemy.orm import sessionmaker
+
+    from zapp_atlas.schema.sqla import Study
+
+    engine = create_engine(f"sqlite:///{pre_nickname_db}")
+
+    migrate(engine)
+
+    for table, column in STUDY_NICKNAME_ADDED:
+        assert column in {c["name"] for c in inspect(engine).get_columns(table)}
+    with sessionmaker(bind=engine)() as session:
+        study = session.get(Study, 1)
+        assert study.publication == "PMID:22194820"
+        # Existing rows are published and simply have no nickname yet.
+        assert study.nickname is None
+        assert study.description is None
+
+
 def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:
     engine = create_engine(f"sqlite:///{tmp_path / 'fresh.db'}")
     init_db(engine)  # already runs migrate once

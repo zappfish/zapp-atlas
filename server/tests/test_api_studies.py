@@ -95,3 +95,104 @@ def test_study_patch_updates_top_level_fields():
     assert patch_res.status_code == 200, patch_res.text
     patched = patch_res.json()
     assert patched["publication"] == "PMID:654321"
+
+
+# --------------------------------------------------------------------------- #
+# Unpublished studies (#157): no PMID/DOI yet, identified by nickname
+# --------------------------------------------------------------------------- #
+
+UNPUBLISHED = {
+    "nickname": "BPA dose-response pilot",
+    "description": "Pilot exposure of AB embryos to a BPA dilution series, 6-96 hpf.",
+    "lab": "ZFIN:ZDB-LAB-1-1",
+    "experiment": [],
+}
+
+
+def test_unpublished_study_needs_only_nickname_and_description():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post("/api/studies", json=UNPUBLISHED)
+    assert res.status_code == 201, res.text
+    created = res.json()
+    assert created["publication"] is None
+    assert created["nickname"] == UNPUBLISHED["nickname"]
+    assert created["description"] == UNPUBLISHED["description"]
+
+    got = client.get(f"/api/studies/{created['id']}").json()
+    assert got["nickname"] == UNPUBLISHED["nickname"]
+    assert got["description"] == UNPUBLISHED["description"]
+
+
+def test_unpublished_study_without_a_nickname_is_rejected():
+    """The schema rule: no publication means nickname and description are required."""
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post("/api/studies", json={"description": "no handle at all", "experiment": []})
+    assert res.status_code == 422, res.text
+    assert "nickname" in res.text
+
+    res = client.post("/api/studies", json={"nickname": "no description", "experiment": []})
+    assert res.status_code == 422, res.text
+    assert "description" in res.text
+
+    # Empty strings are not a way around the rule.
+    res = client.post("/api/studies", json={"nickname": "", "description": "", "experiment": []})
+    assert res.status_code == 422, res.text
+
+
+def test_a_published_study_may_also_carry_a_nickname():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    res = client.post(
+        "/api/studies",
+        json={"publication": "PMID:123456", "nickname": "the 2012 BPA paper", "experiment": []},
+    )
+    assert res.status_code == 201, res.text
+    assert res.json()["nickname"] == "the 2012 BPA paper"
+    # ... and the rule does not bite once a publication is present.
+    assert res.json()["description"] is None
+
+
+def test_study_patch_renames_a_study():
+    app = _make_test_app()
+    client = TestClient(app)
+
+    created = client.post("/api/studies", json=UNPUBLISHED).json()
+    res = client.patch(
+        f"/api/studies/{created['id']}",
+        json={"nickname": "BPA pilot, round 2", "description": "Repeat with a wider series."},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["nickname"] == "BPA pilot, round 2"
+    assert res.json()["description"] == "Repeat with a wider series."
+
+
+def test_reconciling_an_unpublished_study_to_a_pmid_is_a_patch():
+    """The transition #157 describes: the temp handle gives way to a PMID."""
+    app = _make_test_app()
+    client = TestClient(app)
+
+    created = client.post("/api/studies", json=UNPUBLISHED).json()
+    res = client.patch(f"/api/studies/{created['id']}", json={"publication": "PMID:99999"})
+    assert res.status_code == 200, res.text
+    assert res.json()["publication"] == "PMID:99999"
+    # The nickname survives reconciliation: it is still how the lab refers to it.
+    assert res.json()["nickname"] == UNPUBLISHED["nickname"]
+
+
+def test_patch_cannot_leave_an_unpublished_study_anonymous():
+    """The rule is re-checked on PATCH, not just POST."""
+    app = _make_test_app()
+    client = TestClient(app)
+
+    created = client.post(
+        "/api/studies", json={"publication": "PMID:123456", "experiment": []}
+    ).json()
+    # Blanking the publication on a study with no nickname would strand it.
+    res = client.patch(f"/api/studies/{created['id']}", json={"publication": ""})
+    assert res.status_code == 422, res.text
+    assert client.get(f"/api/studies/{created['id']}").json()["publication"] == "PMID:123456"

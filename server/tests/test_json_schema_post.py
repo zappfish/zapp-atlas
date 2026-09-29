@@ -73,3 +73,20 @@ def test_the_stressor_identity_rule_survives_as_a_real_constraint() -> None:
 
     assert {"chemical_id"} in alternatives
     assert {"unrecognized_chemical_name"} in alternatives
+
+
+def test_the_unpublished_study_rule_reaches_the_client_as_a_conditional() -> None:
+    """A rule *with* a precondition must come through as a real if/then.
+
+    ``value_presence: ABSENT`` on ``publication`` is what makes nickname and
+    description required for an unpublished study (#157). The generator emits
+    it as ``if: {not: {required: [publication]}}``; the post-processor must
+    leave that pair alone rather than hoisting the ``then`` unconditionally,
+    which would demand a nickname of every study.
+    """
+    study = json.loads(CLIENT_SCHEMA.read_text())["$defs"]["Study"]
+
+    assert study["if"]["not"]["required"] == ["publication"]
+    assert set(study["then"]["required"]) == {"nickname", "description"}
+    # And the unconditional `required` list still asks for nothing but `id`.
+    assert study["required"] == ["id"]

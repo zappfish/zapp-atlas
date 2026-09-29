@@ -58,8 +58,32 @@ classes:
     slots:
       - experiment
       - publication
+      - nickname
+      - description
       - annotator
       - lab
+    slot_usage:
+      nickname:
+        description: >-
+          A short working name for the study, used to refer to it before (or
+          instead of) a persistent publication identifier exists.
+      description:
+        description: A free-text summary of what the study set out to do.
+    rules:
+      - description: >-
+          A study that has no publication identifier yet must still be
+          recognisable to the people working on it, so an unpublished study
+          carries a nickname and a description instead.
+        preconditions:
+          slot_conditions:
+            publication:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            nickname:
+              required: true
+            description:
+              required: true
 
   Experiment:
     is_a: ZappEntity
@@ -367,7 +391,19 @@ slots:
       limited to what is visible in the imaged region.
     range: ImageScopeEnum
   publication:
-    description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
+    description: >-
+      The persistent publication identifier (e.g., PMID, DOI) for the study.
+      Absent while the study is unpublished, in which case its nickname and
+      description identify it instead.
+    range: string
+  nickname:
+    description: >-
+      An informal label chosen by the people who work with something. Unlike
+      a synonym it is not a formally recognised name, and it is scoped to
+      whoever assigned it rather than shared globally.
+    range: string
+  description:
+    description: A free-text description of an entity.
     range: string
   synonym:
     description: Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.
