@@ -13,6 +13,9 @@ from sqlalchemy.orm import Session
 from zapp_atlas.api.persistence import commit_or_conflict
 from zapp_atlas.schema.sqla import ChemicalCabinetEntry
 
+_CHEMICAL_TAKEN = "That chemical is already in this cabinet"
+_NICKNAME_TAKEN = "That nickname is already used in this cabinet"
+
 
 def list_entries(
     session: Session, group_id: int, *, limit: int = 50, offset: int = 0
@@ -51,10 +54,11 @@ def _check_nickname_is_free(
     if entry_id is not None:
         query = query.filter(ChemicalCabinetEntry.id != entry_id)
     if query.first() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="That nickname is already used in this cabinet",
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_NICKNAME_TAKEN)
+
+
+def _commit(session: Session) -> None:
+    commit_or_conflict(session, _CHEMICAL_TAKEN, named={"nickname": _NICKNAME_TAKEN})
 
 
 def add_entry(
@@ -65,7 +69,7 @@ def add_entry(
         research_group=group_id, chemical_id=chemical_id, nickname=nickname
     )
     session.add(entry)
-    commit_or_conflict(session, "That chemical is already in this cabinet")
+    _commit(session)
     session.refresh(entry)
     return entry
 
@@ -81,12 +85,14 @@ def update_entry(
     entry = get_entry(session, group_id, entry_id)
     if entry is None:
         return None
+    # Checked before anything is changed: the check reads from the database,
+    # which would first write out a half-made change to the entry.
+    _check_nickname_is_free(session, group_id, nickname, entry_id=entry.id)
     if chemical_id is not None:
         entry.chemical_id = chemical_id
     if nickname is not None:
-        _check_nickname_is_free(session, group_id, nickname, entry_id=entry.id)
         entry.nickname = nickname
-    commit_or_conflict(session, "That chemical is already in this cabinet")
+    _commit(session)
     session.refresh(entry)
     return entry
 

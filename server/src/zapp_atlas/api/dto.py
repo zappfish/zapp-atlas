@@ -64,18 +64,20 @@ class MemberOut(_FromAttributes):
     updated_at: datetime | None
 
 
-def clean_nickname(value: object) -> object:
-    """Trim a nickname; one that is blank is no nickname at all."""
+def blank_to_none(value: object) -> object:
+    """Trim a piece of text; text that is blank is no text at all."""
     if isinstance(value, str):
         return value.strip() or None
     return value
 
 
 # A group's own name for something it works with. Optional wherever it appears,
-# and unique within the group when given.
+# and unique within the group when given. The length limit matches the
+# ``nickname`` slot's pattern in the schema, which is what the generated models
+# and the client enforce; a test holds the two together.
 Nickname = Annotated[
     Annotated[str, StringConstraints(max_length=200)] | None,
-    BeforeValidator(clean_nickname),
+    BeforeValidator(blank_to_none),
 ]
 
 

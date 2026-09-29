@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy import Engine, inspect, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import CreateColumn
 
 from zapp_atlas.schema.sqla import Base
@@ -74,9 +75,13 @@ def _add_missing_unique_indexes(engine: Engine) -> None:
     ``create_all`` skips a table that already exists, indexes and all, so a
     ``unique_keys`` entry added to an existing class never reaches a deployed
     database on its own. Runs after the column pass, since a new key may sit on
-    a new column. If the rows already there break the key, the database says so
-    and nothing is created -- that needs a hand-written fix, not a guess about
-    which row to keep.
+    a new column.
+
+    If the rows already there break a key, that index is skipped and the
+    problem is logged: the app still starts, and the duplicates need a
+    hand-written fix rather than a guess about which row to keep. Indexes are
+    matched by name only, so a key whose slots change needs a new name to
+    reach a database that already has the old one.
     """
     inspector = inspect(engine)
     present_tables = set(inspector.get_table_names())
@@ -88,8 +93,16 @@ def _add_missing_unique_indexes(engine: Engine) -> None:
         for index in table.indexes:
             if not index.unique or index.name in existing:
                 continue
-            with engine.begin() as connection:
-                index.create(connection)
+            try:
+                with engine.begin() as connection:
+                    index.create(connection)
+            except IntegrityError:
+                log.error(
+                    "could not add unique index %s: rows already in %s break it",
+                    index.name,
+                    table.name,
+                )
+                continue
             log.info("added unique index %s on %s", index.name, table.name)
 
 

@@ -298,6 +298,41 @@ def test_cabinet_patch_sets_and_changes_the_nickname(client: TestClient) -> None
     assert client.get(f"{url}/{bpa_id}").json()["nickname"] == "BPA stock"
 
 
+def test_cabinet_patch_that_breaks_both_keys_is_a_conflict(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    client.post(url, json={"chemical_id": ETHANOL, "nickname": "solvent"})
+    bpa_id = client.post(url, json={"chemical_id": BPA}).json()["id"]
+
+    # A chemical that is already there, with a nickname of its own.
+    res = client.patch(f"{url}/{bpa_id}", json={"chemical_id": ETHANOL, "nickname": "fresh"})
+    assert res.status_code == 409, res.text
+    assert "chemical" in res.json()["detail"]
+    # The entry is as it was, and the cabinet still answers.
+    entry = client.get(f"{url}/{bpa_id}").json()
+    assert entry["chemical_id"] == BPA
+    assert entry["nickname"] is None
+
+
+def test_cabinet_conflict_names_the_key_that_was_broken(client: TestClient, monkeypatch) -> None:
+    """With the check out of the way, the database's refusal still blames the nickname."""
+    from zapp_atlas.api.services import cabinet
+
+    monkeypatch.setattr(cabinet, "_check_nickname_is_free", lambda *args, **kwargs: None)
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    assert client.post(url, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+    res = client.post(url, json={"chemical_id": ETHANOL, "nickname": "stock"})
+    assert res.status_code == 409, res.text
+    assert "nickname" in res.json()["detail"]
+    res = client.post(url, json={"chemical_id": BPA})
+    assert res.status_code == 409, res.text
+    assert "chemical" in res.json()["detail"]
+
+
 def test_cabinet_delete(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)

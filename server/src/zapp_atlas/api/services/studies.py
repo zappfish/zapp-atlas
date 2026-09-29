@@ -11,8 +11,9 @@ import logging
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.dto import clean_nickname
+from zapp_atlas.api.dto import blank_to_none
 from zapp_atlas.api.errors import SchemaRuleViolation
+from zapp_atlas.api.persistence import commit_or_conflict
 from zapp_atlas.schema.pydantic_crud import (
     ControlCreate,
     ExperimentCreate,
@@ -170,6 +171,9 @@ def _check_unpublished_study_is_named(study: Study) -> None:
     raise SchemaRuleViolation("A study with no publication identifier must have a nickname.")
 
 
+_NICKNAME_TAKEN = "That nickname is already used by another study in this research group"
+
+
 def _check_research_group_exists(session: Session, study: Study) -> None:
     if study.research_group is None:
         return
@@ -186,9 +190,13 @@ def _check_nickname_is_free(session: Session, study: Study) -> None:
 
     The nickname is what a study is listed under, so two of a group's studies
     sharing one could not be told apart; two groups may use the same one. The
-    ``study_nickname_grain`` unique index backs this up. Studies that belong
-    to no group are held to the rule among themselves -- the index cannot do
-    that, since it never treats two absent groups as equal.
+    ``study_nickname_grain`` unique index backs this up for studies in a group.
+
+    Studies that belong to no group are held to the rule among themselves, by
+    this check alone: the index never treats two absent groups as equal, so
+    two such studies saved at the same instant could both get through. That is
+    accepted rather than indexed around, because a study without a group is a
+    stopgap until submissions always carry one.
     """
     if study.nickname is None:
         return
@@ -205,8 +213,29 @@ def _check_nickname_is_free(session: Session, study: Study) -> None:
     if taken:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="That nickname is already used by another study in this research group",
+            detail=_NICKNAME_TAKEN,
         )
+
+
+def _check_study_rules(session: Session, study: Study) -> None:
+    """Everything a study must satisfy before it is saved, create or patch.
+
+    Run on the study as it is about to be stored. None of these write to the
+    database, so a study that fails leaves nothing behind.
+    """
+    _check_research_group_exists(session, study)
+    _check_unpublished_study_is_named(study)
+    _check_nickname_is_free(session, study)
+
+
+def _commit(session: Session) -> None:
+    # The checks above catch a taken nickname in normal use; this covers two
+    # saves landing at the same instant, which only the database can see.
+    commit_or_conflict(
+        session,
+        "That study conflicts with one that is already saved",
+        named={"nickname": _NICKNAME_TAKEN},
+    )
 
 
 def _stressor_from_create(session: Session, payload: StressorChemicalCreate) -> StressorChemical:
@@ -339,14 +368,12 @@ def _experiment_from_create(session: Session, payload: ExperimentCreate) -> Expe
 def _study_from_create(session: Session, payload: StudyCreate) -> Study:
     study = Study(
         research_group=payload.research_group,
-        publication=payload.publication,
-        nickname=clean_nickname(payload.nickname),
+        publication=blank_to_none(payload.publication),
+        nickname=blank_to_none(payload.nickname),
         description=payload.description,
         lab=payload.lab,
     )
-    _check_research_group_exists(session, study)
-    _check_unpublished_study_is_named(study)
-    _check_nickname_is_free(session, study)
+    _check_study_rules(session, study)
     # association_proxy list assignment should work for annotator
     if payload.annotator is not None:
         study.annotator = payload.annotator
@@ -358,7 +385,7 @@ def _study_from_create(session: Session, payload: StudyCreate) -> Study:
 def create_study(session: Session, payload: StudyCreate) -> Study:
     study = _study_from_create(session, payload)
     session.add(study)
-    session.commit()
+    _commit(session)
     session.refresh(study)
     return study
 
@@ -397,20 +424,21 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Study | 
     if study is None:
         return None
 
-    # NOTE: This is deliberately a shallow patch for now.
-    if patch.publication is not None:
-        study.publication = patch.publication
+    # NOTE: This is deliberately a shallow patch for now. A field left out, or
+    # sent blank, is left as it is.
+    publication = blank_to_none(patch.publication)
+    nickname = blank_to_none(patch.nickname)
+    if publication is not None:
+        study.publication = publication
     if patch.research_group is not None:
         study.research_group = patch.research_group
-    if clean_nickname(patch.nickname) is not None:
-        study.nickname = clean_nickname(patch.nickname)
+    if nickname is not None:
+        study.nickname = nickname
     if patch.description is not None:
         study.description = patch.description
     if patch.lab is not None:
         study.lab = patch.lab
-    _check_research_group_exists(session, study)
-    _check_unpublished_study_is_named(study)
-    _check_nickname_is_free(session, study)
+    _check_study_rules(session, study)
     if patch.annotator is not None:
         # The annotator_rel relationship doesn't have `cascade="all,
         # delete-orphan"` (generator gap — tracked on the schema repo),
@@ -425,6 +453,6 @@ def patch_study(session: Session, study_id: int, patch: StudyUpdate) -> Study | 
         for a in patch.annotator:
             study.annotator.append(a)
 
-    session.commit()
+    _commit(session)
     session.refresh(study)
     return study

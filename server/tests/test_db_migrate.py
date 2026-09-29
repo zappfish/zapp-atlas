@@ -239,6 +239,30 @@ def test_migrate_makes_nicknames_unique_within_a_group(pre_nickname_db) -> None:
         connection.execute(text(named), {"id": 2})
 
 
+def test_rows_that_break_a_new_key_are_reported_and_the_app_still_starts(
+    pre_nickname_db, caplog
+) -> None:
+    engine = create_engine(f"sqlite:///{pre_nickname_db}")
+    migrate(engine)  # adds the columns and both indexes
+    name = NICKNAME_INDEXES["ChemicalCabinetEntry"]
+    with engine.begin() as connection:
+        connection.execute(text(f'DROP INDEX "{name}"'))
+        connection.execute(text("UPDATE ChemicalCabinetEntry SET nickname = 'stock'"))
+        connection.execute(
+            text(
+                "INSERT INTO ChemicalCabinetEntry (research_group, chemical_id, nickname) "
+                "VALUES (1, 'CHEBI:33216', 'stock')"
+            )
+        )
+
+    migrate(engine)
+
+    assert name in caplog.text
+    assert name not in {i["name"] for i in inspect(engine).get_indexes("ChemicalCabinetEntry")}
+    # The key that could be added still was.
+    assert NICKNAME_INDEXES["Study"] in {i["name"] for i in inspect(engine).get_indexes("Study")}
+
+
 def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:
     engine = create_engine(f"sqlite:///{tmp_path / 'fresh.db'}")
     init_db(engine)  # already runs migrate once

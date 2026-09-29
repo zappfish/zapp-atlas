@@ -15,6 +15,7 @@
         },
         "nickname": {
           "description": "What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.",
+          "pattern": "^.{0,200}$",
           "type": [
             "string",
             "null"
@@ -878,10 +879,13 @@
         "not": {
           "required": [
             "publication"
-          ]
-        },
-        "properties": {
-          "publication": {}
+          ],
+          "properties": {
+            "publication": {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          }
         }
       },
       "properties": {
@@ -927,6 +931,7 @@
         },
         "nickname": {
           "description": "A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.",
+          "pattern": "^.{0,200}$",
           "type": [
             "string",
             "null"
@@ -952,7 +957,10 @@
       ],
       "then": {
         "properties": {
-          "nickname": {}
+          "nickname": {
+            "type": "string",
+            "pattern": "\\S"
+          }
         },
         "required": [
           "nickname"
