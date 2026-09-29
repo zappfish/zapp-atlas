@@ -2,27 +2,27 @@
 GENERATED FILE. DO NOT EDIT.
 */
 
-export type ZappEntityId = string;
+export type ZappEntityId = number;
 export type ZfinEntityZfinId = string;
-export type StudyId = string;
-export type ExperimentId = string;
-export type PhenotypeObservationSetId = string;
-export type PhenotypeId = string;
-export type ControlId = string;
-export type ExposureEventId = string;
-export type RegimenId = string;
-export type StressorChemicalId = string;
-export type VehicleOfTransmissionId = string;
-export type ImageId = string;
-export type ControlImageId = string;
+export type StudyId = number;
+export type ExperimentId = number;
+export type PhenotypeObservationSetId = number;
+export type PhenotypeId = number;
+export type ControlId = number;
+export type ExposureEventId = number;
+export type RegimenId = number;
+export type StressorChemicalId = number;
+export type VehicleOfTransmissionId = number;
+export type ImageId = number;
+export type ControlImageId = number;
 export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishZfinId = string;
-export type ResearchGroupId = string;
-export type ResearchGroupMemberId = string;
-export type ChemicalCabinetEntryId = string;
-export type FishTankEntryId = string;
+export type ResearchGroupId = number;
+export type ResearchGroupMemberId = number;
+export type ChemicalCabinetEntryId = number;
+export type FishTankEntryId = number;
 /**
 * An enumeration of vehicles used to deliver stressors in exposure events.
 */
