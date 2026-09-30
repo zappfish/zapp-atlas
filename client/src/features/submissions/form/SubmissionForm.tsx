@@ -21,6 +21,7 @@ import ControlSection from "./sections/ControlSection";
 import ExperimentSection from "./sections/ExperimentSection";
 import FishSection from "./sections/FishSection";
 import ImagesSection from "./sections/ImagesSection";
+import PhenotypeSection from "./sections/PhenotypeSection";
 import ProvenanceSection from "./sections/ProvenanceSection";
 import {
   SECTIONS,
@@ -132,6 +133,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             {slug === "fish" && <FishSection />}
             {slug === "experiment" && <ExperimentSection />}
             {slug === "control" && <ControlSection />}
+            {slug === "phenotype" && <PhenotypeSection />}
           </FormSection>
         ))}
 
