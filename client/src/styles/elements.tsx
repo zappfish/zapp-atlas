@@ -172,7 +172,6 @@ export const Nav = styled("aside", "form-nav");
 export const NavHeading = styled("h2", "form-nav__heading");
 export const NavList = styled("ol", "form-nav__list");
 export const NavLabel = styled("span", "form-nav__label");
-export const NavLegend = styled("ul", "form-nav__legend");
 
 const NavItemButton = styled("button", "form-nav__item");
 
@@ -228,7 +227,8 @@ export const TextArea = styled("textarea", "field__input field__input--area");
 export const SelectInput = styled("select", "field__input field__input--select");
 export const FieldGrid = styled("div", "field-grid");
 /** A field grid held to two columns, for a section with a tall field in it. */
-export const FieldPairs = styled("div", "field-grid field-grid--pairs");
+/** A field that takes the whole row. */
+export const WideField = styled("div", "field field--wide");
 export const FieldNote = styled("p", "field__note");
 
 
@@ -250,8 +250,8 @@ export const EntryCaret = ({
 );
 /** What a folded group holds, so it can be told from its neighbours. */
 export const GroupSummaryText = styled("p", "form-entry__summary");
-export const EntryBody = styled("div", "form-entry__body");
-export const EntryMeta = styled("div", "form-entry__meta");
+export const EntryBody = styled("div", "image-entry");
+export const EntryMeta = styled("div", "image-entry__meta");
 export const EntryFooter = styled("div", "form-entry__footer");
 export const AddRow = styled("div", "form-add");
 /** An add button that belongs to the group above it, not to the section. */
@@ -273,13 +273,10 @@ export const UploadHint = styled("p", "upload__hint");
 export const UploadLimits = styled("p", "upload__limits");
 export const PreviewActions = styled("div", "upload__preview-actions");
 
-export const MeasureRow = styled("div", "measure");
-export const MeasureInput = styled("div", "measure__input");
-export const MeasureSuffix = styled("span", "measure__suffix");
-/** A value beside the unit it is measured in, together in one column. */
-export const ValueAndUnit = styled("div", "value-unit");
+export const MeasureInput = styled("div", "field__suffix-box");
+export const MeasureSuffix = styled("span", "field__suffix");
 /** A field that takes the whole row: radios, or a box that follows them. */
-export const FullRow = styled("div", "field-row");
+
 export const RadioGroup = styled("div", "radio-group");
 export const RadioLabel = styled("label", "radio-group__option");
 export const NotesToggle = styled("button", "notes-toggle");

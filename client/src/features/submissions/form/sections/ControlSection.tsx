@@ -9,8 +9,7 @@ import {
   EntryMeta,
   EntryRemove,
   EntryTitle,
-  FieldPairs,
-  FullRow,
+  FieldGrid,
   EntryCaret,
   GroupSummaryText,
   GroupToggle,
@@ -119,9 +118,8 @@ const Control = ({
 
       {isOpen && (
         <>
-          <FieldPairs>
-            <FullRow>
-              <Field label="Control type" labels="value">
+          <FieldGrid>
+              <Field wide label="Control type" labels="value">
                 {(_id, labelId) => (
                   <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                     {TYPES.map((option) => (
@@ -138,7 +136,6 @@ const Control = ({
                   </RadioGroup>
                 )}
               </Field>
-            </FullRow>
 
             <Field label="Vehicle used">
               {(id) => (
@@ -170,8 +167,7 @@ const Control = ({
               {(id) => <TextInput id={id} />}
             </Field>
 
-            <FullRow>
-              <Field label="Rearing conditions" labels="value">
+              <Field wide label="Rearing conditions" labels="value">
                 {(_id, labelId) => (
                   <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                     {REARING.map((option) => (
@@ -190,22 +186,17 @@ const Control = ({
               </Field>
 
               {rearing === "Not standard" && (
-                <Field label="Describe">
+                <Field wide label="Describe">
                   {(id) => <TextArea id={id} rows={3} />}
                 </Field>
               )}
-            </FullRow>
 
-            <FullRow>
-              <Field label="Phenotype description">
+              <Field wide label="Phenotype description">
                 {(id) => <TextArea id={id} rows={3} />}
               </Field>
-            </FullRow>
 
-            <FullRow>
-              <Field label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
-            </FullRow>
-          </FieldPairs>
+              <Field wide label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
+          </FieldGrid>
 
           <EntryTitle>Control images (optional)</EntryTitle>
 

@@ -7,8 +7,7 @@ import {
   EntryHead,
   EntryRemove,
   EntryTitle,
-  FieldPairs,
-  FullRow,
+  FieldGrid,
   Notes,
   NotesRemove,
   NotesToggle,
@@ -17,7 +16,6 @@ import {
   SelectInput,
   TextArea,
   TextInput,
-  ValueAndUnit,
 } from "@/styles/elements";
 import Field from "../Field";
 
@@ -57,20 +55,20 @@ const UnitField = ({
   units: string[];
   placeholder?: string;
 }) => (
-  <ValueAndUnit>
+  <>
     <Field label={label}>
       {(id) => <TextInput id={id} placeholder={placeholder} />}
     </Field>
     <Field label="Unit">
       {(id) => (
-        <SelectInput id={id} defaultValue={units[0]}>
+        <SelectInput id={id} defaultValue={units[0]} className="field__input--short">
           {units.map((unit) => (
             <option key={unit}>{unit}</option>
           ))}
         </SelectInput>
       )}
     </Field>
-  </ValueAndUnit>
+  </>
 );
 
 /** One exposure: what the fish met, by what route, and for how long. */
@@ -111,7 +109,7 @@ const ExposureEvent = ({
         )}
       </EntryHead>
 
-      <FieldPairs>
+      <FieldGrid>
         <Field label="Substance" required>
           {(id) => <TextInput id={id} placeholder="Substance label" />}
         </Field>
@@ -168,8 +166,7 @@ const ExposureEvent = ({
           )}
         </Field>
 
-        <FullRow>
-          <Field label="Exposure route" required labels="value">
+          <Field wide label="Exposure route" required labels="value">
             {(_id, labelId) => (
               <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                 {ROUTES.map((option) => (
@@ -187,7 +184,7 @@ const ExposureEvent = ({
             )}
           </Field>
 
-          <Field label="Exposure regimen" labels="value">
+          <Field wide label="Exposure regimen" labels="value">
             {(_id, labelId) => (
               <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                 {regimens(route).map((option) => (
@@ -204,15 +201,13 @@ const ExposureEvent = ({
               </RadioGroup>
             )}
           </Field>
-        </FullRow>
 
         {sustained && (
           <UnitField label="Exposure duration" units={DURATION_UNITS} />
         )}
 
         {sustained && (
-          <FullRow>
-            <Field label="Exposure pattern" labels="value">
+            <Field wide label="Exposure pattern" labels="value">
               {(_id, labelId) => (
                 <RadioGroup role="group" aria-labelledby={labelId}>
                   {PATTERNS.map((pattern) => (
@@ -224,7 +219,6 @@ const ExposureEvent = ({
                 </RadioGroup>
               )}
             </Field>
-          </FullRow>
         )}
 
         {repeated && (
@@ -240,7 +234,7 @@ const ExposureEvent = ({
 
         <UnitField label="Start stage value" units={STAGE_UNITS} />
         <UnitField label="End stage value" units={STAGE_UNITS} />
-      </FieldPairs>
+      </FieldGrid>
 
       <EntryFooter>
         {notesOpen ? (

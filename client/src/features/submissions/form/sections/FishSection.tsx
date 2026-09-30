@@ -2,8 +2,7 @@ import { useCallback, useId, useState } from "react";
 import {
   EntryCard,
   EntryFooter,
-  FieldPairs,
-  FullRow,
+  FieldGrid,
   Notes,
   NotesRemove,
   NotesToggle,
@@ -28,7 +27,7 @@ const FishSection = () => {
 
   return (
     <EntryCard>
-      <FieldPairs>
+      <FieldGrid>
         <Field label="Select existing fish">
           {(id) => <TextInput id={id} placeholder="Fish name or ZFIN ID" />}
         </Field>
@@ -50,10 +49,9 @@ const FishSection = () => {
           )}
         </Field>
 
-        <FullRow>
           {/* A group of radios has no one control to point `for` at, so the
               label is a span and the group is named by it. */}
-          <Field label="Fish rearing conditions" labels="value">
+          <Field wide label="Fish rearing conditions" labels="value">
             {(_id, labelId) => (
               <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                 {REARING.map((option) => (
@@ -73,12 +71,11 @@ const FishSection = () => {
           </Field>
 
           {rearing === "Non-standard" && (
-            <Field label="Describe the conditions" required>
+            <Field wide label="Describe the conditions" required>
               {(id) => <TextArea id={id} rows={3} />}
             </Field>
           )}
-        </FullRow>
-      </FieldPairs>
+      </FieldGrid>
 
       <EntryFooter>
         {notesOpen ? (

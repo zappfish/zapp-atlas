@@ -16,6 +16,7 @@ const Field = ({
   required = false,
   hint,
   labels = "control",
+  wide = false,
   children,
 }: {
   label: string;
@@ -27,6 +28,8 @@ const Field = ({
    * displayed value is labelled by aria-labelledby from the other direction.
    */
   labels?: "control" | "value";
+  /** Takes the whole row: a long answer, or options that need the width. */
+  wide?: boolean;
   /** `labelId` is for a displayed value, which is labelled by aria-labelledby. */
   children: (id: string, labelId: string) => ReactNode;
 }) => {
@@ -34,7 +37,7 @@ const Field = ({
   const labelId = `${id}-label`;
 
   return (
-    <FieldBox>
+    <FieldBox className={wide ? "field--wide" : undefined}>
       {labels === "control" ? (
         <FieldLabel id={labelId} htmlFor={id}>
           {label}

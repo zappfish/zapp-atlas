@@ -15,7 +15,6 @@ import {
   FieldBox,
   FieldLabel,
   MeasureInput,
-  MeasureRow,
   MeasureSuffix,
   PreviewActions,
   PreviewImage,
@@ -46,7 +45,7 @@ export const Measure = ({
   const [unit, setUnit] = useState("");
 
   return (
-    <MeasureRow>
+    <>
       <Field label={label}>
         {(id) => (
           <MeasureInput>
@@ -82,7 +81,7 @@ export const Measure = ({
           </RadioGroup>
         </FieldBox>
       )}
-    </MeasureRow>
+    </>
   );
 };
 

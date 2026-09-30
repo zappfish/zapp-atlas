@@ -1,27 +1,23 @@
 /*
- * The submission form: a section list beside the sections themselves.
- * Tokens come from the server's base.css.
+ * The submission form. Tokens come from the server's base.css.
  *
- * Spacing is the --s1..--s4 scale below; gaps and padding are steps on it.
+ * Spacing is the --s1..--s4 scale. A field is one height whatever its control,
+ * set here rather than on the control.
  */
 
 :root {
-  --s1: 0.25rem; /* within a control */
-  --s2: 0.5rem;  /* label to control */
-  --s3: 1rem;    /* field to field, and inside a card */
+  --s1: 0.25rem; /* label to control */
+  --s2: 0.5rem;  /* within a group */
+  --s3: 1rem;    /* field to field, and a card's own padding */
   --s4: 2rem;    /* section to section */
 
   --text-subtext: 0.75rem; /* hints and notes under a control */
-
-  /* Quiet at rest so a card of fields does not read as a grid of boxes; the
-     teal focus ring is then the only strong edge on the page. */
   --field-border: #c9d2d8;
-
   --field-height: 2.625rem; /* 42px */
-  /* Roughly a column of the three-up grid: past this a text box is harder to
-     read, not easier, however much room the row has. */
-  --field-width: 24rem;
+  --field-block: 5.25rem; /* label, control, subtext */
 }
+
+/* ---- Page --------------------------------------------------------------- */
 
 .form-layout {
   display: flex;
@@ -31,7 +27,35 @@
   background: var(--surface-sunken);
 }
 
-/* ---- Section list ---- */
+.form-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.form-intro { display: flex; flex-direction: column; gap: var(--s3); }
+/* The breadcrumb's own margin would double the column gap. */
+.form-main .crumbs { margin-bottom: 0; }
+.form-intro__text { margin: 0; font-size: var(--text-sm); color: var(--ink); }
+.form-required { color: #b91c1c; font-weight: 700; }
+
+.form-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+@media (max-width: 960px) {
+  .form-layout { flex-direction: column; }
+  .form-nav { position: static; width: 100%; }
+}
+
+/* ---- Section list ------------------------------------------------------- */
 
 .form-nav {
   flex: 0 0 15rem;
@@ -51,19 +75,8 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-/* Separates the key below from the sections above it. The last row's own
-   0.5rem padding sits above the rule, so the margin makes up the difference. */
-.form-nav__list + .form-nav__heading {
-  margin-top: var(--s2);
-  padding-top: var(--s3);
-  border-top: 1px solid var(--line);
-}
 
-.form-nav__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+.form-nav__list { list-style: none; margin: 0; padding: 0; }
 
 .form-nav__item {
   display: flex;
@@ -82,28 +95,9 @@
 }
 .form-nav__item:hover { background: var(--nav-row-hover); }
 .form-nav__item.is-active { background: var(--teal-tint); color: var(--teal); }
-
 .form-nav__label { flex: 1; }
 
-.form-nav__legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s2);
-  font-size: var(--text-xs);
-  color: var(--muted);
-}
-/* Indented to match the nav rows above, so both columns of text line up. */
-.form-nav__legend li {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  padding-left: var(--s2);
-}
-
-/* ---- Status ---- */
+/* ---- Status ------------------------------------------------------------- */
 
 .form-dot {
   display: inline-flex;
@@ -117,54 +111,22 @@
   font-weight: 700;
   line-height: 1;
 }
-/* Smaller beside a section name than in the key, where it is the subject. */
+/* Smaller beside a section name than on its own. */
 .form-nav__item .form-dot {
   width: 0.9rem;
   height: 0.9rem;
   font-size: 0.6rem;
 }
-
 .form-dot--not-started {
   border: 1.5px solid var(--line-strong);
   background: var(--white);
 }
-/* Filled, like the other two that carry a state; only "not started" is hollow. */
+/* Only "not started" is hollow. */
 .form-dot--in-progress { background: var(--teal); }
 .form-dot--complete { background: var(--status-published, #15803d); color: var(--white); }
 .form-dot--has-errors { background: #b91c1c; color: var(--white); }
 
-/* ---- Sections ---- */
-
-.form-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s3);
-}
-
-.form-intro { display: flex; flex-direction: column; gap: var(--s3); }
-
-/* The breadcrumb carries its own bottom margin, which the column gap would
-   otherwise double. */
-.form-main .crumbs { margin-bottom: 0; }
-.form-intro__text {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--ink);
-}
-.form-required { color: #b91c1c; font-weight: 700; }
-
-/* A line, not a banner: it reports progress without taking the eye off the
-   fields below it. */
-.form-progress {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--muted);
-}
+/* ---- Sections ----------------------------------------------------------- */
 
 .form-section {
   border: 1px solid transparent;
@@ -175,17 +137,10 @@
     box-shadow 0.15s ease,
     background 0.15s ease;
 }
-
-/* The section the nav points at, outlined rather than barred so the card keeps
-   its shape. */
+/* The section the nav points at. Transparent above, so activating moves nothing. */
 .form-section--active { border-color: var(--teal-soft); }
-
-/* Folded away: no lift, header on the tinted band, so a finished section
-   recedes and the one being filled stands out. */
-.form-section--collapsed {
-  background: var(--surface-sunken);
-  box-shadow: none;
-}
+/* Folded away: no lift, so the section being filled stands out. */
+.form-section--collapsed { background: var(--surface-sunken); box-shadow: none; }
 .form-section--collapsed .form-section__head { padding: var(--s2) var(--s3); }
 
 .form-section__head {
@@ -194,7 +149,6 @@
   gap: var(--s3);
   padding: var(--s3);
 }
-
 .form-section__heading { flex: 1; min-width: 0; }
 .form-section__title {
   margin: 0;
@@ -213,88 +167,39 @@
 }
 .form-section__toggle:hover { color: var(--teal); }
 
-/* No rule under the heading: the space between it and the first field says
-   the same thing. */
-.form-section__body {
-  padding: 0 var(--s3) var(--s3);
+.form-section__body { padding: 0 var(--s3) var(--s3); }
+
+/* ---- The grid every section uses ---------------------------------------- */
+
+/* Every section's fields. Nothing else lays them out. */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  align-items: start;
+  gap: var(--s3);
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
+/* ---- A field ------------------------------------------------------------ */
 
-@media (max-width: 960px) {
-  .form-layout { flex-direction: column; }
-  .form-nav { position: static; width: 100%; }
-}
-
-/* ---- Actions ------------------------------------------------------------- */
-/* Sticks to the foot of the viewport: the form is long, and saving a draft
-   should not mean scrolling to the end of it. */
-.form-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--s2);
-  flex-wrap: wrap;
-  margin-top: var(--s1);
-  padding: var(--s2) var(--s3);
-  border-radius: 0.625rem;
-  background: var(--white);
-  box-shadow: var(--shadow-panel);
-}
-
-/* ---- Beside the dashboard sidebar ---------------------------------------- */
-/* The form is the work; the group nav beside it is not. Where both appear, the
-   outer sidebar recedes so the two do not carry equal weight. */
-.dashboard:has(.form-layout) .dash-sidebar {
-  background: var(--surface-sunken);
-}
-.dashboard:has(.form-layout) .dash-sidebar .dash-group__name,
-.dashboard:has(.form-layout) .dash-sidebar .dash-mysubs {
-  color: var(--muted);
-}
-.dashboard:has(.form-layout) .dash-sidebar .dash-group__summary.is-active .dash-group__name,
-.dashboard:has(.form-layout) .dash-sidebar .dash-mysubs.is-active {
-  color: var(--teal);
-}
-
-/* ---- Fields -------------------------------------------------------------- */
-
-/* Label, control, and a subtext line where there is one. The minimum leaves
-   room for that line, so a field carrying one is no taller than its
-   neighbours and the rows stay level. */
-.field-grid > .field,
-.form-entry__meta > .field {
-  min-height: 5.25rem;
-}
-/* Taller than a plain field: its radios hold room for the box that "Other"
-   reveals, so choosing it moves nothing below. */
-.form-entry__meta > .measure { min-height: 5.65rem; }
+/* Label, control, subtext. The control fills the slot, so radios and inputs
+   sit the same distance below their label. */
 .field {
   display: grid;
+  grid-template-rows: auto 1fr auto;
   gap: var(--s1);
-  align-content: start;
-  align-items: start;
+  min-height: var(--field-block);
 }
-/* Well below the section title above, which has to dominate a card full of
-   these. */
+/* Takes the row to itself. */
+.field--wide { grid-column: 1 / -1; }
+
 .field__label {
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--ink);
 }
+
 .field__input {
   width: 100%;
-  max-width: var(--field-width);
   min-height: var(--field-height);
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--field-border);
@@ -305,27 +210,39 @@
   color: var(--ink);
 }
 .field__input:focus { outline: none; border-color: var(--teal); }
-/* Keyboard focus also gets a ring: a 1px border change is easy to miss when
-   you cannot see where you clicked. */
+/* A ring as well: a 1px border change is easy to miss. */
 .field__input:focus-visible { box-shadow: 0 0 0 3px var(--teal-tint); }
-/* An example, not a value: quieter than what gets typed over it. */
+/* An example, not a value. */
 .field__input::placeholder {
   font-size: var(--text-subtext);
   color: var(--muted);
   opacity: 0.7;
 }
 .field__input--area { resize: vertical; }
-/* Shown, not collected. No border or background: a box of any shade still
-   reads as an input next to the real ones. Padding and a transparent border
-   match .field__input, so the text lines up with the inputs beside it. */
+.field__input--select { appearance: auto; }
+.field__input--short { max-width: 8rem; }
+
+/* A unit that is notation rather than a choice. */
+.field__suffix-box { position: relative; }
+.field__suffix-box .field__input { padding-right: 2rem; }
+.field__suffix {
+  position: absolute;
+  top: 50%;
+  right: 0.7rem;
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* Shown, not collected: unbordered, or it reads as an input. */
 .field__value {
   margin: 0;
   padding: 0.55rem 0;
-  border: 1px solid transparent;
-  border-inline: 0;
   font-size: var(--text-sm);
   color: var(--ink);
 }
+
 .field__hint,
 .field__note {
   margin: 0;
@@ -333,64 +250,37 @@
   line-height: 1.35;
   color: var(--muted);
 }
-.field__input--select { appearance: auto; }
 
-/* A value and its unit share a column: the unit is a short word, so it takes
-   only what it needs and sits against the field it belongs to. */
-.value-unit {
-  display: grid;
-  grid-template-columns: 1fr 7rem;
-  align-items: start;
-  gap: var(--s2);
-  padding-bottom: var(--s2);
-}
+/* ---- Options ------------------------------------------------------------ */
 
-/* One gap between fields, in every container that holds them. */
-.field-grid,
-.field-row,
-.form-entry__meta {
-  display: grid;
-  align-items: start;
+/* Top of the field's slot, where an input's border starts. */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
   gap: var(--s2) var(--s3);
+  padding-top: 0.6rem;
+}
+.radio-group__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--text-sm);
+  color: var(--ink);
+  cursor: pointer;
 }
 
-/* Two columns where there is room, one where there is not. */
-.field-grid {
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-}
-/* Two columns at most, so a tall field sits at the foot of one. */
-.field-grid--pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 800px) {
-  .field-grid--pairs { grid-template-columns: 1fr; }
-}
+/* ---- Repeating entries -------------------------------------------------- */
 
-/* The rearing radio and its describe box get a row to themselves, sized to
-   what they hold rather than to the row minimum the fields above use. */
-/* Its fields size to themselves, so it stands off what follows by the space a
-   grid field gets from its subtext line. */
-.field-row {
-  margin-bottom: var(--s3);
-  grid-column: 1 / -1;
-  row-gap: var(--s3);
-}
-
-
-/* ---- Repeating entries --------------------------------------------------- */
-
-/* No frame of its own: the fields sit on the section card. */
-.form-entry {
-  background: var(--white);
-}
-/* A repeated entry is a group within the section's card, not a card of its
-   own: a rule closes the one above before the next one's strip. */
+/* A group within the card, not a card of its own. */
 .form-entry + .form-entry {
   margin-top: var(--s3);
   padding-top: var(--s3);
   border-top: 1px solid #dce4e8;
 }
 
-/* The strip naming the group. Tinted rather than bordered, and well below the
-   section title, so a group reads as part of the card rather than beside it. */
+/* The strip naming a group: tinted, and below the section title. */
 .form-entry__head {
   display: flex;
   align-items: center;
@@ -402,6 +292,29 @@
   border-radius: 0.25rem;
   background: #f3f7f8;
 }
+.form-entry__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+/* A triangle: a chevron glyph sits high in its box and never lines up. */
+.form-entry__caret {
+  font-size: 0.725rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.form-entry__caret.is-open { transform: rotate(90deg); }
 .form-entry__title {
   margin: 0;
   font-size: var(--text-xs);
@@ -418,181 +331,75 @@
   cursor: pointer;
 }
 .form-entry__remove:hover { color: #b91c1c; }
-
-.form-entry__toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  flex: 1;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-}
-/* A triangle rather than a chevron glyph, which sits high in its own box and
-   never lines up with the text beside it. */
-.form-entry__caret {
-  font-size: 0.725rem;
-  line-height: 1;
-  color: var(--muted);
-  transition: transform 0.15s ease;
-}
-.form-entry__caret.is-open { transform: rotate(90deg); }
-
-/* What a folded control holds. Indented past the caret above it. */
+/* What a folded group holds. */
 .form-entry__summary {
   margin: 0 0 var(--s2);
-  padding-left: 0.7rem;
   font-size: var(--text-subtext);
   color: var(--muted);
 }
-.form-entry__head .form-entry__summary { margin: 0; padding: 0; }
-/* Image beside its metadata, stacking where the column is too narrow to hold
-   both. */
-.form-entry__body {
-  display: grid;
-  grid-template-columns: minmax(16rem, 2fr) minmax(18rem, 3fr);
-  gap: var(--s4);
-  align-items: start;
-}
-
+.form-entry__head .form-entry__summary { margin: 0; }
 
 .form-entry__footer { padding-top: var(--s3); }
 
+/* ---- An image and its metadata ------------------------------------------ */
+
+/* The upload box beside its fields. Self-contained, so adding an image does
+   not relayout the section. */
+.image-entry {
+  display: grid;
+  grid-template-columns: minmax(16rem, 2fr) minmax(18rem, 3fr);
+  align-items: start;
+  gap: var(--s3);
+  grid-column: 1 / -1;
+}
 @media (max-width: 1100px) {
-  .form-entry__body { grid-template-columns: 1fr; }
+  .image-entry { grid-template-columns: 1fr; }
 }
-
-.form-add { display: flex; justify-content: center; margin-top: var(--s3); }
-/* Left, under the heading it belongs to: centred would read as the section's
-   own action, like the one below it. */
-.form-add--inline { justify-content: flex-start; }
-.form-add__button {
-  padding: var(--s2) var(--s3);
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--radius);
-  background: none;
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--teal);
-  cursor: pointer;
+.image-entry__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+  align-items: start;
+  gap: var(--s3);
 }
-.form-add__button:hover { border-color: var(--teal); background: var(--teal-tint); }
-
-/* ---- Image upload -------------------------------------------------------- */
 
 .upload { display: flex; flex-direction: column; gap: var(--s2); }
-
-/* The box is the control: clicking anywhere in it opens the picker. */
 .upload__pane {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 16rem;
+  min-height: 12rem;
   padding: var(--s3);
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
+  background: var(--white);
   text-align: center;
   cursor: pointer;
 }
-.upload__pane:hover,
 .upload__pane.is-dragging { border-color: var(--teal); background: var(--teal-tint); }
-.upload__pane.is-dragging { border-style: solid; }
-/* So dragover and dragleave fire on the box, not on the text inside it. */
-.upload__pane > * { pointer-events: none; }
 .upload__hint { margin: 0; font-size: var(--text-sm); color: var(--muted); }
-/* What is allowed, a step quieter than what to do. */
-.upload__limits { margin: var(--s1) 0 0; font-size: var(--text-xs); color: var(--muted); opacity: 0.8; }
-
-/* A fixed frame, so entries do not jump as images of different sizes load. */
+.upload__limits {
+  margin: var(--s1) 0 0;
+  font-size: var(--text-subtext);
+  color: var(--muted);
+  opacity: 0.8;
+}
 .upload__chosen {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 16rem;
+  min-height: 12rem;
   padding: var(--s2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface-sunken);
   overflow: hidden;
 }
 .upload__image { max-width: 100%; max-height: 100%; object-fit: contain; }
-
 .upload__preview-actions { display: flex; gap: var(--s2); }
-.upload__preview-actions .btn { font-size: var(--text-sm); }
 
-/* ---- A number and its unit ----------------------------------------------- */
+/* ---- Notes -------------------------------------------------------------- */
 
-/* A number and its unit, side by side. */
-/* A value and its unit, side by side. No row gap of its own: it sits in a
-   column that already spaces its rows, and the two would stack. */
-.measure {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0 var(--s3);
-}
-/* The value is a fixed width; the units take the rest of the row, so they do
-   not wrap while space is left. Keyed on what each holds, since a measure
-   without units has only one child. */
-.measure > .field:has(.measure__input),
-.measure > .field:has(> .field__input) { flex: 0 0 11rem; }
-.measure > .field:has(.radio-group) { flex: 1; min-width: 0; }
-
-/* The unit sits inside the field, where it reads as notation rather than a
-   choice. */
-.measure__input { position: relative; }
-.measure__suffix {
-  position: absolute;
-  top: 50%;
-  right: 0.7rem;
-  transform: translateY(-50%);
-  font-size: var(--text-sm);
-  color: var(--muted);
-  pointer-events: none;
-}
-.measure__input .field__input { padding-right: 2rem; }
-
-/* As tall as an input, so a field of radios takes the same room in a row as
-   the fields around it. A radio is a mark like an input's border, not like
-   the text inside it, so it starts where that border would: no padding, and
-   the field's own gap is the whole distance from the label. */
-.radio-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: flex-start;
-  min-height: var(--field-height);
-  gap: var(--s1) var(--s3);
-}
-/* Beside an input: drop to its centre line and hold room for the unit box
-   that appears on "Other". */
-.measure .radio-group {
-  /* Level with the input beside it, whose padding and border add up to this. */
-  padding-top: 0.6rem;
-  /* The height the row takes once "Other" reveals its box, held open from the
-     start so choosing it moves nothing below. */
-  min-height: 5.0375rem;
-  align-items: center;
-  gap: var(--s2);
-}
-.radio-group .field__input { width: 4.5rem; padding: 0.3rem 0.5rem; }
-.radio-group__option {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s1);
-  font-size: var(--text-sm);
-  color: var(--ink);
-  cursor: pointer;
-}
-
+.notes { display: flex; flex-direction: column; gap: var(--s1); }
 .notes-toggle {
   align-self: flex-start;
   padding: var(--s1) var(--s2);
@@ -605,171 +412,73 @@
   cursor: pointer;
 }
 .notes-toggle:hover { border-color: var(--teal); color: var(--teal); }
-
-.notes { display: flex; flex-direction: column; gap: var(--s1); }
-/* Only the link is narrow; the field fills the column like every other. */
-.notes__remove { align-self: flex-start; }
 .notes__remove {
+  align-self: flex-start;
   padding: 0;
   border: 0;
   background: none;
   font: inherit;
-  font-size: var(--text-xs);
+  font-size: var(--text-subtext);
   color: var(--muted);
   cursor: pointer;
 }
 .notes__remove:hover { color: #b91c1c; }
 
-/* ---- Layout polish ------------------------------------------------------- */
-/* Keep long-form content readable on wide screens and give the section rail
-   a little more breathing room without turning it into a second main column. */
-.form-layout {
-  gap: 1.5rem;
-  padding: 1.25rem;
-}
+/* ---- Adding ------------------------------------------------------------- */
 
-.form-nav {
-  flex-basis: 14rem;
-  padding: 0.875rem;
-}
-
-.form-main {
-  width: 100%;
-  max-width: 76rem;
-}
-
-/* The title/status/instructions are one compact introduction. */
-.form-intro {
-  gap: 0.75rem;
-  padding: 0.25rem 0 0.5rem;
-}
-
-.form-intro > .field {
-  max-width: 40rem;
-}
-
-.form-intro > .field .field__input {
-  max-width: 36rem;
-}
-
-.form-progress {
-  width: fit-content;
-  gap: 0.45rem;
-  font-size: var(--text-xs);
+.form-add { display: flex; justify-content: center; margin-top: var(--s3); }
+/* Under the heading it belongs to; centred reads as the section's own. */
+.form-add--inline { justify-content: flex-start; }
+.form-add__button {
+  padding: var(--s2) var(--s3);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--white);
+  font: inherit;
+  font-size: var(--text-sm);
   font-weight: 600;
+  color: var(--teal);
+  cursor: pointer;
 }
+.form-add__button:hover { border-color: var(--teal); background: var(--teal-tint); }
 
-.form-progress .form-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-}
+/* ---- Actions ------------------------------------------------------------ */
 
-.form-intro__text {
-  max-width: 58rem;
-  line-height: 1.5;
-  color: var(--muted);
-}
-
-/* Stronger hierarchy between section header and its fields, while keeping
-   cards quiet enough for a long data-entry workflow. */
-.form-section__head {
-  align-items: center;
-  padding: 1rem 1.25rem 0.875rem;
-}
-
-.form-section__body {
-  padding: 0 1.25rem 1.25rem;
-}
-
-.form-section__title {
-  font-size: 1rem;
-}
-
-.form-section--active {
-  border-color: var(--teal-soft);
-  box-shadow: var(--shadow-card);
-}
-
-.form-section--collapsed .form-section__head {
-  padding: 0.75rem 1rem;
-}
-
-/* Fields should align as a system rather than expanding indefinitely with the
-   viewport. */
-.field-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
-  column-gap: 1.5rem;
-  row-gap: 0.75rem;
-}
-/* Restated after the rule above, which would otherwise auto-fit these to as
-   many columns as the row has room for. */
-.field-grid--pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 800px) {
-  .field-grid--pairs { grid-template-columns: 1fr; }
-}
-
-.field-grid > .field,
-.form-entry__meta > .field {
-  min-height: 4.75rem;
-}
-
-.field__input {
-  max-width: 100%;
-}
-
-/* The image/metadata split is useful on desktop, but the image should not
-   consume more room than the metadata it supports. */
-.form-entry__body {
-  grid-template-columns: minmax(17rem, 0.9fr) minmax(22rem, 1.35fr);
-  gap: 1.5rem;
-}
-
-.upload__pane,
-.upload__chosen {
-  height: 14rem;
-}
-
-/* A calmer sticky footer: visually separate it from the form without making
-   it feel like another content card. */
+/* Sticky: the form is long, and saving should not mean scrolling to its end. */
 .form-actions {
-  margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--line);
-  box-shadow: 0 -0.25rem 1rem rgb(0 0 0 / 0.05);
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  margin-top: var(--s1);
+  padding: var(--s2) var(--s3);
+  border-radius: 0.625rem;
+  background: var(--white);
+  box-shadow: var(--shadow-panel);
 }
-
-@media (max-width: 1100px) {
-  .form-main { max-width: none; }
-  .form-entry__body { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 960px) {
-  .form-layout {
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .form-nav {
-    width: 100%;
-    padding: 0.75rem;
-  }
-
-  .form-nav__list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-layout { padding: 0.75rem; }
-  .form-nav__list { grid-template-columns: 1fr; }
-  .form-section__head { padding: 0.875rem 1rem 0.75rem; }
-  .form-section__body { padding: 0 1rem 1rem; }
-  .field-grid--pairs { grid-template-columns: 1fr; }
-  .form-actions {
-    position: static;
-    justify-content: stretch;
-  }
+@media (max-width: 700px) {
+  .form-actions { position: static; justify-content: stretch; }
   .form-actions .btn { flex: 1 1 auto; }
+}
+
+/* ---- Beside the dashboard sidebar --------------------------------------- */
+
+/* The form is the work; the nav beside it recedes. */
+.dashboard:has(.form-layout) .dash-sidebar { background: var(--surface-sunken); }
+.dashboard:has(.form-layout) .dash-sidebar .dash-group__name,
+.dashboard:has(.form-layout) .dash-sidebar .dash-mysubs { color: var(--muted); }
+.dashboard:has(.form-layout) .dash-sidebar .dash-group__summary.is-active .dash-group__name,
+.dashboard:has(.form-layout) .dash-sidebar .dash-mysubs.is-active { color: var(--teal); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

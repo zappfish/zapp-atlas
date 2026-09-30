@@ -7,8 +7,7 @@ import {
   EntryHead,
   EntryRemove,
   FieldNote,
-  FieldPairs,
-  FullRow,
+  FieldGrid,
   GroupSummaryText,
   GroupToggle,
   MeasureInput,
@@ -17,7 +16,6 @@ import {
   RadioLabel,
   SelectInput,
   TextInput,
-  ValueAndUnit,
 } from "@/styles/elements";
 import Field from "../Field";
 
@@ -59,8 +57,7 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
 
       {isOpen && (
         <>
-          <FieldPairs>
-            <ValueAndUnit>
+          <FieldGrid>
               <Field label="Fish stage at phenotype observation">
                 {(id) => <TextInput id={id} placeholder="e.g. 96" />}
               </Field>
@@ -73,7 +70,6 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
                   </SelectInput>
                 )}
               </Field>
-            </ValueAndUnit>
 
             <Field label="Observed phenotype">
               {(id) => (
@@ -100,8 +96,7 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
               )}
             </Field>
 
-            <FullRow>
-              <Field label="Severity" labels="value">
+              <Field wide label="Severity" labels="value">
                 {(_id, labelId) => (
                   <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                     {SEVERITIES.map((option) => (
@@ -118,8 +113,7 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
                   </RadioGroup>
                 )}
               </Field>
-            </FullRow>
-          </FieldPairs>
+          </FieldGrid>
 
         </>
       )}
