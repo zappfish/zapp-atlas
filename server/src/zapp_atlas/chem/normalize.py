@@ -114,18 +114,13 @@ def normalize_curie(curie: str) -> dict[str, Any]:
     return parse_node_norm(curie, query_node_normalizer([curie]))
 
 
-def resolve_name(name: str, limit: int = 10) -> list[dict[str, Any]]:
-    """Resolve a chemical name to normalized results, best match first.
-
-    Every Name Resolver hit in an accepted namespace is normalized in one batch
-    call, and hits that land in the same clique are collapsed, so the result is
-    a list of distinct candidates.
-    """
+def _name_lookup(text: str, limit: int, autocomplete: bool) -> list[dict[str, Any]]:
+    """Query the Name Resolver's /lookup; return its raw hits."""
     r = httpx.get(
         f"{NAME_RESOLVER_BASE}/lookup",
         params={
-            "string": name,
-            "autocomplete": "false",
+            "string": text,
+            "autocomplete": "true" if autocomplete else "false",
             "highlighting": "false",
             "offset": 0,
             "limit": limit,
@@ -134,9 +129,27 @@ def resolve_name(name: str, limit: int = 10) -> list[dict[str, Any]]:
         timeout=TIMEOUT,
     )
     r.raise_for_status()
+    return r.json()
 
+
+def autocomplete(prefix: str, limit: int) -> list[dict[str, Any]]:
+    """Chemicals whose names start with ``prefix``, as ``{curie, label}``, best first."""
+    return [
+        {"curie": hit["curie"], "label": hit.get("label") or hit["curie"]}
+        for hit in _name_lookup(prefix, limit, autocomplete=True)
+        if hit.get("curie")
+    ]
+
+
+def resolve_name(name: str, limit: int = 10) -> list[dict[str, Any]]:
+    """Resolve a chemical name to normalized results, best match first.
+
+    Every Name Resolver hit in an accepted namespace is normalized in one batch
+    call, and hits that land in the same clique are collapsed, so the result is
+    a list of distinct candidates.
+    """
     curies = []
-    for hit in r.json():
+    for hit in _name_lookup(name, limit, autocomplete=False):
         prefix, sep, local_id = hit.get("curie", "").partition(":")
         canonical = NAMESPACES.get(prefix) or NAMESPACES.get(prefix.upper())
         if sep and canonical:

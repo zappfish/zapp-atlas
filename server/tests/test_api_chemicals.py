@@ -59,6 +59,12 @@ def chem_client(client, chem_cache):
 
 
 @pytest.fixture
+def no_cache(client, tmp_path):
+    client.app.state.settings.chem_cache_path = tmp_path / "missing.db"
+    return client
+
+
+@pytest.fixture
 def offline(monkeypatch):
     """Make every NodeNorm / Name Resolver call fail as if the network were down."""
 
@@ -67,6 +73,7 @@ def offline(monkeypatch):
 
     monkeypatch.setattr(normalize, "normalize_curie", fail)
     monkeypatch.setattr(normalize, "resolve_name", fail)
+    monkeypatch.setattr(normalize, "autocomplete", fail)
 
 
 def test_autocomplete_groups_ids_under_a_name(chem_client):
@@ -94,8 +101,8 @@ def test_autocomplete_respects_limit(chem_client):
     assert hits[0]["chebi_ids"] == ["CHEBI:16236", "CHEBI:52092"]
 
 
-def test_without_a_cache_lookups_find_nothing(client, tmp_path, offline):
-    client.app.state.settings.chem_cache_path = tmp_path / "missing.db"
+def test_without_a_cache_or_the_network_lookups_find_nothing(no_cache, offline):
+    client = no_cache
     assert client.get("/api/chemicals/autocomplete?q=ethanol").json() == []
     assert client.get("/api/chemicals/vehicle-info?meaning=CHEBI:16236").json() == {
         "found": False,
@@ -106,7 +113,7 @@ def test_without_a_cache_lookups_find_nothing(client, tmp_path, offline):
     assert r.json()["result"]["normalized"] is False
 
 
-def test_vehicle_info_by_own_id_and_by_equivalent(chem_client):
+def test_vehicle_info_by_own_id_and_by_equivalent(chem_client, offline):
     body = chem_client.get("/api/chemicals/vehicle-info?meaning=CHEBI:16236").json()
     assert body["found"] is True
     assert body["result"]["label"] == "ethanol"
@@ -177,3 +184,39 @@ def test_vehicle_meanings_come_from_the_enum():
     meanings = build_cache.vehicle_meanings()
     assert "UMLS:C0036774" in meanings  # BSA
     assert not any(m.startswith("CHEBI:") for m in meanings)
+
+
+def test_without_a_cache_autocomplete_asks_the_name_resolver(no_cache, monkeypatch):
+    hits = [
+        {"curie": "CHEBI:33216", "label": "Bisphenol A"},
+        {"curie": "MESH:C120941", "label": "bis(1,10-phenanthroline)rhodium(III)"},
+        {"curie": "CHEBI:99999", "label": "Bisphenol A"},
+    ]
+    calls = []
+    monkeypatch.setattr(
+        normalize, "autocomplete", lambda q, limit: calls.append((q, limit)) or hits
+    )
+    body = no_cache.get("/api/chemicals/autocomplete?q=bisphen&limit=7").json()
+    assert calls == [("bisphen", 7)]
+    assert body == [
+        {"name": "Bisphenol A", "chebi_ids": ["CHEBI:33216", "CHEBI:99999"], "normalized": None},
+        {"name": "bis(1,10-phenanthroline)rhodium(III)", "chebi_ids": [], "normalized": None},
+    ]
+
+
+def test_autocomplete_prefers_the_cache(chem_client, monkeypatch):
+    monkeypatch.setattr(normalize, "autocomplete", lambda q, limit: pytest.fail("used the API"))
+    assert chem_client.get("/api/chemicals/autocomplete?q=ethyl").json()
+
+
+def test_without_a_cache_vehicle_info_asks_nodenorm(no_cache, monkeypatch):
+    monkeypatch.setattr(normalize, "normalize_curie", lambda curie: _norm(curie, "PBS"))
+    body = no_cache.get("/api/chemicals/vehicle-info?meaning=PUBCHEM.COMPOUND:24978514").json()
+    assert body["found"] is True
+    assert body["result"]["primary_id"] == "PUBCHEM.COMPOUND:24978514"
+
+
+def test_vehicle_info_asks_nodenorm_for_what_the_cache_lacks(chem_client, monkeypatch):
+    monkeypatch.setattr(normalize, "normalize_curie", lambda curie: _norm(curie, "BSA"))
+    body = chem_client.get("/api/chemicals/vehicle-info?meaning=UMLS:C0036774").json()
+    assert body["result"]["label"] == "BSA"

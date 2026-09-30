@@ -4,10 +4,10 @@
 * GET  /chemicals/vehicle-info?meaning=CHEBI:16236 — a vehicle's cached details
 * POST /chemicals/normalize — ``{namespace, chemical_id}`` or ``{name}``
 
-These are read-only reference lookups against NodeNorm and the local ChEBI
-cache (``ZAPP_CHEM_CACHE_PATH``); nothing here touches the application
-database. Without a cache, autocomplete and vehicle-info find nothing and
-normalization depends on NodeNorm being reachable.
+These are read-only reference lookups against NodeNorm, the Name Resolver,
+and an optional local ChEBI cache (``ZAPP_CHEM_CACHE_PATH``); nothing here
+touches the application database. Without a cache, every lookup goes to the
+live services.
 """
 
 import sqlite3
@@ -19,7 +19,7 @@ from pydantic import BaseModel, model_validator
 
 from zapp_atlas.api.deps import get_app_settings
 from zapp_atlas.api.services import chemicals as service
-from zapp_atlas.chem.cache import autocomplete, open_cache
+from zapp_atlas.chem.cache import open_cache
 from zapp_atlas.settings import AppSettings
 
 router = APIRouter(prefix="/chemicals", tags=["chemicals"])
@@ -93,9 +93,9 @@ def autocomplete_endpoint(
     limit: Annotated[int, Query(ge=1, le=50)] = 5,
 ) -> list[dict]:
     q = q.strip()
-    if len(q) < 2 or conn is None:
+    if len(q) < 2:
         return []
-    return autocomplete(conn, q, limit)
+    return service.autocomplete(conn, q, limit)
 
 
 @router.get("/vehicle-info", response_model=VehicleInfo)

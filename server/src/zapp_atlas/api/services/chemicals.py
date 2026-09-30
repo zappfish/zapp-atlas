@@ -3,8 +3,12 @@
 Normalization asks NodeNorm first, since it is current and covers every
 namespace, and falls back to the local ChEBI cache when the service is
 unreachable or does not know the identifier. Autocomplete and vehicle lookups
-are served from the cache alone: they run on every keystroke or selection and
-must not wait on the network.
+go the other way: they run on every keystroke or selection, so they use the
+cache when one is built and only otherwise ask the Name Resolver and NodeNorm.
+
+The cache is optional. Without it (the deployed app has none yet) the pickers
+work entirely off the live services, at the cost of a network round trip per
+keystroke and no lookups while those services are down.
 
 Results carry no structure diagrams. The atlas is for biologists, who identify
 a chemical by name and identifier, and rendering diagrams server-side took
@@ -64,8 +68,35 @@ def normalize_name(conn: sqlite3.Connection | None, name: str) -> dict[str, Any]
     return _response(results[0], results, "nodenorm")
 
 
+def autocomplete(conn: sqlite3.Connection | None, q: str, limit: int) -> list[dict[str, Any]]:
+    if conn is not None:
+        return cache.autocomplete(conn, q, limit)
+    try:
+        hits = normalize.autocomplete(q, limit)
+    except httpx.HTTPError:
+        logger.warning("Name Resolver autocomplete failed for %r", q, exc_info=True)
+        return []
+    # Match the cache's shape: one suggestion per name, with the ChEBI terms
+    # it names. The client normalizes each of those by ID, and any other hit
+    # by name, so a non-ChEBI hit carries no IDs rather than a non-ChEBI one.
+    suggestions: dict[str, dict[str, Any]] = {}
+    for hit in hits:
+        suggestion = suggestions.setdefault(
+            hit["label"], {"name": hit["label"], "chebi_ids": [], "normalized": None}
+        )
+        if hit["curie"].startswith("CHEBI:"):
+            suggestion["chebi_ids"].append(hit["curie"])
+    return list(suggestions.values())
+
+
 def vehicle_info(conn: sqlite3.Connection | None, meaning: str) -> dict[str, Any]:
     result = cache.find_by_identifier(conn, meaning) if conn is not None else None
     if result is None:
-        return {"found": False}
+        try:
+            result = normalize.normalize_curie(meaning)
+        except httpx.HTTPError:
+            logger.warning("NodeNorm lookup failed for %s", meaning, exc_info=True)
+            return {"found": False}
+        if not result["normalized"]:
+            return {"found": False}
     return {"found": True, "result": result}
