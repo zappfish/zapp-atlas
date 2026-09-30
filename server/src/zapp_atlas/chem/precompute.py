@@ -7,9 +7,6 @@ Phase 2 normalizes every ChEBI ID in that map through NodeNorm in batches and
 writes ``chebi_normalized.json``. It checkpoints as it goes, and re-running
 skips IDs already in the output, so an interrupted run can be resumed.
 
-Structure images are not precomputed; ``build_cache`` takes SMILES from
-``chebi.obo`` and the API renders them on demand.
-
     uv run python -m zapp_atlas.chem.precompute
     uv run python -m zapp_atlas.chem.precompute --test-limit 300   # smoke test
     uv run python -m zapp_atlas.chem.precompute --skip-synonyms    # phase 2 only

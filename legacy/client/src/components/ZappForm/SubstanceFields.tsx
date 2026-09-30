@@ -36,7 +36,6 @@ type NormResult = {
 type NormResultItem = {
   queried_id: string;
   result: NormResult;
-  imageB64: string | null;
 };
 
 type NormState =
@@ -48,7 +47,6 @@ type NormState =
 type AcSuggestion = { name: string; chebi_ids: string[]; normalized: NormResult | null };
 type AcState = { status: 'idle' } | { status: 'open'; suggestions: AcSuggestion[] };
 
-const VIS_NAMESPACES = ['PUBCHEM.COMPOUND', 'INCHIKEY', 'SMILES'];
 const IDENTIFIERS_ORG_PREFIX: Record<string, string> = { UniProtKB: 'uniprot' };
 const RESULTS_HEIGHT = 340;
 const CARD_HEIGHT = 150; // px — uniform height for all result cards
@@ -70,27 +68,6 @@ function ResultCard({
   onAccept: () => void;
   hideAccept?: boolean;
 }) {
-  const [img, setImg] = useState<string | null>(item.imageB64);
-
-  useEffect(() => {
-    if (img) return;
-    const visCurie = item.result.equivalent_identifiers
-      .map((eq) => eq.identifier)
-      .filter((id): id is string => !!id && VIS_NAMESPACES.includes(id.split(':')[0] as string))[0];
-    if (!visCurie) return;
-    const colonIdx = visCurie.indexOf(':');
-    let cancelled = false;
-    fetch('/api/chemicals/normalize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ namespace: visCurie.slice(0, colonIdx), chemical_id: visCurie.slice(colonIdx + 1) }),
-    })
-      .then((r) => r.json())
-      .then((data) => { if (!cancelled && data.structure_image_b64) setImg(data.structure_image_b64); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [item.result.primary_id]);
-
   const synonyms = Array.from(new Set(
     item.result.equivalent_identifiers
       .map((eq) => eq.label)
@@ -111,7 +88,7 @@ function ResultCard({
       height: `${CARD_HEIGHT}px`,
     }}>
 
-      {/* ── Left 50%: scrollable text + pinned buttons + image filling full height ── */}
+      {/* ── Left 50%: scrollable text + pinned buttons ── */}
       <div style={{ flex: '0 0 50%', display: 'flex', gap: '12px', alignItems: 'stretch' }}>
         {/* Text (scrollable) + buttons (pinned) */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -155,14 +132,6 @@ function ResultCard({
             </div>
           )}
         </div>
-        {/* Structure image — fills card content height via alignItems: stretch on parent */}
-        {img && (
-          <img
-            src={`data:image/svg+xml;base64,${img}`}
-            alt="Chemical structure"
-            style={{ height: '100%', width: 'auto', flexShrink: 0, border: '1px solid #ddd', borderRadius: '4px', background: '#fff', objectFit: 'contain' }}
-          />
-        )}
       </div>
 
       {/* ── Right: equivalent identifiers, scrollable to fill card height ── */}
@@ -295,7 +264,7 @@ export default function SubstanceFields({
       .then((data) => {
         if (cancelled) return;
         if (data.found && data.result?.normalized) {
-          setNorm({ status: 'done', items: [{ queried_id: option.meaning!, result: data.result, imageB64: data.structure_image_b64 ?? null }], mode: 'id' });
+          setNorm({ status: 'done', items: [{ queried_id: option.meaning!, result: data.result }], mode: 'id' });
           const vSynonyms: string[] = Array.from(new Set(
             [data.result.label, ...(data.result.equivalent_identifiers ?? []).map((eq: EqIdentifier) => eq.label)]
               .filter((l: string | null): l is string => !!l)
@@ -314,7 +283,7 @@ export default function SubstanceFields({
       const res = await fetch('/api/chemicals/normalize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) return null;
-      return { queried_id: queriedId, result: data.result as NormResult, imageB64: data.structure_image_b64 ?? null };
+      return { queried_id: queriedId, result: data.result as NormResult };
     } catch { return null; }
   };
 
@@ -328,7 +297,6 @@ export default function SubstanceFields({
       return list.filter((r) => r.normalized).map((r, i) => ({
         queried_id: r.primary_id ?? String(i),
         result: r,
-        imageB64: i === 0 ? (data.structure_image_b64 ?? null) : null,
       }));
     } catch { return []; }
   };

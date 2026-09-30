@@ -10,10 +10,8 @@ dependencies = [
     "httpx>=0.27.0",
     "jinja2>=3.1",
     "linkml",
-    "pubchempy>=1.0.4",
     "pydantic-settings>=2.14.0",
     "python-multipart>=0.0.9",
-    "rdkit>=2024.3",
     "sqlalchemy>=2.0",
     "uvicorn>=0.30.0",
 ]

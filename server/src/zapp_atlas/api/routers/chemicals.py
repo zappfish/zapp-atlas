@@ -79,15 +79,11 @@ class NormalizeResponse(BaseModel):
     source: Literal["nodenorm", "local_cache"]
     result: NormResult
     results: list[NormResult]
-    structure_image_b64: str | None
-    structure_image_type: Literal["svg"] | None
 
 
 class VehicleInfo(BaseModel):
     found: bool
     result: NormResult | None = None
-    structure_image_b64: str | None = None
-    structure_image_type: Literal["svg"] | None = None
 
 
 @router.get("/autocomplete", response_model=list[Suggestion])

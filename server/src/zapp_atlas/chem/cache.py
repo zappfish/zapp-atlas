@@ -8,7 +8,7 @@ any time.
 Two tables:
 
 * ``chemicals`` — one row per ChEBI term (plus a few non-ChEBI vehicle
-  meanings, keyed by their own CURIE), with its NodeNorm clique and SMILES.
+  meanings, keyed by their own CURIE), with its NodeNorm clique.
 * ``synonyms`` — every name a term is known by, lowercased, for prefix search.
 """
 
@@ -25,8 +25,7 @@ CREATE TABLE IF NOT EXISTS chemicals (
     primary_id  TEXT,
     label       TEXT,
     description TEXT,
-    equiv_ids   TEXT,
-    smiles      TEXT
+    equiv_ids   TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_primary_id ON chemicals(primary_id);
 
@@ -39,7 +38,7 @@ CREATE TABLE IF NOT EXISTS synonyms (
 CREATE INDEX IF NOT EXISTS idx_syn_lower ON synonyms(synonym_lower);
 """
 
-_CHEMICAL_COLUMNS = "primary_id, label, description, equiv_ids, smiles"
+_CHEMICAL_COLUMNS = "primary_id, label, description, equiv_ids"
 
 
 @contextmanager
@@ -101,17 +100,15 @@ def autocomplete(conn: sqlite3.Connection, q: str, limit: int) -> list[dict[str,
     return list(groups.values())
 
 
-def get_chemical(conn: sqlite3.Connection, curie: str) -> tuple[dict[str, Any], str | None] | None:
-    """The cached result and SMILES for a term by its own CURIE."""
+def get_chemical(conn: sqlite3.Connection, curie: str) -> dict[str, Any] | None:
+    """The cached result for a term by its own CURIE."""
     row = conn.execute(
         f"SELECT {_CHEMICAL_COLUMNS} FROM chemicals WHERE chebi_id = ?", (curie,)
     ).fetchone()
-    return (_result(row), row["smiles"]) if row else None
+    return _result(row) if row else None
 
 
-def find_by_identifier(
-    conn: sqlite3.Connection, curie: str
-) -> tuple[dict[str, Any], str | None] | None:
+def find_by_identifier(conn: sqlite3.Connection, curie: str) -> dict[str, Any] | None:
     """Like ``get_chemical``, but also matches a term listing ``curie`` as an equivalent."""
     found = get_chemical(conn, curie)
     if found is not None:
@@ -123,9 +120,4 @@ def find_by_identifier(
         "LIMIT 1",
         (curie,),
     ).fetchone()
-    return (_result(row), row["smiles"]) if row else None
-
-
-def get_smiles(conn: sqlite3.Connection, curie: str) -> str | None:
-    row = conn.execute("SELECT smiles FROM chemicals WHERE chebi_id = ?", (curie,)).fetchone()
-    return row["smiles"] if row else None
+    return _result(row) if row else None

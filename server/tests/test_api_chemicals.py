@@ -7,8 +7,6 @@ import pytest
 from zapp_atlas.chem import build_cache, normalize
 from zapp_atlas.chem.cache import SCHEMA
 
-ETHANOL_SMILES = "CCO"
-
 
 def _norm(primary_id, label, equivs=()):
     return {
@@ -48,9 +46,7 @@ def chem_cache(tmp_path):
     path = tmp_path / "cache.db"
     conn = sqlite3.connect(path)
     conn.executescript(SCHEMA)
-    build_cache.build_chemicals(
-        conn, normalized, {"CHEBI:16236": ETHANOL_SMILES}, resume=False, test_limit=None
-    )
+    build_cache.build_chemicals(conn, normalized, resume=False, test_limit=None)
     build_cache.build_synonyms(conn, synonyms)
     conn.close()
     return path
@@ -71,7 +67,6 @@ def offline(monkeypatch):
 
     monkeypatch.setattr(normalize, "normalize_curie", fail)
     monkeypatch.setattr(normalize, "resolve_name", fail)
-    monkeypatch.setattr(normalize, "fetch_smiles", fail)
 
 
 def test_autocomplete_groups_ids_under_a_name(chem_client):
@@ -105,8 +100,6 @@ def test_without_a_cache_lookups_find_nothing(client, tmp_path, offline):
     assert client.get("/api/chemicals/vehicle-info?meaning=CHEBI:16236").json() == {
         "found": False,
         "result": None,
-        "structure_image_b64": None,
-        "structure_image_type": None,
     }
     r = client.post("/api/chemicals/normalize", json={"name": "ethanol"})
     assert r.status_code == 200
@@ -117,7 +110,6 @@ def test_vehicle_info_by_own_id_and_by_equivalent(chem_client):
     body = chem_client.get("/api/chemicals/vehicle-info?meaning=CHEBI:16236").json()
     assert body["found"] is True
     assert body["result"]["label"] == "ethanol"
-    assert body["structure_image_type"] == "svg"
 
     body = chem_client.get("/api/chemicals/vehicle-info?meaning=PUBCHEM.COMPOUND:702").json()
     assert body["found"] is True
@@ -140,7 +132,7 @@ def test_normalize_rejects_incomplete_requests(chem_client, body):
     assert chem_client.post("/api/chemicals/normalize", json=body).status_code == 422
 
 
-def test_normalize_by_id_uses_nodenorm_and_the_cached_structure(chem_client, monkeypatch):
+def test_normalize_by_id_uses_nodenorm(chem_client, monkeypatch):
     calls = []
 
     def fake_normalize(curie):
@@ -156,7 +148,6 @@ def test_normalize_by_id_uses_nodenorm_and_the_cached_structure(chem_client, mon
     assert body["source"] == "nodenorm"
     assert body["result"]["label"] == "ethanol (nodenorm)"
     assert body["results"] == [body["result"]]
-    assert body["structure_image_type"] == "svg"
 
 
 def test_normalize_by_id_falls_back_to_the_cache(chem_client, offline):
@@ -166,7 +157,6 @@ def test_normalize_by_id_falls_back_to_the_cache(chem_client, offline):
     body = r.json()
     assert body["source"] == "local_cache"
     assert body["result"]["label"] == "ethanol"
-    assert body["structure_image_b64"]
 
 
 def test_normalize_by_name_falls_back_to_the_cache(chem_client, offline):
@@ -181,21 +171,6 @@ def test_normalize_by_name_returns_every_candidate(chem_client, monkeypatch):
     body = chem_client.post("/api/chemicals/normalize", json={"name": "solvent"}).json()
     assert body["source"] == "nodenorm"
     assert [r["primary_id"] for r in body["results"]] == ["CHEBI:16236", "CHEBI:28262"]
-
-
-def test_structures_not_in_the_cache_come_from_pubchem(chem_client, monkeypatch):
-    fetched = []
-    monkeypatch.setattr(
-        normalize,
-        "normalize_curie",
-        lambda curie: _norm("CHEBI:15377", "water", ["PUBCHEM.COMPOUND:962"]),
-    )
-    monkeypatch.setattr(normalize, "fetch_smiles", lambda curie: fetched.append(curie) or "O")
-    body = chem_client.post(
-        "/api/chemicals/normalize", json={"namespace": "CHEBI", "chemical_id": "15377"}
-    ).json()
-    assert fetched == ["PUBCHEM.COMPOUND:962"]
-    assert body["structure_image_type"] == "svg"
 
 
 def test_vehicle_meanings_come_from_the_enum():

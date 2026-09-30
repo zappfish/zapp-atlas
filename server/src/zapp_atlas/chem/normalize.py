@@ -2,9 +2,7 @@
 
 NodeNorm maps any chemical CURIE to its clique: a preferred identifier, a
 label, and every equivalent identifier it knows. The Name Resolver maps free
-text to candidate CURIEs, which are then normalized the same way. PubChem
-supplies structures (SMILES) for identifiers the local ChEBI cache has none
-for.
+text to candidate CURIEs, which are then normalized the same way.
 
 All of these are network calls; callers are expected to handle
 ``httpx.HTTPError`` and fall back to the local cache.
@@ -13,7 +11,6 @@ All of these are network calls; callers are expected to handle
 from typing import Any
 
 import httpx
-import pubchempy as pcp
 
 NODE_NORM_BASE = "https://nodenormalization-sri.renci.org"
 NAME_RESOLVER_BASE = "https://name-resolution-sri.renci.org"
@@ -54,13 +51,6 @@ NAMESPACES = {
     "UNIPROTKB": "UniProtKB",
     "ENSEMBL": "ENSEMBL",
     "PR": "PR",
-}
-
-# Namespaces PubChem can look a structure up by, mapped to pubchempy's names.
-VISUALIZATION_NAMESPACES = {
-    "PUBCHEM.COMPOUND": "cid",
-    "SMILES": "smiles",
-    "INCHIKEY": "inchikey",
 }
 
 
@@ -164,38 +154,3 @@ def resolve_name(name: str, limit: int = 10) -> list[dict[str, Any]]:
             seen.add(primary_id)
             results.append(result)
     return results
-
-
-def find_visualizable_curie(equivalent_identifiers: list[dict[str, Any]]) -> str | None:
-    """Return the first identifier PubChem can look a structure up by, if any."""
-    return next(
-        (
-            eq["identifier"]
-            for eq in equivalent_identifiers
-            if eq.get("identifier")
-            and eq["identifier"].split(":", 1)[0] in VISUALIZATION_NAMESPACES
-        ),
-        None,
-    )
-
-
-def fetch_smiles(curie: str) -> str | None:
-    """Fetch a SMILES string for a visualizable CURIE from PubChem."""
-    prefix, _, value = curie.partition(":")
-    namespace = VISUALIZATION_NAMESPACES.get(prefix)
-    if namespace is None:
-        return None
-    if namespace == "smiles":
-        return value
-
-    compounds = pcp.get_compounds(value, namespace=namespace)
-    if not compounds:
-        return None
-    compound = compounds[0]
-    # PubChem renamed its SMILES properties in 2025; newer pubchempy exposes
-    # `smiles`, older releases only the isomeric/canonical pair.
-    for attr in ("smiles", "isomeric_smiles", "canonical_smiles"):
-        smiles = getattr(compound, attr, None)
-        if isinstance(smiles, str) and smiles.strip():
-            return smiles
-    return None

@@ -70,7 +70,7 @@ server/src/zapp_atlas/
 │   ├── routers/       studies, experiments, exposures, observations, images,
 │   │                  chemicals (read-only lookups for the chemical picker)
 │   └── services/      CRUD business logic per resource
-├── chem/              NodeNorm/PubChem client + the ChEBI lookup cache
+├── chem/              NodeNorm client + the ChEBI lookup cache
 │                      (read side, and the offline tools that build it)
 ├── db/                Persistence
 │   ├── db.py          SQLAlchemy 2.0 engine + session factory
