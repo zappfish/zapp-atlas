@@ -2,14 +2,10 @@ import { useCallback, useId, useRef, useState } from "react";
 import {
   AddButton,
   AddRow,
-  AddRowInline,
-  EntryBody,
   EntryCaret,
   EntryCard,
   EntryHead,
-  EntryMeta,
   EntryRemove,
-  EntryTitle,
   FieldNote,
   FieldPairs,
   FullRow,
@@ -24,41 +20,9 @@ import {
   ValueAndUnit,
 } from "@/styles/elements";
 import Field from "../Field";
-import { ImageUpload, Measure } from "../imageEntry";
-import { MEASURES } from "../measures";
 
 const STAGE_UNITS = ["hpf", "dpf", "month"];
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
-
-/** One image of the observed phenotype, with its own metadata. */
-const ObservationImage = ({
-  n,
-  onRemove,
-}: {
-  n: number;
-  onRemove: () => void;
-}) => (
-  <EntryCard>
-    <EntryHead>
-      <EntryTitle>Image {n}</EntryTitle>
-      <EntryRemove type="button" onClick={onRemove}>
-        Remove
-      </EntryRemove>
-    </EntryHead>
-
-    <EntryBody>
-      <ImageUpload required={false} />
-      <EntryMeta>
-        {MEASURES.map((measure) => (
-          <Measure key={measure.label} {...measure} />
-        ))}
-        <Field label="Microscope information">
-          {(id) => <TextInput id={id} placeholder="Enter text" />}
-        </Field>
-      </EntryMeta>
-    </EntryBody>
-  </EntryCard>
-);
 
 /** A phenotype seen in the exposed fish, and how strongly. */
 const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
@@ -69,22 +33,8 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
   const [severity, setSeverity] = useState("");
   const severityName = useId();
 
-  const [images, setImages] = useState<number[]>([]);
-  const nextImage = useRef(1);
-  const addImage = useCallback(
-    () => setImages((was) => [...was, nextImage.current++]),
-    [],
-  );
-  const removeImage = useCallback(
-    (id: number) => setImages((was) => was.filter((each) => each !== id)),
-    [],
-  );
-
   // Only what has been filled in: an empty observation says nothing.
-  const summary = [
-    severity,
-    images.length ? `${images.length} images` : "No images",
-  ].filter(Boolean);
+  const summary = [severity].filter(Boolean);
 
   return (
     <EntryCard>
@@ -171,21 +121,6 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
             </FullRow>
           </FieldPairs>
 
-          <EntryTitle>Images</EntryTitle>
-
-          {images.map((id, i) => (
-            <ObservationImage
-              key={id}
-              n={i + 1}
-              onRemove={() => removeImage(id)}
-            />
-          ))}
-
-          <AddRowInline>
-            <AddButton type="button" onClick={addImage}>
-              + Add image
-            </AddButton>
-          </AddRowInline>
         </>
       )}
     </EntryCard>
