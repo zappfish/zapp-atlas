@@ -2,6 +2,7 @@ import { useCallback, useId, useRef, useState } from "react";
 import {
   AddButton,
   AddRow,
+  AddRowInline,
   EntryBody,
   EntryCard,
   EntryHead,
@@ -212,11 +213,11 @@ const Control = ({
             <ControlImage key={id} n={i + 1} onRemove={() => removeImage(id)} />
           ))}
 
-          <AddRow>
+          <AddRowInline>
             <AddButton type="button" onClick={addImage}>
               + Add control image
             </AddButton>
-          </AddRow>
+          </AddRowInline>
         </>
       )}
     </EntryCard>

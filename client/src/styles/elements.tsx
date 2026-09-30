@@ -254,6 +254,8 @@ export const EntryBody = styled("div", "form-entry__body");
 export const EntryMeta = styled("div", "form-entry__meta");
 export const EntryFooter = styled("div", "form-entry__footer");
 export const AddRow = styled("div", "form-add");
+/** An add button that belongs to the group above it, not to the section. */
+export const AddRowInline = styled("div", "form-add form-add--inline");
 export const AddButton = styled("button", "form-add__button");
 
 export const Upload = styled("div", "upload");
