@@ -46,7 +46,9 @@ class NormResult(BaseModel):
     primary_id: str | None
     label: str | None
     description: str | None
-    biolink_type: str | None
+    # NodeNorm gives every Biolink class the clique belongs to, most specific
+    # first; cached results carry none.
+    biolink_type: list[str] | None
     equivalent_identifiers: list[EquivalentIdentifier]
 
 

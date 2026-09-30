@@ -14,7 +14,8 @@ def _norm(primary_id, label, equivs=()):
         "primary_id": primary_id,
         "label": label,
         "description": f"{label} description",
-        "biolink_type": None,
+        # NodeNorm's shape: a list of classes, most specific first.
+        "biolink_type": ["biolink:SmallMolecule", "biolink:ChemicalEntity"],
         "equivalent_identifiers": [
             {"identifier": i, "label": label, "description": None} for i in (primary_id, *equivs)
         ],
