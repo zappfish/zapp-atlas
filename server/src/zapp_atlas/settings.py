@@ -8,6 +8,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_DIR = PACKAGE_DIR / "db" / "data"
 DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "zapp.db"
 DEFAULT_UPLOAD_DIR = DEFAULT_DATA_DIR / "uploads"
+DEFAULT_CHEM_CACHE_PATH = DEFAULT_DATA_DIR / "chebi_and_vehicle_cache.db"
 DEFAULT_MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 DEFAULT_ORCID_BASE_URL = "https://orcid.org"
 DEFAULT_ORCID_REDIRECT_URI = "http://127.0.0.1:8000/registered"
@@ -26,6 +27,10 @@ class AppSettings(BaseSettings):
     upload_dir: Path = DEFAULT_UPLOAD_DIR
     max_upload_bytes: int = DEFAULT_MAX_UPLOAD_BYTES
     skip_seed: bool = False
+
+    # Prebuilt ChEBI lookup cache (`python -m zapp_atlas.chem.build_cache`).
+    # Optional: without it the chemical picker falls back to NodeNorm alone.
+    chem_cache_path: Path = DEFAULT_CHEM_CACHE_PATH
 
     aws_endpoint_url_s3: str | None = None
     bucket_name: str | None = None
