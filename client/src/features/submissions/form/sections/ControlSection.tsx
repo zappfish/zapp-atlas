@@ -10,6 +10,7 @@ import {
   EntryTitle,
   FieldPairs,
   FullRow,
+  EntryCaret,
   GroupSummaryText,
   GroupToggle,
   RadioGroup,
@@ -97,12 +98,11 @@ const Control = ({
   return (
     <EntryCard>
       <EntryHead>
-        <GroupToggle
-          type="button"
-          onClick={toggle}
-          aria-expanded={isOpen}
-        >
-          {isOpen ? "▾" : "▸"} Control {n}
+        <GroupToggle type="button" onClick={toggle} aria-expanded={isOpen}>
+          <EntryCaret aria-hidden="true" isOpen={isOpen}>
+            ▶
+          </EntryCaret>
+          Control {n}
         </GroupToggle>
         {type && <GroupSummaryText>{type}</GroupSummaryText>}
         {onRemove && (

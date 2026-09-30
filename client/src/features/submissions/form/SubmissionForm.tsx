@@ -6,12 +6,14 @@ import {
   Crumbs,
   FormIntro,
   FormIntroText,
+  FormProgress,
   FormLayout,
   FormMain,
   RequiredMark,
   TextInput,
 } from "@/styles/elements";
 import Field from "./Field";
+import StatusDot from "./StatusDot";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
@@ -20,7 +22,12 @@ import ExperimentSection from "./sections/ExperimentSection";
 import FishSection from "./sections/FishSection";
 import ImagesSection from "./sections/ImagesSection";
 import ProvenanceSection from "./sections/ProvenanceSection";
-import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
+import {
+  SECTIONS,
+  STATUS_LABELS,
+  type SectionSlug,
+  type SectionStatus,
+} from "./sections";
 import "./form.css";
 
 /**
@@ -45,7 +52,7 @@ const GroupCrumbs = ({ groupId }: { groupId: number }) => {
 
 /** Placeholders until each section can be measured against its own fields. */
 const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
-  images: "in-progress",
+  images: "not-started",
   provenance: "not-started",
   fish: "not-started",
   experiment: "not-started",
@@ -56,6 +63,19 @@ const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
 const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
+
+  // Read off the section statuses, so the summary and the dots beside each
+  // section cannot disagree.
+  const complete = Object.values(PLACEHOLDER_STATUS).filter(
+    (status) => status === "complete",
+  ).length;
+  const overall =
+    complete === SECTIONS.length
+      ? "complete"
+      : complete > 0 ||
+          Object.values(PLACEHOLDER_STATUS).some((s) => s === "in-progress")
+        ? "in-progress"
+        : "not-started";
 
   const jumpTo = useCallback((slug: SectionSlug) => {
     setActive(slug);
@@ -85,6 +105,12 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
               />
             )}
           </Field>
+
+          <FormProgress>
+            <StatusDot status={overall} />
+            {STATUS_LABELS[overall]} · {complete} of {SECTIONS.length} sections
+            complete
+          </FormProgress>
 
           <FormIntroText>
             Complete all required fields marked with{" "}

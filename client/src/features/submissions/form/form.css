@@ -18,6 +18,9 @@
   --field-border: #c9d2d8;
 
   --field-height: 2.625rem; /* 42px */
+  /* Roughly a column of the three-up grid: past this a text box is harder to
+     read, not easier, however much room the row has. */
+  --field-width: 24rem;
 }
 
 .form-layout {
@@ -152,6 +155,17 @@
 }
 .form-required { color: #b91c1c; font-weight: 700; }
 
+/* A line, not a banner: it reports progress without taking the eye off the
+   fields below it. */
+.form-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
 .form-section {
   border: 1px solid transparent;
   border-radius: 0.625rem;
@@ -259,10 +273,12 @@
    room for that line, so a field carrying one is no taller than its
    neighbours and the rows stay level. */
 .field-grid > .field,
-.form-entry__meta > .field,
-.form-entry__meta > .measure {
+.form-entry__meta > .field {
   min-height: 5.25rem;
 }
+/* Taller than a plain field: its radios hold room for the box that "Other"
+   reveals, so choosing it moves nothing below. */
+.form-entry__meta > .measure { min-height: 5.65rem; }
 .field {
   display: grid;
   gap: var(--s1);
@@ -278,6 +294,7 @@
 }
 .field__input {
   width: 100%;
+  max-width: var(--field-width);
   min-height: var(--field-height);
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--field-border);
@@ -292,7 +309,11 @@
    you cannot see where you clicked. */
 .field__input:focus-visible { box-shadow: 0 0 0 3px var(--teal-tint); }
 /* An example, not a value: quieter than what gets typed over it. */
-.field__input::placeholder { color: var(--muted); opacity: 0.7; }
+.field__input::placeholder {
+  font-size: var(--text-subtext);
+  color: var(--muted);
+  opacity: 0.7;
+}
 .field__input--area { resize: vertical; }
 /* Shown, not collected. No border or background: a box of any shade still
    reads as an input next to the real ones. Padding and a transparent border
@@ -321,6 +342,7 @@
   grid-template-columns: 1fr 7rem;
   align-items: start;
   gap: var(--s2);
+  padding-bottom: var(--s2);
 }
 
 /* One gap between fields, in every container that holds them. */
@@ -344,9 +366,10 @@
 
 /* The rearing radio and its describe box get a row to themselves, sized to
    what they hold rather than to the row minimum the fields above use. */
-/* Radios carry no subtext line, so what follows them needs the spacing a
-   field row gets from that line. */
+/* Its fields size to themselves, so it stands off what follows by the space a
+   grid field gets from its subtext line. */
 .field-row {
+  margin-bottom: var(--s3);
   grid-column: 1 / -1;
   row-gap: var(--s3);
 }
@@ -374,7 +397,7 @@
   justify-content: space-between;
   gap: var(--s2);
   min-height: 2rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--s3);
   padding: 0 0.7rem;
   border-radius: 0.25rem;
   background: #f3f7f8;
@@ -397,6 +420,9 @@
 .form-entry__remove:hover { color: #b91c1c; }
 
 .form-entry__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
   flex: 1;
   padding: 0;
   border: 0;
@@ -408,6 +434,16 @@
   text-align: left;
   cursor: pointer;
 }
+/* A triangle rather than a chevron glyph, which sits high in its own box and
+   never lines up with the text beside it. */
+.form-entry__caret {
+  font-size: 0.725rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.form-entry__caret.is-open { transform: rotate(90deg); }
+
 /* What a folded control holds. Indented past the caret above it. */
 .form-entry__summary {
   margin: 0 0 var(--s2);
@@ -521,18 +557,28 @@
 }
 .measure__input .field__input { padding-right: 2rem; }
 
+/* As tall as an input, so a field of radios takes the same room in a row as
+   the fields around it. A radio is a mark like an input's border, not like
+   the text inside it, so it starts where that border would: no padding, and
+   the field's own gap is the whole distance from the label. */
 .radio-group {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s2);
+  align-items: flex-start;
+  align-content: flex-start;
+  min-height: var(--field-height);
+  gap: var(--s1) var(--s3);
 }
 /* Beside an input: drop to its centre line and hold room for the unit box
    that appears on "Other". */
 .measure .radio-group {
   /* Level with the input beside it, whose padding and border add up to this. */
   padding-top: 0.6rem;
-  min-height: calc(0.6rem + 2.2rem);
+  /* The height the row takes once "Other" reveals its box, held open from the
+     start so choosing it moves nothing below. */
+  min-height: 5.0375rem;
+  align-items: center;
+  gap: var(--s2);
 }
 .radio-group .field__input { width: 4.5rem; padding: 0.3rem 0.5rem; }
 .radio-group__option {

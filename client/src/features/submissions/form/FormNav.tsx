@@ -4,13 +4,11 @@ import {
   NavButton,
   NavHeading,
   NavLabel,
-  NavLegend,
   NavList,
 } from "@/styles/elements";
 import StatusDot from "./StatusDot";
 import {
   SECTIONS,
-  STATUS_LABELS,
   type SectionSlug,
   type SectionStatus,
 } from "./sections";
@@ -45,17 +43,6 @@ const NavItem = ({
   );
 };
 
-const Legend = () => (
-  <NavLegend>
-    {(Object.keys(STATUS_LABELS) as SectionStatus[]).map((status) => (
-      <li key={status}>
-        <StatusDot status={status} />
-        {STATUS_LABELS[status]}
-      </li>
-    ))}
-  </NavLegend>
-);
-
 /**
  * The section list, with where each one stands. Jumping scrolls to a section
  * rather than hiding the others: the form is one document, and a curator
@@ -84,9 +71,6 @@ const FormNav = ({
         />
       ))}
     </NavList>
-
-    <NavHeading>Status</NavHeading>
-    <Legend />
   </Nav>
 );
 

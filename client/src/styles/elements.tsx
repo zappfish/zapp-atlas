@@ -164,6 +164,8 @@ export const FormLayout = styled("div", "form-layout");
 export const FormMain = styled("div", "form-main");
 export const FormIntro = styled("header", "form-intro");
 export const FormIntroText = styled("p", "form-intro__text");
+/** How far through the form this submission is. */
+export const FormProgress = styled("p", "form-progress");
 export const RequiredMark = styled("span", "form-required");
 
 export const Nav = styled("aside", "form-nav");
@@ -237,6 +239,15 @@ export const EntryTitle = styled("h3", "form-entry__title");
 export const EntryRemove = styled("button", "form-entry__remove");
 /** Folds one group of a repeating section away. */
 export const GroupToggle = styled("button", "form-entry__toggle");
+const EntryCaretGlyph = styled("span", "form-entry__caret");
+
+/** Points at the title when folded, and down when open. */
+export const EntryCaret = ({
+  isOpen,
+  ...rest
+}: ComponentPropsWithoutRef<"span"> & { isOpen: boolean }) => (
+  <EntryCaretGlyph className={modifier(isOpen, "is-open")} {...rest} />
+);
 /** What a folded group holds, so it can be told from its neighbours. */
 export const GroupSummaryText = styled("p", "form-entry__summary");
 export const EntryBody = styled("div", "form-entry__body");
