@@ -15,6 +15,9 @@ import Field from "./Field";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
+import ControlSection from "./sections/ControlSection";
+import ExperimentSection from "./sections/ExperimentSection";
+import FishSection from "./sections/FishSection";
 import ImagesSection from "./sections/ImagesSection";
 import ProvenanceSection from "./sections/ProvenanceSection";
 import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
@@ -100,6 +103,9 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
           >
             {slug === "images" && <ImagesSection />}
             {slug === "provenance" && <ProvenanceSection />}
+            {slug === "fish" && <FishSection />}
+            {slug === "experiment" && <ExperimentSection />}
+            {slug === "control" && <ControlSection />}
           </FormSection>
         ))}
 
