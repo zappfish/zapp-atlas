@@ -67,8 +67,11 @@ server/src/zapp_atlas/
 │   └── models.py      OrcidIdentity (SQLAlchemy)
 ├── api/               Read-write JSON API (mounted under /api)
 │   ├── deps.py        get_session / get_app_settings dependencies
-│   ├── routers/       studies, experiments, exposures, observations, images
+│   ├── routers/       studies, experiments, exposures, observations, images,
+│   │                  chemicals (read-only lookups for the chemical picker)
 │   └── services/      CRUD business logic per resource
+├── chem/              NodeNorm client + the ChEBI lookup cache
+│                      (read side, and the offline tools that build it)
 ├── db/                Persistence
 │   ├── db.py          SQLAlchemy 2.0 engine + session factory
 │   ├── init_db.py     table creation
@@ -91,6 +94,7 @@ server/src/zapp_atlas/
 | `/auth/orcid/*`, `GET /registered` | `auth` router | ORCID OAuth + status |
 | `POST /auth/dev/login` | `auth` router | dev-only fake sign-in (see below) |
 | `/api/{studies,experiments,exposures,observations,images}` | `api` routers | JSON CRUD |
+| `/api/chemicals/{autocomplete,normalize,vehicle-info}` | `api` chemicals router | read-only chemical lookups (NodeNorm + ChEBI cache) |
 | `GET /health` | `main` | `{"status":"ok"}` |
 
 Route order matters in `create_app`: the `/edit/assets` mount is registered

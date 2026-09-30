@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.routers.cabinet import router as cabinet_router
+from zapp_atlas.api.routers.chemicals import router as chemicals_router
 from zapp_atlas.api.routers.experiments import router as experiments_router
 from zapp_atlas.api.routers.exposures import router as exposures_router
 from zapp_atlas.api.routers.fish_tank import router as fish_tank_router
@@ -87,6 +88,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     api.include_router(research_groups_router)
     api.include_router(cabinet_router)
     api.include_router(fish_tank_router)
+    api.include_router(chemicals_router)
     app.include_router(api)
 
     # Static assets for the server-rendered (HTMX) viewing app.
