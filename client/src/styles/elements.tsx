@@ -225,10 +225,20 @@ export const FieldValueLabel = styled("span", "field__label");
 export const TextArea = styled("textarea", "field__input field__input--area");
 export const SelectInput = styled("select", "field__input field__input--select");
 export const FieldGrid = styled("div", "field-grid");
+/** A field grid held to two columns, for a section with a tall field in it. */
+export const FieldPairs = styled("div", "field-grid field-grid--pairs");
 export const FieldNote = styled("p", "field__note");
 
 
 export const EntryCard = styled("div", "form-entry");
+/** Names one of several repeated entries, and removes it. */
+export const EntryHead = styled("div", "form-entry__head");
+export const EntryTitle = styled("h3", "form-entry__title");
+export const EntryRemove = styled("button", "form-entry__remove");
+/** Folds one group of a repeating section away. */
+export const GroupToggle = styled("button", "form-entry__toggle");
+/** What a folded group holds, so it can be told from its neighbours. */
+export const GroupSummaryText = styled("p", "form-entry__summary");
 export const EntryBody = styled("div", "form-entry__body");
 export const EntryMeta = styled("div", "form-entry__meta");
 export const EntryFooter = styled("div", "form-entry__footer");
@@ -253,6 +263,10 @@ export const PreviewActions = styled("div", "upload__preview-actions");
 export const MeasureRow = styled("div", "measure");
 export const MeasureInput = styled("div", "measure__input");
 export const MeasureSuffix = styled("span", "measure__suffix");
+/** A value beside the unit it is measured in, together in one column. */
+export const ValueAndUnit = styled("div", "value-unit");
+/** A field that takes the whole row: radios, or a box that follows them. */
+export const FullRow = styled("div", "field-row");
 export const RadioGroup = styled("div", "radio-group");
 export const RadioLabel = styled("label", "radio-group__option");
 export const NotesToggle = styled("button", "notes-toggle");
