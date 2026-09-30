@@ -130,7 +130,10 @@ class Study(ZappEntity):
 
     __tablename__ = "Study"
 
+    research_group: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     publication: Mapped[str | None] = mapped_column(Text())
+    nickname: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[str | None] = mapped_column(Text())
     lab: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
@@ -145,7 +148,7 @@ class Study(ZappEntity):
     )
 
     def __repr__(self):
-        return f"Study(publication={self.publication},lab={self.lab},id={self.id},)"
+        return f"Study(research_group={self.research_group},publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -519,10 +522,11 @@ class ChemicalCabinetEntry(ZappEntity):
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     chemical_id: Mapped[str] = mapped_column(Text())
+    nickname: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
     def __repr__(self):
-        return f"ChemicalCabinetEntry(research_group={self.research_group},chemical_id={self.chemical_id},id={self.id},)"
+        return f"ChemicalCabinetEntry(research_group={self.research_group},chemical_id={self.chemical_id},nickname={self.nickname},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
