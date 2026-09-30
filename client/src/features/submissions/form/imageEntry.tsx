@@ -29,6 +29,7 @@ import {
   UploadPane,
 } from "@/styles/elements";
 import Field from "./Field";
+import UploadIcon from "./UploadIcon";
 
 export const Measure = ({
   label,
@@ -153,6 +154,7 @@ export const ImageUpload = ({
           onDragLeave={leave}
           onDrop={drop}
         >
+          <UploadIcon />
           <UploadHint>Drag &amp; drop an image here, or click to browse.</UploadHint>
           <UploadLimits>JPG, PNG or TIFF, up to 50MB.</UploadLimits>
         </UploadPane>

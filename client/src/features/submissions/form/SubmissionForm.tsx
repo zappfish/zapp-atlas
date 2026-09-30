@@ -13,7 +13,6 @@ import {
   TextInput,
 } from "@/styles/elements";
 import Field from "./Field";
-import StatusDot from "./StatusDot";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
@@ -108,7 +107,6 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
           </Field>
 
           <FormProgress>
-            <StatusDot status={overall} />
             {STATUS_LABELS[overall]} · {complete} of {SECTIONS.length} sections
             complete
           </FormProgress>

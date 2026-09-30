@@ -12,7 +12,7 @@
   --s4: 2rem;    /* section to section */
 
   --text-subtext: 0.75rem; /* hints and notes under a control */
-  --field-border: #c9d2d8;
+  --field-border: #8b95a1; /* 3:1 on white, the contrast a control's edge needs */
   --field-height: 2.625rem; /* 42px */
   --field-block: 5.25rem; /* label, control, subtext */
 }
@@ -41,12 +41,11 @@
 .form-intro__text { margin: 0; font-size: var(--text-sm); color: var(--ink); }
 .form-required { color: #b91c1c; font-weight: 700; }
 
+/* Text, not a control: a dot here reads as an unselected radio among the
+   real ones. The sidebar keeps its dots, where they are the only marker. */
 .form-progress {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
   margin: 0;
-  font-size: var(--text-sm);
+  font-size: var(--text-subtext);
   color: var(--muted);
 }
 
@@ -153,7 +152,7 @@
 .form-section__title {
   margin: 0;
   font-size: var(--text-md);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 .form-section__toggle {
@@ -174,7 +173,7 @@
 /* Every section's fields. Nothing else lays them out. */
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
   align-items: start;
   gap: var(--s3);
 }
@@ -253,22 +252,31 @@
 
 /* ---- Options ------------------------------------------------------------ */
 
-/* Top of the field's slot, where an input's border starts. */
+/* No padding: a radio is a mark like an input's border, so it starts where
+   that border does and both sit the same distance below their label. */
 .radio-group {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   align-content: flex-start;
   gap: var(--s2) var(--s3);
-  padding-top: 0.6rem;
 }
+/* The label is the target, padded to the 24px WCAG asks for: the native
+   control itself renders around 13px. */
 .radio-group__option {
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
+  min-height: 1.5rem;
+  padding: var(--s1) 0;
   font-size: var(--text-sm);
   color: var(--ink);
   cursor: pointer;
+}
+.radio-group__option input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--teal);
 }
 
 /* ---- Repeating entries -------------------------------------------------- */
@@ -370,12 +378,13 @@
   justify-content: center;
   min-height: 12rem;
   padding: var(--s3);
-  border: 1px dashed var(--line-strong);
+  border: 1px dashed var(--field-border);
   border-radius: var(--radius);
-  background: var(--white);
+  background: var(--surface-sunken);
   text-align: center;
   cursor: pointer;
 }
+.upload__icon { margin-bottom: var(--s2); color: var(--muted); }
 .upload__pane.is-dragging { border-color: var(--teal); background: var(--teal-tint); }
 .upload__hint { margin: 0; font-size: var(--text-sm); color: var(--muted); }
 .upload__limits {
@@ -400,6 +409,8 @@
 /* ---- Notes -------------------------------------------------------------- */
 
 .notes { display: flex; flex-direction: column; gap: var(--s1); }
+/* A secondary action: smaller and quieter than the fields, but --muted is as
+   light as it goes at 4.8:1, since button text needs 4.5:1. */
 .notes-toggle {
   align-self: flex-start;
   padding: var(--s1) var(--s2);
@@ -407,8 +418,8 @@
   border-radius: var(--radius);
   background: var(--white);
   font: inherit;
-  font-size: var(--text-sm);
-  color: var(--ink);
+  font-size: var(--text-xs);
+  color: var(--muted);
   cursor: pointer;
 }
 .notes-toggle:hover { border-color: var(--teal); color: var(--teal); }
