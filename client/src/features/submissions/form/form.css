@@ -13,6 +13,8 @@
 
   --text-subtext: 0.75rem; /* hints and notes under a control */
   --field-border: #8b95a1; /* 3:1 on white, the contrast a control's edge needs */
+  --entry-rule: #dce4e8;  /* between one repeated entry and the next */
+  --entry-strip: #f3f7f8; /* the band naming a repeated entry */
   --field-height: 2.625rem; /* 42px */
   --field-block: 5.25rem; /* label, control, subtext */
 }
@@ -39,7 +41,7 @@
 /* The breadcrumb's own margin would double the column gap. */
 .form-main .crumbs { margin-bottom: 0; }
 .form-intro__text { margin: 0; font-size: var(--text-sm); color: var(--ink); }
-.form-required { color: #b91c1c; font-weight: 700; }
+.form-required { color: var(--status-retracted); font-weight: 700; }
 
 /* Text, not a control: a dot here reads as an unselected radio among the
    real ones. The sidebar keeps its dots, where they are the only marker. */
@@ -123,7 +125,7 @@
 /* Only "not started" is hollow. */
 .form-dot--in-progress { background: var(--teal); }
 .form-dot--complete { background: var(--status-published, #15803d); color: var(--white); }
-.form-dot--has-errors { background: #b91c1c; color: var(--white); }
+.form-dot--has-errors { background: var(--status-retracted); color: var(--white); }
 
 /* ---- Sections ----------------------------------------------------------- */
 
@@ -285,7 +287,7 @@
 .form-entry + .form-entry {
   margin-top: var(--s3);
   padding-top: var(--s3);
-  border-top: 1px solid #dce4e8;
+  border-top: 1px solid var(--entry-rule);
 }
 
 /* The strip naming a group: tinted, and below the section title. */
@@ -298,7 +300,7 @@
   margin-bottom: var(--s3);
   padding: 0 0.7rem;
   border-radius: 0.25rem;
-  background: #f3f7f8;
+  background: var(--entry-strip);
 }
 .form-entry__toggle {
   display: flex;
@@ -338,7 +340,7 @@
   color: var(--muted);
   cursor: pointer;
 }
-.form-entry__remove:hover { color: #b91c1c; }
+.form-entry__remove:hover { color: var(--status-retracted); }
 /* What a folded group holds. */
 .form-entry__summary {
   margin: 0 0 var(--s2);
@@ -433,7 +435,7 @@
   color: var(--muted);
   cursor: pointer;
 }
-.notes__remove:hover { color: #b91c1c; }
+.notes__remove:hover { color: var(--status-retracted); }
 
 /* ---- Adding ------------------------------------------------------------- */
 
