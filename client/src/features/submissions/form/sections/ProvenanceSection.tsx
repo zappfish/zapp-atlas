@@ -1,18 +1,13 @@
-import { useCallback, useState } from "react";
 import {
   EntryCard,
-  EntryFooter,
   FieldGrid,
   FieldNote,
   FieldValue,
-  Notes,
-  NotesRemove,
-  NotesToggle,
   SelectInput,
-  TextArea,
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import OptionalNotes from "../OptionalNotes";
 
 /**
  * Written into the document by app.html, so it is there on the first render
@@ -34,9 +29,6 @@ const SOURCES = [
 
 /** Who produced the data and where it was published. */
 const ProvenanceSection = () => {
-  const [notesOpen, setNotesOpen] = useState(false);
-  const openNotes = useCallback(() => setNotesOpen(true), []);
-  const closeNotes = useCallback(() => setNotesOpen(false), []);
   const identity = window.ZAPP_SIGNED_IN_USER;
 
   return (
@@ -104,20 +96,7 @@ const ProvenanceSection = () => {
         </Field>
       </FieldGrid>
 
-      <EntryFooter>
-        {notesOpen ? (
-          <Notes>
-            <Field label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
-            <NotesRemove type="button" onClick={closeNotes}>
-              Remove notes
-            </NotesRemove>
-          </Notes>
-        ) : (
-          <NotesToggle type="button" onClick={openNotes}>
-            Add notes
-          </NotesToggle>
-        )}
-      </EntryFooter>
+      <OptionalNotes />
     </EntryCard>
   );
 };

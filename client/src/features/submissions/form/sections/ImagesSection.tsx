@@ -1,4 +1,3 @@
-import { useCallback, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -7,23 +6,16 @@ import {
   EntryHead,
   EntryRemove,
   EntryTitle,
-  EntryFooter,
   EntryMeta,
-  Notes,
-  NotesRemove,
-  NotesToggle,
-  TextArea,
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import OptionalNotes from "../OptionalNotes";
 import { useEntries } from "../useEntries";
 import { ImageUpload, Measure } from "../imageEntry";
 import { MEASURES } from "../measures";
 
 const ImageEntry = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
-  const [notesOpen, setNotesOpen] = useState(false);
-  const openNotes = useCallback(() => setNotesOpen(true), []);
-  const closeNotes = useCallback(() => setNotesOpen(false), []);
 
   return (
     <EntryCard>
@@ -52,20 +44,7 @@ const ImageEntry = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
 
       {/* Below both columns: a note is wider than it is tall, and keeping it
           out of the column stops that column outgrowing the image beside it. */}
-      <EntryFooter>
-        {notesOpen ? (
-          <Notes>
-            <Field label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
-            <NotesRemove type="button" onClick={closeNotes}>
-              Remove notes
-            </NotesRemove>
-          </Notes>
-        ) : (
-          <NotesToggle type="button" onClick={openNotes}>
-            Add notes
-          </NotesToggle>
-        )}
-      </EntryFooter>
+      <OptionalNotes />
     </EntryCard>
   );
 };

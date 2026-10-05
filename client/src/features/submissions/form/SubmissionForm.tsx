@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { useGroupDashboard } from "@/api/hooks";
 import {
@@ -58,6 +58,15 @@ const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
   experiment: "not-started",
   control: "not-started",
   phenotype: "not-started",
+};
+
+const SECTION_BODIES: Record<SectionSlug, () => ReactNode> = {
+  provenance: () => <ProvenanceSection />,
+  images: () => <ImagesSection />,
+  fish: () => <FishSection />,
+  experiment: () => <ExperimentSection />,
+  control: () => <ControlSection />,
+  phenotype: () => <PhenotypeSection />,
 };
 
 const SubmissionForm = ({ groupId }: { groupId?: number }) => {
@@ -126,12 +135,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             title={label}
             isActive={slug === active}
           >
-            {slug === "images" && <ImagesSection />}
-            {slug === "provenance" && <ProvenanceSection />}
-            {slug === "fish" && <FishSection />}
-            {slug === "experiment" && <ExperimentSection />}
-            {slug === "control" && <ControlSection />}
-            {slug === "phenotype" && <PhenotypeSection />}
+            {SECTION_BODIES[slug]()}
           </FormSection>
         ))}
 

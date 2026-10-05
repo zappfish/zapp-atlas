@@ -1,27 +1,20 @@
-import { useCallback, useId, useState } from "react";
+import { useId, useState } from "react";
 import {
   EntryCard,
-  EntryFooter,
   FieldGrid,
-  Notes,
-  NotesRemove,
-  NotesToggle,
   RadioGroup,
   RadioLabel,
   TextArea,
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import OptionalNotes from "../OptionalNotes";
 
 const REARING = ["Standard", "Non-standard"] as const;
 type Rearing = (typeof REARING)[number];
 
 /** The fish the experiment used, and how it was reared. */
 const FishSection = () => {
-  const [notesOpen, setNotesOpen] = useState(false);
-  const openNotes = useCallback(() => setNotesOpen(true), []);
-  const closeNotes = useCallback(() => setNotesOpen(false), []);
-
   const [rearing, setRearing] = useState<Rearing>("Standard");
   const rearingName = useId();
 
@@ -77,20 +70,7 @@ const FishSection = () => {
           )}
       </FieldGrid>
 
-      <EntryFooter>
-        {notesOpen ? (
-          <Notes>
-            <Field label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
-            <NotesRemove type="button" onClick={closeNotes}>
-              Remove notes
-            </NotesRemove>
-          </Notes>
-        ) : (
-          <NotesToggle type="button" onClick={openNotes}>
-            Add notes
-          </NotesToggle>
-        )}
-      </EntryFooter>
+      <OptionalNotes />
     </EntryCard>
   );
 };

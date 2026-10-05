@@ -3,14 +3,10 @@ import {
   AddButton,
   AddRow,
   EntryCard,
-  EntryFooter,
   EntryHead,
   EntryRemove,
   EntryTitle,
   FieldGrid,
-  Notes,
-  NotesRemove,
-  NotesToggle,
   RadioGroup,
   RadioLabel,
   SelectInput,
@@ -18,6 +14,7 @@ import {
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import OptionalNotes from "../OptionalNotes";
 import { useEntries } from "../useEntries";
 
 const ID_TYPES = ["CAS", "PubChem", "CHEBI", "None"];
@@ -80,10 +77,6 @@ const ExposureEvent = ({
   n: number;
   onRemove?: () => void;
 }) => {
-  const [notesOpen, setNotesOpen] = useState(false);
-  const openNotes = useCallback(() => setNotesOpen(true), []);
-  const closeNotes = useCallback(() => setNotesOpen(false), []);
-
   const [route, setRoute] = useState<Route>("environment");
   const [regimen, setRegimen] = useState("Continuous exposure");
   const routeName = useId();
@@ -237,20 +230,7 @@ const ExposureEvent = ({
         <UnitField label="End stage value" units={STAGE_UNITS} />
       </FieldGrid>
 
-      <EntryFooter>
-        {notesOpen ? (
-          <Notes>
-            <Field label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
-            <NotesRemove type="button" onClick={closeNotes}>
-              Remove notes
-            </NotesRemove>
-          </Notes>
-        ) : (
-          <NotesToggle type="button" onClick={openNotes}>
-            Add notes
-          </NotesToggle>
-        )}
-      </EntryFooter>
+      <OptionalNotes />
     </EntryCard>
   );
 };
