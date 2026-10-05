@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -18,6 +18,7 @@ import {
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import { useEntries } from "../useEntries";
 
 const STAGE_UNITS = ["hpf", "dpf", "month"];
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
@@ -123,14 +124,7 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
 
 /** The phenotypes this submission reports. */
 const PhenotypeSection = () => {
-  // Ids rather than a count: removing one must not renumber those after it.
-  const [ids, setIds] = useState([0]);
-  const next = useRef(1);
-  const add = useCallback(() => setIds((was) => [...was, next.current++]), []);
-  const remove = useCallback(
-    (id: number) => setIds((was) => was.filter((each) => each !== id)),
-    [],
-  );
+  const { ids, add, remove } = useEntries();
 
   return (
     <>

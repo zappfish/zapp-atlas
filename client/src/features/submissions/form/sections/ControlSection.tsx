@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -20,6 +20,7 @@ import {
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import { useEntries } from "../useEntries";
 import { ImageUpload, Measure } from "../imageEntry";
 import { MEASURES } from "../measures";
 
@@ -77,22 +78,13 @@ const Control = ({
   const typeName = useId();
   const rearingName = useId();
 
-  const [images, setImages] = useState<number[]>([]);
-  const nextImage = useRef(1);
-  const addImage = useCallback(
-    () => setImages((was) => [...was, nextImage.current++]),
-    [],
-  );
-  const removeImage = useCallback(
-    (id: number) => setImages((was) => was.filter((each) => each !== id)),
-    [],
-  );
+  const images = useEntries(0);
 
   // Only what has been filled in: a control with nothing entered says nothing.
   const summary = [
     type === "Vehicle control" ? vehicle : "",
     strain,
-    images.length ? `${images.length} images` : "No images",
+    images.ids.length ? `${images.ids.length} images` : "No images",
   ].filter(Boolean);
 
   return (
@@ -200,12 +192,12 @@ const Control = ({
 
           <EntryTitle>Control images (optional)</EntryTitle>
 
-          {images.map((id, i) => (
-            <ControlImage key={id} n={i + 1} onRemove={() => removeImage(id)} />
+          {images.ids.map((id, i) => (
+            <ControlImage key={id} n={i + 1} onRemove={() => images.remove(id)} />
           ))}
 
           <AddRowInline>
-            <AddButton type="button" onClick={addImage}>
+            <AddButton type="button" onClick={images.add}>
               + Add control image
             </AddButton>
           </AddRowInline>
@@ -217,14 +209,7 @@ const Control = ({
 
 /** The controls this submission was measured against. */
 const ControlSection = () => {
-  // Ids rather than a count: removing one must not renumber those after it.
-  const [ids, setIds] = useState([0]);
-  const next = useRef(1);
-  const add = useCallback(() => setIds((was) => [...was, next.current++]), []);
-  const remove = useCallback(
-    (id: number) => setIds((was) => was.filter((each) => each !== id)),
-    [],
-  );
+  const { ids, add, remove } = useEntries();
 
   return (
     <>

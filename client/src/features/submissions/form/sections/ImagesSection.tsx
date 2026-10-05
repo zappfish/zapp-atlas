@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -16,6 +16,7 @@ import {
   TextInput,
 } from "@/styles/elements";
 import Field from "../Field";
+import { useEntries } from "../useEntries";
 import { ImageUpload, Measure } from "../imageEntry";
 import { MEASURES } from "../measures";
 
@@ -71,14 +72,7 @@ const ImageEntry = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
 
 /** Each image carries its own metadata, which may differ between them. */
 const ImagesSection = () => {
-  // Ids rather than a count: removing one must not renumber those after it.
-  const [ids, setIds] = useState([0]);
-  const next = useRef(1);
-  const add = useCallback(() => setIds((was) => [...was, next.current++]), []);
-  const remove = useCallback(
-    (id: number) => setIds((was) => was.filter((each) => each !== id)),
-    [],
-  );
+  const { ids, add, remove } = useEntries();
 
   return (
     <>
