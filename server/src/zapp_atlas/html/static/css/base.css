@@ -60,6 +60,13 @@
   --panel-offset: 0.35rem;
   --panel-pad: 0.5rem 0;
   --radius-panel: 0.25rem;
+
+  /* One width for a page's content, so the server-rendered pages and the React
+     ones line up rather than reading as two sites. */
+  --page-width: 82rem;
+  /* Prose is capped shorter: a line much past this is hard to read back. */
+  --prose-width: 46rem;
+  --page-gutter: 2rem;
   --shadow-modal: 0 10px 40px rgba(15, 76, 92, 0.2);
   --radius: 0.5rem;
   --radius-lg: 0.75rem;
@@ -142,6 +149,16 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  /* The gutter every page keeps between its content and the window. The React
+     client lays out its own, so #root opts out below. */
+  padding-inline: var(--page-gutter);
+}
+
+/* The React shell: its pages carry their own padding. */
+main:has(> #root) { padding-inline: 0; }
+
+@media (max-width: 560px) {
+  :root { --page-gutter: 1.15rem; }
 }
 
 

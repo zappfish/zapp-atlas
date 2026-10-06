@@ -18,9 +18,8 @@
 .guide__head,
 .guide__inner {
   width: 100%;
-  max-width: 85rem;
+  max-width: var(--page-width);
   margin: 0 auto;
-  padding-inline: 2rem;
 }
 
 .guide__head {
@@ -48,13 +47,8 @@
   flex-wrap: wrap;
   align-items: flex-end;
   width: 100%;
-  margin-top: 1.5rem;
-}
-
-/* The label strip aligns to the shared column; the panels below it do not,
-   so the strip gets the inset and the panel keeps the full width. */
-.guide__tab:first-of-type {
-  margin-left: max(2rem, calc(50% - 42.5rem + 2rem));
+  max-width: var(--page-width);
+  margin: 1.5rem auto 0;
 }
 
 .guide__radio {
@@ -94,7 +88,14 @@
   display: none;
   order: 1;
   width: 100%;
-  padding: 2rem 0 3.5rem;
+  padding-bottom: 3.5rem;
+}
+/* The tabs and the panels share one column, so a rule under the tabs lines up
+   with the ones between the guidelines below it. The guidelines themselves are
+   held to a reading measure, and their rules with them. */
+.guide__panel > .guide__inner {
+  max-width: none;
+  padding: 2rem 0 0;
   border-top: 1px solid var(--line);
 }
 
@@ -103,7 +104,7 @@
 }
 
 /* A guideline: heading over its text, separated from the next by a hairline
-   rather than a card. Measure is capped for reading, not for the page. */
+   rather than a card. */
 .guide__item + .guide__item {
   margin-top: 1.4rem;
   padding-top: 1.4rem;
@@ -118,7 +119,7 @@
 }
 
 .guide__a {
-  max-width: 46rem;
+  max-width: var(--prose-width);
   margin: 0.4rem 0 0;
   color: var(--muted);
   line-height: 1.75;
@@ -126,11 +127,6 @@
 
 @media (max-width: 560px) {
   .guide__head,
-  .guide__inner,
-  .guide__tabs {
-    padding-inline: 1.15rem;
-  }
-
   .guide__tab {
     padding: 0.7rem 0.75rem;
   }

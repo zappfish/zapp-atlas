@@ -392,7 +392,7 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 4rem;
-  max-width: 68.75rem;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding-bottom: 2rem;
 }
