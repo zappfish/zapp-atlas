@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -17,20 +17,29 @@ import {
   SelectInput,
   TextInput,
 } from "@/styles/elements";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import Field from "../Field";
-import { useEntries } from "../useEntries";
+import { emptyObservation, type Submission } from "../submission";
 
 const STAGE_UNITS = ["hpf", "dpf", "month"];
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
 
 /** A phenotype seen in the exposed fish, and how strongly. */
-const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
+const Observation = ({
+  n,
+  index,
+  onRemove,
+}: {
+  n: number;
+  index: number;
+  onRemove?: () => void;
+}) => {
   const [isOpen, setIsOpen] = useState(n === 1);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
-  const [phenotype, setPhenotype] = useState("");
-  const [severity, setSeverity] = useState("");
-  const severityName = useId();
+  const { register, watch } = useFormContext<Submission>();
+  const at = `observations.${index}` as const;
+  const [phenotype, severity] = watch([`${at}.phenotype`, `${at}.severity`]);
 
   // Only what has been filled in: an empty observation says nothing.
   const summary = [severity].filter(Boolean);
@@ -60,11 +69,11 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
         <>
           <FieldGrid>
               <Field label="Fish stage at phenotype observation">
-                {(id) => <TextInput id={id} placeholder="e.g. 96" />}
+                {(id) => <TextInput id={id} placeholder="e.g. 96" {...register(`${at}.stage`)} />}
               </Field>
               <Field label="Unit">
                 {(id) => (
-                  <SelectInput id={id} defaultValue={STAGE_UNITS[0]}>
+                  <SelectInput id={id} {...register(`${at}.stageUnit`)}>
                     {STAGE_UNITS.map((unit) => (
                       <option key={unit}>{unit}</option>
                     ))}
@@ -77,9 +86,8 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
                 <>
                   <TextInput
                     id={id}
-                    value={phenotype}
-                    onChange={(e) => setPhenotype(e.target.value)}
                     placeholder="Phenotype term"
+                    {...register(`${at}.phenotype`)}
                   />
                   <FieldNote>
                     Term not represented correctly? Request a new synonym — TBD
@@ -91,7 +99,11 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
             <Field label="Prevalence">
               {(id) => (
                 <MeasureInput>
-                  <TextInput id={id} placeholder="e.g. 80" />
+                  <TextInput
+                    id={id}
+                    placeholder="e.g. 80"
+                    {...register(`${at}.prevalence`)}
+                  />
                   <MeasureSuffix>%</MeasureSuffix>
                 </MeasureInput>
               )}
@@ -104,9 +116,8 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
                       <RadioLabel key={option}>
                         <input
                           type="radio"
-                          name={severityName}
-                          checked={severity === option}
-                          onChange={() => setSeverity(option)}
+                          value={option}
+                          {...register(`${at}.severity`)}
                         />
                         {option}
                       </RadioLabel>
@@ -124,20 +135,25 @@ const Observation = ({ n, onRemove }: { n: number; onRemove?: () => void }) => {
 
 /** The phenotypes this submission reports. */
 const PhenotypeSection = () => {
-  const { ids, add, remove } = useEntries();
+  const { control } = useFormContext<Submission>();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "observations",
+  });
 
   return (
     <>
-      {ids.map((id, i) => (
+      {fields.map((field, i) => (
         <Observation
-          key={id}
+          key={field.id}
           n={i + 1}
-          onRemove={ids.length > 1 ? () => remove(id) : undefined}
+          index={i}
+          onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}
 
       <AddRow>
-        <AddButton type="button" onClick={add}>
+        <AddButton type="button" onClick={() => append(emptyObservation())}>
           + Add another observation
         </AddButton>
       </AddRow>

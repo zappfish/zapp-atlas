@@ -6,7 +6,9 @@ import {
   SelectInput,
   TextInput,
 } from "@/styles/elements";
+import { useFormContext } from "react-hook-form";
 import Field from "../Field";
+import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 
 /**
@@ -30,6 +32,7 @@ const SOURCES = [
 /** Who produced the data and where it was published. */
 const ProvenanceSection = () => {
   const identity = window.ZAPP_SIGNED_IN_USER;
+  const { register } = useFormContext<Submission>();
 
   return (
     <EntryCard>
@@ -53,17 +56,29 @@ const ProvenanceSection = () => {
         </Field>
 
         <Field label="Principal investigator ORCID">
-          {(id) => <TextInput id={id} placeholder="0000-0000-0000-0000" />}
+          {(id) => (
+            <TextInput
+              id={id}
+              placeholder="0000-0000-0000-0000"
+              {...register("provenance.principalInvestigatorOrcid")}
+            />
+          )}
         </Field>
 
         <Field label="Principal investigator name">
-          {(id) => <TextInput id={id} />}
+          {(id) => (
+            <TextInput id={id} {...register("provenance.principalInvestigatorName")} />
+          )}
         </Field>
 
         <Field label="Laboratory">
           {(id) => (
             <>
-              <TextInput id={id} placeholder="e.g. ZDB-LAB-120909-1" />
+              <TextInput
+                id={id}
+                placeholder="e.g. ZDB-LAB-120909-1"
+                {...register("provenance.laboratory")}
+              />
               <FieldNote>
                 No ZFIN lab ID?{" "}
                 <a
@@ -80,7 +95,7 @@ const ProvenanceSection = () => {
 
         <Field label="Source of the information" required>
           {(id) => (
-            <SelectInput id={id} defaultValue="">
+            <SelectInput id={id} defaultValue="" {...register("provenance.sourceType")}>
               <option value="">Select source type</option>
               {SOURCES.map((source) => (
                 <option key={source}>{source}</option>
@@ -91,12 +106,16 @@ const ProvenanceSection = () => {
 
         <Field label="Source value" required>
           {(id) => (
-            <TextInput id={id} placeholder="PMID number, DOI url, link, etc" />
+            <TextInput
+              id={id}
+              placeholder="PMID number, DOI url, link, etc"
+              {...register("provenance.sourceValue")}
+            />
           )}
         </Field>
       </FieldGrid>
 
-      <OptionalNotes />
+      <OptionalNotes name="provenance.notes" />
     </EntryCard>
   );
 };

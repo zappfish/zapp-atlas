@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -19,8 +19,9 @@ import {
   TextArea,
   TextInput,
 } from "@/styles/elements";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import Field from "../Field";
-import { useEntries } from "../useEntries";
+import { emptyControl, emptyImage, type Submission } from "../submission";
 import { ImageUpload, Measure } from "../imageEntry";
 import { MEASURES } from "../measures";
 
@@ -37,7 +38,21 @@ const VEHICLES = [
 const REARING = ["Standard", "Not standard"];
 
 /** One image attached to a control, with its own metadata. */
-const ControlImage = ({ n, onRemove }: { n: number; onRemove: () => void }) => (
+const ControlImage = ({
+  n,
+  control: c,
+  index,
+  onRemove,
+}: {
+  n: number;
+  control: number;
+  index: number;
+  onRemove: () => void;
+}) => {
+  const { register } = useFormContext<Submission>();
+  const at = `controls.${c}.images.${index}` as const;
+
+  return (
   <EntryCard>
     <EntryHead>
       <EntryTitle>Image {n}</EntryTitle>
@@ -47,44 +62,59 @@ const ControlImage = ({ n, onRemove }: { n: number; onRemove: () => void }) => (
     </EntryHead>
 
     <EntryBody>
-      <ImageUpload required={false} />
+      <ImageUpload required={false} name={`${at}.file`} />
       <EntryMeta>
-        {MEASURES.map((measure) => (
-          <Measure key={measure.label} {...measure} />
+        {MEASURES.map(({ field, unitField, ...measure }) => (
+          <Measure
+            key={measure.label}
+            {...measure}
+            name={`${at}.${field}` as const}
+            unitName={`${at}.${unitField}` as const}
+          />
         ))}
         <Field label="Microscope information">
-          {(id) => <TextInput id={id} placeholder="Enter text" />}
+          {(id) => (
+            <TextInput
+              id={id}
+              placeholder="Enter text"
+              {...register(`${at}.microscope`)}
+            />
+          )}
         </Field>
       </EntryMeta>
     </EntryBody>
   </EntryCard>
-);
+  );
+};
 
 /** What this control was, and what it looked like. */
 const Control = ({
   n,
+  index,
   onRemove,
 }: {
   n: number;
+  index: number;
   onRemove?: () => void;
 }) => {
   const [isOpen, setIsOpen] = useState(n === 1);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
-  const [type, setType] = useState("");
-  const [vehicle, setVehicle] = useState("");
-  const [strain, setStrain] = useState("");
-  const [rearing, setRearing] = useState("Standard");
-  const typeName = useId();
-  const rearingName = useId();
-
-  const images = useEntries(0);
+  const { register, control, watch } = useFormContext<Submission>();
+  const at = `controls.${index}` as const;
+  const [type, vehicle, strain, rearing] = watch([
+    `${at}.type`,
+    `${at}.vehicle`,
+    `${at}.strain`,
+    `${at}.rearing`,
+  ]);
+  const images = useFieldArray({ control, name: `${at}.images` });
 
   // Only what has been filled in: a control with nothing entered says nothing.
   const summary = [
     type === "Vehicle control" ? vehicle : "",
     strain,
-    images.ids.length ? `${images.ids.length} images` : "No images",
+    images.fields.length ? `${images.fields.length} images` : "No images",
   ].filter(Boolean);
 
   return (
@@ -118,9 +148,8 @@ const Control = ({
                       <RadioLabel key={option}>
                         <input
                           type="radio"
-                          name={typeName}
-                          checked={type === option}
-                          onChange={() => setType(option)}
+                          value={option}
+                          {...register(`${at}.type`)}
                         />
                         {option}
                       </RadioLabel>
@@ -131,11 +160,7 @@ const Control = ({
 
             <Field label="Vehicle used">
               {(id) => (
-                <SelectInput
-                  id={id}
-                  value={vehicle}
-                  onChange={(e) => setVehicle(e.target.value)}
-                >
+                <SelectInput id={id} {...register(`${at}.vehicle`)}>
                   <option value="">Select vehicle used</option>
                   {VEHICLES.map((option) => (
                     <option key={option}>{option}</option>
@@ -148,15 +173,14 @@ const Control = ({
               {(id) => (
                 <TextInput
                   id={id}
-                  value={strain}
-                  onChange={(e) => setStrain(e.target.value)}
                   placeholder="e.g. AB/TL"
+                  {...register(`${at}.strain`)}
                 />
               )}
             </Field>
 
             <Field label="Line description">
-              {(id) => <TextInput id={id} />}
+              {(id) => <TextInput id={id} {...register(`${at}.lineDescription`)} />}
             </Field>
 
               <Field wide label="Rearing conditions" labels="value">
@@ -166,9 +190,8 @@ const Control = ({
                       <RadioLabel key={option}>
                         <input
                           type="radio"
-                          name={rearingName}
-                          checked={rearing === option}
-                          onChange={() => setRearing(option)}
+                          value={option}
+                          {...register(`${at}.rearing`)}
                         />
                         {option}
                       </RadioLabel>
@@ -179,25 +202,41 @@ const Control = ({
 
               {rearing === "Not standard" && (
                 <Field wide label="Describe">
-                  {(id) => <TextArea id={id} rows={3} />}
+                  {(id) => (
+                    <TextArea id={id} rows={3} {...register(`${at}.rearingComment`)} />
+                  )}
                 </Field>
               )}
 
               <Field wide label="Phenotype description">
-                {(id) => <TextArea id={id} rows={3} />}
+                {(id) => (
+                  <TextArea
+                    id={id}
+                    rows={3}
+                    {...register(`${at}.phenotypeDescription`)}
+                  />
+                )}
               </Field>
 
-              <Field wide label="Notes">{(id) => <TextArea id={id} rows={3} />}</Field>
+              <Field wide label="Notes">
+                {(id) => <TextArea id={id} rows={3} {...register(`${at}.notes`)} />}
+              </Field>
           </FieldGrid>
 
           <EntryTitle>Control images (optional)</EntryTitle>
 
-          {images.ids.map((id, i) => (
-            <ControlImage key={id} n={i + 1} onRemove={() => images.remove(id)} />
+          {images.fields.map((field, i) => (
+            <ControlImage
+              key={field.id}
+              n={i + 1}
+              control={index}
+              index={i}
+              onRemove={() => images.remove(i)}
+            />
           ))}
 
           <AddRowInline>
-            <AddButton type="button" onClick={images.add}>
+            <AddButton type="button" onClick={() => images.append(emptyImage())}>
               + Add control image
             </AddButton>
           </AddRowInline>
@@ -209,20 +248,22 @@ const Control = ({
 
 /** The controls this submission was measured against. */
 const ControlSection = () => {
-  const { ids, add, remove } = useEntries();
+  const { control } = useFormContext<Submission>();
+  const { fields, append, remove } = useFieldArray({ control, name: "controls" });
 
   return (
     <>
-      {ids.map((id, i) => (
+      {fields.map((field, i) => (
         <Control
-          key={id}
+          key={field.id}
           n={i + 1}
-          onRemove={ids.length > 1 ? () => remove(id) : undefined}
+          index={i}
+          onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}
 
       <AddRow>
-        <AddButton type="button" onClick={add}>
+        <AddButton type="button" onClick={() => append(emptyControl())}>
           + Add another control
         </AddButton>
       </AddRow>

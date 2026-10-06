@@ -5,7 +5,6 @@
 
 import {
   useCallback,
-  useId,
   useRef,
   useState,
   type ChangeEvent,
@@ -28,7 +27,9 @@ import {
   UploadLimits,
   UploadPane,
 } from "@/styles/elements";
+import { useFormContext, type FieldPath } from "react-hook-form";
 import Field from "./Field";
+import type { Submission } from "./submission";
 import UploadIcon from "./UploadIcon";
 
 export const Measure = ({
@@ -36,21 +37,25 @@ export const Measure = ({
   placeholder,
   units,
   suffix,
+  name,
+  unitName,
 }: {
   label: string;
   placeholder: string;
-  units?: string[];
+  units?: readonly string[];
   suffix?: string;
+  name: FieldPath<Submission>;
+  unitName: FieldPath<Submission>;
 }) => {
-  const name = useId();
-  const [unit, setUnit] = useState("");
+  const { register, watch } = useFormContext<Submission>();
+  const unit = watch(unitName);
 
   return (
     <>
       <Field label={label}>
         {(id) => (
           <MeasureInput>
-            <TextInput id={id} placeholder={placeholder} />
+            <TextInput id={id} placeholder={placeholder} {...register(name)} />
             {suffix && <MeasureSuffix>{suffix}</MeasureSuffix>}
           </MeasureInput>
         )}
@@ -61,22 +66,17 @@ export const Measure = ({
           <RadioGroup>
             {units.map((option) => (
               <RadioLabel key={option}>
-                <input
-                  type="radio"
-                  name={name}
-                  value={option}
-                  checked={unit === option}
-                  onChange={() => setUnit(option)}
-                />
+                <input type="radio" value={option} {...register(unitName)} />
                 {option}
               </RadioLabel>
             ))}
-            {/* "Other" says the unit is none of the above; this says what. */}
+            {/* Registered apart from the radios, which hold "Other" itself. */}
             {unit === "Other" && (
               <TextInput
                 aria-label={`${label} unit`}
                 placeholder="Unit"
                 size={6}
+                {...register(`${unitName}Other` as FieldPath<Submission>)}
               />
             )}
           </RadioGroup>
@@ -87,10 +87,13 @@ export const Measure = ({
 };
 
 export const ImageUpload = ({
+  name,
   required = true,
 }: {
+  name: FieldPath<Submission>;
   required?: boolean;
-} = {}) => {
+}) => {
+  const { register } = useFormContext<Submission>();
   const input = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -163,10 +166,17 @@ export const ImageUpload = ({
       {/* Clipped rather than hidden, which would stop .click() opening it. */}
       <input
         className="visually-hidden"
-        ref={input}
         type="file"
         accept=".jpeg,.jpg,.png,.tiff"
-        onChange={choose}
+        {...register(name)}
+        ref={(node) => {
+          register(name).ref(node);
+          input.current = node;
+        }}
+        onChange={(event) => {
+          void register(name).onChange(event);
+          choose(event);
+        }}
       />
 
       {preview && (

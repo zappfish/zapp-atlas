@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import { useCallback } from "react";
 import {
   AddButton,
   AddRow,
@@ -13,9 +13,14 @@ import {
   TextArea,
   TextInput,
 } from "@/styles/elements";
+import {
+  useFieldArray,
+  useFormContext,
+  type FieldPath,
+} from "react-hook-form";
 import Field from "../Field";
+import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
-import { useEntries } from "../useEntries";
 
 const ID_TYPES = ["CAS", "PubChem", "CHEBI", "None"];
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
@@ -48,18 +53,31 @@ const UnitField = ({
   label,
   units,
   placeholder,
+  name,
+  unitName,
 }: {
   label: string;
   units: string[];
   placeholder?: string;
-}) => (
+  name: FieldPath<Submission>;
+  unitName: FieldPath<Submission>;
+}) => {
+  const { register } = useFormContext<Submission>();
+
+  return (
   <>
     <Field label={label}>
-      {(id) => <TextInput id={id} placeholder={placeholder} />}
+      {(id) => (
+        <TextInput id={id} placeholder={placeholder} {...register(name)} />
+      )}
     </Field>
     <Field label="Unit">
       {(id) => (
-        <SelectInput id={id} defaultValue={units[0]} className="field__input--short">
+        <SelectInput
+          id={id}
+          className="field__input--short"
+          {...register(unitName)}
+        >
           {units.map((unit) => (
             <option key={unit}>{unit}</option>
           ))}
@@ -67,27 +85,35 @@ const UnitField = ({
       )}
     </Field>
   </>
-);
+  );
+};
 
 /** One exposure: what the fish met, by what route, and for how long. */
 const ExposureEvent = ({
   n,
+  index,
   onRemove,
 }: {
   n: number;
+  index: number;
   onRemove?: () => void;
 }) => {
-  const [route, setRoute] = useState<Route>("environment");
-  const [regimen, setRegimen] = useState("Continuous exposure");
-  const routeName = useId();
-  const regimenName = useId();
+  const { register, watch, setValue } = useFormContext<Submission>();
+  const at = `exposures.${index}` as const;
+  const [route, regimen] = watch([`${at}.route`, `${at}.regimen`]) as [
+    Route,
+    string,
+  ];
 
   // The regimen options differ by route, so a route change picks the first of
   // the new set rather than leaving a value the radios no longer offer.
-  const chooseRoute = useCallback((next: Route) => {
-    setRoute(next);
-    setRegimen(regimens(next)[0]);
-  }, []);
+  const chooseRoute = useCallback(
+    (next: Route) => {
+      setValue(`${at}.route`, next);
+      setValue(`${at}.regimen`, regimens(next)[0]);
+    },
+    [at, setValue],
+  );
 
   const repeated = regimen === "Repeated exposures";
   const sustained = route === "environment" && !repeated;
@@ -105,16 +131,20 @@ const ExposureEvent = ({
 
       <FieldGrid>
         <Field label="Substance" required>
-          {(id) => <TextInput id={id} placeholder="Substance label" />}
+          {(id) => <TextInput
+              id={id}
+              placeholder="Substance label"
+              {...register(`${at}.substance`)}
+            />}
         </Field>
 
         <Field label="Substance / chemical description">
-          {(id) => <TextArea id={id} rows={1} />}
+          {(id) => <TextArea id={id} rows={1} {...register(`${at}.description`)} />}
         </Field>
 
         <Field label="ID type">
           {(id) => (
-            <SelectInput id={id} defaultValue={ID_TYPES[0]}>
+            <SelectInput id={id} {...register(`${at}.idType`)}>
               {ID_TYPES.map((type) => (
                 <option key={type}>{type}</option>
               ))}
@@ -123,11 +153,19 @@ const ExposureEvent = ({
         </Field>
 
         <Field label="Identifier">
-          {(id) => <TextInput id={id} placeholder="e.g. 50-00-0" />}
+          {(id) => <TextInput
+              id={id}
+              placeholder="e.g. 50-00-0"
+              {...register(`${at}.identifier`)}
+            />}
         </Field>
 
         <Field label="Substance concentration">
-          {(id) => <TextInput id={id} placeholder="e.g. 10" />}
+          {(id) => <TextInput
+              id={id}
+              placeholder="e.g. 10"
+              {...register(`${at}.concentration`)}
+            />}
         </Field>
 
         <Field label="Unit" labels="value">
@@ -135,7 +173,11 @@ const ExposureEvent = ({
             <RadioGroup role="radiogroup" aria-labelledby={labelId}>
               {CONCENTRATION_UNITS.map((unit) => (
                 <RadioLabel key={unit}>
-                  <input type="radio" name={`${routeName}-conc`} defaultChecked={unit === "µM"} />
+                  <input
+                    type="radio"
+                    value={unit}
+                    {...register(`${at}.concentrationUnit`)}
+                  />
                   {unit}
                 </RadioLabel>
               ))}
@@ -144,11 +186,19 @@ const ExposureEvent = ({
         </Field>
 
         <Field label="Chemical supplier of the test substance">
-          {(id) => <TextInput id={id} placeholder="Enter supplier's name or link to website" />}
+          {(id) => <TextInput
+              id={id}
+              placeholder="Enter supplier's name or link to website"
+              {...register(`${at}.supplier`)}
+            />}
         </Field>
 
         <Field label="Additional information on the test substance">
-          {(id) => <TextInput id={id} placeholder="e.g. 99% purity" />}
+          {(id) => <TextInput
+              id={id}
+              placeholder="e.g. 99% purity"
+              {...register(`${at}.additionalInformation`)}
+            />}
         </Field>
 
         <Field label="Exposure description">
@@ -156,6 +206,7 @@ const ExposureEvent = ({
             <TextInput
               id={id}
               placeholder="e.g. 4uM of ethanol were added to water every four hours"
+              {...register(`${at}.exposureDescription`)}
             />
           )}
         </Field>
@@ -167,7 +218,6 @@ const ExposureEvent = ({
                   <RadioLabel key={option.value}>
                     <input
                       type="radio"
-                      name={routeName}
                       checked={route === option.value}
                       onChange={() => chooseRoute(option.value)}
                     />
@@ -185,9 +235,8 @@ const ExposureEvent = ({
                   <RadioLabel key={option}>
                     <input
                       type="radio"
-                      name={regimenName}
-                      checked={regimen === option}
-                      onChange={() => setRegimen(option)}
+                      value={option}
+                      {...register(`${at}.regimen`)}
                     />
                     {option}
                   </RadioLabel>
@@ -197,7 +246,12 @@ const ExposureEvent = ({
           </Field>
 
         {sustained && (
-          <UnitField label="Exposure duration" units={DURATION_UNITS} />
+          <UnitField
+            label="Exposure duration"
+            units={DURATION_UNITS}
+            name={`${at}.duration`}
+            unitName={`${at}.durationUnit`}
+          />
         )}
 
         {sustained && (
@@ -206,7 +260,11 @@ const ExposureEvent = ({
                 <RadioGroup role="group" aria-labelledby={labelId}>
                   {PATTERNS.map((pattern) => (
                     <RadioLabel key={pattern}>
-                      <input type="checkbox" name={`${routeName}-pattern`} />
+                      <input
+                      type="checkbox"
+                      value={pattern}
+                      {...register(`${at}.pattern`)}
+                    />
                       {pattern}
                     </RadioLabel>
                   ))}
@@ -217,40 +275,70 @@ const ExposureEvent = ({
 
         {repeated && (
           <>
-            <UnitField label="Duration per exposure" units={DURATION_UNITS} />
+            <UnitField
+              label="Duration per exposure"
+              units={DURATION_UNITS}
+              name={`${at}.durationPerExposure`}
+              unitName={`${at}.durationPerExposureUnit`}
+            />
             <Field label="Number of exposures">
-              {(id) => <TextInput id={id} />}
+              {(id) => <TextInput id={id} {...register(`${at}.exposureCount`)} />}
             </Field>
-            <UnitField label="Interval between exposures" units={DURATION_UNITS} />
-            <UnitField label="Total duration of exposure" units={DURATION_UNITS} />
+            <UnitField
+              label="Interval between exposures"
+              units={DURATION_UNITS}
+              name={`${at}.interval`}
+              unitName={`${at}.intervalUnit`}
+            />
+            <UnitField
+              label="Total duration of exposure"
+              units={DURATION_UNITS}
+              name={`${at}.totalDuration`}
+              unitName={`${at}.totalDurationUnit`}
+            />
           </>
         )}
 
-        <UnitField label="Start stage value" units={STAGE_UNITS} />
-        <UnitField label="End stage value" units={STAGE_UNITS} />
+        <UnitField
+          label="Start stage value"
+          units={STAGE_UNITS}
+          name={`${at}.startStage`}
+          unitName={`${at}.startStageUnit`}
+        />
+        <UnitField
+          label="End stage value"
+          units={STAGE_UNITS}
+          name={`${at}.endStage`}
+          unitName={`${at}.endStageUnit`}
+        />
       </FieldGrid>
 
-      <OptionalNotes />
+      <OptionalNotes name={`${at}.notes`} />
     </EntryCard>
   );
 };
 
 /** The substance and the exposures it was given in. */
 const ExperimentSection = () => {
-  const { ids, add, remove } = useEntries();
+  const { control } = useFormContext<Submission>();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "exposures",
+  });
 
   return (
     <>
-      {ids.map((id, i) => (
+      {fields.map((field, i) => (
         <ExposureEvent
-          key={id}
+          key={field.id}
           n={i + 1}
-          onRemove={ids.length > 1 ? () => remove(id) : undefined}
+          index={i}
+          onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}
 
       <AddRow>
-        <AddButton type="button" onClick={add}>
+        <AddButton type="button" onClick={() => append(emptyExposure())}>
           + Add another exposure
         </AddButton>
       </AddRow>

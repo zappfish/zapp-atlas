@@ -1,4 +1,5 @@
 import { useCallback, useState, type ReactNode } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { useGroupDashboard } from "@/api/hooks";
 import {
@@ -8,11 +9,13 @@ import {
   FormIntroText,
   FormProgress,
   FormLayout,
+  CollectedValues,
   FormMain,
   RequiredMark,
   TextInput,
 } from "@/styles/elements";
 import Field from "./Field";
+import { emptySubmission, type Submission } from "./submission";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
@@ -29,26 +32,6 @@ import {
   type SectionStatus,
 } from "./sections";
 import "./form.css";
-
-/**
- * A specimen submission.
- *
- * Layout only: the sections are empty until their fields are built, and the
- * statuses are placeholders — each will be derived from its own fields.
- */
-
-/** Where the form was started from, when it was started from a group. */
-const GroupCrumbs = ({ groupId }: { groupId: number }) => {
-  const { group } = useGroupDashboard(groupId);
-
-  return (
-    <Crumbs aria-label="Breadcrumb">
-      <Link to={`/research-groups/${groupId}`}>{group?.name ?? "Group"}</Link>
-      <CrumbSeparator aria-hidden="true">›</CrumbSeparator>
-      <span aria-current="page">New submission</span>
-    </Crumbs>
-  );
-};
 
 /** Placeholders until each section can be measured against its own fields. */
 const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
@@ -69,9 +52,24 @@ const SECTION_BODIES: Record<SectionSlug, () => ReactNode> = {
   phenotype: () => <PhenotypeSection />,
 };
 
+/** Where the form was started from, when it was started from a group. */
+const GroupCrumbs = ({ groupId }: { groupId: number }) => {
+  const { group } = useGroupDashboard(groupId);
+
+  return (
+    <Crumbs aria-label="Breadcrumb">
+      <Link to={`/research-groups/${groupId}`}>{group?.name ?? "Group"}</Link>
+      <CrumbSeparator aria-hidden="true">›</CrumbSeparator>
+      <span aria-current="page">New submission</span>
+    </Crumbs>
+  );
+};
+
 const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
+  const [collected, setCollected] = useState<Submission | null>(null);
+  const form = useForm<Submission>({ defaultValues: emptySubmission() });
 
   // Read off the section statuses, so the summary and the dots beside each
   // section cannot disagree.
@@ -91,6 +89,8 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  const collect = useCallback((values: Submission) => setCollected(values), []);
+
   return (
     <FormLayout>
       <FormNav
@@ -99,7 +99,8 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
           onJump={jumpTo}
         />
 
-      <FormMain>
+      <FormProvider {...form}>
+      <FormMain onSubmit={form.handleSubmit(collect)}>
         {groupId !== undefined && <GroupCrumbs groupId={groupId} />}
         <FormIntro>
           <Field
@@ -111,6 +112,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
               <TextInput
                 id={id}
                 placeholder="e.g. Zebrafish cardiac development study"
+                {...form.register("title")}
               />
             )}
           </Field>
@@ -139,8 +141,13 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
           </FormSection>
         ))}
 
+        {collected && (
+          <CollectedValues>{JSON.stringify(collected, null, 2)}</CollectedValues>
+        )}
+
         <FormActions />
       </FormMain>
+      </FormProvider>
     </FormLayout>
   );
 };

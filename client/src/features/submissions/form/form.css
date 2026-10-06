@@ -455,6 +455,18 @@
 }
 .form-add__button:hover { border-color: var(--teal); background: var(--teal-tint); }
 
+/* What submit collected, until there is an endpoint to send it to. */
+.form-collected {
+  margin: 0;
+  padding: var(--s3);
+  border-radius: 0.625rem;
+  background: var(--white);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-subtext);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
 /* ---- Actions ------------------------------------------------------------ */
 
 /* Sticky: the form is long, and saving should not mean scrolling to its end. */

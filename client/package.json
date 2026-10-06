@@ -13,6 +13,7 @@
     "ajv": "^8.20.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.89.0",
     "react-router": "^8.4.0"
   },
   "devDependencies": {

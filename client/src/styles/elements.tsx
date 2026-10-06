@@ -161,7 +161,9 @@ export const Status = ({
 /* ---- submission form ---- */
 
 export const FormLayout = styled("div", "form-layout");
-export const FormMain = styled("div", "form-main");
+export const FormMain = styled("form", "form-main");
+/** What the form collected, until there is somewhere to send it. */
+export const CollectedValues = styled("pre", "form-collected");
 export const FormIntro = styled("header", "form-intro");
 export const FormIntroText = styled("p", "form-intro__text");
 /** How far through the form this submission is. */
