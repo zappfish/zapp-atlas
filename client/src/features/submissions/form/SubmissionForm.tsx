@@ -16,6 +16,7 @@ import {
 } from "@/styles/elements";
 import Field from "./Field";
 import { emptySubmission, type Submission } from "./submission";
+import { sectionStatus } from "./status";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
@@ -33,15 +34,8 @@ import {
 } from "./sections";
 import "./form.css";
 
-/** Placeholders until each section can be measured against its own fields. */
-const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
-  images: "not-started",
-  provenance: "not-started",
-  fish: "not-started",
-  experiment: "not-started",
-  control: "not-started",
-  phenotype: "not-started",
-};
+/** What a section looks like before anyone has touched it. */
+const UNTOUCHED = emptySubmission();
 
 const SECTION_BODIES: Record<SectionSlug, () => ReactNode> = {
   provenance: () => <ProvenanceSection />,
@@ -71,16 +65,20 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   const [collected, setCollected] = useState<Submission | null>(null);
   const form = useForm<Submission>({ defaultValues: emptySubmission() });
 
-  // Read off the section statuses, so the summary and the dots beside each
-  // section cannot disagree.
-  const complete = Object.values(PLACEHOLDER_STATUS).filter(
+  // Watched, so a dot answers to what has been typed rather than to a save.
+  const values = form.watch();
+  const statuses = Object.fromEntries(
+    SECTIONS.map(({ slug }) => [slug, sectionStatus(slug, values, UNTOUCHED)]),
+  ) as Record<SectionSlug, SectionStatus>;
+
+  // Read off those statuses, so the summary and the dots cannot disagree.
+  const complete = Object.values(statuses).filter(
     (status) => status === "complete",
   ).length;
   const overall =
     complete === SECTIONS.length
       ? "complete"
-      : complete > 0 ||
-          Object.values(PLACEHOLDER_STATUS).some((s) => s === "in-progress")
+      : complete > 0 || Object.values(statuses).some((s) => s === "in-progress")
         ? "in-progress"
         : "not-started";
 
@@ -94,7 +92,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   return (
     <FormLayout>
       <FormNav
-          statuses={PLACEHOLDER_STATUS}
+          statuses={statuses}
           active={active}
           onJump={jumpTo}
         />
