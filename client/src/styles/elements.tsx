@@ -165,12 +165,30 @@ export const FormMain = styled("form", "form-main");
 /** What the form collected, until there is somewhere to send it. */
 export const CollectedValues = styled("pre", "form-collected");
 export const FormIntro = styled("header", "form-intro");
-export const FormIntroText = styled("p", "form-intro__text");
-/** How far through the form this submission is. */
-export const FormProgress = styled("p", "form-progress");
 export const RequiredMark = styled("span", "form-required");
 
 export const Nav = styled("aside", "form-nav");
+export const NavProgress = styled("div", "form-progressbar");
+export const NavProgressHead = styled("p", "form-progressbar__head");
+export const NavProgressCount = styled("span", "form-progressbar__count");
+export const NavProgressPercent = styled("span", "form-progressbar__percent");
+export const NavProgressTrack = styled("div", "form-progressbar__track");
+export const NavProgressFill = styled("div", "form-progressbar__fill");
+export const NavStep = styled("span", "form-nav__step");
+export const NavHelp = styled("div", "form-help");
+export const NavHelpTitle = styled("p", "form-help__title");
+export const NavHelpText = styled("p", "form-help__text");
+
+export const PageTitle = styled("h1", "form-page__title");
+export const PageLead = styled("p", "form-page__lead");
+export const PageHead = styled("header", "form-page__head");
+export const SectionEyebrow = styled("p", "form-section__eyebrow");
+export const AnnotatorPanel = styled("div", "annotator");
+export const ProgressBanner = styled("p", "form-banner");
+export const ActionsPrompt = styled("div", "form-actions__prompt");
+export const ActionsTitle = styled("p", "form-actions__title");
+export const ActionsHint = styled("p", "form-actions__hint");
+export const BannerStrong = styled("span", "form-banner__title");
 export const NavHeading = styled("h2", "form-nav__heading");
 export const NavList = styled("ol", "form-nav__list");
 export const NavLabel = styled("span", "form-nav__label");
@@ -228,9 +246,9 @@ export const FieldValueLabel = styled("span", "field__label");
 export const TextArea = styled("textarea", "field__input field__input--area");
 export const SelectInput = styled("select", "field__input field__input--select");
 export const FieldGrid = styled("div", "field-grid");
+/** A row of numbers and their units, which sit three to a row. */
+export const MeasureGrid = styled("div", "field-grid--measures");
 /** A field grid held to two columns, for a section with a tall field in it. */
-/** A field that takes the whole row. */
-export const WideField = styled("div", "field field--wide");
 export const FieldNote = styled("p", "field__note");
 
 
@@ -274,7 +292,10 @@ export const PreviewImage = styled("img", "upload__image");
 export const UploadHint = styled("p", "upload__hint");
 export const UploadLimits = styled("p", "upload__limits");
 export const PreviewActions = styled("div", "upload__preview-actions");
+export const PreviewAction = styled("button", "upload__action");
+export const PreviewRemove = styled("button", "upload__action upload__action--remove");
 
+export const MeasureRow = styled("div", "measure-row");
 export const MeasureInput = styled("div", "field__suffix-box");
 export const MeasureSuffix = styled("span", "field__suffix");
 /** A field that takes the whole row: radios, or a box that follows them. */

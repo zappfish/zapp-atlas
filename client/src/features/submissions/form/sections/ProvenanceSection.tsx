@@ -7,6 +7,7 @@ import {
   TextInput,
 } from "@/styles/elements";
 import { useFormContext } from "react-hook-form";
+import { AnnotatorPanel } from "@/styles/elements";
 import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
@@ -36,7 +37,7 @@ const ProvenanceSection = () => {
 
   return (
     <EntryCard>
-      <FieldGrid>
+      <AnnotatorPanel>
         {/* Shown, not asked for: the server takes the annotator from the
             session, so these are not inputs and are not submitted. */}
         <Field label="Annotator / submitter ORCID" labels="value">
@@ -55,6 +56,9 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
+      </AnnotatorPanel>
+
+      <FieldGrid>
         <Field label="Principal investigator ORCID">
           {(id) => (
             <TextInput

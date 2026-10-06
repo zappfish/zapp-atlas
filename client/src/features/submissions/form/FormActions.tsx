@@ -1,4 +1,9 @@
-import { FormActionBar } from "@/styles/elements";
+import {
+  ActionsHint,
+  ActionsPrompt,
+  ActionsTitle,
+  FormActionBar,
+} from "@/styles/elements";
 
 /**
  * Stays in view as the form scrolls, so saving a draft does not mean finding
@@ -7,11 +12,15 @@ import { FormActionBar } from "@/styles/elements";
  */
 const FormActions = () => (
   <FormActionBar>
+    <ActionsPrompt>
+      <ActionsTitle>Ready to submit?</ActionsTitle>
+      <ActionsHint>Complete all required fields to continue.</ActionsHint>
+    </ActionsPrompt>
     <button className="btn btn--secondary" type="button">
       Save draft
     </button>
     <button className="btn btn--primary" type="submit">
-      Submit to atlas
+      Review submission
     </button>
   </FormActionBar>
 );

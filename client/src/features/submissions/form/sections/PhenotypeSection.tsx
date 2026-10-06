@@ -14,6 +14,7 @@ import {
   MeasureSuffix,
   RadioGroup,
   RadioLabel,
+  MeasureRow,
   SelectInput,
   TextInput,
 } from "@/styles/elements";
@@ -68,18 +69,26 @@ const Observation = ({
       {isOpen && (
         <>
           <FieldGrid>
-              <Field label="Fish stage at phenotype observation">
-                {(id) => <TextInput id={id} placeholder="e.g. 96" {...register(`${at}.stage`)} />}
-              </Field>
-              <Field label="Unit">
-                {(id) => (
-                  <SelectInput id={id} {...register(`${at}.stageUnit`)}>
+            <Field label="Fish stage at phenotype observation">
+              {(id) => (
+                <MeasureRow>
+                  <TextInput
+                    id={id}
+                    placeholder="e.g. 96"
+                    {...register(`${at}.stage`)}
+                  />
+                  <SelectInput
+                    className="field__input--short"
+                    aria-label="Fish stage unit"
+                    {...register(`${at}.stageUnit`)}
+                  >
                     {STAGE_UNITS.map((unit) => (
                       <option key={unit}>{unit}</option>
                     ))}
                   </SelectInput>
-                )}
-              </Field>
+                </MeasureRow>
+              )}
+            </Field>
 
             <Field label="Observed phenotype">
               {(id) => (

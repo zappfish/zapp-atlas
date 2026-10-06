@@ -6,12 +6,14 @@ import {
   CrumbSeparator,
   Crumbs,
   FormIntro,
-  FormIntroText,
-  FormProgress,
   FormLayout,
+  BannerStrong,
   CollectedValues,
   FormMain,
-  RequiredMark,
+  PageHead,
+  PageLead,
+  PageTitle,
+  ProgressBanner,
   TextInput,
 } from "@/styles/elements";
 import Field from "./Field";
@@ -26,12 +28,7 @@ import FishSection from "./sections/FishSection";
 import ImagesSection from "./sections/ImagesSection";
 import PhenotypeSection from "./sections/PhenotypeSection";
 import ProvenanceSection from "./sections/ProvenanceSection";
-import {
-  SECTIONS,
-  STATUS_LABELS,
-  type SectionSlug,
-  type SectionStatus,
-} from "./sections";
+import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
 import "./form.css";
 
 /** What a section looks like before anyone has touched it. */
@@ -75,13 +72,6 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   const complete = Object.values(statuses).filter(
     (status) => status === "complete",
   ).length;
-  const overall =
-    complete === SECTIONS.length
-      ? "complete"
-      : complete > 0 || Object.values(statuses).some((s) => s === "in-progress")
-        ? "in-progress"
-        : "not-started";
-
   const jumpTo = useCallback((slug: SectionSlug) => {
     setActive(slug);
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth" });
@@ -92,14 +82,23 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   return (
     <FormLayout>
       <FormNav
-          statuses={statuses}
-          active={active}
-          onJump={jumpTo}
-        />
+        statuses={statuses}
+        complete={complete}
+        active={active}
+        onJump={jumpTo}
+      />
 
       <FormProvider {...form}>
       <FormMain onSubmit={form.handleSubmit(collect)}>
         {groupId !== undefined && <GroupCrumbs groupId={groupId} />}
+
+        <PageHead>
+          <PageTitle>Create atlas submission</PageTitle>
+          <PageLead>
+            Add the study details and observations you want to contribute.
+          </PageLead>
+        </PageHead>
+
         <FormIntro>
           <Field
             label="Submission title"
@@ -115,24 +114,27 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             )}
           </Field>
 
-          <FormProgress>
-            {STATUS_LABELS[overall]} · {complete} of {SECTIONS.length} sections
-            complete
-          </FormProgress>
-
-          <FormIntroText>
-            Complete all required fields marked with{" "}
-            <RequiredMark>*</RequiredMark> before submitting. You may save a
-            draft at any time and return later. Collapse sections you have
-            completed to keep the form manageable.
-          </FormIntroText>
+          {/* Only once there is progress to report; an untouched form has
+              nothing to say. */}
+          {complete > 0 && (
+            <ProgressBanner>
+              <BannerStrong>
+                {complete === SECTIONS.length
+                  ? "Your submission is complete"
+                  : `${complete} of ${SECTIONS.length} sections complete`}
+              </BannerStrong>
+              Required fields are marked with an asterisk. You can return to
+              this draft at any time.
+            </ProgressBanner>
+          )}
         </FormIntro>
 
-        {SECTIONS.map(({ slug, label }) => (
+        {SECTIONS.map(({ slug, label }, i) => (
           <FormSection
             key={slug}
             slug={slug}
             title={label}
+            step={i + 1}
             isActive={slug === active}
           >
             {SECTION_BODIES[slug]()}

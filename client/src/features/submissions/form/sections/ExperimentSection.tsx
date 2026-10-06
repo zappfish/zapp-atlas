@@ -7,8 +7,10 @@ import {
   EntryRemove,
   EntryTitle,
   FieldGrid,
+  MeasureGrid,
   RadioGroup,
   RadioLabel,
+  MeasureRow,
   SelectInput,
   TextArea,
   TextInput,
@@ -65,26 +67,22 @@ const UnitField = ({
   const { register } = useFormContext<Submission>();
 
   return (
-  <>
     <Field label={label}>
       {(id) => (
-        <TextInput id={id} placeholder={placeholder} {...register(name)} />
+        <MeasureRow>
+          <TextInput id={id} placeholder={placeholder} {...register(name)} />
+          <SelectInput
+            className="field__input--short"
+            aria-label={`${label} unit`}
+            {...register(unitName)}
+          >
+            {units.map((unit) => (
+              <option key={unit}>{unit}</option>
+            ))}
+          </SelectInput>
+        </MeasureRow>
       )}
     </Field>
-    <Field label="Unit">
-      {(id) => (
-        <SelectInput
-          id={id}
-          className="field__input--short"
-          {...register(unitName)}
-        >
-          {units.map((unit) => (
-            <option key={unit}>{unit}</option>
-          ))}
-        </SelectInput>
-      )}
-    </Field>
-  </>
   );
 };
 
@@ -246,12 +244,14 @@ const ExposureEvent = ({
           </Field>
 
         {sustained && (
-          <UnitField
-            label="Exposure duration"
-            units={DURATION_UNITS}
-            name={`${at}.duration`}
-            unitName={`${at}.durationUnit`}
-          />
+          <MeasureGrid>
+            <UnitField
+              label="Exposure duration"
+              units={DURATION_UNITS}
+              name={`${at}.duration`}
+              unitName={`${at}.durationUnit`}
+            />
+          </MeasureGrid>
         )}
 
         {sustained && (
@@ -273,44 +273,50 @@ const ExposureEvent = ({
             </Field>
         )}
 
-        {repeated && (
-          <>
-            <UnitField
-              label="Duration per exposure"
-              units={DURATION_UNITS}
-              name={`${at}.durationPerExposure`}
-              unitName={`${at}.durationPerExposureUnit`}
-            />
-            <Field label="Number of exposures">
-              {(id) => <TextInput id={id} {...register(`${at}.exposureCount`)} />}
-            </Field>
-            <UnitField
-              label="Interval between exposures"
-              units={DURATION_UNITS}
-              name={`${at}.interval`}
-              unitName={`${at}.intervalUnit`}
-            />
-            <UnitField
-              label="Total duration of exposure"
-              units={DURATION_UNITS}
-              name={`${at}.totalDuration`}
-              unitName={`${at}.totalDurationUnit`}
-            />
-          </>
-        )}
+        <MeasureGrid>
+          {repeated && (
+            <>
+              <UnitField
+                label="Duration per exposure"
+                units={DURATION_UNITS}
+                name={`${at}.durationPerExposure`}
+                unitName={`${at}.durationPerExposureUnit`}
+              />
+              <Field label="Number of exposures">
+                {(id) => (
+                  <MeasureRow>
+                    <TextInput id={id} {...register(`${at}.exposureCount`)} />
+                  </MeasureRow>
+                )}
+              </Field>
+              <UnitField
+                label="Interval between exposures"
+                units={DURATION_UNITS}
+                name={`${at}.interval`}
+                unitName={`${at}.intervalUnit`}
+              />
+              <UnitField
+                label="Total duration of exposure"
+                units={DURATION_UNITS}
+                name={`${at}.totalDuration`}
+                unitName={`${at}.totalDurationUnit`}
+              />
+            </>
+          )}
 
-        <UnitField
-          label="Start stage value"
-          units={STAGE_UNITS}
-          name={`${at}.startStage`}
-          unitName={`${at}.startStageUnit`}
-        />
-        <UnitField
-          label="End stage value"
-          units={STAGE_UNITS}
-          name={`${at}.endStage`}
-          unitName={`${at}.endStageUnit`}
-        />
+          <UnitField
+            label="Start stage value"
+            units={STAGE_UNITS}
+            name={`${at}.startStage`}
+            unitName={`${at}.startStageUnit`}
+          />
+          <UnitField
+            label="End stage value"
+            units={STAGE_UNITS}
+            name={`${at}.endStage`}
+            unitName={`${at}.endStageUnit`}
+          />
+        </MeasureGrid>
       </FieldGrid>
 
       <OptionalNotes name={`${at}.notes`} />
