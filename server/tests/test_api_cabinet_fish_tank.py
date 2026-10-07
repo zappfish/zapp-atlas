@@ -241,6 +241,98 @@ def test_cabinet_patch_into_existing_grain_conflicts(client: TestClient) -> None
     assert res.status_code == 409
 
 
+def test_cabinet_nickname_is_optional(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    plain = client.post(url, json={"chemical_id": ETHANOL})
+    assert plain.status_code == 201, plain.text
+    assert plain.json()["nickname"] is None
+
+    named = client.post(url, json={"chemical_id": BPA, "nickname": "  BPA stock "})
+    assert named.status_code == 201, named.text
+    assert named.json()["nickname"] == "BPA stock"
+    assert named.json()["chemical_id"] == BPA
+
+    # A blank nickname is no nickname.
+    blank = client.post(url, json={"chemical_id": "CHEBI:15377", "nickname": "   "})
+    assert blank.status_code == 201, blank.text
+    assert blank.json()["nickname"] is None
+    assert (
+        client.post(url, json={"chemical_id": "CHEBI:1", "nickname": "x" * 201}).status_code == 422
+    )
+
+
+def test_cabinet_nickname_is_unique_within_the_group(client: TestClient) -> None:
+    group_a = make_group(client, "Lab A")
+    group_b = make_group(client, "Lab B")
+    signin(client, ADMIN)
+    url_a = f"/api/research-groups/{group_a}/chemical-cabinet"
+    url_b = f"/api/research-groups/{group_b}/chemical-cabinet"
+
+    assert client.post(url_a, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+    # A different chemical under the same nickname is still a clash ...
+    clash = client.post(url_a, json={"chemical_id": ETHANOL, "nickname": "stock"})
+    assert clash.status_code == 409
+    assert "nickname" in clash.text
+    # ... but another group may use the nickname for its own.
+    assert client.post(url_b, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+
+
+def test_cabinet_patch_sets_and_changes_the_nickname(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    client.post(url, json={"chemical_id": ETHANOL, "nickname": "solvent"})
+    bpa_id = client.post(url, json={"chemical_id": BPA}).json()["id"]
+
+    res = client.patch(f"{url}/{bpa_id}", json={"nickname": "BPA stock"})
+    assert res.status_code == 200, res.text
+    assert res.json()["nickname"] == "BPA stock"
+    assert res.json()["chemical_id"] == BPA
+
+    # Sending an entry its own nickname back is not a clash; taking another's is.
+    assert client.patch(f"{url}/{bpa_id}", json={"nickname": "BPA stock"}).status_code == 200
+    assert client.patch(f"{url}/{bpa_id}", json={"nickname": "solvent"}).status_code == 409
+    assert client.get(f"{url}/{bpa_id}").json()["nickname"] == "BPA stock"
+
+
+def test_cabinet_patch_that_breaks_both_keys_is_a_conflict(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+    client.post(url, json={"chemical_id": ETHANOL, "nickname": "solvent"})
+    bpa_id = client.post(url, json={"chemical_id": BPA}).json()["id"]
+
+    # A chemical that is already there, with a nickname of its own.
+    res = client.patch(f"{url}/{bpa_id}", json={"chemical_id": ETHANOL, "nickname": "fresh"})
+    assert res.status_code == 409, res.text
+    assert "chemical" in res.json()["detail"]
+    # The entry is as it was, and the cabinet still answers.
+    entry = client.get(f"{url}/{bpa_id}").json()
+    assert entry["chemical_id"] == BPA
+    assert entry["nickname"] is None
+
+
+def test_cabinet_conflict_names_the_key_that_was_broken(client: TestClient, monkeypatch) -> None:
+    """With the check out of the way, the database's refusal still blames the nickname."""
+    from zapp_atlas.api.services import cabinet
+
+    monkeypatch.setattr(cabinet, "_check_nickname_is_free", lambda *args, **kwargs: None)
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    assert client.post(url, json={"chemical_id": BPA, "nickname": "stock"}).status_code == 201
+    res = client.post(url, json={"chemical_id": ETHANOL, "nickname": "stock"})
+    assert res.status_code == 409, res.text
+    assert "nickname" in res.json()["detail"]
+    res = client.post(url, json={"chemical_id": BPA})
+    assert res.status_code == 409, res.text
+    assert "chemical" in res.json()["detail"]
+
+
 def test_cabinet_delete(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)

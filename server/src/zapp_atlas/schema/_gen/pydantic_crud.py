@@ -443,13 +443,61 @@ class Study(ZappEntity):
     """
     A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'rules': [{'description': 'A study that has no publication identifier yet '
+                                   'must still be recognisable to the people working '
+                                   'on it, so an unpublished study carries a nickname '
+                                   'instead.',
+                    'postconditions': {'slot_conditions': {'nickname': {'name': 'nickname',
+                                                                        'required': True}}},
+                    'preconditions': {'slot_conditions': {'publication': {'name': 'publication',
+                                                                          'value_presence': 'ABSENT'}}}}],
+         'slot_usage': {'description': {'description': 'A free-text summary of what '
+                                                       'the study set out to do.',
+                                        'name': 'description'},
+                        'nickname': {'description': 'A short working name for the '
+                                                    'study, and what it is listed '
+                                                    'under when picking a study. '
+                                                    'Required while the study has no '
+                                                    'publication identifier; no two '
+                                                    'studies in a research group may '
+                                                    'share one.',
+                                     'name': 'nickname'},
+                        'research_group': {'description': 'The research group the '
+                                                          'study belongs to. Optional '
+                                                          'only so that studies '
+                                                          'recorded before groups '
+                                                          'existed remain valid.',
+                                           'name': 'research_group',
+                                           'required': False}},
+         'unique_keys': {'study_nickname_grain': {'unique_key_name': 'study_nickname_grain',
+                                                  'unique_key_slots': ['research_group',
+                                                                       'nickname']}}})
 
+    research_group: Optional[int] = Field(default=None, description="""The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('annotator')
     def pattern_annotator(cls, v):
@@ -482,10 +530,29 @@ class StudyCreate(ConfiguredBaseModel):
     """
     Create schema for Study — id is server-generated.
     """
+    research_group: Optional[int] = Field(default=None, description="""The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     experiment: Optional[list[ExperimentCreate]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('annotator')
     def pattern_annotator(cls, v):
@@ -518,10 +585,29 @@ class StudyUpdate(ConfiguredBaseModel):
     """
     Update schema for Study — all fields optional for partial updates.
     """
+    research_group: Optional[int] = Field(default=None, description="""The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('annotator')
     def pattern_annotator(cls, v):
@@ -554,11 +640,30 @@ class StudyRead(ReadBaseModel):
     """
     Read schema for Study — from_attributes=True, extra=ignore.
     """
+    research_group: Optional[int] = Field(default=None, description="""The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     experiment: Optional[list[ExperimentRead]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
+    description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('annotator')
     def pattern_annotator(cls, v):
@@ -1341,7 +1446,10 @@ class ResearchGroupMember(ZappEntity):
                                               'unique_key_slots': ['research_group',
                                                                    'member']}}})
 
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -1364,7 +1472,10 @@ class ResearchGroupMemberCreate(ConfiguredBaseModel):
     """
     Create schema for ResearchGroupMember — id is server-generated.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
 
@@ -1386,7 +1497,10 @@ class ResearchGroupMemberUpdate(ConfiguredBaseModel):
     """
     Update schema for ResearchGroupMember — all fields optional for partial updates.
     """
-    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     member: Optional[str] = Field(default=None, description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: Optional[ResearchGroupRoleEnum] = Field(default=None, description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
 
@@ -1408,7 +1522,10 @@ class ResearchGroupMemberRead(ReadBaseModel):
     """
     Read schema for ResearchGroupMember — from_attributes=True, extra=ignore.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
@@ -1433,47 +1550,126 @@ class ChemicalCabinetEntry(ZappEntity):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'annotations': {'timestamped': {'tag': 'timestamped', 'value': True}},
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'chemical_id': {'name': 'chemical_id', 'required': True}},
+         'slot_usage': {'chemical_id': {'name': 'chemical_id', 'required': True},
+                        'nickname': {'description': 'What the group calls this '
+                                                    'chemical, e.g. "BPA stock". '
+                                                    'Optional; when given it is what '
+                                                    'the chemical is listed under when '
+                                                    'pre-filling a submission, and no '
+                                                    'two entries in the group may '
+                                                    'share it.',
+                                     'name': 'nickname'}},
          'unique_keys': {'cabinet_grain': {'unique_key_name': 'cabinet_grain',
                                            'unique_key_slots': ['research_group',
-                                                                'chemical_id']}}})
+                                                                'chemical_id']},
+                         'cabinet_nickname_grain': {'unique_key_name': 'cabinet_nickname_grain',
+                                                    'unique_key_slots': ['research_group',
+                                                                         'nickname']}}})
 
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class ChemicalCabinetEntryCreate(ConfiguredBaseModel):
     """
     Create schema for ChemicalCabinetEntry — id is server-generated.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class ChemicalCabinetEntryUpdate(ConfiguredBaseModel):
     """
     Update schema for ChemicalCabinetEntry — all fields optional for partial updates.
     """
-    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class ChemicalCabinetEntryRead(ReadBaseModel):
     """
     Read schema for ChemicalCabinetEntry — from_attributes=True, extra=ignore.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
+    nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+
+    @field_validator('nickname')
+    def pattern_nickname(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid nickname format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid nickname format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class FishTankEntry(ZappEntity):
@@ -1489,7 +1685,10 @@ class FishTankEntry(ZappEntity):
                                         'unique_key_slots': ['research_group',
                                                              'fish']}}})
 
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -1498,7 +1697,10 @@ class FishTankEntryCreate(ConfiguredBaseModel):
     """
     Create schema for FishTankEntry — id is server-generated.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -1506,7 +1708,10 @@ class FishTankEntryUpdate(ConfiguredBaseModel):
     """
     Update schema for FishTankEntry — all fields optional for partial updates.
     """
-    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: Optional[int] = Field(default=None, description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     fish: Optional[Fish] = Field(default=None, description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
 
 
@@ -1514,7 +1719,10 @@ class FishTankEntryRead(ReadBaseModel):
     """
     Read schema for FishTankEntry — from_attributes=True, extra=ignore.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember', 'ChemicalCabinetEntry', 'FishTankEntry']} })
+    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+                       'ResearchGroupMember',
+                       'ChemicalCabinetEntry',
+                       'FishTankEntry']} })
     fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 

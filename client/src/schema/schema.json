@@ -13,6 +13,14 @@
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
+        "nickname": {
+          "description": "What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.",
+          "pattern": "^.{0,200}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "research_group": {
           "description": "The research group an entry belongs to.",
           "type": "integer"
@@ -867,6 +875,19 @@
     "Study": {
       "additionalProperties": false,
       "description": "A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.",
+      "if": {
+        "not": {
+          "required": [
+            "publication"
+          ],
+          "properties": {
+            "publication": {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
       "properties": {
         "annotator": {
           "description": "ORCID identifier of the indidvidual submitting the study data.",
@@ -876,6 +897,13 @@
           },
           "type": [
             "array",
+            "null"
+          ]
+        },
+        "description": {
+          "description": "A free-text summary of what the study set out to do.",
+          "type": [
+            "string",
             "null"
           ]
         },
@@ -901,10 +929,25 @@
             "null"
           ]
         },
-        "publication": {
-          "description": "The publication identifier (e.g., PMID, DOI) for the study or \"not published\" if the study is unpublished.",
+        "nickname": {
+          "description": "A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.",
+          "pattern": "^.{0,200}$",
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "publication": {
+          "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "research_group": {
+          "description": "The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.",
+          "type": [
+            "integer",
             "null"
           ]
         }
@@ -912,6 +955,17 @@
       "required": [
         "id"
       ],
+      "then": {
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "nickname"
+        ]
+      },
       "title": "Study",
       "type": "object"
     },
