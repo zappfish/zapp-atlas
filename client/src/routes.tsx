@@ -5,7 +5,7 @@ import GroupView from "@/features/groups/GroupView";
 import MySubmissions from "@/features/submissions/MySubmissions";
 import SubmissionForm from "@/features/submissions/form/SubmissionForm";
 
-/** Mirrors the paths the server serves the shell for (html/client_router.py). */
+/** A new path here also needs adding to html/client_router.py, or it 404s. */
 
 /** Numeric params, or a redirect. NaN would reach /api as a bad request. */
 const useIds = (...names: string[]): number[] | null => {
