@@ -4,20 +4,15 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { createGroup, fetchGroup, fetchMembers } from "./groups";
+import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
 import {
   addChemical,
-  addFish,
-  createGroup,
   deleteChemical,
-  deleteFish,
   fetchCabinet,
   fetchCabinetEntry,
-  fetchFishEntry,
-  fetchFishTank,
-  fetchGroup,
-  fetchMembers,
   updateChemical,
-} from "./groups";
+} from "./cabinet";
 
 /** Query keys, so a mutation can invalidate one section by name. */
 export const keys = {
@@ -31,6 +26,13 @@ export const keys = {
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
 };
+
+/** A group's cabinet on its own, for anything that needs it without the page. */
+export const useCabinet = (groupId: number) =>
+  useQuery({
+    queryKey: keys.cabinet(groupId),
+    queryFn: ({ signal }) => fetchCabinet(groupId, signal),
+  });
 
 /** One record, for its detail page. */
 export const useFishEntry = (groupId: number, entryId: number) =>

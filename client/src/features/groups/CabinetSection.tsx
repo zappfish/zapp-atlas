@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
-import type { CabinetEntry } from "@/api/groups";
+import type { CabinetEntry } from "@/api/types";
 import { useDeleteChemical } from "@/api/hooks";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
