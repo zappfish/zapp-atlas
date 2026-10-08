@@ -13,9 +13,13 @@ import {
   fetchCabinetEntry,
   updateChemical,
 } from "./cabinet";
+import { normalizeChemical, searchChemicals } from "./chemicals";
+import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
 export const keys = {
+  chemicalSearch: (q: string) => ["chemicals", "search", q] as const,
+  chemical: (id: string) => ["chemicals", id] as const,
   groups: ["groups"] as const,
   group: (id: number) => ["group", id] as const,
   members: (id: number) => ["group", id, "members"] as const,
@@ -26,6 +30,44 @@ export const keys = {
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
 };
+
+/**
+ * Chemicals matching what has been typed. Held briefly: the same few letters
+ * come back as someone edits a name, and the reference data does not move.
+ */
+export const useChemicalSearch = (q: string) =>
+  useQuery({
+    queryKey: keys.chemicalSearch(q),
+    queryFn: ({ signal }) => searchChemicals(q, signal),
+    enabled: q.trim().length >= 2,
+    staleTime: 5 * 60 * 1000,
+  });
+
+/**
+ * One chemical by an identifier from any source the server accepts; whichever
+ * is given, what comes back carries its ChEBI identifier.
+ */
+export const useChemicalByCurie = (curie: string | null) =>
+  useQuery({
+    queryKey: keys.chemical(curie ?? ""),
+    queryFn: async ({ signal }): Promise<Suggestion[]> => {
+      const found = await normalizeChemical(curie!, signal);
+      return found.primary_id
+        ? [{ name: found.label ?? found.primary_id, chebi_ids: [found.primary_id] }]
+        : [];
+    },
+    enabled: curie !== null,
+    staleTime: Infinity,
+  });
+
+/** The record behind a chosen suggestion. */
+export const useChemical = (chebiId: string | null) =>
+  useQuery({
+    queryKey: keys.chemical(chebiId ?? ""),
+    queryFn: ({ signal }) => normalizeChemical(chebiId!, signal),
+    enabled: chebiId !== null,
+    staleTime: Infinity,
+  });
 
 /** A group's cabinet on its own, for anything that needs it without the page. */
 export const useCabinet = (groupId: number) =>

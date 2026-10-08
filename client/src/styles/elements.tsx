@@ -323,6 +323,62 @@ export const ModalInput = styled("input", "modal__input");
 export const ModalSelect = styled("select", "modal__input");
 export const ModalActions = styled("div", "modal__actions");
 
+/* ---- searching a reference database ---- */
+
+export const TermSearch = styled("div", "termsearch");
+export const SearchModes = styled("div", "termsearch__modes");
+export const SearchFields = styled("div", "termsearch__fields");
+export const SearchType = styled("label", "termsearch__type");
+export const SearchQuery = styled("label", "termsearch__query");
+export const SearchSublabel = styled("span", "termsearch__sublabel");
+export const SearchBox = styled("span", "termsearch__box");
+export const SearchIconSlot = styled("span", "termsearch__search-icon");
+export const SearchInput = styled("input", "termsearch__input");
+export const SearchClear = styled("button", "termsearch__clear");
+export const SearchList = styled("ul", "termsearch__list");
+export const SearchOption = styled("button", "termsearch__option");
+export const OptionText = styled("span", "termsearch__option-text");
+export const OptionName = styled("span", "termsearch__option-name");
+export const OptionId = styled("span", "termsearch__option-id");
+export const OptionNote = styled("span", "termsearch__option-note");
+export const SearchHint = styled("p", "termsearch__hint");
+export const StageButton = styled("button", "btn btn--primary termsearch__stage");
+
+export const Preview = styled("div", "termsearch__preview");
+export const PreviewIcon = styled("span", "termsearch__preview-icon");
+export const PreviewName = styled("p", "termsearch__preview-name");
+export const PreviewId = styled("p", "termsearch__preview-id");
+export const PreviewDescription = styled("p", "termsearch__preview-description");
+
+/* ---- staged in a dialog ---- */
+
+export const Staged = styled("section", "staged");
+export const StagedHead = styled("header", "staged__head");
+export const StagedTitle = styled("h3", "staged__title");
+export const StagedCount = styled("span", "staged__count");
+export const StagedLead = styled("p", "staged__lead");
+export const StagedEmpty = styled("div", "staged__empty");
+export const StagedEmptyIcon = styled("span", "staged__empty-icon");
+export const StagedEmptyTitle = styled("p", "staged__empty-title");
+export const StagedEmptyText = styled("p", "staged__empty-text");
+export const StagedList = styled("ul", "staged__list");
+export const StagedItem = styled("li", "staged__item");
+export const StagedNumber = styled("span", "staged__number");
+export const StagedNames = styled("div", "staged__names");
+export const StagedName = styled("p", "staged__name");
+export const StagedId = styled("p", "staged__id");
+export const StagedRemove = styled("button", "staged__remove");
+
+/** A segmented-control tab. */
+export const SearchMode = ({
+  isActive,
+  ...rest
+}: ComponentPropsWithoutRef<"button"> & { isActive: boolean }) => (
+  <ModeButton className={modifier(isActive, "is-active")} {...rest} />
+);
+
+const ModeButton = styled("button", "termsearch__mode");
+
 /* ---- a row's actions ---- */
 
 export const RowMenuToggle = styled("summary", "dash-icon-btn sub-menu__toggle");
