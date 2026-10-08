@@ -471,12 +471,16 @@
 
 /* A text control, not a button: it reveals rows already on the page rather
    than acting on anything, so it carries no border or fill. */
+/* Set off from the rows above, or it reads as a clipped one rather than the
+   way to see the rest. */
 .dash-more {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  margin-top: 0.6rem;
-  padding: 0.25rem 0.1rem;
+  justify-content: center;
+  width: 100%;
+  padding: 0.6rem;
   border: 0;
+  border-top: 1px solid var(--line);
   background: none;
   color: var(--teal);
   font: inherit;
@@ -484,7 +488,7 @@
   font-weight: 600;
   cursor: pointer;
 }
-.dash-more:hover { text-decoration: underline; }
+.dash-more:hover { background: var(--nav-row-hover); }
 
 /* ---- Record detail pages (fish, chemical) ------------------------------- */
 /* The detail page sets its own vertical rhythm, so the shared column gap is
