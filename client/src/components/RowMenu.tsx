@@ -1,10 +1,12 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { DotsIcon } from "./icons";
+import {
+  RowMenuAction,
+  RowMenuList,
+  RowMenuToggle,
+} from "@/styles/elements";
 
-/**
- * A row's actions, behind a dots toggle. Built on <details>, so open and close
- * come from the element; the effect only closes it on an outside click.
- */
+/** Built on <details>, so it opens itself; the effect only closes on outside click. */
 const RowMenu = ({ label, children }: { label: string; children: ReactNode }) => {
   const ref = useRef<HTMLDetailsElement>(null);
 
@@ -19,17 +21,15 @@ const RowMenu = ({ label, children }: { label: string; children: ReactNode }) =>
 
   return (
     <details className="sub-menu" ref={ref}>
-      <summary className="dash-icon-btn sub-menu__toggle" aria-label={label}>
+      <RowMenuToggle aria-label={label}>
         <DotsIcon />
-      </summary>
-      <div className="panel sub-menu__list" role="menu">
-        {children}
-      </div>
+      </RowMenuToggle>
+      <RowMenuList role="menu">{children}</RowMenuList>
     </details>
   );
 };
 
-/** One action. `disabled` covers a destination that does not exist yet. */
+/** `disabled` covers a destination that does not exist yet. */
 export const RowMenuItem = ({
   icon,
   label,
@@ -43,8 +43,8 @@ export const RowMenuItem = ({
   disabled?: boolean;
   onClick?: () => void;
 }) => (
-  <button
-    className={`sub-menu__item${danger ? " sub-menu__item--danger" : ""}`}
+  <RowMenuAction
+    isDanger={danger}
     type="button"
     role="menuitem"
     disabled={disabled}
@@ -52,7 +52,7 @@ export const RowMenuItem = ({
   >
     {icon}
     {label}
-  </button>
+  </RowMenuAction>
 );
 
 export default RowMenu;

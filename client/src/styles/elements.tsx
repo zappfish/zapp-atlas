@@ -305,3 +305,35 @@ export const RadioLabel = styled("label", "radio-group__option");
 export const NotesToggle = styled("button", "notes-toggle");
 export const Notes = styled("div", "notes");
 export const NotesRemove = styled("button", "notes__remove");
+
+/* ---- dialogs ---- */
+
+export const ModalPanel = styled("div", "modal__panel");
+export const ModalForm = styled("form", "modal__panel");
+/* Heading and actions stay put; the middle scrolls. */
+export const ModalBanded = styled("div", "modal__panel modal__panel--flush");
+export const ModalHead = styled("header", "modal__head");
+export const ModalBody = styled("div", "modal__body");
+export const ModalFoot = styled("footer", "modal__foot");
+export const ModalTitle = styled("h2", "modal__title");
+export const ModalText = styled("p", "modal__text");
+export const ModalField = styled("label", "modal__field");
+export const ModalLabel = styled("span", "modal__label");
+export const ModalInput = styled("input", "modal__input");
+export const ModalSelect = styled("select", "modal__input");
+export const ModalActions = styled("div", "modal__actions");
+
+/* ---- a row's actions ---- */
+
+export const RowMenuToggle = styled("summary", "dash-icon-btn sub-menu__toggle");
+export const RowMenuList = styled("div", "panel sub-menu__list");
+
+/** `isDanger` marks the destructive one. */
+export const RowMenuAction = ({
+  isDanger,
+  ...rest
+}: ComponentPropsWithoutRef<"button"> & { isDanger: boolean }) => (
+  <MenuItem className={modifier(isDanger, "sub-menu__item--danger")} {...rest} />
+);
+
+const MenuItem = styled("button", "sub-menu__item");
