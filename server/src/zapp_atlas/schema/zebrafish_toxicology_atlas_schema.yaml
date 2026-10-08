@@ -177,6 +177,12 @@ classes:
           (a standardized identifier / CURIE) or unrecognized_chemical_name
           (the free-text fallback for a chemical that could not be resolved)
           must be present.
+        # WORKAROUND: an empty preconditions block keeps `gen-doc` from
+        # crashing on this unconditional rule (its class template iterates
+        # rule.preconditions, which is None when the key is left out). This
+        # breaks the zappfish.github.io schema docs build. Remove once the
+        # LinkML docgen template handles rules with no preconditions.
+        preconditions: {}
         postconditions:
           any_of:
             - slot_conditions:
