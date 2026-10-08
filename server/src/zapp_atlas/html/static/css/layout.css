@@ -171,6 +171,14 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+/* A button that cannot be pressed should not look as though it can. */
+.btn:disabled {
+  background: var(--line);
+  border-color: transparent;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
 /* Inline SVG icons (from templates/icons/) inherit the text color via
    currentColor. Sized relative to the surrounding text. */
 .btn--primary {
