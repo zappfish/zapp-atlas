@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Curation Guidelines — ZAPP Atlas{% endblock %}
+
+{% block content %}
+  {#
+    Tabs run on radio inputs and CSS sibling selectors rather than script: the
+    page is static, so there is nothing to fetch and no state worth holding in
+    JS. Each radio sits immediately before its label and panel, so one set of
+    rules styles every tab regardless of how many categories exist.
+  #}
+  <section class="guide">
+    <div class="guide__masthead">
+      <header class="guide__head">
+        <p class="guide__eyebrow">Standards &amp; protocols</p>
+        <h1>Curation guidelines</h1>
+      </header>
+
+      <div class="guide__tabs" role="tablist">
+        {% for group in groups %}
+          <input class="guide__radio" type="radio" name="guide-tab"
+                 id="tab-{{ group.slug }}" {% if loop.first %}checked{% endif %}>
+          <label class="guide__tab" for="tab-{{ group.slug }}">{{ group.label }}</label>
+
+          <section class="guide__panel" aria-labelledby="tab-{{ group.slug }}">
+            <div class="guide__inner">
+              {% for entry in group.entries %}
+                <article class="guide__item">
+                  <h2 class="guide__q">{{ entry.summary }}</h2>
+                  {% if entry.body %}
+                    <p class="guide__a">{{ entry.body }}</p>
+                  {% endif %}
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

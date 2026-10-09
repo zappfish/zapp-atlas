@@ -1,0 +1,141 @@
+/* Curation guidelines: category tabs over always-visible guideline sections.
+   The masthead sits on white and the panels on a sunken ground, so both bands
+   run the full page width while their content aligns to a shared column. */
+
+.guide {
+  width: 100%;
+  /* A page-wide ground needs more contrast against the white masthead than
+     --surface-sunken, which is tuned for small raised surfaces. */
+  background: #f1f2ef;
+}
+
+.guide__masthead {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+}
+
+.guide__head,
+.guide__inner {
+  width: 100%;
+  max-width: 85rem;
+  margin: 0 auto;
+  padding-inline: 2rem;
+}
+
+.guide__head {
+  padding-top: 2.5rem;
+}
+
+.guide__eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.guide__head h1 {
+  margin: 0.3rem 0 0;
+  font-size: var(--text-2xl);
+}
+
+/* Tabs: labels on one strip, panels below via `order`. Each radio precedes
+   its own label and panel, so these rules cover any number of categories. */
+.guide__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+/* The label strip aligns to the shared column; the panels below it do not,
+   so the strip gets the inset and the panel keeps the full width. */
+.guide__tab:first-of-type {
+  margin-left: max(2rem, calc(50% - 42.5rem + 2rem));
+}
+
+.guide__radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.guide__tab {
+  padding: 0.7rem 1.1rem;
+  border-bottom: 2px solid transparent;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.guide__tab:hover {
+  color: var(--ink);
+}
+
+.guide__radio:checked + .guide__tab {
+  border-bottom-color: var(--teal);
+  color: var(--ink);
+}
+
+.guide__radio:focus-visible + .guide__tab {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
+}
+
+/* Panels break out of the masthead's white onto the sunken ground. */
+.guide__panel {
+  display: none;
+  order: 1;
+  width: 100%;
+  padding: 2rem 0 3.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.guide__radio:checked + .guide__tab + .guide__panel {
+  display: block;
+}
+
+/* A guideline: heading over its text, separated from the next by a hairline
+   rather than a card. Measure is capped for reading, not for the page. */
+.guide__item + .guide__item {
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line-strong);
+}
+
+.guide__q {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.guide__a {
+  max-width: 46rem;
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+@media (max-width: 560px) {
+  .guide__head,
+  .guide__inner,
+  .guide__tabs {
+    padding-inline: 1.15rem;
+  }
+
+  .guide__tab {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .guide__tab:first-of-type {
+    padding-left: 0;
+  }
+}
