@@ -96,7 +96,7 @@ def test_registered_callback_stores_token_and_redirects(client: TestClient) -> N
         )
 
     assert res.status_code == 303
-    assert res.headers["location"] == "/login"
+    assert res.headers["location"] == "/my-submissions"
     assert ORCID_AUTH_COOKIE in res.cookies
 
     status_res = client.get("/auth/orcid/status")
@@ -142,7 +142,7 @@ def test_dev_login_signs_in_when_enabled(client: TestClient) -> None:
     )
 
     assert res.status_code == 303
-    assert res.headers["location"] == "/login"
+    assert res.headers["location"] == "/my-submissions"
     assert ORCID_AUTH_COOKIE in res.cookies
 
     status_res = client.get("/auth/orcid/status")
