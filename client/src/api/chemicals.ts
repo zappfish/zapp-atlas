@@ -55,8 +55,12 @@ export const idTypeOf = (id: string): IdType | undefined =>
 
 /** The prefix is optional: the type is already chosen. */
 export const toCurie = (idType: string, id: string): string | null => {
-  const bare = id.trim().replace(new RegExp(`^${idType}:`, "i"), "");
-  return bare ? `${idType}:${bare}` : null;
+  const trimmed = id.trim();
+  const prefix = `${idType}:`;
+  const bare = trimmed.toLowerCase().startsWith(prefix.toLowerCase())
+    ? trimmed.slice(prefix.length)
+    : trimmed;
+  return bare ? `${prefix}${bare}` : null;
 };
 
 export const searchChemicals = (q: string, signal?: AbortSignal) =>
