@@ -330,7 +330,6 @@ export const SearchModes = styled("div", "termsearch__modes");
 export const SearchFields = styled("div", "termsearch__fields");
 export const SearchType = styled("label", "termsearch__type");
 export const SearchQuery = styled("label", "termsearch__query");
-export const SearchSublabel = styled("span", "termsearch__sublabel");
 export const SearchBox = styled("span", "termsearch__box");
 export const SearchIconSlot = styled("span", "termsearch__search-icon");
 export const SearchInput = styled("input", "termsearch__input");

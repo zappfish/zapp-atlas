@@ -90,7 +90,7 @@ const AddChemicalForm = ({
             staged={staged}
             limit={LIMIT}
             alreadyIn={alreadyIn}
-            onStage={stage}
+            onPick={stage}
           />
 
           {addChemical.error && (

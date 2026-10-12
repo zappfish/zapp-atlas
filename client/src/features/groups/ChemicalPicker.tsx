@@ -34,11 +34,8 @@ import {
   SearchInput,
   SearchList,
   SearchMiss,
-  SearchMode,
-  SearchModes,
   SearchOption,
   SearchQuery,
-  SearchSublabel,
   SearchType,
   StageButton,
   TermSearch,
@@ -50,8 +47,6 @@ export interface Staged {
 }
 
 type Mode = "name" | "id";
-
-const MODES: Mode[] = ["name", "id"];
 
 /** null when the suggestion has no ChEBI id. */
 const idOf = (suggestion: Suggestion) => suggestion.chebi_ids[0] ?? null;
@@ -80,23 +75,28 @@ const ChemicalCard = ({ chebiId, name }: { chebiId: string; name: string }) => {
 
 /**
  * Search by name or by an identifier from any source. A result with no ChEBI id
- * cannot be staged — the cabinet stores one, so there would be nothing to save.
+ * cannot be chosen — only the identifier is stored, so there would be nothing
+ * to save.
+ *
+ * Omitting `staged` and `limit` gives the one-at-a-time form: `onPick` fires on
+ * selection, with no staging list and no button.
  */
 const ChemicalPicker = ({
-  staged,
+  staged = [],
   limit,
   alreadyIn,
-  onStage,
+  onPick,
 }: {
-  staged: Staged[];
-  limit: number;
-  /** Already in the cabinet, so it cannot be added twice. */
-  alreadyIn: Set<string>;
-  onStage: (chemical: Staged) => void;
+  staged?: Staged[];
+  /** Absent when one chemical is chosen rather than several staged. */
+  limit?: number;
+  /** Already held, so it cannot be chosen twice. */
+  alreadyIn?: Set<string>;
+  onPick: (chemical: Staged) => void;
 }) => {
   const [mode, setMode] = useState<Mode>("name");
-  const [query, setQuery] = useState("");
   const [idType, setIdType] = useState<string>(ID_TYPES[0].id);
+  const [query, setQuery] = useState("");
   const [chosen, setChosen] = useState<Staged | null>(null);
   const listId = useId();
   const settled = useDebounced(query);
@@ -107,7 +107,7 @@ const ChemicalPicker = ({
   );
   const suggestions = (mode === "name" ? byName.data : byId.data) ?? [];
 
-  const isFull = staged.length >= limit;
+  const isFull = limit !== undefined && staged.length >= limit;
   const source = idTypeOf(idType)?.label ?? idType;
   const isSearching = mode === "name" ? byName.isFetching : byId.isFetching;
   const didSearch =
@@ -116,11 +116,18 @@ const ChemicalPicker = ({
       : settled.trim() !== "";
   const foundNothing = didSearch && !isSearching && suggestions.length === 0;
 
+  const isStaging = limit !== undefined;
+
   const choose = (suggestion: Suggestion) => {
     const chebiId = idOf(suggestion);
     if (!chebiId) return;
-    setChosen({ chebiId, name: suggestion.name });
+    const picked = { chebiId, name: suggestion.name };
     setQuery("");
+    if (isStaging) {
+      setChosen(picked);
+      return;
+    }
+    onPick(picked);
   };
 
   const reset = () => {
@@ -130,7 +137,7 @@ const ChemicalPicker = ({
 
   const stage = () => {
     if (!chosen) return;
-    onStage(chosen);
+    onPick(chosen);
     reset();
   };
 
@@ -141,26 +148,21 @@ const ChemicalPicker = ({
 
   return (
     <TermSearch>
-      <SearchModes role="tablist">
-        {MODES.map((each) => (
-          <SearchMode
-            key={each}
-            isActive={mode === each}
-            type="button"
-            role="tab"
-            aria-selected={mode === each}
-            onClick={() => switchTo(each)}
-          >
-            {each === "name" ? "Search by name" : "Search by ID"}
-          </SearchMode>
-        ))}
-      </SearchModes>
-
       <SearchFields>
+        <SearchType>
+          <ModalLabel>Search by</ModalLabel>
+          <ModalSelect
+            value={mode}
+            onChange={(e) => switchTo(e.target.value as Mode)}
+          >
+            <option value="name">Chemical name</option>
+            <option value="id">Identifier</option>
+          </ModalSelect>
+        </SearchType>
+
         {mode === "id" && (
           <SearchType>
-            <ModalLabel>ID type</ModalLabel>
-            <SearchSublabel>Choose the source.</SearchSublabel>
+            <ModalLabel>Identifier type</ModalLabel>
             <ModalSelect
               value={idType}
               onChange={(e) => {
@@ -179,13 +181,8 @@ const ChemicalPicker = ({
 
         <SearchQuery>
           <ModalLabel>
-            {mode === "name" ? "Chemical name" : "Identifier"}
+            {mode === "name" ? "Chemical name" : `${source} value`}
           </ModalLabel>
-          <SearchSublabel>
-            {mode === "name"
-              ? "Enter a common or scientific chemical name."
-              : "Enter the identifier, with or without its prefix."}
-          </SearchSublabel>
           <SearchBox>
             <SearchIconSlot aria-hidden="true">
               <SearchIcon />
@@ -223,7 +220,7 @@ const ChemicalPicker = ({
                   const chebiId = idOf(suggestion);
                   const added =
                     chebiId !== null &&
-                    (alreadyIn.has(chebiId) ||
+                    ((alreadyIn?.has(chebiId) ?? false) ||
                       staged.some((each) => each.chebiId === chebiId));
 
                   return (
@@ -248,7 +245,7 @@ const ChemicalPicker = ({
         </SearchQuery>
       </SearchFields>
 
-      {chosen && (
+      {isStaging && chosen && (
         <ChemicalCard chebiId={chosen.chebiId} name={chosen.name} />
       )}
 
@@ -268,9 +265,11 @@ const ChemicalPicker = ({
             </SearchHint>
           )
         )}
-        <StageButton type="button" onClick={stage} disabled={!chosen || isFull}>
-          + Add chemical
-        </StageButton>
+        {isStaging && (
+          <StageButton type="button" onClick={stage} disabled={!chosen || isFull}>
+            + Add chemical
+          </StageButton>
+        )}
       </SearchFooter>
     </TermSearch>
   );
