@@ -22,71 +22,36 @@ export interface Chemical {
   equivalent_identifiers: EquivalentIdentifier[];
 }
 
-/** The sources the server accepts — chem/normalize.py NAMESPACES. */
+/**
+ * The sources the server accepts — chem/normalize.py NAMESPACES, whose two
+ * casing aliases collapse to one entry each. Order sets the menu, and the
+ * first is the default.
+ */
 export const ID_TYPES = [
-  "CHEBI",
-  "PUBCHEM.COMPOUND",
-  "CAS",
-  "INCHIKEY",
-  "HMDB",
-  "CHEMBL.COMPOUND",
-  "UNII",
-  "MESH",
-  "UMLS",
-  "DrugCentral",
-  "GTOPDB",
-  "RXCUI",
-  "DRUGBANK",
-  "KEGG.COMPOUND",
-  "UniProtKB",
-  "ENSEMBL",
-  "PR",
+  { id: "CHEBI", label: "ChEBI", example: "27732" },
+  { id: "PUBCHEM.COMPOUND", label: "PubChem", example: "2519" },
+  { id: "CAS", label: "CAS", example: "58-08-2" },
+  { id: "INCHIKEY", label: "InChIKey", example: "RYYVLZVUVIJVGH-UHFFFAOYSA-N" },
+  { id: "HMDB", label: "HMDB", example: "HMDB0001847" },
+  { id: "CHEMBL.COMPOUND", label: "ChEMBL", example: "CHEMBL113" },
+  { id: "UNII", label: "UNII", example: "3G6A5W338E" },
+  { id: "MESH", label: "MeSH", example: "D002110" },
+  { id: "UMLS", label: "UMLS", example: "C0006644" },
+  { id: "DrugCentral", label: "DrugCentral", example: "471" },
+  { id: "GTOPDB", label: "GtoPdb", example: "407" },
+  { id: "RXCUI", label: "RxCUI", example: "1886" },
+  { id: "DRUGBANK", label: "DrugBank", example: "DB00201" },
+  { id: "KEGG.COMPOUND", label: "KEGG", example: "C07481" },
+  { id: "UniProtKB", label: "UniProtKB", example: "P12345" },
+  { id: "ENSEMBL", label: "Ensembl", example: "ENSG00000139618" },
+  { id: "PR", label: "Protein Ontology", example: "P12345" },
 ] as const;
 
-/** Database names rather than prefixes. */
-export const ID_TYPE_LABELS: Record<string, string> = {
-  CHEBI: "ChEBI",
-  "PUBCHEM.COMPOUND": "PubChem",
-  CAS: "CAS",
-  INCHIKEY: "InChIKey",
-  HMDB: "HMDB",
-  "CHEMBL.COMPOUND": "ChEMBL",
-  UNII: "UNII",
-  MESH: "MeSH",
-  UMLS: "UMLS",
-  DrugCentral: "DrugCentral",
-  GTOPDB: "GtoPdb",
-  RXCUI: "RxCUI",
-  DRUGBANK: "DrugBank",
-  "KEGG.COMPOUND": "KEGG",
-  UniProtKB: "UniProtKB",
-  ENSEMBL: "Ensembl",
-  PR: "Protein Ontology",
-};
+export type IdType = (typeof ID_TYPES)[number];
 
-/**
- * One real identifier per source, so the placeholder shows that source's shape
- * rather than a number from another. Caffeine throughout, where it exists.
- */
-export const ID_TYPE_EXAMPLES: Record<string, string> = {
-  CHEBI: "27732",
-  "PUBCHEM.COMPOUND": "2519",
-  CAS: "58-08-2",
-  INCHIKEY: "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
-  HMDB: "HMDB0001847",
-  "CHEMBL.COMPOUND": "CHEMBL113",
-  UNII: "3G6A5W338E",
-  MESH: "D002110",
-  UMLS: "C0006644",
-  DrugCentral: "471",
-  GTOPDB: "407",
-  RXCUI: "1886",
-  DRUGBANK: "DB00201",
-  "KEGG.COMPOUND": "C07481",
-  UniProtKB: "P12345",
-  ENSEMBL: "ENSG00000139618",
-  PR: "P12345",
-};
+/** By id, for the chosen source's label and example. */
+export const idTypeOf = (id: string): IdType | undefined =>
+  ID_TYPES.find((each) => each.id === id);
 
 /** The prefix is optional: the type is already chosen. */
 export const toCurie = (idType: string, id: string): string | null => {

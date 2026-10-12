@@ -7,8 +7,7 @@ import {
 import { useDebounced } from "@/useDebounced";
 import {
   ID_TYPES,
-  ID_TYPE_EXAMPLES,
-  ID_TYPE_LABELS,
+  idTypeOf,
   toCurie,
   type Suggestion,
 } from "@/api/chemicals";
@@ -96,7 +95,7 @@ const ChemicalPicker = ({
 }) => {
   const [mode, setMode] = useState<Mode>("name");
   const [query, setQuery] = useState("");
-  const [idType, setIdType] = useState<string>(ID_TYPES[0]);
+  const [idType, setIdType] = useState<string>(ID_TYPES[0].id);
   const [chosen, setChosen] = useState<Staged | null>(null);
   const listId = useId();
   const settled = useDebounced(query);
@@ -111,7 +110,7 @@ const ChemicalPicker = ({
   const suggestions = chosen ? [] : ((mode === "name" ? byName.data : byId.data) ?? []);
 
   const isFull = staged.length >= limit;
-  const source = ID_TYPE_LABELS[idType] ?? idType;
+  const source = idTypeOf(idType)?.label ?? idType;
   const isSearching = mode === "name" ? byName.isFetching : byId.isFetching;
   // A search that ran and matched nothing, as opposed to one not yet typed.
   const foundNothing =
@@ -170,8 +169,8 @@ const ChemicalPicker = ({
               }}
             >
               {ID_TYPES.map((each) => (
-                <option key={each} value={each}>
-                  {ID_TYPE_LABELS[each] ?? each}
+                <option key={each.id} value={each.id}>
+                  {each.label}
                 </option>
               ))}
             </ModalSelect>
@@ -205,7 +204,7 @@ const ChemicalPicker = ({
               placeholder={
                 mode === "name"
                   ? "Start typing a chemical name…"
-                  : `e.g. ${ID_TYPE_EXAMPLES[idType] ?? ""}`
+                  : `e.g. ${idTypeOf(idType)?.example ?? ""}`
               }
             />
             {query && (
