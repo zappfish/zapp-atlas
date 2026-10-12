@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import {
+  MIN_SEARCH_LENGTH,
   useChemical,
   useChemicalByCurie,
   useChemicalSearch,
@@ -100,27 +101,26 @@ const ChemicalPicker = ({
   const listId = useId();
   const settled = useDebounced(query);
 
-  // Nothing is searched for while something is chosen: the box then holds that
-  // chemical's name, and searching for it again would requery and relayout.
-  const term = chosen ? "" : settled;
-  const byName = useChemicalSearch(mode === "name" ? term : "");
+  const byName = useChemicalSearch(mode === "name" ? settled : "");
   const byId = useChemicalByCurie(
-    mode === "id" && term.trim() ? toCurie(idType, term) : null,
+    mode === "id" && settled.trim() ? toCurie(idType, settled) : null,
   );
-  const suggestions = chosen ? [] : ((mode === "name" ? byName.data : byId.data) ?? []);
+  const suggestions = (mode === "name" ? byName.data : byId.data) ?? [];
 
   const isFull = staged.length >= limit;
   const source = idTypeOf(idType)?.label ?? idType;
   const isSearching = mode === "name" ? byName.isFetching : byId.isFetching;
-  // A search that ran and matched nothing, as opposed to one not yet typed.
-  const foundNothing =
-    !chosen && !isSearching && term.trim() !== "" && suggestions.length === 0;
+  const didSearch =
+    mode === "name"
+      ? settled.trim().length >= MIN_SEARCH_LENGTH
+      : settled.trim() !== "";
+  const foundNothing = didSearch && !isSearching && suggestions.length === 0;
 
   const choose = (suggestion: Suggestion) => {
     const chebiId = idOf(suggestion);
     if (!chebiId) return;
     setChosen({ chebiId, name: suggestion.name });
-    setQuery(suggestion.name);
+    setQuery("");
   };
 
   const reset = () => {
@@ -198,7 +198,7 @@ const ChemicalPicker = ({
               }}
               autoFocus
               role="combobox"
-              aria-expanded={!chosen && suggestions.length > 0}
+              aria-expanded={suggestions.length > 0}
               aria-controls={listId}
               aria-autocomplete="list"
               placeholder={
@@ -217,7 +217,7 @@ const ChemicalPicker = ({
               </SearchClear>
             )}
 
-            {!chosen && suggestions.length > 0 && (
+            {suggestions.length > 0 && (
               <SearchList id={listId} role="listbox">
                 {suggestions.map((suggestion) => {
                   const chebiId = idOf(suggestion);
@@ -253,20 +253,21 @@ const ChemicalPicker = ({
       )}
 
       <SearchFooter>
-        {!chosen &&
-          (foundNothing ? (
-            <SearchMiss role="status">
-              {mode === "name"
-                ? `No chemical found matching "${settled.trim()}".`
-                : `No chemical found with that ${source} identifier.`}
-            </SearchMiss>
-          ) : (
+        {foundNothing ? (
+          <SearchMiss role="status">
+            {mode === "name"
+              ? `No chemical found matching "${settled.trim()}".`
+              : `No chemical found with that ${source} identifier.`}
+          </SearchMiss>
+        ) : (
+          !chosen && (
             <SearchHint>
               {mode === "name"
                 ? "Select a result to review its ID and description."
                 : `Enter a ${source} identifier to find a chemical.`}
             </SearchHint>
-          ))}
+          )
+        )}
         <StageButton type="button" onClick={stage} disabled={!chosen || isFull}>
           + Add chemical
         </StageButton>

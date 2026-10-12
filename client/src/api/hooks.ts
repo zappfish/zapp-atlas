@@ -32,6 +32,8 @@ export const keys = {
     ["group", id, "cabinet", entryId] as const,
 };
 
+export const MIN_SEARCH_LENGTH = 2;
+
 /**
  * Chemicals matching what has been typed. Held briefly: the same few letters
  * come back as someone edits a name, and the reference data does not move.
@@ -40,7 +42,7 @@ export const useChemicalSearch = (q: string) =>
   useQuery({
     queryKey: keys.chemicalSearch(q),
     queryFn: ({ signal }) => searchChemicals(q, signal),
-    enabled: q.trim().length >= 2,
+    enabled: q.trim().length >= MIN_SEARCH_LENGTH,
     staleTime: 5 * 60 * 1000,
   });
 
