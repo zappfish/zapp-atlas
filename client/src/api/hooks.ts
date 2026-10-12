@@ -73,10 +73,11 @@ export const useChemical = (chebiId: string | null) =>
   });
 
 /** A group's cabinet on its own, for anything that needs it without the page. */
-export const useCabinet = (groupId: number) =>
+export const useCabinet = (groupId?: number) =>
   useQuery({
-    queryKey: keys.cabinet(groupId),
-    queryFn: ({ signal }) => fetchCabinet(groupId, signal),
+    queryKey: keys.cabinet(groupId ?? 0),
+    queryFn: ({ signal }) => fetchCabinet(groupId!, signal),
+    enabled: groupId !== undefined,
   });
 
 /** One record, for its detail page. */

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -12,7 +12,6 @@ import {
   RadioLabel,
   MeasureRow,
   SelectInput,
-  TextArea,
   TextInput,
 } from "@/styles/elements";
 import {
@@ -23,9 +22,112 @@ import {
 import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
+import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
+import { useCabinet, useChemical } from "@/api/hooks";
+import { SearchIcon } from "@/components/icons";
+import {
+  SubstanceBack,
+  SubstanceBody,
+  SubstanceCard,
+  SubstanceChoices,
+  SubstanceHead,
+  SubstanceLead,
+  SubstanceOr,
+  SubstanceSearch,
+  SubstanceTitle,
+} from "@/styles/elements";
 
-const ID_TYPES = ["CAS", "PubChem", "CHEBI", "None"];
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
+
+/** A cabinet row. The entry stores only an identifier, so the name is looked
+ *  up; until one is stored the identifier stands in for it. */
+const CabinetOption = ({ chemicalId }: { chemicalId: string }) => {
+  const { data } = useChemical(chemicalId);
+  return <option value={chemicalId}>{data?.label ?? chemicalId}</option>;
+};
+
+/**
+ * The exposure's chemical: from the group's cabinet, or found in the database.
+ * Choosing the database swaps the panel for the search, which is the same
+ * picker the cabinet dialog uses.
+ */
+const Substance = ({
+  groupId,
+  at,
+}: {
+  groupId?: number;
+  at: `exposures.${number}`;
+}) => {
+  const [isSearching, setIsSearching] = useState(false);
+  const { setValue } = useFormContext<Submission>();
+  const { data: cabinet = [] } = useCabinet(groupId);
+  const hasCabinet = cabinet.length > 0;
+
+  const take = (chebiId: string, name: string) => {
+    setValue(`${at}.substance`, name || chebiId);
+    setValue(`${at}.idType`, "CHEBI");
+    setValue(`${at}.identifier`, chebiId);
+  };
+
+  if (isSearching || !hasCabinet) {
+    return (
+      <SubstanceCard>
+        <SubstanceHead>
+          <div>
+            <SubstanceTitle>Search ChEBI</SubstanceTitle>
+            <SubstanceLead>
+              Search the database when the chemical is not in your cabinet.
+            </SubstanceLead>
+          </div>
+          {hasCabinet && (
+            <SubstanceBack type="button" onClick={() => setIsSearching(false)}>
+              Use cabinet
+            </SubstanceBack>
+          )}
+        </SubstanceHead>
+        <SubstanceBody>
+          <ChemicalPicker
+            onPick={(chemical: Staged) =>
+              take(chemical.chebiId, chemical.name)
+            }
+          />
+        </SubstanceBody>
+      </SubstanceCard>
+    );
+  }
+
+  return (
+    <SubstanceCard>
+      <SubstanceBody>
+        <SubstanceTitle>
+          From your cabinet ({cabinet.length} chemical
+          {cabinet.length === 1 ? "" : "s"})
+        </SubstanceTitle>
+        <SubstanceChoices>
+          <SelectInput
+            defaultValue=""
+            aria-label="Select a chemical from your cabinet"
+            onChange={(e) => e.target.value && take(e.target.value, "")}
+          >
+            <option value="" disabled>
+              Select a chemical
+            </option>
+            {cabinet.map((row) => (
+              <CabinetOption key={row.id} chemicalId={row.chemical_id} />
+            ))}
+          </SelectInput>
+
+          <SubstanceOr>OR</SubstanceOr>
+
+          <SubstanceSearch type="button" onClick={() => setIsSearching(true)}>
+            <SearchIcon />
+            Search ChEBI
+          </SubstanceSearch>
+        </SubstanceChoices>
+      </SubstanceBody>
+    </SubstanceCard>
+  );
+};
 
 const ROUTES = [
   { value: "environment", label: "via environment (ambient aquatic environment route)" },
@@ -90,10 +192,12 @@ const UnitField = ({
 const ExposureEvent = ({
   n,
   index,
+  groupId,
   onRemove,
 }: {
   n: number;
   index: number;
+  groupId?: number;
   onRemove?: () => void;
 }) => {
   const { register, watch, setValue } = useFormContext<Submission>();
@@ -127,37 +231,9 @@ const ExposureEvent = ({
         )}
       </EntryHead>
 
+      <Substance groupId={groupId} at={at} />
+
       <FieldGrid>
-        <Field label="Substance" required>
-          {(id) => <TextInput
-              id={id}
-              placeholder="Substance label"
-              {...register(`${at}.substance`)}
-            />}
-        </Field>
-
-        <Field label="Substance / chemical description">
-          {(id) => <TextArea id={id} rows={1} {...register(`${at}.description`)} />}
-        </Field>
-
-        <Field label="ID type">
-          {(id) => (
-            <SelectInput id={id} {...register(`${at}.idType`)}>
-              {ID_TYPES.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </SelectInput>
-          )}
-        </Field>
-
-        <Field label="Identifier">
-          {(id) => <TextInput
-              id={id}
-              placeholder="e.g. 50-00-0"
-              {...register(`${at}.identifier`)}
-            />}
-        </Field>
-
         <Field label="Substance concentration">
           {(id) => <TextInput
               id={id}
@@ -325,7 +401,7 @@ const ExposureEvent = ({
 };
 
 /** The substance and the exposures it was given in. */
-const ExperimentSection = () => {
+const ExperimentSection = ({ groupId }: { groupId?: number }) => {
   const { control } = useFormContext<Submission>();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -339,6 +415,7 @@ const ExperimentSection = () => {
           key={field.id}
           n={i + 1}
           index={i}
+          groupId={groupId}
           onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}

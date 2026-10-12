@@ -244,7 +244,7 @@ export const FieldValue = styled("p", "field__value");
 /** Its label: a span, since `<label for>` binds only to form controls. */
 export const FieldValueLabel = styled("span", "field__label");
 export const TextArea = styled("textarea", "field__input field__input--area");
-export const SelectInput = styled("select", "field__input field__input--select");
+export const SelectInput = styled("select", "field__input");
 export const FieldGrid = styled("div", "field-grid");
 /** A row of numbers and their units, which sit three to a row. */
 export const MeasureGrid = styled("div", "field-grid--measures");
@@ -397,3 +397,15 @@ export const RowMenuAction = ({
 );
 
 const MenuItem = styled("button", "sub-menu__item");
+
+/* ---- choosing an exposure's chemical ---- */
+
+export const SubstanceCard = styled("div", "substance");
+export const SubstanceHead = styled("header", "substance__head");
+export const SubstanceBody = styled("div", "substance__body");
+export const SubstanceTitle = styled("h4", "substance__title");
+export const SubstanceLead = styled("p", "substance__lead");
+export const SubstanceBack = styled("button", "substance__back");
+export const SubstanceChoices = styled("div", "substance__choices");
+export const SubstanceOr = styled("span", "substance__or");
+export const SubstanceSearch = styled("button", "substance__search");

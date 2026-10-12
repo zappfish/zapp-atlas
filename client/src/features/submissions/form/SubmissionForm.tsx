@@ -34,11 +34,13 @@ import "./form.css";
 /** What a section looks like before anyone has touched it. */
 const UNTOUCHED = emptySubmission();
 
-const SECTION_BODIES: Record<SectionSlug, () => ReactNode> = {
+/** `groupId` reaches the exposure's chemical picker, which offers that
+ *  group's cabinet alongside the database search. */
+const SECTION_BODIES: Record<SectionSlug, (groupId?: number) => ReactNode> = {
   provenance: () => <ProvenanceSection />,
   images: () => <ImagesSection />,
   fish: () => <FishSection />,
-  experiment: () => <ExperimentSection />,
+  experiment: (groupId) => <ExperimentSection groupId={groupId} />,
   control: () => <ControlSection />,
   phenotype: () => <PhenotypeSection />,
 };
@@ -137,7 +139,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             step={i + 1}
             isActive={slug === active}
           >
-            {SECTION_BODIES[slug]()}
+            {SECTION_BODIES[slug](groupId)}
           </FormSection>
         ))}
 
