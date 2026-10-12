@@ -20,6 +20,7 @@ import type { Suggestion } from "./chemicals";
 export const keys = {
   chemicalSearch: (q: string) => ["chemicals", "search", q] as const,
   chemical: (id: string) => ["chemicals", id] as const,
+  chemicalByCurie: (curie: string) => ["chemicals", "by-curie", curie] as const,
   groups: ["groups"] as const,
   group: (id: number) => ["group", id] as const,
   members: (id: number) => ["group", id, "members"] as const,
@@ -49,7 +50,7 @@ export const useChemicalSearch = (q: string) =>
  */
 export const useChemicalByCurie = (curie: string | null) =>
   useQuery({
-    queryKey: keys.chemical(curie ?? ""),
+    queryKey: keys.chemicalByCurie(curie ?? ""),
     queryFn: async ({ signal }): Promise<Suggestion[]> => {
       const found = await normalizeChemical(curie!, signal);
       return found.primary_id
