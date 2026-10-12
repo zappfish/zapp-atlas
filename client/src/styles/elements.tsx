@@ -342,7 +342,11 @@ export const OptionName = styled("span", "termsearch__option-name");
 export const OptionId = styled("span", "termsearch__option-id");
 export const OptionNote = styled("span", "termsearch__option-note");
 export const SearchHint = styled("p", "termsearch__hint");
+/** Said when a search ran and matched nothing, in place of the hint. */
+export const SearchMiss = styled("p", "termsearch__miss");
 export const StageButton = styled("button", "btn btn--primary termsearch__stage");
+/* The hint and the button share a line: the button is what the hint asks for. */
+export const SearchFooter = styled("div", "termsearch__footer");
 
 export const Preview = styled("div", "termsearch__preview");
 export const PreviewIcon = styled("span", "termsearch__preview-icon");
@@ -359,6 +363,7 @@ export const StagedCount = styled("span", "staged__count");
 export const StagedLead = styled("p", "staged__lead");
 export const StagedEmpty = styled("div", "staged__empty");
 export const StagedEmptyIcon = styled("span", "staged__empty-icon");
+export const StagedEmptyCopy = styled("div", "staged__empty-copy");
 export const StagedEmptyTitle = styled("p", "staged__empty-title");
 export const StagedEmptyText = styled("p", "staged__empty-text");
 export const StagedList = styled("ul", "staged__list");

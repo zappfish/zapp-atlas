@@ -7,6 +7,7 @@ import {
 import { useDebounced } from "@/useDebounced";
 import {
   ID_TYPES,
+  ID_TYPE_EXAMPLES,
   ID_TYPE_LABELS,
   toCurie,
   type Suggestion,
@@ -27,10 +28,12 @@ import {
   SearchBox,
   SearchClear,
   SearchFields,
+  SearchFooter,
   SearchHint,
   SearchIconSlot,
   SearchInput,
   SearchList,
+  SearchMiss,
   SearchMode,
   SearchModes,
   SearchOption,
@@ -98,14 +101,21 @@ const ChemicalPicker = ({
   const listId = useId();
   const settled = useDebounced(query);
 
-  const byName = useChemicalSearch(mode === "name" && !chosen ? settled : "");
+  // Nothing is searched for while something is chosen: the box then holds that
+  // chemical's name, and searching for it again would requery and relayout.
+  const term = chosen ? "" : settled;
+  const byName = useChemicalSearch(mode === "name" ? term : "");
   const byId = useChemicalByCurie(
-    mode === "id" && !chosen && settled.trim() ? toCurie(idType, settled) : null,
+    mode === "id" && term.trim() ? toCurie(idType, term) : null,
   );
-  const suggestions = (mode === "name" ? byName.data : byId.data) ?? [];
+  const suggestions = chosen ? [] : ((mode === "name" ? byName.data : byId.data) ?? []);
 
   const isFull = staged.length >= limit;
   const source = ID_TYPE_LABELS[idType] ?? idType;
+  const isSearching = mode === "name" ? byName.isFetching : byId.isFetching;
+  // A search that ran and matched nothing, as opposed to one not yet typed.
+  const foundNothing =
+    !chosen && !isSearching && term.trim() !== "" && suggestions.length === 0;
 
   const choose = (suggestion: Suggestion) => {
     const chebiId = idOf(suggestion);
@@ -195,7 +205,7 @@ const ChemicalPicker = ({
               placeholder={
                 mode === "name"
                   ? "Start typing a chemical name…"
-                  : `e.g. ${idType}:27732`
+                  : `e.g. ${ID_TYPE_EXAMPLES[idType] ?? ""}`
               }
             />
             {query && (
@@ -239,19 +249,29 @@ const ChemicalPicker = ({
         </SearchQuery>
       </SearchFields>
 
-      {chosen ? (
+      {chosen && (
         <ChemicalCard chebiId={chosen.chebiId} name={chosen.name} />
-      ) : (
-        <SearchHint>
-          {mode === "name"
-            ? "Select a result to review its ID and description."
-            : `Enter a ${source} identifier to find a chemical.`}
-        </SearchHint>
       )}
 
-      <StageButton type="button" onClick={stage} disabled={!chosen || isFull}>
-        + Add chemical
-      </StageButton>
+      <SearchFooter>
+        {!chosen &&
+          (foundNothing ? (
+            <SearchMiss role="status">
+              {mode === "name"
+                ? `No chemical found matching "${settled.trim()}".`
+                : `No chemical found with that ${source} identifier.`}
+            </SearchMiss>
+          ) : (
+            <SearchHint>
+              {mode === "name"
+                ? "Select a result to review its ID and description."
+                : `Enter a ${source} identifier to find a chemical.`}
+            </SearchHint>
+          ))}
+        <StageButton type="button" onClick={stage} disabled={!chosen || isFull}>
+          + Add chemical
+        </StageButton>
+      </SearchFooter>
     </TermSearch>
   );
 };
