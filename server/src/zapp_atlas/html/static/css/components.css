@@ -39,6 +39,9 @@
   border: none;
   border-radius: var(--radius-lg);
   padding: 0;
+  /* Centred by its top edge: growing downward keeps the heading still, where
+     centring on the box would move both edges on every change. */
+  margin-block: max(4rem, (100vh - 40rem) / 2) auto;
   width: min(28rem, calc(100vw - 2rem));
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
@@ -70,9 +73,6 @@
   gap: 1.5rem;
   padding: 1.75rem 2rem;
 }
-/* A searching dialog swaps a hint for a preview and an empty state for a list.
-   Holding the body's height keeps a centred dialog from re-centring on each. */
-.modal--wide .modal__body { min-height: 26rem; }
 .modal__foot {
   display: flex;
   justify-content: flex-end;
