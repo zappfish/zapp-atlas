@@ -188,7 +188,7 @@
   font-weight: 600;
 }
 
-.btn--primary:hover {
+.btn--primary:not(:disabled):hover {
   background: var(--teal-dark);
   border-color: var(--teal-dark);
 }
@@ -200,7 +200,7 @@
   font-weight: 600;
 }
 
-.btn--secondary:hover {
+.btn--secondary:not(:disabled):hover {
   background: var(--btn-bg);
 }
 
@@ -210,7 +210,7 @@
   color: var(--muted);
 }
 
-.btn--neutral:hover {
+.btn--neutral:not(:disabled):hover {
   background: var(--nav-row-hover);
   color: var(--ink);
 }
@@ -222,7 +222,7 @@
   font-weight: 600;
 }
 
-.btn--ghost:hover {
+.btn--ghost:not(:disabled):hover {
   background: var(--btn-bg);
 }
 
@@ -248,7 +248,7 @@
   border: none;
 }
 
-.site-nav .btn--primary:hover {
+.site-nav .btn--primary:not(:disabled):hover {
   background: var(--white);
 }
 
@@ -258,7 +258,7 @@
   color: var(--white);
 }
 
-.btn--outline:hover {
+.btn--outline:not(:disabled):hover {
   background: var(--on-teal-line);
 }
 
