@@ -13,6 +13,7 @@ import {
   Staged as StagedList,
   StagedCount,
   StagedEmpty,
+  StagedEmptyCopy,
   StagedEmptyIcon,
   StagedEmptyText,
   StagedEmptyTitle,
@@ -114,10 +115,12 @@ const AddChemicalForm = ({
                 <StagedEmptyIcon aria-hidden="true">
                   <FlaskIcon />
                 </StagedEmptyIcon>
-                <StagedEmptyTitle>No chemicals selected yet</StagedEmptyTitle>
-                <StagedEmptyText>
-                  Search above to start building your list.
-                </StagedEmptyText>
+                <StagedEmptyCopy>
+                  <StagedEmptyTitle>No chemicals selected yet</StagedEmptyTitle>
+                  <StagedEmptyText>
+                    Search above to start building your list.
+                  </StagedEmptyText>
+                </StagedEmptyCopy>
               </StagedEmpty>
             ) : (
               <StagedItems>
