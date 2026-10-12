@@ -70,8 +70,8 @@
 .modal__body {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.75rem 2rem;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
 }
 .modal__foot {
   display: flex;
@@ -132,14 +132,10 @@
 .termsearch { display: flex; flex-direction: column; }
 .termsearch .modal__label {
   display: block;
+  margin-bottom: 0.5rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink);
-}
-.termsearch__sublabel {
-  display: block;
-  margin: 0.2rem 0 0.6rem;
-  font-size: var(--text-sm);
-  color: var(--muted);
 }
 
 /* Searching by name and by identifier ask for different things, so each has
@@ -171,31 +167,43 @@
 .termsearch__fields {
   display: flex;
   align-items: flex-start;
-  gap: 1.25rem;
-  margin-top: 1.25rem;
+  gap: 1rem;
 }
-.termsearch__type { flex: 0 0 11rem; }
-.termsearch__type .modal__input { width: 100%; }
-.termsearch__query { flex: 1; min-width: 0; }
+.termsearch__type { flex: 0 1 11rem; min-width: 0; }
+/* Our own chevron: the native one ignores padding, so its distance from the
+   border cannot be set. chevron-down.svg, inlined because CSS cannot reach
+   the template. */
+.termsearch__type .modal__input {
+  width: 100%;
+  padding: 0.7rem 1.9rem 0.7rem 0.75rem;
+  font-size: var(--text-sm);
+  appearance: none;
+  background-color: var(--white);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%236b7280' d='M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 0.65em;
+}
+.termsearch__query { flex: 1 1 14rem; min-width: 0; }
 
 .termsearch__box { position: relative; display: block; }
 .termsearch__search-icon {
   position: absolute;
   top: 50%;
-  left: 0.75rem;
+  left: 0.9rem;
   transform: translateY(-50%);
   color: var(--muted);
   pointer-events: none;
 }
 .termsearch__input {
   width: 100%;
-  padding: 0.75rem 2.5rem;
+  padding: 0.7rem 0.9rem 0.7rem 2.6rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   font: inherit;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
 }
-.termsearch__input::placeholder { font-size: var(--text-sm); color: var(--muted); }
+.termsearch__input::placeholder { color: var(--muted); }
 .termsearch__input:focus {
   outline: none;
   border-color: var(--teal);
@@ -336,7 +344,7 @@
 /* Hint left, button right: the button does what the hint asks for. */
 .termsearch__footer {
   display: flex;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -347,14 +355,14 @@
 
 /* ---- What a dialog has staged ------------------------------------------- */
 
-.staged { padding-top: 1.75rem; border-top: 1px solid var(--line); }
+.staged { padding-top: 0.9rem; border-top: 1px solid var(--line); }
 .staged__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
-.staged__title { margin: 0; font-size: var(--text-md); font-weight: 600; }
+.staged__title { margin: 0; font-size: var(--text-base); font-weight: 600; }
 .staged__count {
   padding: 0.15rem 0.6rem;
   border-radius: 1rem;
@@ -364,7 +372,7 @@
   color: var(--teal);
 }
 .staged__lead {
-  margin: 0.3rem 0 1rem;
+  margin: 0.2rem 0 0.75rem;
   font-size: var(--text-sm);
   color: var(--muted);
 }
@@ -375,7 +383,7 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  padding: 2.75rem 1.5rem;
+  padding: 1.5rem;
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface-sunken);
@@ -474,9 +482,6 @@
 
 /* ---- Members modal ------------------------------------------------------ */
 
-.modal--wide {
-  width: min(40rem, calc(100vw - 2rem));
-}
 /* Members modal drives its own vertical rhythm with explicit margins, so the
    panel's uniform gap is removed here and the bottom padding tightened. */
 .members .modal__panel {
