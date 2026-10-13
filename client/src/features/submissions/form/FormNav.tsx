@@ -3,9 +3,6 @@ import {
   Nav,
   NavButton,
   NavHeading,
-  NavHelp,
-  NavHelpText,
-  NavHelpTitle,
   NavLabel,
   NavList,
   NavProgress,
@@ -110,6 +107,7 @@ const FormNav = ({
         ))}
       </NavList>
 
+      {/* Hidden until the guidelines page reads well at this width.
       <NavHelp>
         <NavHelpTitle>Need help?</NavHelpTitle>
         <NavHelpText>
@@ -117,6 +115,7 @@ const FormNav = ({
         </NavHelpText>
         <a href="/curation-guidelines">View submission guide</a>
       </NavHelp>
+      */}
     </Nav>
   );
 };
