@@ -26,10 +26,10 @@ const FishDetailRoute = () => {
   return <FishDetail groupId={ids[0]!} entryId={ids[1]!} />;
 };
 
-/** The form started from a group's page, which its breadcrumb names. */
+/** The form, which a group's page starts and its breadcrumb names. */
 const GroupSubmissionRoute = () => {
   const ids = useIds("groupId");
-  if (!ids) return <Navigate to="/submissions/new" replace />;
+  if (!ids) return <Navigate to="/my-submissions" replace />;
   return <SubmissionForm groupId={ids[0]!} />;
 };
 
@@ -42,7 +42,10 @@ const ChemicalDetailRoute = () => {
 const AppRoutes = () => (
   <Routes>
     <Route path="/my-submissions" element={<MySubmissions />} />
-    <Route path="/submissions/new" element={<SubmissionForm />} />
+    <Route
+      path="/submissions/new"
+      element={<Navigate to="/my-submissions" replace />}
+    />
     <Route
       path="/research-groups/:groupId/submissions/new"
       element={<GroupSubmissionRoute />}

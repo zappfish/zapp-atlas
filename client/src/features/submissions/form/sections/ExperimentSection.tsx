@@ -55,7 +55,7 @@ const Substance = ({
   groupId,
   at,
 }: {
-  groupId?: number;
+  groupId: number;
   at: `exposures.${number}`;
 }) => {
   const [isSearching, setIsSearching] = useState(false);
@@ -197,7 +197,7 @@ const ExposureEvent = ({
 }: {
   n: number;
   index: number;
-  groupId?: number;
+  groupId: number;
   onRemove?: () => void;
 }) => {
   const { register, watch, setValue } = useFormContext<Submission>();
@@ -401,7 +401,7 @@ const ExposureEvent = ({
 };
 
 /** The substance and the exposures it was given in. */
-const ExperimentSection = ({ groupId }: { groupId?: number }) => {
+const ExperimentSection = ({ groupId }: { groupId: number }) => {
   const { control } = useFormContext<Submission>();
   const { fields, append, remove } = useFieldArray({
     control,

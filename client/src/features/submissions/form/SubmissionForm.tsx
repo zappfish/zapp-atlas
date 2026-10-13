@@ -36,7 +36,7 @@ const UNTOUCHED = emptySubmission();
 
 /** `groupId` reaches the exposure's chemical picker, which offers that
  *  group's cabinet alongside the database search. */
-const SECTION_BODIES: Record<SectionSlug, (groupId?: number) => ReactNode> = {
+const SECTION_BODIES: Record<SectionSlug, (groupId: number) => ReactNode> = {
   provenance: () => <ProvenanceSection />,
   images: () => <ImagesSection />,
   fish: () => <FishSection />,
@@ -58,7 +58,7 @@ const GroupCrumbs = ({ groupId }: { groupId: number }) => {
   );
 };
 
-const SubmissionForm = ({ groupId }: { groupId?: number }) => {
+const SubmissionForm = ({ groupId }: { groupId: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
   const [collected, setCollected] = useState<Submission | null>(null);
@@ -92,7 +92,7 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
 
       <FormProvider {...form}>
       <FormMain onSubmit={form.handleSubmit(collect)}>
-        {groupId !== undefined && <GroupCrumbs groupId={groupId} />}
+        <GroupCrumbs groupId={groupId} />
 
         <PageHead>
           <PageTitle>Create atlas submission</PageTitle>
