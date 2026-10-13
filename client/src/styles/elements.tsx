@@ -409,3 +409,27 @@ export const SubstanceBack = styled("button", "substance__back");
 export const SubstanceChoices = styled("div", "substance__choices");
 export const SubstanceOr = styled("span", "substance__or");
 export const SubstanceSearch = styled("button", "substance__search");
+
+/* ---- a group's members ---- */
+
+export const MembersButton = styled("button", "members-button");
+export const MembersCount = styled("span", "members-button__count");
+export const MembersSubhead = styled("h3", "members__subhead");
+export const MembersDivider = styled("hr", "members__divider");
+export const MembersList = styled("ul", "member-list");
+export const MembersAdd = styled("form", "member-add");
+export const MemberRow = styled("li", "member");
+export const MemberAvatar = styled("span", "member__avatar");
+export const MemberWho = styled("span", "member__who");
+export const MemberName = styled("span", "member__name");
+export const MemberOrcid = styled("span", "member__orcid");
+
+/** Admin and member read differently, so the role is not just a word. */
+export const MemberRole = ({
+  isAdmin,
+  ...rest
+}: ComponentPropsWithoutRef<"span"> & { isAdmin: boolean }) => (
+  <RoleTag className={isAdmin ? "member__role--admin" : "member__role--member"} {...rest} />
+);
+
+const RoleTag = styled("span", "member__role");

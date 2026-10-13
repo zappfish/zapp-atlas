@@ -696,3 +696,28 @@
   margin-bottom: 0.75rem;
 }
 .dash-sidebar--collapsed .dash-sidebar__top .dash-mysubs { flex: none; order: 2; }
+
+/* A group's members, opened from the header rather than owning a section:
+   the list is short and read far less often than the records below it. */
+.members-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--white);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.members-button:hover { background: var(--nav-row-hover); }
+.members-button__count {
+  padding: 0.05rem 0.4rem;
+  border-radius: 1rem;
+  background: var(--teal-tint);
+  font-size: var(--text-xs);
+  color: var(--teal);
+}

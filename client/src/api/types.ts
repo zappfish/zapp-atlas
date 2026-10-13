@@ -17,8 +17,13 @@ export interface Member extends Audited {
   id: number;
   /** An ORCID CURIE: "ORCID:0000-0002-1825-0097". */
   member: string;
-  role: "admin" | "member";
+  /** Absent until the response carries it; a member who has never signed in
+   *  has no name to carry either. */
+  name?: string | null;
+  role: ResearchGroupRole;
 }
+
+export type ResearchGroupRole = "admin" | "member";
 
 export interface FishTankEntry extends Audited {
   id: number;

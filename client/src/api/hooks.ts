@@ -4,7 +4,14 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { createGroup, fetchGroup, fetchMembers } from "./groups";
+import {
+  addMember,
+  createGroup,
+  fetchGroup,
+  fetchMembers,
+  removeMember,
+} from "./groups";
+import type { ResearchGroupRole } from "./types";
 import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
 import {
   addChemical,
@@ -140,6 +147,32 @@ export const useCreateGroup = () => {
   return useMutation({
     mutationFn: (name: string) => createGroup(name),
     onSuccess: () => client.invalidateQueries({ queryKey: keys.groups }),
+  });
+};
+
+/** A group's members on their own, for the dialog that edits them. */
+export const useMembers = (groupId: number) =>
+  useQuery({
+    queryKey: keys.members(groupId),
+    queryFn: ({ signal }) => fetchMembers(groupId, signal),
+  });
+
+export const useAddMember = (groupId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ member, role }: { member: string; role: ResearchGroupRole }) =>
+      addMember(groupId, member, role),
+    onSuccess: () =>
+      client.invalidateQueries({ queryKey: keys.members(groupId) }),
+  });
+};
+
+export const useRemoveMember = (groupId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (memberId: number) => removeMember(groupId, memberId),
+    onSuccess: () =>
+      client.invalidateQueries({ queryKey: keys.members(groupId) }),
   });
 };
 
