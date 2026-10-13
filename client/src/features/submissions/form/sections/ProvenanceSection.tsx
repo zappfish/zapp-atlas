@@ -11,18 +11,13 @@ import { AnnotatorPanel } from "@/styles/elements";
 import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
+import { signedInUser } from "@/identity";
 
 /**
  * Written into the document by app.html, so it is there on the first render
  * with no request. Display only — the server derives a submission's annotator
  * from the session cookie, it is never sent in the payload.
  */
-declare global {
-  interface Window {
-    ZAPP_SIGNED_IN_USER?: { orcid_id: string; name: string | null } | null;
-  }
-}
-
 const SOURCES = [
   "PMID",
   "Internal database",
@@ -32,7 +27,7 @@ const SOURCES = [
 
 /** Who produced the data and where it was published. */
 const ProvenanceSection = () => {
-  const identity = window.ZAPP_SIGNED_IN_USER;
+  const identity = signedInUser();
   const { register } = useFormContext<Submission>();
 
   return (
