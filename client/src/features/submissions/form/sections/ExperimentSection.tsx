@@ -24,12 +24,18 @@ import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
 import { useCabinet, useChemical } from "@/api/hooks";
-import { SearchIcon } from "@/components/icons";
+import { FlaskIcon, SearchIcon } from "@/components/icons";
 import {
   SubstanceBack,
   SubstanceBody,
   SubstanceCard,
+  SubstanceChange,
   SubstanceChoices,
+  SubstanceChosen,
+  SubstanceIcon,
+  SubstanceId,
+  SubstanceName,
+  SubstanceNames,
   SubstanceHead,
   SubstanceLead,
   SubstanceOr,
@@ -59,15 +65,45 @@ const Substance = ({
   at: `exposures.${number}`;
 }) => {
   const [isSearching, setIsSearching] = useState(false);
-  const { setValue } = useFormContext<Submission>();
+  const { setValue, watch } = useFormContext<Submission>();
   const { data: cabinet = [] } = useCabinet(groupId);
   const hasCabinet = cabinet.length > 0;
+
+  const [substance, identifier] = watch([`${at}.substance`, `${at}.identifier`]);
 
   const take = (chebiId: string, name: string) => {
     setValue(`${at}.substance`, name || chebiId);
     setValue(`${at}.idType`, "CHEBI");
     setValue(`${at}.identifier`, chebiId);
+    setIsSearching(false);
   };
+
+  const clear = () => {
+    setValue(`${at}.substance`, "");
+    setValue(`${at}.idType`, "");
+    setValue(`${at}.identifier`, "");
+  };
+
+  // What was chosen, in place of the two ways of choosing it.
+  if (identifier) {
+    return (
+      <SubstanceCard>
+        <SubstanceChosen>
+          <SubstanceIcon aria-hidden="true">
+            <FlaskIcon />
+          </SubstanceIcon>
+          <SubstanceNames>
+            <SubstanceName>{substance}</SubstanceName>
+            {/* A chemical with no name stands under its own identifier. */}
+            {substance !== identifier && <SubstanceId>{identifier}</SubstanceId>}
+          </SubstanceNames>
+          <SubstanceChange type="button" onClick={clear}>
+            Change
+          </SubstanceChange>
+        </SubstanceChosen>
+      </SubstanceCard>
+    );
+  }
 
   if (isSearching || !hasCabinet) {
     return (
@@ -107,7 +143,10 @@ const Substance = ({
           <SelectInput
             defaultValue=""
             aria-label="Select a chemical from your cabinet"
-            onChange={(e) => e.target.value && take(e.target.value, "")}
+            onChange={(e) => {
+              const option = e.target.selectedOptions[0];
+              if (e.target.value) take(e.target.value, option?.text ?? "");
+            }}
           >
             <option value="" disabled>
               Select a chemical

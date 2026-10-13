@@ -401,6 +401,12 @@ const MenuItem = styled("button", "sub-menu__item");
 /* ---- choosing an exposure's chemical ---- */
 
 export const SubstanceCard = styled("div", "substance");
+export const SubstanceChosen = styled("div", "substance__chosen");
+export const SubstanceIcon = styled("span", "substance__icon");
+export const SubstanceNames = styled("div", "substance__names");
+export const SubstanceName = styled("p", "substance__name");
+export const SubstanceId = styled("p", "substance__id");
+export const SubstanceChange = styled("button", "substance__change");
 export const SubstanceHead = styled("header", "substance__head");
 export const SubstanceBody = styled("div", "substance__body");
 export const SubstanceTitle = styled("h4", "substance__title");
