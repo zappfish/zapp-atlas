@@ -28,6 +28,7 @@ export interface ExposureValues {
   concentration: string;
   concentrationUnit: string;
   supplier: string;
+  supplierOther: string;
   additionalInformation: string;
   exposureDescription: string;
   route: string;
@@ -116,6 +117,7 @@ export const emptyExposure = (): ExposureValues => ({
   concentration: "",
   concentrationUnit: "µM",
   supplier: "",
+  supplierOther: "",
   additionalInformation: "",
   exposureDescription: "",
   route: "environment",

@@ -22,6 +22,7 @@ import {
 import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
+import { ManufacturerEnum } from "@/schema";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
 import { useAddChemical, useCabinet, useChemical } from "@/api/hooks";
 import { FlaskIcon, SearchIcon } from "@/components/icons";
@@ -46,6 +47,19 @@ import {
 } from "@/styles/elements";
 
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
+
+/** Spelled out rather than capitalised: "vwr" -> "VWR". */
+const SUPPLIER_ACRONYMS = new Set(["vwr"]);
+
+const supplierLabel = (value: string) =>
+  value
+    .split("_")
+    .map((word) =>
+      SUPPLIER_ACRONYMS.has(word)
+        ? word.toUpperCase()
+        : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(" ");
 
 /** A cabinet row. The entry stores only an identifier, so the name is looked
  *  up; until one is stored the identifier stands in for it. */
@@ -270,10 +284,11 @@ const ExposureEvent = ({
 }) => {
   const { register, watch, setValue } = useFormContext<Submission>();
   const at = `exposures.${index}` as const;
-  const [route, regimen] = watch([`${at}.route`, `${at}.regimen`]) as [
-    Route,
-    string,
-  ];
+  const [route, regimen, supplier] = watch([
+    `${at}.route`,
+    `${at}.regimen`,
+    `${at}.supplier`,
+  ]) as [Route, string, string];
 
   // The regimen options differ by route, so a route change picks the first of
   // the new set rather than leaving a value the radios no longer offer.
@@ -328,12 +343,31 @@ const ExposureEvent = ({
         </Field>
 
         <Field label="Chemical supplier of the test substance">
-          {(id) => <TextInput
-              id={id}
-              placeholder="Enter supplier's name or link to website"
-              {...register(`${at}.supplier`)}
-            />}
+          {(id) => (
+            <SelectInput id={id} {...register(`${at}.supplier`)}>
+              <option value="">Select a supplier</option>
+              {Object.values(ManufacturerEnum).map((each) => (
+                <option key={each} value={each}>
+                  {supplierLabel(each)}
+                </option>
+              ))}
+            </SelectInput>
+          )}
         </Field>
+
+        {/* The schema requires the name when the controlled list is escaped;
+            without it the entry records no recoverable supplier. */}
+        {supplier === ManufacturerEnum.other_not_listed && (
+          <Field label="Supplier name">
+            {(id) => (
+              <TextInput
+                id={id}
+                placeholder="Enter the supplier's name"
+                {...register(`${at}.supplierOther`)}
+              />
+            )}
+          </Field>
+        )}
 
         <Field label="Additional information on the test substance">
           {(id) => <TextInput
