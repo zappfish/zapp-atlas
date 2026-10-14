@@ -47,9 +47,20 @@ const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
 
 /** A cabinet row. The entry stores only an identifier, so the name is looked
  *  up; until one is stored the identifier stands in for it. */
-const CabinetOption = ({ chemicalId }: { chemicalId: string }) => {
+const CabinetOption = ({
+  chemicalId,
+  nickname,
+}: {
+  chemicalId: string;
+  nickname?: string | null;
+}) => {
   const { data } = useChemical(chemicalId);
-  return <option value={chemicalId}>{data?.label ?? chemicalId}</option>;
+  const name = data?.label ?? chemicalId;
+  return (
+    <option value={chemicalId}>
+      {nickname ? `${nickname} — ${name}` : name}
+    </option>
+  );
 };
 
 /**
