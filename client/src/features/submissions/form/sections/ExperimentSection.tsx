@@ -24,7 +24,12 @@ import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { ManufacturerEnum } from "@/schema";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
-import { useAddChemical, useCabinet, useChemical } from "@/api/hooks";
+import {
+  useAddChemical,
+  useCabinet,
+  useChemical,
+  useRefreshCabinet,
+} from "@/api/hooks";
 import { FlaskIcon, SearchIcon } from "@/components/icons";
 import {
   SubstanceBack,
@@ -99,6 +104,7 @@ const Substance = ({
   const [substance, identifier] = watch([`${at}.substance`, `${at}.identifier`]);
 
   const addChemical = useAddChemical(groupId);
+  const refreshCabinet = useRefreshCabinet(groupId);
   const isInCabinet = cabinet.some((row) => row.chemical_id === identifier);
 
   const take = (chebiId: string, name: string) => {
@@ -134,13 +140,22 @@ const Substance = ({
           ) : (
             <SubstanceAdd
               type="button"
-              onClick={() => addChemical.mutate({ chemicalId: identifier })}
+              onClick={() =>
+                addChemical.mutate(
+                  { chemicalId: identifier },
+                  { onSuccess: refreshCabinet },
+                )
+              }
               disabled={addChemical.isPending}
             >
               {addChemical.isPending ? "Adding…" : "Add to cabinet"}
             </SubstanceAdd>
           )}
-          <SubstanceChange type="button" onClick={clear}>
+          <SubstanceChange
+            type="button"
+            onClick={clear}
+            disabled={addChemical.isPending}
+          >
             Change
           </SubstanceChange>
         </SubstanceChosen>
@@ -187,15 +202,23 @@ const Substance = ({
             defaultValue=""
             aria-label="Select a chemical from your cabinet"
             onChange={(e) => {
-              const option = e.target.selectedOptions[0];
-              if (e.target.value) take(e.target.value, option?.text ?? "");
+              const row = cabinet.find(
+                (each) => each.chemical_id === e.target.value,
+              );
+              if (!row) return;
+              const shown = e.target.selectedOptions[0]?.text ?? "";
+              take(row.chemical_id, shown.replace(/^.* — /, ""));
             }}
           >
             <option value="" disabled>
               Select a chemical
             </option>
             {cabinet.map((row) => (
-              <CabinetOption key={row.id} chemicalId={row.chemical_id} />
+              <CabinetOption
+                key={row.id}
+                chemicalId={row.chemical_id}
+                nickname={row.nickname}
+              />
             ))}
           </SelectInput>
 
