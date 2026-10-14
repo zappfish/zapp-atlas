@@ -23,11 +23,14 @@ const EditChemicalForm = ({
   onClose: () => void;
 }) => {
   const [chemicalId, setChemicalId] = useState("");
+  const [nickname, setNickname] = useState("");
   const updateChemical = useUpdateChemical(groupId);
 
   // Prefill from whichever row opened it.
   useEffect(() => {
-    if (entry) setChemicalId(entry.label);
+    if (!entry) return;
+    setChemicalId(entry.label);
+    setNickname(entry.sublabel ?? "");
   }, [entry]);
 
   const close = () => {
@@ -39,7 +42,12 @@ const EditChemicalForm = ({
     event.preventDefault();
     if (!entry) return;
     updateChemical.mutate(
-      { entryId: entry.id, chemicalId: chemicalId.trim() },
+      {
+        entryId: entry.id,
+        chemicalId: chemicalId.trim(),
+        // Cleared rather than left alone when the box is emptied.
+        nickname: nickname.trim() || null,
+      },
       { onSuccess: close },
     );
   };
@@ -58,6 +66,16 @@ const EditChemicalForm = ({
             autoFocus
             maxLength={60}
             placeholder="e.g. CHEBI:16236"
+          />
+        </ModalField>
+
+        <ModalField>
+          <ModalLabel>Nickname</ModalLabel>
+          <ModalInput
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            maxLength={60}
+            placeholder="What your group calls it, e.g. BPA stock"
           />
         </ModalField>
 

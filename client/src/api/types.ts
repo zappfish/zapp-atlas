@@ -33,4 +33,6 @@ export interface FishTankEntry extends Audited {
 export interface CabinetEntry extends Audited {
   id: number;
   chemical_id: string;
+  /** What the group calls it, e.g. "BPA stock". Unique within the group. */
+  nickname?: string | null;
 }

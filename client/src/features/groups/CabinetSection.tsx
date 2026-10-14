@@ -11,7 +11,11 @@ import RecordSection, { type Row } from "@/components/RecordSection";
 
 // Only a chemical id for now; a name would become the label and this the sub.
 const toRows = (entries: CabinetEntry[]): Row[] =>
-  entries.map((entry) => ({ id: entry.id, label: entry.chemical_id }));
+  entries.map((entry) => ({
+    id: entry.id,
+    label: entry.chemical_id,
+    sublabel: entry.nickname ?? undefined,
+  }));
 
 const RowActions = ({
   row,

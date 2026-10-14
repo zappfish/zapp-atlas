@@ -15,16 +15,26 @@ export const fetchCabinetEntry = (
   signal?: AbortSignal,
 ) => get<CabinetEntry>(`${root(groupId)}/${entryId}`, signal);
 
-export const addChemical = (groupId: number, chemicalId: string) =>
-  send<CabinetEntry>("POST", root(groupId), { chemical_id: chemicalId });
+export const addChemical = (
+  groupId: number,
+  chemicalId: string,
+  nickname?: string,
+) =>
+  send<CabinetEntry>("POST", root(groupId), {
+    chemical_id: chemicalId,
+    nickname: nickname || null,
+  });
 
 export const updateChemical = (
   groupId: number,
   entryId: number,
-  chemicalId: string,
+  changes: { chemicalId?: string; nickname?: string | null },
 ) =>
   send<CabinetEntry>("PATCH", `${root(groupId)}/${entryId}`, {
-    chemical_id: chemicalId,
+    ...(changes.chemicalId === undefined
+      ? {}
+      : { chemical_id: changes.chemicalId }),
+    ...(changes.nickname === undefined ? {} : { nickname: changes.nickname }),
   });
 
 export const deleteChemical = (groupId: number, entryId: number) =>

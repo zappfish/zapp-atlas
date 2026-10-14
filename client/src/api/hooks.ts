@@ -197,7 +197,13 @@ export const useDeleteFish = (groupId: number) => {
 export const useAddChemical = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (chemicalId: string) => addChemical(groupId, chemicalId),
+    mutationFn: ({
+      chemicalId,
+      nickname,
+    }: {
+      chemicalId: string;
+      nickname?: string;
+    }) => addChemical(groupId, chemicalId, nickname),
     onSuccess: () =>
       client.invalidateQueries({ queryKey: keys.cabinet(groupId) }),
   });
@@ -206,8 +212,14 @@ export const useAddChemical = (groupId: number) => {
 export const useUpdateChemical = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ({ entryId, chemicalId }: { entryId: number; chemicalId: string }) =>
-      updateChemical(groupId, entryId, chemicalId),
+    mutationFn: ({
+      entryId,
+      ...changes
+    }: {
+      entryId: number;
+      chemicalId?: string;
+      nickname?: string | null;
+    }) => updateChemical(groupId, entryId, changes),
     onSuccess: () =>
       client.invalidateQueries({ queryKey: keys.cabinet(groupId) }),
   });

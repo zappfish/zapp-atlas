@@ -371,6 +371,7 @@ export const StagedNumber = styled("span", "staged__number");
 export const StagedNames = styled("div", "staged__names");
 export const StagedName = styled("p", "staged__name");
 export const StagedId = styled("p", "staged__id");
+export const StagedNickname = styled("input", "staged__nickname");
 export const StagedRemove = styled("button", "staged__remove");
 
 /** A segmented-control tab. */

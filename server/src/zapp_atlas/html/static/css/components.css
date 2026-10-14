@@ -426,6 +426,22 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
+/* The group's own name for the chemical, set before it is saved. */
+.staged__nickname {
+  flex: 0 1 11rem;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.staged__nickname:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+.staged__nickname::placeholder { color: var(--muted); }
+
 .staged__number {
   display: inline-flex;
   align-items: center;

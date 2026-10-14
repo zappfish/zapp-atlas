@@ -24,6 +24,7 @@ import {
   StagedList as StagedItems,
   StagedName,
   StagedNames,
+  StagedNickname,
   StagedNumber,
   StagedRemove,
   StagedTitle,
@@ -43,6 +44,7 @@ const AddChemicalForm = ({
   onClose: () => void;
 }) => {
   const [staged, setStaged] = useState<Staged[]>([]);
+  const [nicknames, setNicknames] = useState<Record<string, string>>({});
   const addChemical = useAddChemical(groupId);
   const { data: cabinet = [] } = useCabinet(groupId);
   // A fresh Set each render would re-run what reads it.
@@ -54,8 +56,12 @@ const AddChemicalForm = ({
   const close = () => {
     addChemical.reset();
     setStaged([]);
+    setNicknames({});
     onClose();
   };
+
+  const rename = (chebiId: string, nickname: string) =>
+    setNicknames((was) => ({ ...was, [chebiId]: nickname }));
 
   const stage = (chemical: Staged) =>
     setStaged((was) =>
@@ -70,7 +76,10 @@ const AddChemicalForm = ({
   // Sequential: a failure leaves the dialog open on the error.
   const save = async () => {
     for (const chemical of staged) {
-      await addChemical.mutateAsync(chemical.chebiId);
+      await addChemical.mutateAsync({
+        chemicalId: chemical.chebiId,
+        nickname: nicknames[chemical.chebiId]?.trim() || undefined,
+      });
     }
     close();
   };
@@ -131,6 +140,13 @@ const AddChemicalForm = ({
                       <StagedName>{chemical.name}</StagedName>
                       <StagedId>{chemical.chebiId}</StagedId>
                     </StagedNames>
+                    <StagedNickname
+                      value={nicknames[chemical.chebiId] ?? ""}
+                      onChange={(e) => rename(chemical.chebiId, e.target.value)}
+                      placeholder="Nickname (optional)"
+                      aria-label={`Nickname for ${chemical.name}`}
+                      maxLength={60}
+                    />
                     <StagedRemove
                       type="button"
                       onClick={() => unstage(chemical.chebiId)}
