@@ -85,6 +85,7 @@ const ChemicalPicker = ({
   staged = [],
   limit,
   alreadyIn,
+  isDisabled = false,
   onPick,
 }: {
   staged?: Staged[];
@@ -92,6 +93,8 @@ const ChemicalPicker = ({
   limit?: number;
   /** Already held, so it cannot be chosen twice. */
   alreadyIn?: Set<string>;
+  /** Held while the caller is saving what has been staged. */
+  isDisabled?: boolean;
   onPick: (chemical: Staged) => void;
 }) => {
   const [mode, setMode] = useState<Mode>("name");
@@ -107,7 +110,7 @@ const ChemicalPicker = ({
   );
   const suggestions = (mode === "name" ? byName.data : byId.data) ?? [];
 
-  const isFull = limit !== undefined && staged.length >= limit;
+  const isFull = isDisabled || (limit !== undefined && staged.length >= limit);
   const source = idTypeOf(idType)?.label ?? idType;
   const isSearching = mode === "name" ? byName.isFetching : byId.isFetching;
   const didSearch =
@@ -152,6 +155,7 @@ const ChemicalPicker = ({
         <SearchType>
           <ModalLabel>Search by</ModalLabel>
           <ModalSelect
+            disabled={isDisabled}
             value={mode}
             onChange={(e) => switchTo(e.target.value as Mode)}
           >
@@ -164,6 +168,7 @@ const ChemicalPicker = ({
           <SearchType>
             <ModalLabel>Identifier type</ModalLabel>
             <ModalSelect
+              disabled={isDisabled}
               value={idType}
               onChange={(e) => {
                 setIdType(e.target.value);
@@ -188,6 +193,7 @@ const ChemicalPicker = ({
               <SearchIcon />
             </SearchIconSlot>
             <SearchInput
+              disabled={isDisabled}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);

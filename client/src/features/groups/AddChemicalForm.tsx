@@ -48,6 +48,8 @@ const AddChemicalForm = ({
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
   // Why each one that would not save was refused, against its identifier.
   const [failures, setFailures] = useState<Record<string, string>>({});
+  // Covers the whole loop: isPending falls between one chemical and the next.
+  const [isSaving, setIsSaving] = useState(false);
   const addChemical = useAddChemical(groupId);
   const refreshCabinet = useRefreshCabinet(groupId);
   const { data: cabinet = [] } = useCabinet(groupId);
@@ -65,8 +67,12 @@ const AddChemicalForm = ({
     onClose();
   };
 
-  const rename = (chebiId: string, nickname: string) =>
+  const rename = (chebiId: string, nickname: string) => {
     setNicknames((was) => ({ ...was, [chebiId]: nickname }));
+    setFailures((was) =>
+      Object.fromEntries(Object.entries(was).filter(([id]) => id !== chebiId)),
+    );
+  };
 
   const stage = (chemical: Staged) =>
     setStaged((was) =>
@@ -82,6 +88,8 @@ const AddChemicalForm = ({
   // save are dropped, and those that cannot keep their reason and their row.
   const save = async () => {
     const refused: Record<string, string> = {};
+    setIsSaving(true);
+    setFailures({});
 
     for (const chemical of staged) {
       try {
@@ -99,6 +107,7 @@ const AddChemicalForm = ({
     }
 
     setFailures(refused);
+    setIsSaving(false);
     await refreshCabinet();
     if (Object.keys(refused).length === 0) close();
   };
@@ -118,6 +127,7 @@ const AddChemicalForm = ({
             staged={staged}
             limit={LIMIT}
             alreadyIn={alreadyIn}
+            isDisabled={isSaving}
             onPick={stage}
           />
 
@@ -161,11 +171,13 @@ const AddChemicalForm = ({
                       placeholder="Nickname (optional)"
                       aria-label={`Nickname for ${chemical.name}`}
                       maxLength={60}
+                      disabled={isSaving}
                     />
                     <StagedRemove
                       type="button"
                       onClick={() => unstage(chemical.chebiId)}
                       aria-label={`Remove ${chemical.name}`}
+                      disabled={isSaving}
                     >
                       <TrashIcon />
                     </StagedRemove>
@@ -184,16 +196,21 @@ const AddChemicalForm = ({
         </ModalBody>
 
         <ModalFoot>
-          <button className="btn btn--secondary" type="button" onClick={close}>
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={close}
+            disabled={isSaving}
+          >
             Cancel
           </button>
           <button
             className="btn btn--primary"
             type="button"
             onClick={save}
-            disabled={staged.length === 0 || addChemical.isPending}
+            disabled={staged.length === 0 || isSaving}
           >
-            {addChemical.isPending
+            {isSaving
               ? "Adding…"
               : `Add ${staged.length} chemical${staged.length === 1 ? "" : "s"}`}
           </button>
