@@ -23,11 +23,13 @@ import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
-import { useCabinet, useChemical } from "@/api/hooks";
+import { useAddChemical, useCabinet, useChemical } from "@/api/hooks";
 import { FlaskIcon, SearchIcon } from "@/components/icons";
 import {
   SubstanceBack,
   SubstanceBody,
+  SubstanceAdd,
+  SubstanceSaved,
   SubstanceCard,
   SubstanceChange,
   SubstanceChoices,
@@ -82,6 +84,9 @@ const Substance = ({
 
   const [substance, identifier] = watch([`${at}.substance`, `${at}.identifier`]);
 
+  const addChemical = useAddChemical(groupId);
+  const isInCabinet = cabinet.some((row) => row.chemical_id === identifier);
+
   const take = (chebiId: string, name: string) => {
     setValue(`${at}.substance`, name || chebiId);
     setValue(`${at}.idType`, "CHEBI");
@@ -108,6 +113,19 @@ const Substance = ({
             {/* A chemical with no name stands under its own identifier. */}
             {substance !== identifier && <SubstanceId>{identifier}</SubstanceId>}
           </SubstanceNames>
+          {/* Found in the database but not on the group's shelf: offered here
+              so the next submission can pick it from the cabinet. */}
+          {isInCabinet ? (
+            addChemical.isSuccess && <SubstanceSaved>Saved for reuse</SubstanceSaved>
+          ) : (
+            <SubstanceAdd
+              type="button"
+              onClick={() => addChemical.mutate({ chemicalId: identifier })}
+              disabled={addChemical.isPending}
+            >
+              {addChemical.isPending ? "Adding…" : "Add to cabinet"}
+            </SubstanceAdd>
+          )}
           <SubstanceChange type="button" onClick={clear}>
             Change
           </SubstanceChange>
