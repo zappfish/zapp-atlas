@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useAddChemical, useCabinet } from "@/api/hooks";
+import { useAddChemical, useCabinet, useRefreshCabinet } from "@/api/hooks";
 import Modal from "@/components/Modal";
 import ChemicalPicker, { type Staged } from "./ChemicalPicker";
 import { FlaskIcon, TrashIcon } from "@/components/icons";
@@ -24,6 +24,7 @@ import {
   StagedList as StagedItems,
   StagedName,
   StagedNames,
+  StagedError,
   StagedNickname,
   StagedNumber,
   StagedRemove,
@@ -45,7 +46,10 @@ const AddChemicalForm = ({
 }) => {
   const [staged, setStaged] = useState<Staged[]>([]);
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
+  // Why each one that would not save was refused, against its identifier.
+  const [failures, setFailures] = useState<Record<string, string>>({});
   const addChemical = useAddChemical(groupId);
+  const refreshCabinet = useRefreshCabinet(groupId);
   const { data: cabinet = [] } = useCabinet(groupId);
   // A fresh Set each render would re-run what reads it.
   const alreadyIn = useMemo(
@@ -57,6 +61,7 @@ const AddChemicalForm = ({
     addChemical.reset();
     setStaged([]);
     setNicknames({});
+    setFailures({});
     onClose();
   };
 
@@ -73,15 +78,29 @@ const AddChemicalForm = ({
   const unstage = (chebiId: string) =>
     setStaged((was) => was.filter((each) => each.chebiId !== chebiId));
 
-  // Sequential: a failure leaves the dialog open on the error.
+  // Each is independent, so one refusal does not hold up the rest: those that
+  // save are dropped, and those that cannot keep their reason and their row.
   const save = async () => {
+    const refused: Record<string, string> = {};
+
     for (const chemical of staged) {
-      await addChemical.mutateAsync({
-        chemicalId: chemical.chebiId,
-        nickname: nicknames[chemical.chebiId]?.trim() || undefined,
-      });
+      try {
+        await addChemical.mutateAsync({
+          chemicalId: chemical.chebiId,
+          nickname: nicknames[chemical.chebiId]?.trim() || undefined,
+        });
+        setStaged((was) =>
+          was.filter((each) => each.chebiId !== chemical.chebiId),
+        );
+      } catch (error) {
+        refused[chemical.chebiId] =
+          error instanceof Error ? error.message : "Could not be added";
+      }
     }
-    close();
+
+    setFailures(refused);
+    await refreshCabinet();
+    if (Object.keys(refused).length === 0) close();
   };
 
   return (
@@ -101,10 +120,6 @@ const AddChemicalForm = ({
             alreadyIn={alreadyIn}
             onPick={stage}
           />
-
-          {addChemical.error && (
-            <ModalText role="alert">{addChemical.error.message}</ModalText>
-          )}
 
           <StagedList>
             <StagedHead>
@@ -154,6 +169,13 @@ const AddChemicalForm = ({
                     >
                       <TrashIcon />
                     </StagedRemove>
+                    {/* Last, so the grid places it on the line below rather
+                        than pushing the controls after it onto one. */}
+                    {failures[chemical.chebiId] && (
+                      <StagedError role="alert">
+                        {failures[chemical.chebiId]}
+                      </StagedError>
+                    )}
                   </StagedItem>
                 ))}
               </StagedItems>
