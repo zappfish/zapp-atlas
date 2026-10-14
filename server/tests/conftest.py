@@ -11,6 +11,18 @@ from zapp_atlas.main import create_app
 from zapp_atlas.settings import AppSettings
 
 
+@pytest.fixture(autouse=True)
+def _no_orcid_public_api(monkeypatch) -> None:
+    """Keep tests off the network: ORCID public-name lookups find nothing.
+
+    Tests that care about the prefetched name monkeypatch the same symbol.
+    """
+    monkeypatch.setattr(
+        "zapp_atlas.auth.services.fetch_orcid_public_name",
+        lambda *args, **kwargs: None,
+    )
+
+
 @pytest.fixture
 def client(tmp_path) -> TestClient:
     from zapp_atlas.db import init_db

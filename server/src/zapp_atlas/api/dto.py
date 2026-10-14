@@ -59,6 +59,9 @@ class MemberIn(BaseModel):
 class MemberOut(_FromAttributes):
     id: int
     member: str
+    # Display name from the member's OrcidIdentity row; null until a name has
+    # been prefetched from ORCID's public API or set by the person's own login.
+    name: str | None = None
     role: ResearchGroupRoleEnum
     created_at: datetime | None
     updated_at: datetime | None
