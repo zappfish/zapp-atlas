@@ -326,7 +326,6 @@ export const ModalActions = styled("div", "modal__actions");
 /* ---- searching a reference database ---- */
 
 export const TermSearch = styled("div", "termsearch");
-export const SearchModes = styled("div", "termsearch__modes");
 export const SearchFields = styled("div", "termsearch__fields");
 export const SearchType = styled("label", "termsearch__type");
 export const SearchQuery = styled("label", "termsearch__query");
@@ -374,15 +373,6 @@ export const StagedId = styled("p", "staged__id");
 export const StagedNickname = styled("input", "staged__nickname");
 export const StagedRemove = styled("button", "staged__remove");
 
-/** A segmented-control tab. */
-export const SearchMode = ({
-  isActive,
-  ...rest
-}: ComponentPropsWithoutRef<"button"> & { isActive: boolean }) => (
-  <ModeButton className={modifier(isActive, "is-active")} {...rest} />
-);
-
-const ModeButton = styled("button", "termsearch__mode");
 
 /* ---- a row's actions ---- */
 
@@ -407,6 +397,8 @@ export const SubstanceIcon = styled("span", "substance__icon");
 export const SubstanceNames = styled("div", "substance__names");
 export const SubstanceName = styled("p", "substance__name");
 export const SubstanceId = styled("p", "substance__id");
+export const SubstanceAdd = styled("button", "substance__add");
+export const SubstanceSaved = styled("span", "substance__saved");
 export const SubstanceChange = styled("button", "substance__change");
 export const SubstanceHead = styled("header", "substance__head");
 export const SubstanceBody = styled("div", "substance__body");

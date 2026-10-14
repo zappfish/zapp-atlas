@@ -136,32 +136,6 @@
   color: var(--ink);
 }
 
-/* Searching by name and by identifier ask for different things, so each has
-   its own fields rather than one input guessing which was meant. */
-.termsearch__modes {
-  display: flex;
-  padding: 0.25rem;
-  border-radius: var(--radius);
-  background: var(--surface-sunken);
-}
-.termsearch__mode {
-  flex: 1;
-  padding: 0.7rem 0.75rem;
-  border: 0;
-  border-radius: calc(var(--radius) - 0.125rem);
-  background: none;
-  font: inherit;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-}
-.termsearch__mode.is-active {
-  background: var(--white);
-  color: var(--ink);
-  box-shadow: var(--shadow-card);
-}
-
 .termsearch__fields {
   display: flex;
   align-items: flex-start;

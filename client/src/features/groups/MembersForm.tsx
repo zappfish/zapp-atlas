@@ -31,7 +31,6 @@ import {
 const ORCID_PREFIX = "ORCID:";
 const ROLES: ResearchGroupRole[] = ["member", "admin"];
 
-/** The bare id, which is what people recognise and what they type. */
 const bareOrcid = (member: string) => member.replace(ORCID_PREFIX, "");
 
 /**
