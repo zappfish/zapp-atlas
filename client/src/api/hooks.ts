@@ -131,8 +131,16 @@ export const useGroupDashboard = (groupId: number) => {
     error: group.error ?? null,
     group: group.data,
     members: members.data ?? [],
-    fishTank: { rows: fishTank.data ?? [], isPending: fishTank.isPending },
-    cabinet: { rows: cabinet.data ?? [], isPending: cabinet.isPending },
+    fishTank: {
+      rows: fishTank.data ?? [],
+      isPending: fishTank.isPending,
+      error: fishTank.error ?? null,
+    },
+    cabinet: {
+      rows: cabinet.data ?? [],
+      isPending: cabinet.isPending,
+      error: cabinet.error ?? null,
+    },
   };
 };
 
@@ -189,14 +197,22 @@ export const useDeleteFish = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (entryId: number) => deleteFish(groupId, entryId),
-    onSuccess: () =>
-      client.invalidateQueries({ queryKey: keys.fishTank(groupId) }),
+    onSuccess: (_data, entryId) => {
+      client.invalidateQueries({ queryKey: keys.fishTank(groupId) });
+      client.removeQueries({ queryKey: keys.fishEntry(groupId, entryId) });
+    },
   });
 };
 
-export const useAddChemical = (groupId: number) => {
+/** Refetches a group's cabinet, for a caller that changed several in a row. */
+export const useRefreshCabinet = (groupId: number) => {
   const client = useQueryClient();
-  return useMutation({
+  return () => client.invalidateQueries({ queryKey: keys.cabinet(groupId) });
+};
+
+/** The caller refreshes the cabinet: a dialog adding several does it once. */
+export const useAddChemical = (groupId: number) =>
+  useMutation({
     mutationFn: ({
       chemicalId,
       nickname,
@@ -204,10 +220,8 @@ export const useAddChemical = (groupId: number) => {
       chemicalId: string;
       nickname?: string;
     }) => addChemical(groupId, chemicalId, nickname),
-    onSuccess: () =>
-      client.invalidateQueries({ queryKey: keys.cabinet(groupId) }),
   });
-};
+
 
 export const useUpdateChemical = (groupId: number) => {
   const client = useQueryClient();
@@ -220,8 +234,12 @@ export const useUpdateChemical = (groupId: number) => {
       chemicalId?: string;
       nickname?: string | null;
     }) => updateChemical(groupId, entryId, changes),
-    onSuccess: () =>
-      client.invalidateQueries({ queryKey: keys.cabinet(groupId) }),
+    onSuccess: (_data, { entryId }) => {
+      client.invalidateQueries({ queryKey: keys.cabinet(groupId) });
+      client.invalidateQueries({
+        queryKey: keys.cabinetEntry(groupId, entryId),
+      });
+    },
   });
 };
 
@@ -229,7 +247,9 @@ export const useDeleteChemical = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (entryId: number) => deleteChemical(groupId, entryId),
-    onSuccess: () =>
-      client.invalidateQueries({ queryKey: keys.cabinet(groupId) }),
+    onSuccess: (_data, entryId) => {
+      client.invalidateQueries({ queryKey: keys.cabinet(groupId) });
+      client.removeQueries({ queryKey: keys.cabinetEntry(groupId, entryId) });
+    },
   });
 };
