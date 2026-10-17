@@ -215,6 +215,7 @@ const ChemicalPicker = ({
                 type="button"
                 onClick={reset}
                 aria-label="Clear the search"
+                disabled={isDisabled}
               >
                 ✕
               </SearchClear>
