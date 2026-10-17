@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useAddMember, useMembers, useRemoveMember } from "@/api/hooks";
 import type { Member, ResearchGroupRole } from "@/api/types";
 import { asCurie, signedInUser } from "@/identity";
@@ -69,13 +69,12 @@ const MembersForm = ({
   const addMember = useAddMember(groupId);
   const removeMember = useRemoveMember(groupId);
 
-  // Whoever is signed in reads their own role off the list, as the server did.
-  const isAdmin = useMemo(() => {
-    const me = signedInUser();
-    if (!me) return false;
-    const mine = members.find((each) => each.member === asCurie(me.orcid_id));
-    return mine?.role === "admin";
-  }, [members]);
+  const me = signedInUser();
+  const myCurie = me ? asCurie(me.orcid_id) : null;
+  // Whoever is signed in reads their own role off the list.
+  const isAdmin = members.some(
+    (each) => each.member === myCurie && each.role === "admin",
+  );
 
   const close = () => {
     addMember.reset();
@@ -127,7 +126,7 @@ const MembersForm = ({
                   </MemberRole>
                   {/* No self-removal: an admin can drop others, not their own
                       seat, which would leave the group without one. */}
-                  {isAdmin && member.member !== asCurie(signedInUser()?.orcid_id ?? "") && (
+                  {isAdmin && member.member !== myCurie && (
                     <RowMenu label={`Actions for ${bareOrcid(member.member)}`}>
                       <RowMenuItem
                         icon={<TrashIcon />}
