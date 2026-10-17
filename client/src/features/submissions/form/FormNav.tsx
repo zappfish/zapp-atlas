@@ -106,16 +106,6 @@ const FormNav = ({
           />
         ))}
       </NavList>
-
-      {/* Hidden until the guidelines page reads well at this width.
-      <NavHelp>
-        <NavHelpTitle>Need help?</NavHelpTitle>
-        <NavHelpText>
-          Review the submission guide or contact our data team.
-        </NavHelpText>
-        <a href="/curation-guidelines">View submission guide</a>
-      </NavHelp>
-      */}
     </Nav>
   );
 };

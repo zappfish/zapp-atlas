@@ -160,15 +160,6 @@
   color: var(--teal);
 }
 
-.form-help {
-  margin-top: var(--s3);
-  padding-top: var(--s3);
-  border-top: 1px solid var(--line);
-  font-size: var(--text-subtext);
-}
-.form-help__title { margin: 0 0 var(--s1); font-weight: 600; color: var(--ink); }
-.form-help__text { margin: 0 0 var(--s2); color: var(--muted); }
-
 /* ---- Status ------------------------------------------------------------- */
 
 .form-dot {

@@ -175,9 +175,6 @@ export const NavProgressPercent = styled("span", "form-progressbar__percent");
 export const NavProgressTrack = styled("div", "form-progressbar__track");
 export const NavProgressFill = styled("div", "form-progressbar__fill");
 export const NavStep = styled("span", "form-nav__step");
-export const NavHelp = styled("div", "form-help");
-export const NavHelpTitle = styled("p", "form-help__title");
-export const NavHelpText = styled("p", "form-help__text");
 
 export const PageTitle = styled("h1", "form-page__title");
 export const PageLead = styled("p", "form-page__lead");
