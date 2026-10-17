@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useAddMember, useMembers, useRemoveMember } from "@/api/hooks";
 import type { Member, ResearchGroupRole } from "@/api/types";
-import { asCurie, signedInUser } from "@/identity";
+import { asCurie, bareOrcid, signedInUser } from "@/identity";
 import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
@@ -28,10 +28,10 @@ import {
   ModalTitle,
 } from "@/styles/elements";
 
-const ORCID_PREFIX = "ORCID:";
 const ROLES: ResearchGroupRole[] = ["member", "admin"];
 
-const bareOrcid = (member: string) => member.replace(ORCID_PREFIX, "");
+const roleLabel = (role: ResearchGroupRole) =>
+  role === "admin" ? "Admin" : "Member";
 
 /**
  * Initials from a name. Every ORCID opens with the same digits, so without a
@@ -86,7 +86,7 @@ const MembersForm = ({
   const submit = (event: FormEvent) => {
     event.preventDefault();
     addMember.mutate(
-      { member: `${ORCID_PREFIX}${bareOrcid(orcid.trim())}`, role },
+      { member: asCurie(bareOrcid(orcid.trim())), role },
       { onSuccess: () => setOrcid("") },
     );
   };
@@ -122,7 +122,7 @@ const MembersForm = ({
                     )}
                   </MemberWho>
                   <MemberRole isAdmin={member.role === "admin"}>
-                    {member.role === "admin" ? "Admin" : "Member"}
+                    {roleLabel(member.role)}
                   </MemberRole>
                   {/* No self-removal: an admin can drop others, not their own
                       seat, which would leave the group without one. */}
@@ -163,7 +163,7 @@ const MembersForm = ({
                   >
                     {ROLES.map((each) => (
                       <option key={each} value={each}>
-                        {each === "admin" ? "Admin" : "Member"}
+                        {roleLabel(each)}
                       </option>
                     ))}
                   </ModalSelect>

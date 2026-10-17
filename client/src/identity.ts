@@ -18,5 +18,9 @@ declare global {
 export const signedInUser = (): SignedInUser | null =>
   window.ZAPP_SIGNED_IN_USER ?? null;
 
+const ORCID_PREFIX = "ORCID:";
+
 /** Memberships carry the CURIE form; the bootstrap carries the bare id. */
-export const asCurie = (orcidId: string) => `ORCID:${orcidId}`;
+export const asCurie = (orcidId: string) => `${ORCID_PREFIX}${orcidId}`;
+
+export const bareOrcid = (curie: string) => curie.replace(ORCID_PREFIX, "");

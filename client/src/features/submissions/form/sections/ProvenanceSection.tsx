@@ -1,4 +1,5 @@
 import {
+  AnnotatorPanel,
   EntryCard,
   FieldGrid,
   FieldNote,
@@ -7,7 +8,6 @@ import {
   TextInput,
 } from "@/styles/elements";
 import { useFormContext } from "react-hook-form";
-import { AnnotatorPanel } from "@/styles/elements";
 import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";

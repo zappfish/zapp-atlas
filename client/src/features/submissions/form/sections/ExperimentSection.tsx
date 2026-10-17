@@ -13,6 +13,23 @@ import {
   MeasureRow,
   SelectInput,
   ShortSelect,
+  SubstanceAdd,
+  SubstanceBack,
+  SubstanceBody,
+  SubstanceCard,
+  SubstanceChange,
+  SubstanceChoices,
+  SubstanceChosen,
+  SubstanceHead,
+  SubstanceIcon,
+  SubstanceId,
+  SubstanceLead,
+  SubstanceName,
+  SubstanceNames,
+  SubstanceOr,
+  SubstanceSaved,
+  SubstanceSearch,
+  SubstanceTitle,
   TextInput,
 } from "@/styles/elements";
 import {
@@ -32,25 +49,6 @@ import {
   useRefreshCabinet,
 } from "@/api/hooks";
 import { FlaskIcon, SearchIcon } from "@/components/icons";
-import {
-  SubstanceBack,
-  SubstanceBody,
-  SubstanceAdd,
-  SubstanceSaved,
-  SubstanceCard,
-  SubstanceChange,
-  SubstanceChoices,
-  SubstanceChosen,
-  SubstanceIcon,
-  SubstanceId,
-  SubstanceName,
-  SubstanceNames,
-  SubstanceHead,
-  SubstanceLead,
-  SubstanceOr,
-  SubstanceSearch,
-  SubstanceTitle,
-} from "@/styles/elements";
 
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
 
