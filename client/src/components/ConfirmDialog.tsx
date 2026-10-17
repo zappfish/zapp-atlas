@@ -1,4 +1,10 @@
 import Modal from "./Modal";
+import {
+  ModalActions,
+  ModalPanel,
+  ModalText,
+  ModalTitle,
+} from "@/styles/elements";
 
 /** Confirmation before something irreversible. */
 const ConfirmDialog = ({
@@ -21,17 +27,15 @@ const ConfirmDialog = ({
   onClose: () => void;
 }) => (
   <Modal open={open} title={title} onClose={onClose}>
-    <div className="modal__panel">
-      <h2 className="modal__title">{title}</h2>
-      <p className="modal__text">{message}</p>
+    <ModalPanel>
+      <ModalTitle>{title}</ModalTitle>
+      <ModalText>{message}</ModalText>
 
       {error && (
-        <p className="modal__text" role="alert">
-          {error}
-        </p>
+<ModalText role="alert">{error}</ModalText>
       )}
 
-      <div className="modal__actions">
+      <ModalActions>
         <button className="btn btn--neutral" type="button" onClick={onClose}>
           Cancel
         </button>
@@ -43,8 +47,8 @@ const ConfirmDialog = ({
         >
           {isPending ? "Removing…" : confirmLabel}
         </button>
-      </div>
-    </div>
+      </ModalActions>
+    </ModalPanel>
   </Modal>
 );
 

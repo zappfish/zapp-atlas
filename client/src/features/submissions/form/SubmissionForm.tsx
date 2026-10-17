@@ -6,16 +6,19 @@ import {
   CrumbSeparator,
   Crumbs,
   FormIntro,
-  FormIntroText,
-  FormProgress,
   FormLayout,
+  BannerStrong,
   CollectedValues,
   FormMain,
-  RequiredMark,
+  PageHead,
+  PageLead,
+  PageTitle,
+  ProgressBanner,
   TextInput,
 } from "@/styles/elements";
 import Field from "./Field";
 import { emptySubmission, type Submission } from "./submission";
+import { sectionStatus } from "./status";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
@@ -25,29 +28,19 @@ import FishSection from "./sections/FishSection";
 import ImagesSection from "./sections/ImagesSection";
 import PhenotypeSection from "./sections/PhenotypeSection";
 import ProvenanceSection from "./sections/ProvenanceSection";
-import {
-  SECTIONS,
-  STATUS_LABELS,
-  type SectionSlug,
-  type SectionStatus,
-} from "./sections";
+import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
 import "./form.css";
 
-/** Placeholders until each section can be measured against its own fields. */
-const PLACEHOLDER_STATUS: Record<SectionSlug, SectionStatus> = {
-  images: "not-started",
-  provenance: "not-started",
-  fish: "not-started",
-  experiment: "not-started",
-  control: "not-started",
-  phenotype: "not-started",
-};
+/** What a section looks like before anyone has touched it. */
+const UNTOUCHED = emptySubmission();
 
-const SECTION_BODIES: Record<SectionSlug, () => ReactNode> = {
+/** `groupId` reaches the exposure's chemical picker, which offers that
+ *  group's cabinet alongside the database search. */
+const SECTION_BODIES: Record<SectionSlug, (groupId: number) => ReactNode> = {
   provenance: () => <ProvenanceSection />,
   images: () => <ImagesSection />,
   fish: () => <FishSection />,
-  experiment: () => <ExperimentSection />,
+  experiment: (groupId) => <ExperimentSection groupId={groupId} />,
   control: () => <ControlSection />,
   phenotype: () => <PhenotypeSection />,
 };
@@ -65,25 +58,22 @@ const GroupCrumbs = ({ groupId }: { groupId: number }) => {
   );
 };
 
-const SubmissionForm = ({ groupId }: { groupId?: number }) => {
+const SubmissionForm = ({ groupId }: { groupId: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
   const [collected, setCollected] = useState<Submission | null>(null);
   const form = useForm<Submission>({ defaultValues: emptySubmission() });
 
-  // Read off the section statuses, so the summary and the dots beside each
-  // section cannot disagree.
-  const complete = Object.values(PLACEHOLDER_STATUS).filter(
+  // Watched, so a dot answers to what has been typed rather than to a save.
+  const values = form.watch();
+  const statuses = Object.fromEntries(
+    SECTIONS.map(({ slug }) => [slug, sectionStatus(slug, values, UNTOUCHED)]),
+  ) as Record<SectionSlug, SectionStatus>;
+
+  // Read off those statuses, so the summary and the dots cannot disagree.
+  const complete = Object.values(statuses).filter(
     (status) => status === "complete",
   ).length;
-  const overall =
-    complete === SECTIONS.length
-      ? "complete"
-      : complete > 0 ||
-          Object.values(PLACEHOLDER_STATUS).some((s) => s === "in-progress")
-        ? "in-progress"
-        : "not-started";
-
   const jumpTo = useCallback((slug: SectionSlug) => {
     setActive(slug);
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth" });
@@ -94,14 +84,23 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
   return (
     <FormLayout>
       <FormNav
-          statuses={PLACEHOLDER_STATUS}
-          active={active}
-          onJump={jumpTo}
-        />
+        statuses={statuses}
+        complete={complete}
+        active={active}
+        onJump={jumpTo}
+      />
 
       <FormProvider {...form}>
       <FormMain onSubmit={form.handleSubmit(collect)}>
-        {groupId !== undefined && <GroupCrumbs groupId={groupId} />}
+        <GroupCrumbs groupId={groupId} />
+
+        <PageHead>
+          <PageTitle>Create atlas submission</PageTitle>
+          <PageLead>
+            Add the study details and observations you want to contribute.
+          </PageLead>
+        </PageHead>
+
         <FormIntro>
           <Field
             label="Submission title"
@@ -117,27 +116,30 @@ const SubmissionForm = ({ groupId }: { groupId?: number }) => {
             )}
           </Field>
 
-          <FormProgress>
-            {STATUS_LABELS[overall]} · {complete} of {SECTIONS.length} sections
-            complete
-          </FormProgress>
-
-          <FormIntroText>
-            Complete all required fields marked with{" "}
-            <RequiredMark>*</RequiredMark> before submitting. You may save a
-            draft at any time and return later. Collapse sections you have
-            completed to keep the form manageable.
-          </FormIntroText>
+          {/* Only once there is progress to report; an untouched form has
+              nothing to say. */}
+          {complete > 0 && (
+            <ProgressBanner>
+              <BannerStrong>
+                {complete === SECTIONS.length
+                  ? "Your submission is complete"
+                  : `${complete} of ${SECTIONS.length} sections complete`}
+              </BannerStrong>
+              Required fields are marked with an asterisk. You can return to
+              this draft at any time.
+            </ProgressBanner>
+          )}
         </FormIntro>
 
-        {SECTIONS.map(({ slug, label }) => (
+        {SECTIONS.map(({ slug, label }, i) => (
           <FormSection
             key={slug}
             slug={slug}
             title={label}
+            step={i + 1}
             isActive={slug === active}
           >
-            {SECTION_BODIES[slug]()}
+            {SECTION_BODIES[slug](groupId)}
           </FormSection>
         ))}
 

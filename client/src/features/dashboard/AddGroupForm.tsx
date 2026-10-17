@@ -2,6 +2,15 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { useCreateGroup } from "@/api/hooks";
 import Modal from "@/components/Modal";
+import {
+  ModalActions,
+  ModalField,
+  ModalForm,
+  ModalInput,
+  ModalLabel,
+  ModalText,
+  ModalTitle,
+} from "@/styles/elements";
 
 /** Name is the only field; the caller becomes the group's first admin. */
 const AddGroupForm = ({
@@ -33,13 +42,12 @@ const AddGroupForm = ({
 
   return (
     <Modal open={open} title="Create research group" onClose={close}>
-      <form className="modal__panel" onSubmit={submit}>
-        <h2 className="modal__title">Create research group</h2>
+      <ModalForm onSubmit={submit}>
+        <ModalTitle>Create research group</ModalTitle>
 
-        <label className="modal__field">
-          <span className="modal__label">Name</span>
-          <input
-            className="modal__input"
+        <ModalField>
+          <ModalLabel>Name</ModalLabel>
+          <ModalInput
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -47,15 +55,13 @@ const AddGroupForm = ({
             maxLength={200}
             placeholder="e.g. Neurotoxicology Lab"
           />
-        </label>
+        </ModalField>
 
         {createGroup.error && (
-          <p className="modal__text" role="alert">
-            {createGroup.error.message}
-          </p>
+          <ModalText role="alert">{createGroup.error.message}</ModalText>
         )}
 
-        <div className="modal__actions">
+        <ModalActions>
           <button className="btn btn--neutral" type="button" onClick={close}>
             Cancel
           </button>
@@ -66,8 +72,8 @@ const AddGroupForm = ({
           >
             {createGroup.isPending ? "Creating…" : "Create"}
           </button>
-        </div>
-      </form>
+        </ModalActions>
+      </ModalForm>
     </Modal>
   );
 };

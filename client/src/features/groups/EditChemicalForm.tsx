@@ -2,6 +2,15 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useUpdateChemical } from "@/api/hooks";
 import Modal from "@/components/Modal";
 import type { Row } from "@/components/RecordSection";
+import {
+  ModalActions,
+  ModalField,
+  ModalForm,
+  ModalInput,
+  ModalLabel,
+  ModalText,
+  ModalTitle,
+} from "@/styles/elements";
 
 const EditChemicalForm = ({
   groupId,
@@ -14,11 +23,14 @@ const EditChemicalForm = ({
   onClose: () => void;
 }) => {
   const [chemicalId, setChemicalId] = useState("");
+  const [nickname, setNickname] = useState("");
   const updateChemical = useUpdateChemical(groupId);
 
   // Prefill from whichever row opened it.
   useEffect(() => {
-    if (entry) setChemicalId(entry.label);
+    if (!entry) return;
+    setChemicalId(entry.label);
+    setNickname(entry.sublabel ?? "");
   }, [entry]);
 
   const close = () => {
@@ -30,20 +42,24 @@ const EditChemicalForm = ({
     event.preventDefault();
     if (!entry) return;
     updateChemical.mutate(
-      { entryId: entry.id, chemicalId: chemicalId.trim() },
+      {
+        entryId: entry.id,
+        chemicalId: chemicalId.trim(),
+        // Cleared rather than left alone when the box is emptied.
+        nickname: nickname.trim() || null,
+      },
       { onSuccess: close },
     );
   };
 
   return (
     <Modal open={entry !== null} title="Edit chemical" onClose={close}>
-      <form className="modal__panel" onSubmit={submit}>
-        <h2 className="modal__title">Edit chemical</h2>
+      <ModalForm onSubmit={submit}>
+        <ModalTitle>Edit chemical</ModalTitle>
 
-        <label className="modal__field">
-          <span className="modal__label">Chemical id</span>
-          <input
-            className="modal__input"
+        <ModalField>
+          <ModalLabel>Chemical id</ModalLabel>
+          <ModalInput
             value={chemicalId}
             onChange={(e) => setChemicalId(e.target.value)}
             required
@@ -51,15 +67,23 @@ const EditChemicalForm = ({
             maxLength={60}
             placeholder="e.g. CHEBI:16236"
           />
-        </label>
+        </ModalField>
+
+        <ModalField>
+          <ModalLabel>Nickname</ModalLabel>
+          <ModalInput
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            maxLength={60}
+            placeholder="What your group calls it, e.g. BPA stock"
+          />
+        </ModalField>
 
         {updateChemical.error && (
-          <p className="modal__text" role="alert">
-            {updateChemical.error.message}
-          </p>
+          <ModalText role="alert">{updateChemical.error.message}</ModalText>
         )}
 
-        <div className="modal__actions">
+        <ModalActions>
           <button className="btn btn--neutral" type="button" onClick={close}>
             Cancel
           </button>
@@ -70,8 +94,8 @@ const EditChemicalForm = ({
           >
             {updateChemical.isPending ? "Saving…" : "Save"}
           </button>
-        </div>
-      </form>
+        </ModalActions>
+      </ModalForm>
     </Modal>
   );
 };

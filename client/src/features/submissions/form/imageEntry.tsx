@@ -11,11 +11,13 @@ import {
   type DragEvent,
 } from "react";
 import {
-  FieldBox,
   FieldLabel,
+  MeasureRow,
   MeasureInput,
   MeasureSuffix,
+  PreviewAction,
   PreviewActions,
+  PreviewRemove,
   PreviewImage,
   RadioGroup,
   RadioLabel,
@@ -51,38 +53,40 @@ export const Measure = ({
   const unit = watch(unitName);
 
   return (
-    <>
-      <Field label={label}>
-        {(id) => (
+    <Field label={label}>
+      {(id) => (
+        <MeasureRow>
           <MeasureInput>
             <TextInput id={id} placeholder={placeholder} {...register(name)} />
             {suffix && <MeasureSuffix>{suffix}</MeasureSuffix>}
           </MeasureInput>
-        )}
-      </Field>
-      {units && (
-        <FieldBox>
-          <FieldLabel>Unit</FieldLabel>
-          <RadioGroup>
-            {units.map((option) => (
-              <RadioLabel key={option}>
-                <input type="radio" value={option} {...register(unitName)} />
-                {option}
-              </RadioLabel>
-            ))}
-            {/* Registered apart from the radios, which hold "Other" itself. */}
-            {unit === "Other" && (
+
+          {units && (
+            <RadioGroup
+              role="radiogroup"
+              aria-label={`${label} unit`}
+            >
+              {units.map((option) => (
+                <RadioLabel key={option}>
+                  <input type="radio" value={option} {...register(unitName)} />
+                  {option}
+                </RadioLabel>
+              ))}
+              {/* Rendered either way, so the row does not resize when it is
+                  chosen. Registered apart from the radios, which hold
+                  "Other" itself. */}
               <TextInput
                 aria-label={`${label} unit`}
                 placeholder="Unit"
                 size={6}
+                hidden={unit !== "Other"}
                 {...register(`${unitName}Other` as FieldPath<Submission>)}
               />
-            )}
-          </RadioGroup>
-        </FieldBox>
+            </RadioGroup>
+          )}
+        </MeasureRow>
       )}
-    </>
+    </Field>
   );
 };
 
@@ -181,12 +185,12 @@ export const ImageUpload = ({
 
       {preview && (
         <PreviewActions>
-          <button className="btn btn--neutral" type="button" onClick={browse}>
+          <PreviewAction type="button" onClick={browse}>
             Replace image
-          </button>
-          <button className="btn btn--neutral" type="button" onClick={remove}>
-            Remove image
-          </button>
+          </PreviewAction>
+          <PreviewRemove type="button" onClick={remove}>
+            Remove
+          </PreviewRemove>
         </PreviewActions>
       )}
     </Upload>

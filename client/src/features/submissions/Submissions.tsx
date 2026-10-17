@@ -113,8 +113,9 @@ const Submissions = ({
   submissions: Submission[];
   /** What to do about it, which differs per page. */
   emptyText: string;
-  /** Where "New Submission" goes: a group's page carries its id. */
-  newHref: string;
+  /** Where "New Submission" goes. Absent outside a group, which is the only
+   *  place a submission can be started. */
+  newHref?: string;
 }) => {
   const [filter, setFilter] = useState<Filter>("All");
 
@@ -160,7 +161,7 @@ const Submissions = ({
           </EmptyText>
           {/* Only when there is nothing at all: a filter with no matches is
               not a reason to start something new. */}
-          {submissions.length === 0 && (
+          {submissions.length === 0 && newHref && (
             <Link className="btn btn--secondary" to={newHref}>
               + New Submission
             </Link>

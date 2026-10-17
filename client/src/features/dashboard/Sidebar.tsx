@@ -27,7 +27,7 @@ import {
   SkeletonText,
   SubNav,
 } from "@/styles/elements";
-import type { Group } from "@/api/groups";
+import type { Group } from "@/api/types";
 
 /** The group list beside every dashboard page. */
 

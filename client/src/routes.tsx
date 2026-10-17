@@ -5,7 +5,7 @@ import GroupView from "@/features/groups/GroupView";
 import MySubmissions from "@/features/submissions/MySubmissions";
 import SubmissionForm from "@/features/submissions/form/SubmissionForm";
 
-/** Mirrors the paths the server serves the shell for (html/client_router.py). */
+/** A new path here also needs adding to html/client_router.py, or it 404s. */
 
 /** Numeric params, or a redirect. NaN would reach /api as a bad request. */
 const useIds = (...names: string[]): number[] | null => {
@@ -26,10 +26,10 @@ const FishDetailRoute = () => {
   return <FishDetail groupId={ids[0]!} entryId={ids[1]!} />;
 };
 
-/** The form started from a group's page, which its breadcrumb names. */
+/** The form, which a group's page starts and its breadcrumb names. */
 const GroupSubmissionRoute = () => {
   const ids = useIds("groupId");
-  if (!ids) return <Navigate to="/submissions/new" replace />;
+  if (!ids) return <Navigate to="/my-submissions" replace />;
   return <SubmissionForm groupId={ids[0]!} />;
 };
 
@@ -42,7 +42,10 @@ const ChemicalDetailRoute = () => {
 const AppRoutes = () => (
   <Routes>
     <Route path="/my-submissions" element={<MySubmissions />} />
-    <Route path="/submissions/new" element={<SubmissionForm />} />
+    <Route
+      path="/submissions/new"
+      element={<Navigate to="/my-submissions" replace />}
+    />
     <Route
       path="/research-groups/:groupId/submissions/new"
       element={<GroupSubmissionRoute />}

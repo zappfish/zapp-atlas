@@ -14,7 +14,8 @@ import {
   MeasureSuffix,
   RadioGroup,
   RadioLabel,
-  SelectInput,
+  MeasureRow,
+  ShortSelect,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -68,18 +69,25 @@ const Observation = ({
       {isOpen && (
         <>
           <FieldGrid>
-              <Field label="Fish stage at phenotype observation">
-                {(id) => <TextInput id={id} placeholder="e.g. 96" {...register(`${at}.stage`)} />}
-              </Field>
-              <Field label="Unit">
-                {(id) => (
-                  <SelectInput id={id} {...register(`${at}.stageUnit`)}>
+            <Field label="Fish stage at phenotype observation">
+              {(id) => (
+                <MeasureRow>
+                  <TextInput
+                    id={id}
+                    placeholder="e.g. 96"
+                    {...register(`${at}.stage`)}
+                  />
+                  <ShortSelect
+                    aria-label="Fish stage unit"
+                    {...register(`${at}.stageUnit`)}
+                  >
                     {STAGE_UNITS.map((unit) => (
                       <option key={unit}>{unit}</option>
                     ))}
-                  </SelectInput>
-                )}
-              </Field>
+                  </ShortSelect>
+                </MeasureRow>
+              )}
+            </Field>
 
             <Field label="Observed phenotype">
               {(id) => (
