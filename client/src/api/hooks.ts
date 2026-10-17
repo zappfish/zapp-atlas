@@ -1,4 +1,5 @@
 import {
+  queryOptions,
   useMutation,
   useQueries,
   useQuery,
@@ -70,13 +71,23 @@ export const useChemicalByCurie = (curie: string | null) =>
     staleTime: Infinity,
   });
 
+const chemicalQuery = (chebiId: string) =>
+  queryOptions({
+    queryKey: keys.chemical(chebiId),
+    queryFn: ({ signal }) => normalizeChemical(chebiId, signal),
+    staleTime: Infinity,
+  });
+
 /** The record behind a chosen suggestion. */
 export const useChemical = (chebiId: string | null) =>
-  useQuery({
-    queryKey: keys.chemical(chebiId ?? ""),
-    queryFn: ({ signal }) => normalizeChemical(chebiId!, signal),
-    enabled: chebiId !== null,
-    staleTime: Infinity,
+  useQuery({ ...chemicalQuery(chebiId ?? ""), enabled: chebiId !== null });
+
+/** Each id's name, against the id; the id stands in until its name arrives. */
+export const useChemicalNames = (chebiIds: string[]) =>
+  useQueries({
+    queries: chebiIds.map((id) => chemicalQuery(id)),
+    combine: (results) =>
+      new Map(chebiIds.map((id, i) => [id, results[i]?.data?.label ?? id])),
   });
 
 /** A group's cabinet on its own, for anything that needs it without the page. */

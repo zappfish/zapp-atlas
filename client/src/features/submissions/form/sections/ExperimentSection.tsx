@@ -27,7 +27,7 @@ import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
 import {
   useAddChemical,
   useCabinet,
-  useChemical,
+  useChemicalNames,
   useRefreshCabinet,
 } from "@/api/hooks";
 import { FlaskIcon, SearchIcon } from "@/components/icons";
@@ -66,24 +66,6 @@ const supplierLabel = (value: string) =>
     )
     .join(" ");
 
-/** A cabinet row. The entry stores only an identifier, so the name is looked
- *  up; until one is stored the identifier stands in for it. */
-const CabinetOption = ({
-  chemicalId,
-  nickname,
-}: {
-  chemicalId: string;
-  nickname?: string | null;
-}) => {
-  const { data } = useChemical(chemicalId);
-  const name = data?.label ?? chemicalId;
-  return (
-    <option value={chemicalId}>
-      {nickname ? `${nickname} — ${name}` : name}
-    </option>
-  );
-};
-
 /**
  * The exposure's chemical: from the group's cabinet, or found in the database.
  * Choosing the database swaps the panel for the search, which is the same
@@ -100,6 +82,8 @@ const Substance = ({
   const { setValue, watch } = useFormContext<Submission>();
   const { data: cabinet = [] } = useCabinet(groupId);
   const hasCabinet = cabinet.length > 0;
+  // An entry stores only the identifier, so names are looked up.
+  const names = useChemicalNames(cabinet.map((row) => row.chemical_id));
 
   const [substance, identifier] = watch([`${at}.substance`, `${at}.identifier`]);
 
@@ -202,24 +186,21 @@ const Substance = ({
             defaultValue=""
             aria-label="Select a chemical from your cabinet"
             onChange={(e) => {
-              const row = cabinet.find(
-                (each) => each.chemical_id === e.target.value,
-              );
-              if (!row) return;
-              const shown = e.target.selectedOptions[0]?.text ?? "";
-              take(row.chemical_id, shown.replace(/^.* — /, ""));
+              const chemicalId = e.target.value;
+              if (chemicalId) take(chemicalId, names.get(chemicalId) ?? "");
             }}
           >
             <option value="" disabled>
               Select a chemical
             </option>
-            {cabinet.map((row) => (
-              <CabinetOption
-                key={row.id}
-                chemicalId={row.chemical_id}
-                nickname={row.nickname}
-              />
-            ))}
+            {cabinet.map((row) => {
+              const name = names.get(row.chemical_id) ?? row.chemical_id;
+              return (
+                <option key={row.id} value={row.chemical_id}>
+                  {row.nickname ? `${row.nickname} — ${name}` : name}
+                </option>
+              );
+            })}
           </SelectInput>
 
           <SubstanceOr>OR</SubstanceOr>
