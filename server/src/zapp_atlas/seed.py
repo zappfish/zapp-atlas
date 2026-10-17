@@ -351,15 +351,15 @@ def _build_dev_group(session: Session) -> None:
     if membership is None:
         session.add(ResearchGroupMember(research_group=group.id, member=DEV_MEMBER, role="admin"))
 
-    for zfin_id, name in (("ZFIN:ZDB-GENO-960809-7", "AB"),):
-        _upsert_fish(session, zfin_id=zfin_id, name=name)
-        entry = (
-            session.query(FishTankEntry)
-            .filter_by(research_group=group.id, fish_zfin_id=zfin_id)
-            .one_or_none()
-        )
-        if entry is None:
-            session.add(FishTankEntry(research_group=group.id, fish_zfin_id=zfin_id))
+    zfin_id = "ZFIN:ZDB-GENO-960809-7"
+    _upsert_fish(session, zfin_id=zfin_id, name="AB")
+    entry = (
+        session.query(FishTankEntry)
+        .filter_by(research_group=group.id, fish_zfin_id=zfin_id)
+        .one_or_none()
+    )
+    if entry is None:
+        session.add(FishTankEntry(research_group=group.id, fish_zfin_id=zfin_id))
 
     # The chemicals the seeded studies use, so the cabinet is not empty.
     for chemical_id in ("CHEBI:33216", "CHEBI:15367", "CHEBI:6651", "CHEBI:9747"):
