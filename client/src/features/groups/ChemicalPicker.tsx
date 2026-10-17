@@ -110,7 +110,7 @@ const ChemicalPicker = ({
   );
   const suggestions = (mode === "name" ? byName.data : byId.data) ?? [];
 
-  const isFull = isDisabled || (limit !== undefined && staged.length >= limit);
+  const isFull = limit !== undefined && staged.length >= limit;
   const source = idTypeOf(idType)?.label ?? idType;
   const isSearching = mode === "name" ? byName.isFetching : byId.isFetching;
   const didSearch =
@@ -234,7 +234,7 @@ const ChemicalPicker = ({
                     <li key={suggestion.name}>
                       <SearchOption
                         type="button"
-                        disabled={chebiId === null || added || isFull}
+                        disabled={chebiId === null || added || isFull || isDisabled}
                         onClick={() => choose(suggestion)}
                       >
                         <OptionText>
@@ -273,7 +273,7 @@ const ChemicalPicker = ({
           )
         )}
         {isStaging && (
-          <StageButton type="button" onClick={stage} disabled={!chosen || isFull}>
+          <StageButton type="button" onClick={stage} disabled={!chosen || isFull || isDisabled}>
             + Add chemical
           </StageButton>
         )}
