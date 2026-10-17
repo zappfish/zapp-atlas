@@ -410,8 +410,9 @@
 }
 /* The group's own name for the chemical, set before it is saved. */
 .staged__nickname {
-  flex: 0 1 11rem;
-  min-width: 0;
+  /* Sets the grid's auto column. In ch, so the placeholder fits at any font
+     size. */
+  width: 22ch;
   padding: 0.4rem 0.6rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
