@@ -15,7 +15,7 @@ import {
   RadioGroup,
   RadioLabel,
   MeasureRow,
-  SelectInput,
+  ShortSelect,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -77,15 +77,14 @@ const Observation = ({
                     placeholder="e.g. 96"
                     {...register(`${at}.stage`)}
                   />
-                  <SelectInput
-                    className="field__input--short"
+                  <ShortSelect
                     aria-label="Fish stage unit"
                     {...register(`${at}.stageUnit`)}
                   >
                     {STAGE_UNITS.map((unit) => (
                       <option key={unit}>{unit}</option>
                     ))}
-                  </SelectInput>
+                  </ShortSelect>
                 </MeasureRow>
               )}
             </Field>

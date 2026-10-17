@@ -245,6 +245,8 @@ export const FieldValue = styled("p", "field__value");
 export const FieldValueLabel = styled("span", "field__label");
 export const TextArea = styled("textarea", "field__input field__input--area");
 export const SelectInput = styled("select", "field__input");
+/** A unit beside its value in a MeasureRow. */
+export const ShortSelect = styled("select", "field__input field__input--short");
 export const FieldGrid = styled("div", "field-grid");
 /** A row of numbers and their units, which sit three to a row. */
 export const MeasureGrid = styled("div", "field-grid--measures");

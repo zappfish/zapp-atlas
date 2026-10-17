@@ -12,6 +12,7 @@ import {
   RadioLabel,
   MeasureRow,
   SelectInput,
+  ShortSelect,
   TextInput,
 } from "@/styles/elements";
 import {
@@ -259,15 +260,11 @@ const UnitField = ({
       {(id) => (
         <MeasureRow>
           <TextInput id={id} placeholder={placeholder} {...register(name)} />
-          <SelectInput
-            className="field__input--short"
-            aria-label={`${label} unit`}
-            {...register(unitName)}
-          >
+          <ShortSelect aria-label={`${label} unit`} {...register(unitName)}>
             {units.map((unit) => (
               <option key={unit}>{unit}</option>
             ))}
-          </SelectInput>
+          </ShortSelect>
         </MeasureRow>
       )}
     </Field>
