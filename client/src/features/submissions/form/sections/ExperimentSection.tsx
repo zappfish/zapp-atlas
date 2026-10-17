@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -293,13 +293,10 @@ const ExposureEvent = ({
 
   // The regimen options differ by route, so a route change picks the first of
   // the new set rather than leaving a value the radios no longer offer.
-  const chooseRoute = useCallback(
-    (next: Route) => {
-      setValue(`${at}.route`, next);
-      setValue(`${at}.regimen`, regimens(next)[0]);
-    },
-    [at, setValue],
-  );
+  const chooseRoute = (next: Route) => {
+    setValue(`${at}.route`, next);
+    setValue(`${at}.regimen`, regimens(next)[0]);
+  };
 
   const repeated = regimen === "Repeated exposures";
   const sustained = route === "environment" && !repeated;

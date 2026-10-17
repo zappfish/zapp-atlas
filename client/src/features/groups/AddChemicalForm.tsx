@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useAddChemical, useCabinet, useRefreshCabinet } from "@/api/hooks";
 import Modal from "@/components/Modal";
 import ChemicalPicker, { type Staged } from "./ChemicalPicker";
@@ -53,11 +53,7 @@ const AddChemicalForm = ({
   const addChemical = useAddChemical(groupId);
   const refreshCabinet = useRefreshCabinet(groupId);
   const { data: cabinet = [] } = useCabinet(groupId);
-  // A fresh Set each render would re-run what reads it.
-  const alreadyIn = useMemo(
-    () => new Set(cabinet.map((row) => row.chemical_id)),
-    [cabinet],
-  );
+  const alreadyIn = new Set(cabinet.map((row) => row.chemical_id));
 
   const close = () => {
     addChemical.reset();
