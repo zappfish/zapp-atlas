@@ -86,9 +86,12 @@ export interface Submission {
     strain: string;
     lineDescription: string;
     additionalCondition: string;
+    notes: string;
+  };
+  /** The schema keeps rearing on Experiment, not on Fish. */
+  experiment: {
     rearing: string;
     rearingComment: string;
-    notes: string;
   };
   exposures: ExposureValues[];
   controls: ControlValues[];
@@ -175,9 +178,11 @@ export const emptySubmission = (): Submission => ({
     strain: "",
     lineDescription: "",
     additionalCondition: "",
+    notes: "",
+  },
+  experiment: {
     rearing: "Standard",
     rearingComment: "",
-    notes: "",
   },
   exposures: [emptyExposure()],
   controls: [emptyControl()],

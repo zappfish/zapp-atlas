@@ -8,12 +8,14 @@ import type { Submission } from "./submission";
 const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
   provenance: (s) => [s.provenance.sourceType, s.provenance.sourceValue],
   images: () => [],
-  fish: (s) => [
-    s.fish.strain,
+  fish: (s) => [s.fish.strain],
+  experiment: (s) => [
     // Only asked for when the rearing was not standard.
-    ...(s.fish.rearing === "Non-standard" ? [s.fish.rearingComment] : []),
+    ...(s.experiment.rearing === "Non-standard"
+      ? [s.experiment.rearingComment]
+      : []),
+    ...s.exposures.flatMap((e) => [e.substance, e.route]),
   ],
-  experiment: (s) => s.exposures.flatMap((e) => [e.substance, e.route]),
   control: () => [],
   phenotype: () => [],
 };
@@ -23,7 +25,10 @@ const VALUES: Record<SectionSlug, (s: Submission) => unknown[]> = {
   provenance: (s) => Object.values(s.provenance),
   images: (s) => s.images.flatMap((i) => Object.values(i)),
   fish: (s) => Object.values(s.fish),
-  experiment: (s) => s.exposures.flatMap((e) => Object.values(e)),
+  experiment: (s) => [
+    ...Object.values(s.experiment),
+    ...s.exposures.flatMap((e) => Object.values(e)),
+  ],
   control: (s) => s.controls.flatMap((c) => Object.values(c)),
   phenotype: (s) => s.observations.flatMap((o) => Object.values(o)),
 };

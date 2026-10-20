@@ -13,16 +13,15 @@ import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { signedInUser } from "@/identity";
 
-/**
- * Written into the document by app.html, so it is there on the first render
- * with no request. Display only — the server derives a submission's annotator
- * from the session cookie, it is never sent in the payload.
- */
+/** `value` is persisted; `label` is display-only. */
 const SOURCES = [
-  "PMID",
-  "Internal database",
-  "Non-published experimental result",
-  "Other",
+  { value: "PMID", label: "PubMed ID (PMID)" },
+  { value: "Internal database", label: "Internal database" },
+  {
+    value: "Non-published experimental result",
+    label: "Non-published experimental result",
+  },
+  { value: "Other", label: "Other" },
 ];
 
 /** Who produced the data and where it was published. */
@@ -97,7 +96,9 @@ const ProvenanceSection = () => {
             <SelectInput id={id} defaultValue="" {...register("provenance.sourceType")}>
               <option value="">Select source type</option>
               {SOURCES.map((source) => (
-                <option key={source}>{source}</option>
+                <option key={source.value} value={source.value}>
+                  {source.label}
+                </option>
               ))}
             </SelectInput>
           )}

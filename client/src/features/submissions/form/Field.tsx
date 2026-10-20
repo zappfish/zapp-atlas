@@ -3,9 +3,11 @@ import {
   FieldBox,
   FieldHint,
   FieldLabel,
+  FieldLabelRow,
   FieldValueLabel,
   RequiredMark,
 } from "@/styles/elements";
+import InfoTip from "./InfoTip";
 
 /**
  * A labelled field. The id is generated and handed to the control, so callers
@@ -15,6 +17,7 @@ const Field = ({
   label,
   required = false,
   hint,
+  info,
   labels = "control",
   wide = false,
   children,
@@ -23,6 +26,8 @@ const Field = ({
   required?: boolean;
   /** An example, under the control. */
   hint?: string;
+  /** Rendered in an InfoTip beside the label. */
+  info?: ReactNode;
   /**
    * What the label describes. `<label for>` binds only to form controls, so a
    * displayed value is labelled by aria-labelledby from the other direction.
@@ -36,15 +41,25 @@ const Field = ({
   const id = useId();
   const labelId = `${id}-label`;
 
+  const heading =
+    labels === "control" ? (
+      <FieldLabel id={labelId} htmlFor={id}>
+        {label}
+        {required && <RequiredMark aria-hidden="true"> *</RequiredMark>}
+      </FieldLabel>
+    ) : (
+      <FieldValueLabel id={labelId}>{label}</FieldValueLabel>
+    );
+
   return (
     <FieldBox className={wide ? "field--wide" : undefined}>
-      {labels === "control" ? (
-        <FieldLabel id={labelId} htmlFor={id}>
-          {label}
-          {required && <RequiredMark aria-hidden="true"> *</RequiredMark>}
-        </FieldLabel>
+      {info ? (
+        <FieldLabelRow>
+          {heading}
+          <InfoTip label={label}>{info}</InfoTip>
+        </FieldLabelRow>
       ) : (
-        <FieldValueLabel id={labelId}>{label}</FieldValueLabel>
+        heading
       )}
       {children(id, labelId)}
       {hint && <FieldHint>{hint}</FieldHint>}
