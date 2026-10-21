@@ -99,6 +99,24 @@ def test_duplicate_member_is_conflict(client: TestClient) -> None:
     assert res.status_code == 409
 
 
+def test_member_title_round_trip(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    res = client.post(
+        f"/api/research-groups/{group_id}/members",
+        json={"member": MEMBER, "role": "member", "title": "  Lab manager  "},
+    )
+    assert res.status_code == 201, res.text
+    assert res.json()["title"] == "Lab manager"  # trimmed
+
+    members = {
+        m["member"]: m for m in client.get(f"/api/research-groups/{group_id}/members").json()
+    }
+    assert members[f"ORCID:{MEMBER}"]["title"] == "Lab manager"
+    # Untitled members (here the creator) read null, not "".
+    assert members[f"ORCID:{ADMIN}"]["title"] is None
+
+
 def _member_id(client: TestClient, group_id: int, orcid: str) -> int:
     signin(client, ADMIN)
     members = client.get(f"/api/research-groups/{group_id}/members").json()

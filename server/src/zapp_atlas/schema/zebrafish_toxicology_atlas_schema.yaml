@@ -324,6 +324,7 @@ classes:
       - research_group
       - member
       - role
+      - title
     unique_keys:
       membership_grain:
         unique_key_slots:
@@ -651,6 +652,14 @@ slots:
     description: A member's permission level within a research group.
     range: ResearchGroupRoleEnum
     required: true
+  title:
+    description: >-
+      Free text for what a member does in the group, e.g. "PI" or "Lab
+      manager". Informational only — the role slot is what grants
+      permissions — and not unique within the group. At most 200 characters.
+    range: string
+    # LinkML has no length limit of its own; the pattern is how one is said.
+    pattern: "^.{0,200}$"
 
 enums:
 

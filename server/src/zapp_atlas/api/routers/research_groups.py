@@ -88,7 +88,9 @@ def add_member_endpoint(
     session: SessionDep,
     _: GroupAdmin,
 ) -> MemberOut:
-    membership = add_member(session, group_id, payload.member, payload.role.value)
+    membership = add_member(
+        session, group_id, payload.member, payload.role.value, title=payload.title
+    )
     return MemberOut.model_validate(membership)
 
 

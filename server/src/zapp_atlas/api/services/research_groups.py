@@ -50,8 +50,12 @@ def list_members(session: Session, group_id: int) -> list[ResearchGroupMember]:
     )
 
 
-def add_member(session: Session, group_id: int, member: str, role: str) -> ResearchGroupMember:
-    membership = ResearchGroupMember(research_group=group_id, member=orcid_curie(member), role=role)
+def add_member(
+    session: Session, group_id: int, member: str, role: str, title: str | None = None
+) -> ResearchGroupMember:
+    membership = ResearchGroupMember(
+        research_group=group_id, member=orcid_curie(member), role=role, title=title
+    )
     session.add(membership)
     commit_or_conflict(session, "That ORCID is already a member of this group")
     session.refresh(membership)
