@@ -1,15 +1,19 @@
+import { useState } from "react";
 import { useGroupDashboard } from "@/api/hooks";
 import Submissions from "@/features/submissions/Submissions";
-import { MicroscopeIcon } from "@/components/icons";
+import { MicroscopeIcon, UsersIcon } from "@/components/icons";
 import {
   DashEyebrow,
   DashHeader,
   DashTitle,
   GroupIdentity,
   GroupTile,
+  MembersButton,
+  MembersCount,
   SkeletonText,
 } from "@/styles/elements";
 import CabinetSection from "./CabinetSection";
+import MembersForm from "./MembersForm";
 import FishTankSection from "./FishTankSection";
 
 /**
@@ -17,7 +21,8 @@ import FishTankSection from "./FishTankSection";
  * change them; submissions have no endpoint, so that list is empty.
  */
 const GroupView = ({ groupId }: { groupId: number }) => {
-  const { error, group, fishTank, cabinet } = useGroupDashboard(groupId);
+  const { error, group, members, fishTank, cabinet } = useGroupDashboard(groupId);
+  const [isMembersOpen, setIsMembersOpen] = useState(false);
 
   // A 404 is a group the caller is not in; the API does not distinguish that
   // from one that does not exist.
@@ -39,7 +44,19 @@ const GroupView = ({ groupId }: { groupId: number }) => {
             </DashTitle>
           </div>
         </GroupIdentity>
+
+        <MembersButton type="button" onClick={() => setIsMembersOpen(true)}>
+          <UsersIcon />
+          Members
+          <MembersCount>{members.length}</MembersCount>
+        </MembersButton>
       </DashHeader>
+
+      <MembersForm
+        groupId={groupId}
+        open={isMembersOpen}
+        onClose={() => setIsMembersOpen(false)}
+      />
 
       <FishTankSection
         groupId={groupId}

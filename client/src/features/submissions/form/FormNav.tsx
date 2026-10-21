@@ -5,23 +5,28 @@ import {
   NavHeading,
   NavLabel,
   NavList,
+  NavProgress,
+  NavProgressCount,
+  NavProgressFill,
+  NavProgressHead,
+  NavProgressPercent,
+  NavProgressTrack,
+  NavStep,
 } from "@/styles/elements";
 import StatusDot from "./StatusDot";
-import {
-  SECTIONS,
-  type SectionSlug,
-  type SectionStatus,
-} from "./sections";
+import { SECTIONS, type SectionSlug, type SectionStatus } from "./sections";
 
 const NavItem = ({
   slug,
   label,
+  step,
   status,
   isActive,
   onJump,
 }: {
   slug: SectionSlug;
   label: string;
+  step: number;
   status: SectionStatus;
   isActive: boolean;
   onJump: (slug: SectionSlug) => void;
@@ -36,8 +41,13 @@ const NavItem = ({
         aria-current={isActive ? "step" : undefined}
         onClick={jump}
       >
+        {/* The number stands in for the dot until the section is finished. */}
+        {status === "complete" ? (
+          <StatusDot status={status} />
+        ) : (
+          <NavStep aria-hidden="true">{step}</NavStep>
+        )}
         <NavLabel>{label}</NavLabel>
-        <StatusDot status={status} />
       </NavButton>
     </li>
   );
@@ -50,28 +60,54 @@ const NavItem = ({
  */
 const FormNav = ({
   statuses,
+  complete,
   active,
   onJump,
 }: {
   statuses: Record<SectionSlug, SectionStatus>;
+  complete: number;
   active: SectionSlug;
   onJump: (slug: SectionSlug) => void;
-}) => (
-  <Nav>
-    <NavHeading>Form sections</NavHeading>
-    <NavList>
-      {SECTIONS.map(({ slug, label }) => (
-        <NavItem
-          key={slug}
-          slug={slug}
-          label={label}
-          status={statuses[slug]}
-          isActive={slug === active}
-          onJump={onJump}
-        />
-      ))}
-    </NavList>
-  </Nav>
-);
+}) => {
+  const percent = Math.round((complete / SECTIONS.length) * 100);
+
+  return (
+    <Nav>
+      <NavHeading>Submission progress</NavHeading>
+
+      <NavProgress>
+        <NavProgressHead>
+          <NavProgressCount>
+            {complete} of {SECTIONS.length} complete
+          </NavProgressCount>
+          <NavProgressPercent>{percent}%</NavProgressPercent>
+        </NavProgressHead>
+        <NavProgressTrack
+          role="progressbar"
+          aria-valuenow={complete}
+          aria-valuemin={0}
+          aria-valuemax={SECTIONS.length}
+          aria-label="Sections complete"
+        >
+          <NavProgressFill style={{ width: `${percent}%` }} />
+        </NavProgressTrack>
+      </NavProgress>
+
+      <NavList>
+        {SECTIONS.map(({ slug, label }, i) => (
+          <NavItem
+            key={slug}
+            slug={slug}
+            label={label}
+            step={i + 1}
+            status={statuses[slug]}
+            isActive={slug === active}
+            onJump={onJump}
+          />
+        ))}
+      </NavList>
+    </Nav>
+  );
+};
 
 export default FormNav;

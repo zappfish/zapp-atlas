@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
-import type { FishTankEntry } from "@/api/groups";
+import type { FishTankEntry } from "@/api/types";
 import { useDeleteFish } from "@/api/hooks";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";

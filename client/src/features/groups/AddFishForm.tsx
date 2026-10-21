@@ -1,6 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { useAddFish } from "@/api/hooks";
 import Modal from "@/components/Modal";
+import {
+  ModalActions,
+  ModalField,
+  ModalForm,
+  ModalInput,
+  ModalLabel,
+  ModalText,
+  ModalTitle,
+} from "@/styles/elements";
 
 /** Matches the schema's zfin_id pattern, which the API validates too. */
 const ZFIN_PATTERN = "ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+";
@@ -35,13 +44,12 @@ const AddFishForm = ({
 
   return (
     <Modal open={open} title="Add fish line" onClose={close}>
-      <form className="modal__panel" onSubmit={submit}>
-        <h2 className="modal__title">Add fish line</h2>
+      <ModalForm onSubmit={submit}>
+        <ModalTitle>Add fish line</ModalTitle>
 
-        <label className="modal__field">
-          <span className="modal__label">ZFIN id</span>
-          <input
-            className="modal__input"
+        <ModalField>
+          <ModalLabel>ZFIN id</ModalLabel>
+          <ModalInput
             value={zfinId}
             onChange={(e) => setZfinId(e.target.value)}
             required
@@ -50,27 +58,24 @@ const AddFishForm = ({
             pattern={ZFIN_PATTERN}
             title="e.g. ZFIN:ZDB-GENO-960809-7"
           />
-        </label>
+        </ModalField>
 
-        <label className="modal__field">
-          <span className="modal__label">Name</span>
-          <input
-            className="modal__input"
+        <ModalField>
+          <ModalLabel>Name</ModalLabel>
+          <ModalInput
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={200}
             placeholder="e.g. AB"
           />
-        </label>
+        </ModalField>
 
         {addFish.error && (
-          <p className="modal__text" role="alert">
-            {addFish.error.message}
-          </p>
+          <ModalText role="alert">{addFish.error.message}</ModalText>
         )}
 
-        <div className="modal__actions">
+        <ModalActions>
           <button className="btn btn--neutral" type="button" onClick={close}>
             Cancel
           </button>
@@ -81,8 +86,8 @@ const AddFishForm = ({
           >
             {addFish.isPending ? "Adding…" : "Add"}
           </button>
-        </div>
-      </form>
+        </ModalActions>
+      </ModalForm>
     </Modal>
   );
 };

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useState } from "react";
 import {
   AddButton,
   AddRow,
@@ -7,10 +7,29 @@ import {
   EntryRemove,
   EntryTitle,
   FieldGrid,
+  MeasureGrid,
   RadioGroup,
   RadioLabel,
+  MeasureRow,
   SelectInput,
-  TextArea,
+  ShortSelect,
+  SubstanceAdd,
+  SubstanceBack,
+  SubstanceBody,
+  SubstanceCard,
+  SubstanceChange,
+  SubstanceChoices,
+  SubstanceChosen,
+  SubstanceHead,
+  SubstanceIcon,
+  SubstanceId,
+  SubstanceLead,
+  SubstanceName,
+  SubstanceNames,
+  SubstanceOr,
+  SubstanceSaved,
+  SubstanceSearch,
+  SubstanceTitle,
   TextInput,
 } from "@/styles/elements";
 import {
@@ -21,9 +40,179 @@ import {
 import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
+import { ManufacturerEnum } from "@/schema";
+import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
+import {
+  useAddChemical,
+  useCabinet,
+  useChemicalNames,
+  useRefreshCabinet,
+} from "@/api/hooks";
+import { FlaskIcon, SearchIcon } from "@/components/icons";
 
-const ID_TYPES = ["CAS", "PubChem", "CHEBI", "None"];
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
+
+/** Spelled out rather than capitalised: "vwr" -> "VWR". */
+const SUPPLIER_ACRONYMS = new Set(["vwr"]);
+
+const supplierLabel = (value: string) =>
+  value
+    .split("_")
+    .map((word) =>
+      SUPPLIER_ACRONYMS.has(word)
+        ? word.toUpperCase()
+        : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(" ");
+
+/**
+ * The exposure's chemical: from the group's cabinet, or found in the database.
+ * Choosing the database swaps the panel for the search, which is the same
+ * picker the cabinet dialog uses.
+ */
+const Substance = ({
+  groupId,
+  at,
+}: {
+  groupId: number;
+  at: `exposures.${number}`;
+}) => {
+  const [isSearching, setIsSearching] = useState(false);
+  const { setValue, watch } = useFormContext<Submission>();
+  const { data: cabinet = [] } = useCabinet(groupId);
+  const hasCabinet = cabinet.length > 0;
+  // An entry stores only the identifier, so names are looked up.
+  const names = useChemicalNames(cabinet.map((row) => row.chemical_id));
+
+  const [substance, identifier] = watch([`${at}.substance`, `${at}.identifier`]);
+
+  const addChemical = useAddChemical(groupId);
+  const refreshCabinet = useRefreshCabinet(groupId);
+  const isInCabinet = cabinet.some((row) => row.chemical_id === identifier);
+
+  const take = (chebiId: string, name: string) => {
+    setValue(`${at}.substance`, name || chebiId);
+    setValue(`${at}.idType`, "CHEBI");
+    setValue(`${at}.identifier`, chebiId);
+    setIsSearching(false);
+  };
+
+  const clear = () => {
+    setValue(`${at}.substance`, "");
+    setValue(`${at}.idType`, "");
+    setValue(`${at}.identifier`, "");
+  };
+
+  // What was chosen, in place of the two ways of choosing it.
+  if (identifier) {
+    return (
+      <SubstanceCard>
+        <SubstanceChosen>
+          <SubstanceIcon aria-hidden="true">
+            <FlaskIcon />
+          </SubstanceIcon>
+          <SubstanceNames>
+            <SubstanceName>{substance}</SubstanceName>
+            {/* A chemical with no name stands under its own identifier. */}
+            {substance !== identifier && <SubstanceId>{identifier}</SubstanceId>}
+          </SubstanceNames>
+          {/* Found in the database but not on the group's shelf: offered here
+              so the next submission can pick it from the cabinet. */}
+          {isInCabinet ? (
+            addChemical.isSuccess && <SubstanceSaved>Saved for reuse</SubstanceSaved>
+          ) : (
+            <SubstanceAdd
+              type="button"
+              onClick={() =>
+                addChemical.mutate(
+                  { chemicalId: identifier },
+                  { onSuccess: refreshCabinet },
+                )
+              }
+              disabled={addChemical.isPending}
+            >
+              {addChemical.isPending ? "Adding…" : "Add to cabinet"}
+            </SubstanceAdd>
+          )}
+          <SubstanceChange
+            type="button"
+            onClick={clear}
+            disabled={addChemical.isPending}
+          >
+            Change
+          </SubstanceChange>
+        </SubstanceChosen>
+      </SubstanceCard>
+    );
+  }
+
+  if (isSearching || !hasCabinet) {
+    return (
+      <SubstanceCard>
+        <SubstanceHead>
+          <div>
+            <SubstanceTitle>Search ChEBI</SubstanceTitle>
+            <SubstanceLead>
+              Search the database when the chemical is not in your cabinet.
+            </SubstanceLead>
+          </div>
+          {hasCabinet && (
+            <SubstanceBack type="button" onClick={() => setIsSearching(false)}>
+              Use cabinet
+            </SubstanceBack>
+          )}
+        </SubstanceHead>
+        <SubstanceBody>
+          <ChemicalPicker
+            onPick={(chemical: Staged) =>
+              take(chemical.chebiId, chemical.name)
+            }
+          />
+        </SubstanceBody>
+      </SubstanceCard>
+    );
+  }
+
+  return (
+    <SubstanceCard>
+      <SubstanceBody>
+        <SubstanceTitle>
+          From your cabinet ({cabinet.length} chemical
+          {cabinet.length === 1 ? "" : "s"})
+        </SubstanceTitle>
+        <SubstanceChoices>
+          <SelectInput
+            defaultValue=""
+            aria-label="Select a chemical from your cabinet"
+            onChange={(e) => {
+              const chemicalId = e.target.value;
+              if (chemicalId) take(chemicalId, names.get(chemicalId) ?? "");
+            }}
+          >
+            <option value="" disabled>
+              Select a chemical
+            </option>
+            {cabinet.map((row) => {
+              const name = names.get(row.chemical_id) ?? row.chemical_id;
+              return (
+                <option key={row.id} value={row.chemical_id}>
+                  {row.nickname ? `${row.nickname} — ${name}` : name}
+                </option>
+              );
+            })}
+          </SelectInput>
+
+          <SubstanceOr>OR</SubstanceOr>
+
+          <SubstanceSearch type="button" onClick={() => setIsSearching(true)}>
+            <SearchIcon />
+            Search ChEBI
+          </SubstanceSearch>
+        </SubstanceChoices>
+      </SubstanceBody>
+    </SubstanceCard>
+  );
+};
 
 const ROUTES = [
   { value: "environment", label: "via environment (ambient aquatic environment route)" },
@@ -65,26 +254,18 @@ const UnitField = ({
   const { register } = useFormContext<Submission>();
 
   return (
-  <>
     <Field label={label}>
       {(id) => (
-        <TextInput id={id} placeholder={placeholder} {...register(name)} />
+        <MeasureRow>
+          <TextInput id={id} placeholder={placeholder} {...register(name)} />
+          <ShortSelect aria-label={`${label} unit`} {...register(unitName)}>
+            {units.map((unit) => (
+              <option key={unit}>{unit}</option>
+            ))}
+          </ShortSelect>
+        </MeasureRow>
       )}
     </Field>
-    <Field label="Unit">
-      {(id) => (
-        <SelectInput
-          id={id}
-          className="field__input--short"
-          {...register(unitName)}
-        >
-          {units.map((unit) => (
-            <option key={unit}>{unit}</option>
-          ))}
-        </SelectInput>
-      )}
-    </Field>
-  </>
   );
 };
 
@@ -92,28 +273,28 @@ const UnitField = ({
 const ExposureEvent = ({
   n,
   index,
+  groupId,
   onRemove,
 }: {
   n: number;
   index: number;
+  groupId: number;
   onRemove?: () => void;
 }) => {
   const { register, watch, setValue } = useFormContext<Submission>();
   const at = `exposures.${index}` as const;
-  const [route, regimen] = watch([`${at}.route`, `${at}.regimen`]) as [
-    Route,
-    string,
-  ];
+  const [route, regimen, supplier] = watch([
+    `${at}.route`,
+    `${at}.regimen`,
+    `${at}.supplier`,
+  ]) as [Route, string, string];
 
   // The regimen options differ by route, so a route change picks the first of
   // the new set rather than leaving a value the radios no longer offer.
-  const chooseRoute = useCallback(
-    (next: Route) => {
-      setValue(`${at}.route`, next);
-      setValue(`${at}.regimen`, regimens(next)[0]);
-    },
-    [at, setValue],
-  );
+  const chooseRoute = (next: Route) => {
+    setValue(`${at}.route`, next);
+    setValue(`${at}.regimen`, regimens(next)[0]);
+  };
 
   const repeated = regimen === "Repeated exposures";
   const sustained = route === "environment" && !repeated;
@@ -129,37 +310,9 @@ const ExposureEvent = ({
         )}
       </EntryHead>
 
+      <Substance groupId={groupId} at={at} />
+
       <FieldGrid>
-        <Field label="Substance" required>
-          {(id) => <TextInput
-              id={id}
-              placeholder="Substance label"
-              {...register(`${at}.substance`)}
-            />}
-        </Field>
-
-        <Field label="Substance / chemical description">
-          {(id) => <TextArea id={id} rows={1} {...register(`${at}.description`)} />}
-        </Field>
-
-        <Field label="ID type">
-          {(id) => (
-            <SelectInput id={id} {...register(`${at}.idType`)}>
-              {ID_TYPES.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </SelectInput>
-          )}
-        </Field>
-
-        <Field label="Identifier">
-          {(id) => <TextInput
-              id={id}
-              placeholder="e.g. 50-00-0"
-              {...register(`${at}.identifier`)}
-            />}
-        </Field>
-
         <Field label="Substance concentration">
           {(id) => <TextInput
               id={id}
@@ -186,12 +339,31 @@ const ExposureEvent = ({
         </Field>
 
         <Field label="Chemical supplier of the test substance">
-          {(id) => <TextInput
-              id={id}
-              placeholder="Enter supplier's name or link to website"
-              {...register(`${at}.supplier`)}
-            />}
+          {(id) => (
+            <SelectInput id={id} {...register(`${at}.supplier`)}>
+              <option value="">Select a supplier</option>
+              {Object.values(ManufacturerEnum).map((each) => (
+                <option key={each} value={each}>
+                  {supplierLabel(each)}
+                </option>
+              ))}
+            </SelectInput>
+          )}
         </Field>
+
+        {/* The schema requires the name when the controlled list is escaped;
+            without it the entry records no recoverable supplier. */}
+        {supplier === ManufacturerEnum.other_not_listed && (
+          <Field label="Supplier name">
+            {(id) => (
+              <TextInput
+                id={id}
+                placeholder="Enter the supplier's name"
+                {...register(`${at}.supplierOther`)}
+              />
+            )}
+          </Field>
+        )}
 
         <Field label="Additional information on the test substance">
           {(id) => <TextInput
@@ -246,12 +418,14 @@ const ExposureEvent = ({
           </Field>
 
         {sustained && (
-          <UnitField
-            label="Exposure duration"
-            units={DURATION_UNITS}
-            name={`${at}.duration`}
-            unitName={`${at}.durationUnit`}
-          />
+          <MeasureGrid>
+            <UnitField
+              label="Exposure duration"
+              units={DURATION_UNITS}
+              name={`${at}.duration`}
+              unitName={`${at}.durationUnit`}
+            />
+          </MeasureGrid>
         )}
 
         {sustained && (
@@ -273,44 +447,50 @@ const ExposureEvent = ({
             </Field>
         )}
 
-        {repeated && (
-          <>
-            <UnitField
-              label="Duration per exposure"
-              units={DURATION_UNITS}
-              name={`${at}.durationPerExposure`}
-              unitName={`${at}.durationPerExposureUnit`}
-            />
-            <Field label="Number of exposures">
-              {(id) => <TextInput id={id} {...register(`${at}.exposureCount`)} />}
-            </Field>
-            <UnitField
-              label="Interval between exposures"
-              units={DURATION_UNITS}
-              name={`${at}.interval`}
-              unitName={`${at}.intervalUnit`}
-            />
-            <UnitField
-              label="Total duration of exposure"
-              units={DURATION_UNITS}
-              name={`${at}.totalDuration`}
-              unitName={`${at}.totalDurationUnit`}
-            />
-          </>
-        )}
+        <MeasureGrid>
+          {repeated && (
+            <>
+              <UnitField
+                label="Duration per exposure"
+                units={DURATION_UNITS}
+                name={`${at}.durationPerExposure`}
+                unitName={`${at}.durationPerExposureUnit`}
+              />
+              <Field label="Number of exposures">
+                {(id) => (
+                  <MeasureRow>
+                    <TextInput id={id} {...register(`${at}.exposureCount`)} />
+                  </MeasureRow>
+                )}
+              </Field>
+              <UnitField
+                label="Interval between exposures"
+                units={DURATION_UNITS}
+                name={`${at}.interval`}
+                unitName={`${at}.intervalUnit`}
+              />
+              <UnitField
+                label="Total duration of exposure"
+                units={DURATION_UNITS}
+                name={`${at}.totalDuration`}
+                unitName={`${at}.totalDurationUnit`}
+              />
+            </>
+          )}
 
-        <UnitField
-          label="Start stage value"
-          units={STAGE_UNITS}
-          name={`${at}.startStage`}
-          unitName={`${at}.startStageUnit`}
-        />
-        <UnitField
-          label="End stage value"
-          units={STAGE_UNITS}
-          name={`${at}.endStage`}
-          unitName={`${at}.endStageUnit`}
-        />
+          <UnitField
+            label="Start stage value"
+            units={STAGE_UNITS}
+            name={`${at}.startStage`}
+            unitName={`${at}.startStageUnit`}
+          />
+          <UnitField
+            label="End stage value"
+            units={STAGE_UNITS}
+            name={`${at}.endStage`}
+            unitName={`${at}.endStageUnit`}
+          />
+        </MeasureGrid>
       </FieldGrid>
 
       <OptionalNotes name={`${at}.notes`} />
@@ -319,7 +499,7 @@ const ExposureEvent = ({
 };
 
 /** The substance and the exposures it was given in. */
-const ExperimentSection = () => {
+const ExperimentSection = ({ groupId }: { groupId: number }) => {
   const { control } = useFormContext<Submission>();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -333,6 +513,7 @@ const ExperimentSection = () => {
           key={field.id}
           n={i + 1}
           index={i}
+          groupId={groupId}
           onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}

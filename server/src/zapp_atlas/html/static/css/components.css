@@ -39,6 +39,7 @@
   border: none;
   border-radius: var(--radius-lg);
   padding: 0;
+  margin: auto;
   width: min(28rem, calc(100vw - 2rem));
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
@@ -53,10 +54,38 @@
   gap: 1rem;
   padding: 1.5rem;
 }
+/* Wide enough for a list of results and what has been staged from it. */
+.modal--wide { width: min(48rem, calc(100vw - 2rem)); }
+
+/* Banded rather than one column: the heading and the actions stay put while
+   the middle scrolls. */
+.modal__panel--flush { gap: 0; padding: 0; }
+.modal__head {
+  padding: 1.75rem 2rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.modal__head .modal__text { margin-top: 0.4rem; }
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
+}
+.modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface-sunken);
+}
+
 .modal__title {
   margin: 0;
-  font-size: var(--text-md);
-  font-weight: 600;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .modal__text {
   margin: 0;
@@ -91,6 +120,342 @@
   gap: 0.6rem;
   margin-top: 0.25rem;
 }
+
+/* ---- Picking a reference term ------------------------------------------- */
+/* Search by name, look over what the identifier resolves to, then stage it.
+   Staged terms are saved together, so several can be found in one sitting. */
+
+/* No column gap: a field follows its tabs more closely than the staged list
+   follows the field, so each child sets its own distance. */
+.termsearch { display: flex; flex-direction: column; }
+.termsearch .modal__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.termsearch__fields {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.termsearch__type { flex: 0 1 11rem; min-width: 0; }
+/* Our own chevron: the native one ignores padding, so its distance from the
+   border cannot be set. chevron-down.svg, inlined because CSS cannot reach
+   the template. */
+.termsearch__type .modal__input {
+  width: 100%;
+  padding: 0.7rem 1.9rem 0.7rem 0.75rem;
+  font-size: var(--text-sm);
+  appearance: none;
+  background-color: var(--white);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%236b7280' d='M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 0.65em;
+}
+.termsearch__query { flex: 1 1 14rem; min-width: 0; }
+
+.termsearch__box { position: relative; display: block; }
+.termsearch__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.termsearch__input {
+  width: 100%;
+  padding: 0.7rem 0.9rem 0.7rem 2.6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.termsearch__input::placeholder { color: var(--muted); }
+.termsearch__input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-tint);
+}
+.termsearch__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.6rem;
+  transform: translateY(-50%);
+  padding: 0.2rem;
+  border: 0;
+  background: none;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  cursor: pointer;
+}
+.termsearch__clear:hover { color: var(--ink); }
+
+/* Over what follows, so the dialog does not resize as results arrive. */
+.termsearch__list {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  list-style: none;
+  max-height: 15rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-dropdown);
+  overflow-y: auto;
+}
+.termsearch__option {
+  display: block;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.termsearch__option-text { min-width: 0; }
+.termsearch__option-note {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.termsearch__option:not(:disabled):hover,
+.termsearch__option:focus-visible {
+  outline: none;
+  background: var(--teal-tint);
+}
+.termsearch__list li + li .termsearch__option {
+  border-top: 1px solid var(--line);
+}
+/* The cabinet stores an identifier; a match without one has nothing to save. */
+.termsearch__option:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.termsearch__option-name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.termsearch__option-id {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.termsearch__hint {
+  margin: 0.35rem 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+/* Tinted, not just reworded: two grey lines swapping is easy to miss. Amber
+   rather than red — the identifier is not in the database, nothing is wrong. */
+.termsearch__miss {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--warn-line);
+  border-radius: var(--radius);
+  background: var(--warn-tint);
+  font-size: var(--text-sm);
+  color: var(--warn);
+}
+
+/* What the chosen identifier resolves to, to be read before staging it. */
+.termsearch__preview {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--teal-soft);
+  border-radius: var(--radius);
+  background: var(--teal-tint);
+}
+.termsearch__preview-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding-top: 0.15rem;
+  color: var(--teal);
+}
+.termsearch__preview-name {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.termsearch__preview-id {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--teal);
+}
+.termsearch__preview-description {
+  margin: 0.3rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  line-height: 1.45;
+  /* Two lines held from the start, so the card does not jump when the
+     description replaces "Looking up…". */
+  min-height: 2.9em;
+}
+
+/* Hint left, button right: the button does what the hint asks for. */
+.termsearch__footer {
+  display: flex;
+  margin-top: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.termsearch__footer .termsearch__hint { margin: 0; }
+/* Alone when a chemical is chosen, and still on the right. */
+.termsearch__stage { margin-left: auto; }
+
+/* ---- What a dialog has staged ------------------------------------------- */
+
+.staged { padding-top: 0.9rem; border-top: 1px solid var(--line); }
+.staged__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.staged__title { margin: 0; font-size: var(--text-base); font-weight: 600; }
+.staged__count {
+  padding: 0.15rem 0.6rem;
+  border-radius: 1rem;
+  background: var(--teal-tint);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--teal);
+}
+.staged__lead {
+  margin: 0.2rem 0 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* Icon beside the text, not above it: the row reads at a glance. */
+.staged__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+.staged__empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius);
+  background: var(--teal-tint);
+  font-size: 1.25rem;
+  color: var(--teal);
+}
+.staged__empty-title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ink);
+}
+.staged__empty-text {
+  margin: 0.15rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.staged__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+/* One row of controls, with a refusal on a line of its own beneath them. */
+.staged__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.staged__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--status-retracted);
+}
+/* The group's own name for the chemical, set before it is saved. */
+.staged__nickname {
+  /* Sets the grid's auto column. In ch, so the placeholder fits at any font
+     size. */
+  width: 22ch;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.staged__nickname:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+.staged__nickname::placeholder { color: var(--muted); }
+
+.staged__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--teal-tint);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--teal);
+}
+.staged__names { flex: 1; min-width: 0; }
+.staged__name {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.staged__id { margin: 0; font-size: var(--text-xs); color: var(--muted); }
+.staged__remove {
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  font-size: var(--text-base);
+  color: var(--muted);
+  cursor: pointer;
+}
+.staged__remove:hover { color: var(--status-retracted); }
+
 /* Modal buttons: a plain secondary and a teal primary (the header's primary is
    scoped to .site-nav, so define the standalone treatment here). */
 .modal .btn:not([class*="btn--"]) {
@@ -114,9 +479,6 @@
 
 /* ---- Members modal ------------------------------------------------------ */
 
-.modal--wide {
-  width: min(40rem, calc(100vw - 2rem));
-}
 /* Members modal drives its own vertical rhythm with explicit margins, so the
    panel's uniform gap is removed here and the bottom padding tightened. */
 .members .modal__panel {
@@ -246,20 +608,16 @@
   color: var(--ink);
 }
 
+/* One row: the ORCID takes the space, the role and the button take theirs. */
 .member-add {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.6rem;
 }
-.member-add__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-}
-.member-add__orcid {
-  flex: 1;
-  min-width: 0;
-}
+.member-add .modal__input { min-width: 0; }
+.member-add input.modal__input { flex: 1; }
+.member-add select.modal__input { flex: 0 0 8rem; }
+.member-add .btn { flex-shrink: 0; }
 .member-add__role {
   flex: 0 0 auto;
 }

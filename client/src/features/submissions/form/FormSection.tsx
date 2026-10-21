@@ -6,6 +6,7 @@ import {
   FormSectionHeading,
   FormSectionTitle,
   FormSectionToggle,
+  SectionEyebrow,
   VisuallyHidden,
 } from "@/styles/elements";
 
@@ -16,12 +17,14 @@ import {
 const FormSection = ({
   slug,
   title,
+  step,
   isActive,
   children,
 }: {
   /** Anchor id, so the nav can scroll to it. */
   slug: string;
   title: string;
+  step: number;
   /** The section the nav points at. */
   isActive: boolean;
   children?: ReactNode;
@@ -33,6 +36,7 @@ const FormSection = ({
     <FormSectionBox id={slug} isOpen={open} isActive={isActive}>
       <FormSectionHead>
         <FormSectionHeading>
+          <SectionEyebrow>Section {step}</SectionEyebrow>
           <FormSectionTitle>{title}</FormSectionTitle>
         </FormSectionHeading>
         <FormSectionToggle

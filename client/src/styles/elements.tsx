@@ -165,12 +165,27 @@ export const FormMain = styled("form", "form-main");
 /** What the form collected, until there is somewhere to send it. */
 export const CollectedValues = styled("pre", "form-collected");
 export const FormIntro = styled("header", "form-intro");
-export const FormIntroText = styled("p", "form-intro__text");
-/** How far through the form this submission is. */
-export const FormProgress = styled("p", "form-progress");
 export const RequiredMark = styled("span", "form-required");
 
 export const Nav = styled("aside", "form-nav");
+export const NavProgress = styled("div", "form-progressbar");
+export const NavProgressHead = styled("p", "form-progressbar__head");
+export const NavProgressCount = styled("span", "form-progressbar__count");
+export const NavProgressPercent = styled("span", "form-progressbar__percent");
+export const NavProgressTrack = styled("div", "form-progressbar__track");
+export const NavProgressFill = styled("div", "form-progressbar__fill");
+export const NavStep = styled("span", "form-nav__step");
+
+export const PageTitle = styled("h1", "form-page__title");
+export const PageLead = styled("p", "form-page__lead");
+export const PageHead = styled("header", "form-page__head");
+export const SectionEyebrow = styled("p", "form-section__eyebrow");
+export const AnnotatorPanel = styled("div", "annotator");
+export const ProgressBanner = styled("p", "form-banner");
+export const ActionsPrompt = styled("div", "form-actions__prompt");
+export const ActionsTitle = styled("p", "form-actions__title");
+export const ActionsHint = styled("p", "form-actions__hint");
+export const BannerStrong = styled("span", "form-banner__title");
 export const NavHeading = styled("h2", "form-nav__heading");
 export const NavList = styled("ol", "form-nav__list");
 export const NavLabel = styled("span", "form-nav__label");
@@ -226,11 +241,13 @@ export const FieldValue = styled("p", "field__value");
 /** Its label: a span, since `<label for>` binds only to form controls. */
 export const FieldValueLabel = styled("span", "field__label");
 export const TextArea = styled("textarea", "field__input field__input--area");
-export const SelectInput = styled("select", "field__input field__input--select");
+export const SelectInput = styled("select", "field__input");
+/** A unit beside its value in a MeasureRow. */
+export const ShortSelect = styled("select", "field__input field__input--short");
 export const FieldGrid = styled("div", "field-grid");
+/** A row of numbers and their units, which sit three to a row. */
+export const MeasureGrid = styled("div", "field-grid--measures");
 /** A field grid held to two columns, for a section with a tall field in it. */
-/** A field that takes the whole row. */
-export const WideField = styled("div", "field field--wide");
 export const FieldNote = styled("p", "field__note");
 
 
@@ -274,7 +291,10 @@ export const PreviewImage = styled("img", "upload__image");
 export const UploadHint = styled("p", "upload__hint");
 export const UploadLimits = styled("p", "upload__limits");
 export const PreviewActions = styled("div", "upload__preview-actions");
+export const PreviewAction = styled("button", "upload__action");
+export const PreviewRemove = styled("button", "upload__action upload__action--remove");
 
+export const MeasureRow = styled("div", "measure-row");
 export const MeasureInput = styled("div", "field__suffix-box");
 export const MeasureSuffix = styled("span", "field__suffix");
 /** A field that takes the whole row: radios, or a box that follows them. */
@@ -284,3 +304,131 @@ export const RadioLabel = styled("label", "radio-group__option");
 export const NotesToggle = styled("button", "notes-toggle");
 export const Notes = styled("div", "notes");
 export const NotesRemove = styled("button", "notes__remove");
+
+/* ---- dialogs ---- */
+
+export const ModalPanel = styled("div", "modal__panel");
+export const ModalForm = styled("form", "modal__panel");
+/* Heading and actions stay put; the middle scrolls. */
+export const ModalBanded = styled("div", "modal__panel modal__panel--flush");
+export const ModalHead = styled("header", "modal__head");
+export const ModalBody = styled("div", "modal__body");
+export const ModalFoot = styled("footer", "modal__foot");
+export const ModalTitle = styled("h2", "modal__title");
+export const ModalText = styled("p", "modal__text");
+export const ModalField = styled("label", "modal__field");
+export const ModalLabel = styled("span", "modal__label");
+export const ModalInput = styled("input", "modal__input");
+export const ModalSelect = styled("select", "modal__input");
+export const ModalActions = styled("div", "modal__actions");
+
+/* ---- searching a reference database ---- */
+
+export const TermSearch = styled("div", "termsearch");
+export const SearchFields = styled("div", "termsearch__fields");
+export const SearchType = styled("label", "termsearch__type");
+export const SearchQuery = styled("label", "termsearch__query");
+export const SearchBox = styled("span", "termsearch__box");
+export const SearchIconSlot = styled("span", "termsearch__search-icon");
+export const SearchInput = styled("input", "termsearch__input");
+export const SearchClear = styled("button", "termsearch__clear");
+export const SearchList = styled("ul", "termsearch__list");
+export const SearchOption = styled("button", "termsearch__option");
+export const OptionText = styled("span", "termsearch__option-text");
+export const OptionName = styled("span", "termsearch__option-name");
+export const OptionId = styled("span", "termsearch__option-id");
+export const OptionNote = styled("span", "termsearch__option-note");
+export const SearchHint = styled("p", "termsearch__hint");
+/** Said when a search ran and matched nothing, in place of the hint. */
+export const SearchMiss = styled("p", "termsearch__miss");
+export const StageButton = styled("button", "btn btn--primary termsearch__stage");
+/* The hint and the button share a line: the button is what the hint asks for. */
+export const SearchFooter = styled("div", "termsearch__footer");
+
+export const Preview = styled("div", "termsearch__preview");
+export const PreviewIcon = styled("span", "termsearch__preview-icon");
+export const PreviewName = styled("p", "termsearch__preview-name");
+export const PreviewId = styled("p", "termsearch__preview-id");
+export const PreviewDescription = styled("p", "termsearch__preview-description");
+
+/* ---- staged in a dialog ---- */
+
+export const Staged = styled("section", "staged");
+export const StagedHead = styled("header", "staged__head");
+export const StagedTitle = styled("h3", "staged__title");
+export const StagedCount = styled("span", "staged__count");
+export const StagedLead = styled("p", "staged__lead");
+export const StagedEmpty = styled("div", "staged__empty");
+export const StagedEmptyIcon = styled("span", "staged__empty-icon");
+export const StagedEmptyCopy = styled("div", "staged__empty-copy");
+export const StagedEmptyTitle = styled("p", "staged__empty-title");
+export const StagedEmptyText = styled("p", "staged__empty-text");
+export const StagedList = styled("ul", "staged__list");
+export const StagedItem = styled("li", "staged__item");
+export const StagedNumber = styled("span", "staged__number");
+export const StagedNames = styled("div", "staged__names");
+export const StagedName = styled("p", "staged__name");
+export const StagedId = styled("p", "staged__id");
+export const StagedError = styled("p", "staged__error");
+export const StagedNickname = styled("input", "staged__nickname");
+export const StagedRemove = styled("button", "staged__remove");
+
+
+/* ---- a row's actions ---- */
+
+export const RowMenuToggle = styled("summary", "dash-icon-btn sub-menu__toggle");
+export const RowMenuList = styled("div", "panel sub-menu__list");
+
+/** `isDanger` marks the destructive one. */
+export const RowMenuAction = ({
+  isDanger,
+  ...rest
+}: ComponentPropsWithoutRef<"button"> & { isDanger: boolean }) => (
+  <MenuItem className={modifier(isDanger, "sub-menu__item--danger")} {...rest} />
+);
+
+const MenuItem = styled("button", "sub-menu__item");
+
+/* ---- choosing an exposure's chemical ---- */
+
+export const SubstanceCard = styled("div", "substance");
+export const SubstanceChosen = styled("div", "substance__chosen");
+export const SubstanceIcon = styled("span", "substance__icon");
+export const SubstanceNames = styled("div", "substance__names");
+export const SubstanceName = styled("p", "substance__name");
+export const SubstanceId = styled("p", "substance__id");
+export const SubstanceAdd = styled("button", "substance__add");
+export const SubstanceSaved = styled("span", "substance__saved");
+export const SubstanceChange = styled("button", "substance__change");
+export const SubstanceHead = styled("header", "substance__head");
+export const SubstanceBody = styled("div", "substance__body");
+export const SubstanceTitle = styled("h4", "substance__title");
+export const SubstanceLead = styled("p", "substance__lead");
+export const SubstanceBack = styled("button", "substance__back");
+export const SubstanceChoices = styled("div", "substance__choices");
+export const SubstanceOr = styled("span", "substance__or");
+export const SubstanceSearch = styled("button", "substance__search");
+
+/* ---- a group's members ---- */
+
+export const MembersButton = styled("button", "members-button");
+export const MembersCount = styled("span", "members-button__count");
+export const MembersSubhead = styled("h3", "members__subhead");
+export const MembersDivider = styled("hr", "members__divider");
+export const MembersList = styled("ul", "member-list");
+export const MembersAdd = styled("form", "member-add");
+export const MemberRow = styled("li", "member");
+export const MemberAvatar = styled("span", "member__avatar");
+export const MemberWho = styled("span", "member__who");
+export const MemberName = styled("span", "member__name");
+export const MemberOrcid = styled("span", "member__orcid");
+
+/** Admin and member read differently, so the role is not just a word. */
+export const MemberRole = ({
+  isAdmin,
+  ...rest
+}: ComponentPropsWithoutRef<"span"> & { isAdmin: boolean }) => (
+  <RoleTag className={isAdmin ? "member__role--admin" : "member__role--member"} {...rest} />
+);
+
+const RoleTag = styled("span", "member__role");
