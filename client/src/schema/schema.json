@@ -725,6 +725,14 @@
         "role": {
           "$ref": "#/$defs/ResearchGroupRoleEnum",
           "description": "A member's permission level within a research group."
+        },
+        "title": {
+          "description": "Free text for what a member does in the group, e.g. \"PI\" or \"Lab manager\". Informational only — the role slot is what grants permissions — and not unique within the group. At most 200 characters.",
+          "pattern": "^.{0,200}$",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [

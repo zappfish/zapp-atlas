@@ -1452,6 +1452,7 @@ class ResearchGroupMember(ZappEntity):
                        'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    title: Optional[str] = Field(default=None, description="""Free text for what a member does in the group, e.g. \"PI\" or \"Lab manager\". Informational only — the role slot is what grants permissions — and not unique within the group. At most 200 characters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('member')
@@ -1464,6 +1465,19 @@ class ResearchGroupMember(ZappEntity):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('title')
+    def pattern_title(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid title format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid title format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -1478,6 +1492,7 @@ class ResearchGroupMemberCreate(ConfiguredBaseModel):
                        'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    title: Optional[str] = Field(default=None, description="""Free text for what a member does in the group, e.g. \"PI\" or \"Lab manager\". Informational only — the role slot is what grants permissions — and not unique within the group. At most 200 characters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
 
     @field_validator('member')
     def pattern_member(cls, v):
@@ -1489,6 +1504,19 @@ class ResearchGroupMemberCreate(ConfiguredBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('title')
+    def pattern_title(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid title format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid title format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -1503,6 +1531,7 @@ class ResearchGroupMemberUpdate(ConfiguredBaseModel):
                        'FishTankEntry']} })
     member: Optional[str] = Field(default=None, description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: Optional[ResearchGroupRoleEnum] = Field(default=None, description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    title: Optional[str] = Field(default=None, description="""Free text for what a member does in the group, e.g. \"PI\" or \"Lab manager\". Informational only — the role slot is what grants permissions — and not unique within the group. At most 200 characters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
 
     @field_validator('member')
     def pattern_member(cls, v):
@@ -1517,6 +1546,19 @@ class ResearchGroupMemberUpdate(ConfiguredBaseModel):
             raise ValueError(err_msg)
         return v
 
+    @field_validator('title')
+    def pattern_title(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid title format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid title format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class ResearchGroupMemberRead(ReadBaseModel):
     """
@@ -1528,6 +1570,7 @@ class ResearchGroupMemberRead(ReadBaseModel):
                        'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
+    title: Optional[str] = Field(default=None, description="""Free text for what a member does in the group, e.g. \"PI\" or \"Lab manager\". Informational only — the role slot is what grants permissions — and not unique within the group. At most 200 characters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('member')
@@ -1540,6 +1583,19 @@ class ResearchGroupMemberRead(ReadBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid member format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('title')
+    def pattern_title(cls, v):
+        pattern=re.compile(r"^.{0,200}$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid title format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid title format: {v}"
             raise ValueError(err_msg)
         return v
 

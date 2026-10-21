@@ -475,6 +475,8 @@ export interface ResearchGroupMember extends ZappEntity {
     member: string,
     /** A member's permission level within a research group. */
     role: string,
+    /** Free text for what a member does in the group, e.g. "PI" or "Lab manager". Informational only — the role slot is what grants permissions — and not unique within the group. At most 200 characters. */
+    title?: string,
 }
 
 

@@ -42,28 +42,6 @@ class _FromAttributes(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class MemberIn(BaseModel):
-    """Add a member to a group. ``research_group`` comes from the path."""
-
-    member: str
-    role: ResearchGroupRoleEnum
-
-    @field_validator("member")
-    @classmethod
-    def _valid_orcid(cls, value: str) -> str:
-        if not _ORCID_RE.match(value):
-            raise ValueError(f"Invalid ORCID: {value}")
-        return value
-
-
-class MemberOut(_FromAttributes):
-    id: int
-    member: str
-    role: ResearchGroupRoleEnum
-    created_at: datetime | None
-    updated_at: datetime | None
-
-
 def blank_to_none(value: object) -> object:
     """Trim a piece of text; text that is blank is no text at all."""
     if isinstance(value, str):
@@ -79,6 +57,39 @@ Nickname = Annotated[
     Annotated[str, StringConstraints(max_length=200)] | None,
     BeforeValidator(blank_to_none),
 ]
+
+# Free text for what a member does in the group ("PI", "Lab manager"). Unlike a
+# nickname it is not unique within the group, and it grants nothing — the
+# ``role`` enum is what carries permissions. Length matches the schema's
+# ``title`` pattern.
+Title = Annotated[
+    Annotated[str, StringConstraints(max_length=200)] | None,
+    BeforeValidator(blank_to_none),
+]
+
+
+class MemberIn(BaseModel):
+    """Add a member to a group. ``research_group`` comes from the path."""
+
+    member: str
+    role: ResearchGroupRoleEnum
+    title: Title = None
+
+    @field_validator("member")
+    @classmethod
+    def _valid_orcid(cls, value: str) -> str:
+        if not _ORCID_RE.match(value):
+            raise ValueError(f"Invalid ORCID: {value}")
+        return value
+
+
+class MemberOut(_FromAttributes):
+    id: int
+    member: str
+    role: ResearchGroupRoleEnum
+    title: str | None
+    created_at: datetime | None
+    updated_at: datetime | None
 
 
 class CabinetEntryIn(BaseModel):

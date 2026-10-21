@@ -505,10 +505,11 @@ class ResearchGroupMember(ZappEntity):
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     member: Mapped[str] = mapped_column(Text())
     role: Mapped[str] = mapped_column(Enum('admin', 'member', name='ResearchGroupRoleEnum'))
+    title: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
     def __repr__(self):
-        return f"ResearchGroupMember(research_group={self.research_group},member={self.member},role={self.role},id={self.id},)"
+        return f"ResearchGroupMember(research_group={self.research_group},member={self.member},role={self.role},title={self.title},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
