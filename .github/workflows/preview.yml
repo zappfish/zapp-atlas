@@ -37,11 +37,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      # To download a published extdata bundle.
+      contents: read
     concurrency:
       group: preview-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+
+      # The ontology bundle, into extdata/dist for the Dockerfile. A PR that
+      # doesn't touch extdata/ downloads the published release for its hash;
+      # one that does builds its own, cached by hash so later pushes skip the
+      # build. Previews never publish. See extdata/README.md.
+      - name: Hash the extdata inputs
+        id: extdata
+        run: echo "hash=$(extdata/hash.sh)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: extdata/dist
+          key: extdata-dist-${{ steps.extdata.outputs.hash }}
+      - name: Fetch or build the extdata bundle
+        run: extdata/ci.sh fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - uses: superfly/flyctl-actions/setup-flyctl@1.6
 
       - name: Create the app if it does not exist

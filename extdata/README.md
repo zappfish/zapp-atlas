@@ -63,3 +63,19 @@ that define it (`./hash.sh`), so an input that changed behind a stable URL
 would change the data without changing its name.
 
 To update a source, change its pin and rebuild. The hash changes with it.
+
+## Deployment
+
+The bundle is copied into the app's Docker image from `extdata/dist`, so the
+deploy workflows put it there before `flyctl deploy` (`ci.sh fetch`):
+
+- If a GitHub release `extdata-<hash>` exists, it is downloaded.
+- Otherwise the bundle is built in the job. Previews cache it by hash, so
+  later pushes to the same PR don't rebuild it.
+
+Only production deploys publish (`ci.sh publish`): when an app release
+deploys with a bundle no release holds yet, it is published as
+`extdata-<hash>`. A PR that doesn't touch the files above finds its hash
+already published and downloads it; one that does builds its own and
+publishes nothing. These releases are never marked "Latest", and the deploy
+workflow ignores them.
