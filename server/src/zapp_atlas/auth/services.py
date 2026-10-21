@@ -5,7 +5,7 @@ import secrets
 from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 from sqlalchemy import select
@@ -108,21 +108,86 @@ def exchange_code_for_token(config: OrcidConfig, code: str) -> dict[str, Any]:
         raise OrcidTokenExchangeError("Could not exchange ORCID authorization code") from exc
 
 
+def _public_api_base(base_url: str) -> str:
+    """The public-API host for an ORCID site: https://orcid.org -> https://pub.orcid.org."""
+    parts = urlsplit(base_url)
+    return urlunsplit((parts.scheme, f"pub.{parts.netloc}", "", "", ""))
+
+
+def _public_name_field(name: dict[str, Any], key: str) -> str | None:
+    field = name.get(key)
+    return field.get("value") if isinstance(field, dict) else None
+
+
+def fetch_orcid_public_name(orcid_id: str, settings: AppSettings | None = None) -> str | None:
+    """Best-effort display-name lookup from ORCID's public API (no credentials).
+
+    Returns None when the record is private, missing, or unreachable; callers
+    fall back to showing the bare ORCID.
+    """
+    settings = settings or load_settings()
+    url = f"{_public_api_base(settings.orcid_base_url)}/v3.0/{orcid_id}/personal-details"
+    request = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=5) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    name = data.get("name") if isinstance(data, dict) else None
+    if not isinstance(name, dict):
+        return None
+    credit = _public_name_field(name, "credit-name")
+    if credit:
+        return credit
+    given = _public_name_field(name, "given-names")
+    family = _public_name_field(name, "family-name")
+    return " ".join(part for part in (given, family) if part) or None
+
+
+def _find_identity(session: Session, orcid_id: str) -> OrcidIdentity | None:
+    return session.scalar(
+        select(OrcidIdentity)
+        .where(OrcidIdentity.orcid_id == orcid_id)
+        .order_by(OrcidIdentity.created_at)
+    )
+
+
+def prefetch_orcid_identity(
+    session: Session, orcid_id: str, settings: AppSettings | None = None
+) -> OrcidIdentity:
+    """Ensure an identity row exists for an ORCID ahead of that person's login.
+
+    Fills the name from the public API when the row has none; when the person
+    later logs in, ``store_orcid_identity`` updates this same row with the
+    authoritative name rather than creating a duplicate.
+    """
+    identity = _find_identity(session, orcid_id)
+    if identity is None:
+        identity = OrcidIdentity(orcid_id=orcid_id)
+        session.add(identity)
+    if not identity.name:
+        identity.name = fetch_orcid_public_name(orcid_id, settings)
+    session.commit()
+    session.refresh(identity)
+    return identity
+
+
 def store_orcid_identity(session: Session, payload: dict[str, Any]) -> OrcidIdentity:
     orcid_id = payload.get("orcid")
     if not orcid_id:
         raise OrcidTokenExchangeError("ORCID token response was missing identity")
 
-    identity = session.scalar(
-        select(OrcidIdentity)
-        .where(OrcidIdentity.orcid_id == orcid_id)
-        .order_by(OrcidIdentity.created_at)
-    )
+    identity = _find_identity(session, orcid_id)
     if identity is None:
         identity = OrcidIdentity(orcid_id=orcid_id)
         session.add(identity)
 
-    identity.name = payload.get("name")
+    # The row may predate the login with a name prefetched from the public API
+    # (prefetch_orcid_identity); only a payload that actually carries a name
+    # may replace it.
+    name = payload.get("name")
+    if name:
+        identity.name = name
 
     session.commit()
     session.refresh(identity)
