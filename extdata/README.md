@@ -9,7 +9,9 @@ just extdata        # build dist/ (needs docker and uv)
 ```
 
 The first build downloads the ROBOT image and the sources, and takes a few
-minutes.
+minutes. The app finds the bundle at `extdata/dist`
+(`ZAPP_EXTDATA_DIR` overrides that); without it, `/extdata` answers 404 and
+nothing else is affected.
 
 ## What is in the bundle
 
