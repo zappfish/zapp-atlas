@@ -38,9 +38,10 @@ Two ZP-specific steps:
   `fish_to_phenotype.tsv`, with no rollup to ancestors. They live in their own
   file rather than in the ontology.
 
-`labels.db` is a single `term (id, label)` table keyed by CURIE. Terms
-without a label are left out (including ChEBI's obsolete terms, which have
-none).
+`labels.db` is a single `term (id, label)` table keyed by CURIE; the server
+reads it through `zapp_atlas/labels.py`. Terms without a label are left out
+(including ChEBI's obsolete terms, which have none), and callers fall back to
+the CURIE.
 
 ## Temporary workarounds
 

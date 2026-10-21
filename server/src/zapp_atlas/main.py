@@ -29,6 +29,7 @@ from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.extdata import make_extdata_router
 from zapp_atlas.html.client_router import make_client_router
 from zapp_atlas.html.router import router as html_router
+from zapp_atlas.labels import Labels
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
 
@@ -63,6 +64,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings or load_settings()
+    app.state.labels = Labels(app.state.settings.extdata_dir / "labels.db")
 
     @app.exception_handler(SchemaRuleViolation)
     def _schema_rule_violation(request: Request, exc: SchemaRuleViolation) -> JSONResponse:

@@ -11,7 +11,7 @@ The gzipped copy is sent as-is to any client that accepts it, rather than
 compressing on every request.
 
 Only the files a browser needs are exposed; labels.db is for the server's own
-use.
+use (see labels.py).
 """
 
 import json
