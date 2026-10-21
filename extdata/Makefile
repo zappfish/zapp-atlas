@@ -21,6 +21,12 @@ EXTDATA_HASH ?= $(shell ./hash.sh)
 DIST := dist
 TMP := tmp
 
+# Every rule that transforms data depends on this file, which holds its
+# recipe: the bundle's hash covers the Makefile, so a recipe change must
+# rebuild what it produces, not just relabel stale output with a new hash.
+# Downloads don't depend on it; they only change when sources.mk does.
+RECIPES := Makefile
+
 BUNDLE := \
 	$(DIST)/zp.json $(DIST)/zp.json.gz \
 	$(DIST)/zfa.json $(DIST)/zfa.json.gz \
@@ -70,7 +76,7 @@ KEEP_ANNOTATIONS := annotations-to-keep.txt
 # already carry; it must run before the equivalence axioms it reads are
 # removed. Drop it (and UPHENO_PLUGIN_URL) once a ZP release includes them.
 $(TMP)/zp.owl: $(TMP)/zapp.owl $(TMP)/plugins/upheno.jar \
-		sparql/zapp-preferred-label.ru $(KEEP_ANNOTATIONS)
+		sparql/zapp-preferred-label.ru $(KEEP_ANNOTATIONS) $(RECIPES)
 	$(ROBOT) \
 		upheno:extract-upheno-relations --input $< \
 			--relation UPHENO:0000003 \
@@ -89,7 +95,7 @@ $(TMP)/zp.owl: $(TMP)/zapp.owl $(TMP)/plugins/upheno.jar \
 
 # part_of (BFO:0000050) is the other parent relation frogpot builds the
 # anatomy hierarchy from, alongside is_a.
-$(TMP)/zfa-filtered.owl: $(TMP)/zfa.owl $(KEEP_ANNOTATIONS)
+$(TMP)/zfa-filtered.owl: $(TMP)/zfa.owl $(KEEP_ANNOTATIONS) $(RECIPES)
 	$(ROBOT) \
 		remove --input $< --select "owl:deprecated='true'^^xsd:boolean" \
 		remove --axioms "equivalent disjoint" \
@@ -104,7 +110,7 @@ $(TMP)/zfa-filtered.owl: $(TMP)/zfa.owl $(KEEP_ANNOTATIONS)
 #
 # Decompressed first: ROBOT 1.9.10 fails on gzipped input looking for a
 # catalog file (fixed in 1.9.11, which has no Docker image yet).
-$(TMP)/chebi.owl: $(TMP)/chebi_lite.owl.gz sparql/labels-only.rq
+$(TMP)/chebi.owl: $(TMP)/chebi_lite.owl.gz sparql/labels-only.rq $(RECIPES)
 	gzip -dc $< > $(TMP)/chebi_lite.owl
 	$(ROBOT) query --input $(TMP)/chebi_lite.owl --format ttl \
 		--construct sparql/labels-only.rq $(TMP)/chebi.ttl
@@ -113,26 +119,26 @@ $(TMP)/chebi.owl: $(TMP)/chebi_lite.owl.gz sparql/labels-only.rq
 
 # --- Outputs -----------------------------------------------------------------
 
-$(DIST)/zp.json: $(TMP)/zp.owl | $(DIST)
+$(DIST)/zp.json: $(TMP)/zp.owl $(RECIPES) | $(DIST)
 	$(ROBOT) convert --input $< --format json --output $@
 
-$(DIST)/zfa.json: $(TMP)/zfa-filtered.owl | $(DIST)
+$(DIST)/zfa.json: $(TMP)/zfa-filtered.owl $(RECIPES) | $(DIST)
 	$(ROBOT) convert --input $< --format json --output $@
 
-$(DIST)/%.json.gz: $(DIST)/%.json
+$(DIST)/%.json.gz: $(DIST)/%.json $(RECIPES)
 	gzip -9 --no-name --keep --force $<
 
 # ID and label of every class, for the server's label lookups. Classes with
 # no label (the GO and other terms ZP refers to, ChEBI's obsolete terms) are
 # skipped when the table is built.
-$(TMP)/%-labels.tsv: $(TMP)/%.owl
+$(TMP)/%-labels.tsv: $(TMP)/%.owl $(RECIPES)
 	$(ROBOT) export --input $< --include classes --header "ID|LABEL" --export $@
 
 $(DIST)/labels.db: $(TMP)/zp-labels.tsv $(TMP)/zfa-filtered-labels.tsv $(TMP)/chebi-labels.tsv \
-		scripts/labels_db.py | $(DIST)
+		scripts/labels_db.py $(RECIPES) | $(DIST)
 	$(PY) scripts/labels_db.py $@ $(filter %.tsv,$^)
 
-$(DIST)/zfin_counts.tsv: $(TMP)/fish_to_phenotype.tsv scripts/zfin_counts.py | $(DIST)
+$(DIST)/zfin_counts.tsv: $(TMP)/fish_to_phenotype.tsv scripts/zfin_counts.py $(RECIPES) | $(DIST)
 	$(PY) scripts/zfin_counts.py $< $@
 
 # Always rewritten (it takes a moment): it records the current hash, which can
