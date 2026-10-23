@@ -74,7 +74,7 @@ const ProvenanceSection = () => {
             <>
               <TextInput
                 id={id}
-                placeholder="e.g. ZDB-LAB-120909-1"
+                placeholder="e.g. ZDB-LAB-251210-2"
                 {...register("provenance.laboratory")}
               />
               <FieldNote>
