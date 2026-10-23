@@ -14,6 +14,7 @@ import {
   GroupSummaryText,
   GroupToggle,
   RadioGroup,
+  RadioItem,
   RadioLabel,
   SelectInput,
   TextArea,
@@ -24,6 +25,8 @@ import Field from "../Field";
 import { emptyControl, emptyImage, type Submission } from "../submission";
 import { ImageUpload, Measure } from "../imageEntry";
 import { MEASURES } from "../measures";
+import InfoTip from "../InfoTip";
+import { REARING_INFO } from "../explanations";
 
 const TYPES = ["Negative control / untreated", "Vehicle control"];
 
@@ -76,7 +79,7 @@ const ControlImage = ({
           {(id) => (
             <TextInput
               id={id}
-              placeholder="Enter text"
+              placeholder="e.g. Zeiss Axio Imager"
               {...register(`${at}.microscope`)}
             />
           )}
@@ -173,28 +176,41 @@ const Control = ({
               {(id) => (
                 <TextInput
                   id={id}
-                  placeholder="e.g. AB/TL"
+                  placeholder="Type a line (e.g., AB, TL, AB/...)"
                   {...register(`${at}.strain`)}
                 />
               )}
             </Field>
 
             <Field label="Line description">
-              {(id) => <TextInput id={id} {...register(`${at}.lineDescription`)} />}
+              {(id) => (
+                <TextInput
+                  id={id}
+                  placeholder="If you don't see your wildtype, or you have a transgenic or mutant line, enter its description here"
+                  {...register(`${at}.lineDescription`)}
+                />
+              )}
             </Field>
 
               <Field wide label="Rearing conditions" labels="value">
                 {(_id, labelId) => (
                   <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                     {REARING.map((option) => (
-                      <RadioLabel key={option}>
-                        <input
-                          type="radio"
-                          value={option}
-                          {...register(`${at}.rearing`)}
-                        />
-                        {option}
-                      </RadioLabel>
+                      <RadioItem key={option}>
+                        <RadioLabel>
+                          <input
+                            type="radio"
+                            value={option}
+                            {...register(`${at}.rearing`)}
+                          />
+                          {option}
+                        </RadioLabel>
+                        {REARING_INFO[option] && (
+                          <InfoTip label={`${option} rearing`}>
+                            <p>{REARING_INFO[option]}</p>
+                          </InfoTip>
+                        )}
+                      </RadioItem>
                     ))}
                   </RadioGroup>
                 )}
@@ -203,7 +219,12 @@ const Control = ({
               {rearing === "Not standard" && (
                 <Field wide label="Describe">
                   {(id) => (
-                    <TextArea id={id} rows={3} {...register(`${at}.rearingComment`)} />
+                    <TextArea
+                      id={id}
+                      rows={3}
+                      placeholder={'If "not standard", please describe here, e.g. kept in the dark'}
+                      {...register(`${at}.rearingComment`)}
+                    />
                   )}
                 </Field>
               )}
@@ -213,6 +234,7 @@ const Control = ({
                   <TextArea
                     id={id}
                     rows={3}
+                    placeholder="If control fish show phenotypes unrelated to the experiment, describe them here."
                     {...register(`${at}.phenotypeDescription`)}
                   />
                 )}

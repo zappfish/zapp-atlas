@@ -1,27 +1,20 @@
-import {
-  EntryCard,
-  FieldGrid,
-  RadioGroup,
-  RadioLabel,
-  TextArea,
-  TextInput,
-} from "@/styles/elements";
+import { EntryCard, FieldGrid, TextArea, TextInput } from "@/styles/elements";
 import { useFormContext } from "react-hook-form";
 import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 
-const REARING = ["Standard", "Non-standard"];
-
-/** The fish the experiment used, and how it was reared. */
+/** The fish the experiment used. */
 const FishSection = () => {
-  const { register, watch } = useFormContext<Submission>();
-  const rearing = watch("fish.rearing");
+  const { register } = useFormContext<Submission>();
 
   return (
     <EntryCard>
       <FieldGrid>
-        <Field label="Select existing fish">
+        <Field
+          label="Select existing fish"
+          hint="i.e. the transgene and/or mutant line name, if applicable"
+        >
           {(id) => <TextInput
               id={id}
               placeholder="Fish name or ZFIN ID"
@@ -48,33 +41,6 @@ const FishSection = () => {
             />
           )}
         </Field>
-
-          {/* A group of radios has no one control to point `for` at, so the
-              label is a span and the group is named by it. */}
-          <Field wide label="Fish rearing conditions" labels="value">
-            {(_id, labelId) => (
-              <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                {REARING.map((option) => (
-                  <RadioLabel key={option}>
-                    <input
-                      type="radio"
-                      value={option}
-                      {...register("fish.rearing")}
-                    />
-                    {option}
-                  </RadioLabel>
-                ))}
-              </RadioGroup>
-            )}
-          </Field>
-
-          {rearing === "Non-standard" && (
-            <Field wide label="Describe the conditions" required>
-              {(id) => (
-                <TextArea id={id} rows={3} {...register("fish.rearingComment")} />
-              )}
-            </Field>
-          )}
       </FieldGrid>
 
       <OptionalNotes name="fish.notes" />

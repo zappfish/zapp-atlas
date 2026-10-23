@@ -9,6 +9,7 @@ import {
   FieldGrid,
   MeasureGrid,
   RadioGroup,
+  RadioItem,
   RadioLabel,
   MeasureRow,
   SelectInput,
@@ -30,6 +31,7 @@ import {
   SubstanceSaved,
   SubstanceSearch,
   SubstanceTitle,
+  TextArea,
   TextInput,
 } from "@/styles/elements";
 import {
@@ -40,6 +42,13 @@ import {
 import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
+import InfoTip from "../InfoTip";
+import {
+  CONCENTRATION_INFO,
+  PATTERN_INFO,
+  REARING_INFO,
+  REGIMEN_INFO,
+} from "../explanations";
 import { ManufacturerEnum } from "@/schema";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
 import {
@@ -313,7 +322,10 @@ const ExposureEvent = ({
       <Substance groupId={groupId} at={at} />
 
       <FieldGrid>
-        <Field label="Substance concentration">
+        <Field
+          label="Substance concentration"
+          info={<p>{CONCENTRATION_INFO}</p>}
+        >
           {(id) => <TextInput
               id={id}
               placeholder="e.g. 10"
@@ -404,14 +416,21 @@ const ExposureEvent = ({
             {(_id, labelId) => (
               <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                 {regimens(route).map((option) => (
-                  <RadioLabel key={option}>
-                    <input
-                      type="radio"
-                      value={option}
-                      {...register(`${at}.regimen`)}
-                    />
-                    {option}
-                  </RadioLabel>
+                  <RadioItem key={option}>
+                    <RadioLabel>
+                      <input
+                        type="radio"
+                        value={option}
+                        {...register(`${at}.regimen`)}
+                      />
+                      {option}
+                    </RadioLabel>
+                    {REGIMEN_INFO[option] && (
+                      <InfoTip label={option}>
+                        <p>{REGIMEN_INFO[option]}</p>
+                      </InfoTip>
+                    )}
+                  </RadioItem>
                 ))}
               </RadioGroup>
             )}
@@ -433,14 +452,19 @@ const ExposureEvent = ({
               {(_id, labelId) => (
                 <RadioGroup role="group" aria-labelledby={labelId}>
                   {PATTERNS.map((pattern) => (
-                    <RadioLabel key={pattern}>
-                      <input
-                      type="checkbox"
-                      value={pattern}
-                      {...register(`${at}.pattern`)}
-                    />
-                      {pattern}
-                    </RadioLabel>
+                    <RadioItem key={pattern}>
+                      <RadioLabel>
+                        <input
+                          type="checkbox"
+                          value={pattern}
+                          {...register(`${at}.pattern`)}
+                        />
+                        {pattern}
+                      </RadioLabel>
+                      <InfoTip label={pattern}>
+                        <p>{PATTERN_INFO[pattern]}</p>
+                      </InfoTip>
+                    </RadioItem>
                   ))}
                 </RadioGroup>
               )}
@@ -498,7 +522,59 @@ const ExposureEvent = ({
   );
 };
 
-/** The substance and the exposures it was given in. */
+const REARING = ["Standard", "Non-standard"];
+
+/** Per experiment, not per exposure: the schema has it on Experiment. */
+const Rearing = () => {
+  const { register, watch } = useFormContext<Submission>();
+  const rearing = watch("experiment.rearing");
+
+  return (
+    <EntryCard>
+      <FieldGrid>
+        {/* A group of radios has no one control to point `for` at, so the
+            label is a span and the group is named by it. */}
+        <Field wide label="Fish rearing conditions" labels="value">
+          {(_id, labelId) => (
+            <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+              {REARING.map((option) => (
+                <RadioItem key={option}>
+                  <RadioLabel>
+                    <input
+                      type="radio"
+                      value={option}
+                      {...register("experiment.rearing")}
+                    />
+                    {option}
+                  </RadioLabel>
+                  {REARING_INFO[option] && (
+                    <InfoTip label={`${option} rearing`}>
+                      <p>{REARING_INFO[option]}</p>
+                    </InfoTip>
+                  )}
+                </RadioItem>
+              ))}
+            </RadioGroup>
+          )}
+        </Field>
+
+        {rearing === "Non-standard" && (
+          <Field wide label="Describe the conditions" required>
+            {(id) => (
+              <TextArea
+                id={id}
+                rows={3}
+                {...register("experiment.rearingComment")}
+              />
+            )}
+          </Field>
+        )}
+      </FieldGrid>
+    </EntryCard>
+  );
+};
+
+/** How the fish were reared, and the exposures they were given. */
 const ExperimentSection = ({ groupId }: { groupId: number }) => {
   const { control } = useFormContext<Submission>();
   const { fields, append, remove } = useFieldArray({
@@ -508,6 +584,8 @@ const ExperimentSection = ({ groupId }: { groupId: number }) => {
 
   return (
     <>
+      <Rearing />
+
       {fields.map((field, i) => (
         <ExposureEvent
           key={field.id}
