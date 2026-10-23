@@ -7,13 +7,11 @@ import {
   Crumbs,
   FormIntro,
   FormLayout,
-  BannerStrong,
   CollectedValues,
   FormMain,
   PageHead,
   PageLead,
   PageTitle,
-  ProgressBanner,
   TextInput,
 } from "@/styles/elements";
 import Field from "./Field";
@@ -99,9 +97,10 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
         <GroupCrumbs groupId={groupId} />
 
         <PageHead>
-          <PageTitle>Create atlas submission</PageTitle>
+          <PageTitle>Annotate your data</PageTitle>
           <PageLead>
-            Add the study details and observations you want to contribute.
+            Add the study details and observations you want to annotate, and
+            consider submitting them to the Atlas.
           </PageLead>
         </PageHead>
 
@@ -114,14 +113,14 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
             {(id) => (
               <TextInput
                 id={id}
-                placeholder="e.g. Zebrafish cardiac development study"
+                placeholder="e.g. Tamoxifen - 10 µM - 24h"
                 {...form.register("title")}
               />
             )}
           </Field>
 
-          {/* Only once there is progress to report; an untouched form has
-              nothing to say. */}
+          {/* Progress banner, hidden for now; restoring it also means
+              re-importing ProgressBanner and BannerStrong.
           {complete > 0 && (
             <ProgressBanner>
               <BannerStrong>
@@ -133,6 +132,7 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
               this draft at any time.
             </ProgressBanner>
           )}
+          */}
         </FormIntro>
 
         {SECTIONS.map(({ slug, label }, i) => (
