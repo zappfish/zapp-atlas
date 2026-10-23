@@ -7,7 +7,6 @@ import {
   EntryRemove,
   EntryTitle,
   FieldGrid,
-  FieldNote,
   MeasureGrid,
   RadioGroup,
   RadioItem,
@@ -537,38 +536,25 @@ const Rearing = () => {
             label is a span and the group is named by it. */}
         <Field wide label="Fish rearing conditions" labels="value">
           {(_id, labelId) => (
-            <>
-              <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                {REARING.map((option) => (
-                  <RadioItem key={option}>
-                    <RadioLabel>
-                      <input
-                        type="radio"
-                        value={option}
-                        {...register("experiment.rearing")}
-                      />
-                      {option}
-                    </RadioLabel>
-                    {REARING_INFO[option] && (
-                      <InfoTip label={`${option} rearing`}>
-                        <p>{REARING_INFO[option]}</p>
-                      </InfoTip>
-                    )}
-                  </RadioItem>
-                ))}
-              </RadioGroup>
-              <FieldNote>
-                Standard: temperature 28.5 °C, as in Aleström et al. (2020),{" "}
-                <a
-                  href="https://doi.org/10.1177/0023677219869037"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Zebrafish: Housing and husbandry recommendations
-                </a>
-                .
-              </FieldNote>
-            </>
+            <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+              {REARING.map((option) => (
+                <RadioItem key={option}>
+                  <RadioLabel>
+                    <input
+                      type="radio"
+                      value={option}
+                      {...register("experiment.rearing")}
+                    />
+                    {option}
+                  </RadioLabel>
+                  {REARING_INFO[option] && (
+                    <InfoTip label={`${option} rearing`}>
+                      <p>{REARING_INFO[option]}</p>
+                    </InfoTip>
+                  )}
+                </RadioItem>
+              ))}
+            </RadioGroup>
           )}
         </Field>
 
@@ -588,7 +574,7 @@ const Rearing = () => {
   );
 };
 
-/** The exposures the fish were given, and how they were reared. */
+/** How the fish were reared, and the exposures they were given. */
 const ExperimentSection = ({ groupId }: { groupId: number }) => {
   const { control } = useFormContext<Submission>();
   const { fields, append, remove } = useFieldArray({
@@ -598,6 +584,8 @@ const ExperimentSection = ({ groupId }: { groupId: number }) => {
 
   return (
     <>
+      <Rearing />
+
       {fields.map((field, i) => (
         <ExposureEvent
           key={field.id}
@@ -613,8 +601,6 @@ const ExperimentSection = ({ groupId }: { groupId: number }) => {
           + Add another exposure
         </AddButton>
       </AddRow>
-
-      <Rearing />
     </>
   );
 };
