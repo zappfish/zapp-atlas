@@ -1,12 +1,18 @@
 import type { SectionSlug, SectionStatus } from "./sections";
 import type { Submission } from "./submission";
+import { PUBLISHED_SOURCES } from "./validation";
 
 /**
  * What each section must have before it counts as finished. Images, Control
  * and Phenotype ask for nothing yet, so any value in them finishes them.
  */
 const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
-  provenance: (s) => [s.provenance.sourceType, s.provenance.sourceValue],
+  provenance: (s) => [
+    s.provenance.sourceType,
+    ...(PUBLISHED_SOURCES.includes(s.provenance.sourceType)
+      ? [s.provenance.sourceValue]
+      : []),
+  ],
   images: () => [],
   fish: (s) => [s.fish.strain],
   experiment: (s) => [

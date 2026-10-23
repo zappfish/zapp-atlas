@@ -33,13 +33,25 @@ export const PERCENT: Check = {
   },
 };
 
-/** Study.publication is a PMID or DOI; only a PMID has a fixed shape. */
+/** Sources that are Study.publication, and so take an identifier. */
+export const PUBLISHED_SOURCES = ["PMID", "DOI"];
+
+const PMID_FORMAT = /^(PMID:)?\d+$/i;
+const DOI_FORMAT = /^(doi:\s*|https?:\/\/(dx\.)?doi\.org\/)?10\.\d{4,9}\/\S+$/i;
+
 export const PUBLICATION: Check = {
-  validate: (value, values) =>
-    values.provenance.sourceType !== "PMID" ||
-    isBlank(value) ||
-    /^(PMID:)?\d+$/i.test((value as string).trim()) ||
-    "Enter a PubMed ID, e.g. 41812223.",
+  validate: (value, values) => {
+    if (isBlank(value)) return true;
+    const text = (value as string).trim();
+    switch (values.provenance.sourceType) {
+      case "PMID":
+        return PMID_FORMAT.test(text) || "Enter a PubMed ID, e.g. 41812223.";
+      case "DOI":
+        return DOI_FORMAT.test(text) || "Enter a DOI, e.g. 10.1177/0023677219869037.";
+      default:
+        return true;
+    }
+  },
 };
 
 /** The annotator slot's pattern, without the ORCID: prefix the form omits. */
@@ -51,7 +63,7 @@ export const ORCID = matches(
 /** The lab slot's pattern; the ZFIN: prefix is optional when typed. */
 export const ZFIN_LAB = matches(
   /^(ZFIN:)?ZDB-LAB-\d+-\d+$/,
-  "Enter a ZFIN lab ID, e.g. ZDB-LAB-120909-1.",
+  "Enter a ZFIN lab ID, e.g. ZDB-LAB-251210-2.",
 );
 
 /** Stage slots hold a ZFS term; it is derived from the time typed here. */

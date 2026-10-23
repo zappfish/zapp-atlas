@@ -75,7 +75,10 @@ export interface Submission {
     principalInvestigatorName: string;
     laboratory: string;
     sourceType: string;
+    /** PMID or DOI: Study.publication. */
     sourceValue: string;
+    /** In place of an identifier, for unpublished sources. */
+    sourceNote: string;
     notes: string;
   };
   images: ImageValues[];
@@ -165,6 +168,7 @@ export const emptySubmission = (): Submission => ({
     laboratory: "",
     sourceType: "",
     sourceValue: "",
+    sourceNote: "",
     notes: "",
   },
   images: [emptyImage()],

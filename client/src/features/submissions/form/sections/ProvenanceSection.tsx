@@ -12,11 +12,17 @@ import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { signedInUser } from "@/identity";
-import { ORCID, PUBLICATION, ZFIN_LAB } from "../validation";
+import {
+  ORCID,
+  PUBLICATION,
+  PUBLISHED_SOURCES,
+  ZFIN_LAB,
+} from "../validation";
 
 /** `value` is persisted; `label` is display-only. */
 const SOURCES = [
   { value: "PMID", label: "PubMed ID (PMID)" },
+  { value: "DOI", label: "DOI" },
   { value: "Internal database", label: "Internal database" },
   {
     value: "Non-published experimental result",
@@ -28,7 +34,8 @@ const SOURCES = [
 /** Who produced the data and where it was published. */
 const ProvenanceSection = () => {
   const identity = signedInUser();
-  const { register } = useFormContext<Submission>();
+  const { register, watch } = useFormContext<Submission>();
+  const sourceType = watch("provenance.sourceType");
 
   return (
     <EntryCard>
@@ -112,16 +119,37 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
-        <Field label="Source value" required name="provenance.sourceValue">
-          {(id, _labelId, errorProps) => (
-            <TextInput
-              id={id}
-              placeholder="e.g. PMID 41812223 or DOI 10.1177/0023677219869037"
-              {...errorProps}
-              {...register("provenance.sourceValue", PUBLICATION)}
-            />
-          )}
-        </Field>
+            {PUBLISHED_SOURCES.includes(sourceType) && (
+          <Field label="Source value" required name="provenance.sourceValue">
+            {(id, _labelId, errorProps) => (
+              <TextInput
+                id={id}
+                placeholder={
+                  sourceType === "DOI"
+                    ? "e.g. 10.1177/0023677219869037"
+                    : "e.g. 41812223"
+                }
+                {...errorProps}
+                {...register("provenance.sourceValue", {
+                  ...PUBLICATION,
+                  shouldUnregister: true,
+                })}
+              />
+            )}
+          </Field>
+        )}
+
+        {sourceType && !PUBLISHED_SOURCES.includes(sourceType) && (
+          <Field label="Source note">
+            {(id) => (
+              <TextInput
+                id={id}
+                placeholder="Describe where the data comes from"
+                {...register("provenance.sourceNote", { shouldUnregister: true })}
+              />
+            )}
+          </Field>
+        )}
       </FieldGrid>
 
       <OptionalNotes name="provenance.notes" />
