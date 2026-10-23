@@ -670,8 +670,14 @@ select.field__input {
   cursor: pointer;
 }
 .notes-toggle:hover { border-color: var(--teal); color: var(--teal); }
+.notes__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s3);
+}
 .notes__remove {
-  align-self: flex-start;
+  flex-shrink: 0;
   padding: 0;
   border: 0;
   background: none;

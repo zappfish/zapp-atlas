@@ -314,6 +314,7 @@ export const RadioLabel = styled("label", "radio-group__option");
 export const RadioItem = styled("span", "radio-group__item");
 export const NotesToggle = styled("button", "notes-toggle");
 export const Notes = styled("div", "notes");
+export const NotesFoot = styled("div", "notes__foot");
 export const NotesRemove = styled("button", "notes__remove");
 
 /* ---- dialogs ---- */
