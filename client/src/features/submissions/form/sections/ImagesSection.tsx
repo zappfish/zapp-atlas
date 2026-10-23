@@ -59,7 +59,7 @@ const ImageEntry = ({
             {(id) => (
               <TextInput
                 id={id}
-                placeholder="Enter text"
+                placeholder="e.g. Zeiss Axio Imager"
                 {...register(`images.${index}.microscope`)}
               />
             )}

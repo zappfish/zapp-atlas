@@ -43,6 +43,8 @@ import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import InfoTip from "../InfoTip";
+import StageField from "../StageField";
+import { NUMBER, WHOLE_NUMBER } from "../validation";
 import {
   CONCENTRATION_INFO,
   PATTERN_INFO,
@@ -238,7 +240,6 @@ const regimens = (route: Route): [string, string] =>
     : ["Single exposure", "Repeated exposures"];
 
 const DURATION_UNITS = ["minute", "hour", "day"];
-const STAGE_UNITS = ["hpf", "dpf", "month"];
 
 const PATTERNS = [
   "Sustained - static",
@@ -253,20 +254,28 @@ const UnitField = ({
   placeholder,
   name,
   unitName,
+  rules,
 }: {
   label: string;
   units: string[];
   placeholder?: string;
   name: FieldPath<Submission>;
   unitName: FieldPath<Submission>;
+  rules?: typeof NUMBER;
 }) => {
   const { register } = useFormContext<Submission>();
 
   return (
-    <Field label={label}>
-      {(id) => (
+    <Field label={label} name={name}>
+      {(id, _labelId, errorProps) => (
         <MeasureRow>
-          <TextInput id={id} placeholder={placeholder} {...register(name)} />
+          <TextInput
+            id={id}
+            inputMode={rules ? "decimal" : undefined}
+            placeholder={placeholder}
+            {...errorProps}
+            {...register(name, rules)}
+          />
           <ShortSelect aria-label={`${label} unit`} {...register(unitName)}>
             {units.map((unit) => (
               <option key={unit}>{unit}</option>
@@ -324,13 +333,18 @@ const ExposureEvent = ({
       <FieldGrid>
         <Field
           label="Substance concentration"
+          name={`${at}.concentration`}
           info={<p>{CONCENTRATION_INFO}</p>}
         >
-          {(id) => <TextInput
+          {(id, _labelId, errorProps) => (
+            <TextInput
               id={id}
+              inputMode="decimal"
               placeholder="e.g. 10"
-              {...register(`${at}.concentration`)}
-            />}
+              {...errorProps}
+              {...register(`${at}.concentration`, NUMBER)}
+            />
+          )}
         </Field>
 
         <Field label="Unit" labels="value">
@@ -440,6 +454,8 @@ const ExposureEvent = ({
           <MeasureGrid>
             <UnitField
               label="Exposure duration"
+              placeholder="e.g. 24"
+              rules={NUMBER}
               units={DURATION_UNITS}
               name={`${at}.duration`}
               unitName={`${at}.durationUnit`}
@@ -476,25 +492,37 @@ const ExposureEvent = ({
             <>
               <UnitField
                 label="Duration per exposure"
+                placeholder="e.g. 24"
+                rules={NUMBER}
                 units={DURATION_UNITS}
                 name={`${at}.durationPerExposure`}
                 unitName={`${at}.durationPerExposureUnit`}
               />
-              <Field label="Number of exposures">
-                {(id) => (
+              <Field label="Number of exposures" name={`${at}.exposureCount`}>
+                {(id, _labelId, errorProps) => (
                   <MeasureRow>
-                    <TextInput id={id} {...register(`${at}.exposureCount`)} />
+                    <TextInput
+                      id={id}
+                      inputMode="numeric"
+                      placeholder="e.g. 3"
+                      {...errorProps}
+                      {...register(`${at}.exposureCount`, WHOLE_NUMBER)}
+                    />
                   </MeasureRow>
                 )}
               </Field>
               <UnitField
                 label="Interval between exposures"
+                placeholder="e.g. 24"
+                rules={NUMBER}
                 units={DURATION_UNITS}
                 name={`${at}.interval`}
                 unitName={`${at}.intervalUnit`}
               />
               <UnitField
                 label="Total duration of exposure"
+                placeholder="e.g. 24"
+                rules={NUMBER}
                 units={DURATION_UNITS}
                 name={`${at}.totalDuration`}
                 unitName={`${at}.totalDurationUnit`}
@@ -502,18 +530,8 @@ const ExposureEvent = ({
             </>
           )}
 
-          <UnitField
-            label="Start stage value"
-            units={STAGE_UNITS}
-            name={`${at}.startStage`}
-            unitName={`${at}.startStageUnit`}
-          />
-          <UnitField
-            label="End stage value"
-            units={STAGE_UNITS}
-            name={`${at}.endStage`}
-            unitName={`${at}.endStageUnit`}
-          />
+          <StageField label="Start stage" name={`${at}.startStage`} />
+          <StageField label="End stage" name={`${at}.endStage`} />
         </MeasureGrid>
       </FieldGrid>
 

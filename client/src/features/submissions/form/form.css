@@ -319,6 +319,7 @@
   color: var(--ink);
 }
 .field__input:focus { outline: none; border-color: var(--teal); }
+.field__input[aria-invalid="true"] { border-color: var(--status-retracted); }
 /* A ring as well: a 1px border change is easy to miss. */
 .field__input:focus-visible { box-shadow: 0 0 0 3px var(--teal-tint); }
 /* An example, not a value. */
@@ -416,6 +417,13 @@ select.field__input {
 .infotip__bubble p { margin: 0; }
 .infotip__bubble p + p { margin-top: var(--s1); }
 
+.field__error {
+  margin: 0;
+  font-size: var(--text-subtext);
+  font-weight: 600;
+  color: var(--status-retracted);
+}
+
 .field__hint,
 .field__note {
   margin: 0;
@@ -455,7 +463,8 @@ select.field__input {
 /* ---- Repeating entries -------------------------------------------------- */
 
 /* A group within the card, not a card of its own. */
-.form-entry + .form-entry {
+.form-entry + .form-entry,
+.form-add + .form-entry {
   margin-top: var(--s3);
   padding-top: var(--s3);
   border-top: 1px solid var(--entry-rule);
@@ -678,7 +687,7 @@ select.field__input {
 /* A footer under the entries, separated from them. */
 .form-add {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   margin-top: var(--s3);
   padding-top: var(--s3);
   border-top: 1px solid var(--line);
@@ -686,6 +695,7 @@ select.field__input {
 /* Belongs to the group above it rather than closing the section, so it takes
    neither the rule nor the space. */
 .form-add--inline {
+  justify-content: flex-start;
   margin-top: var(--s2);
   padding-top: 0;
   border-top: 0;

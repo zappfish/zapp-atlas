@@ -235,6 +235,7 @@ export const VisuallyHidden = styled("span", "visually-hidden");
 export const FieldBox = styled("div", "field");
 export const FieldLabel = styled("label", "field__label");
 export const FieldHint = styled("p", "field__hint");
+export const FieldError = styled("p", "field__error");
 /** Sibling row: a <label> cannot contain a <button>. */
 export const FieldLabelRow = styled("div", "field__label-row");
 export const InfoTipBox = styled("span", "infotip");

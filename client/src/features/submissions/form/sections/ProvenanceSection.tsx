@@ -12,6 +12,7 @@ import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { signedInUser } from "@/identity";
+import { ORCID, PUBLICATION, ZFIN_LAB } from "../validation";
 
 /** `value` is persisted; `label` is display-only. */
 const SOURCES = [
@@ -53,12 +54,16 @@ const ProvenanceSection = () => {
       </AnnotatorPanel>
 
       <FieldGrid>
-        <Field label="Principal investigator ORCID">
-          {(id) => (
+        <Field
+          label="Principal investigator ORCID"
+          name="provenance.principalInvestigatorOrcid"
+        >
+          {(id, _labelId, errorProps) => (
             <TextInput
               id={id}
               placeholder="0000-0000-0000-0000"
-              {...register("provenance.principalInvestigatorOrcid")}
+              {...errorProps}
+              {...register("provenance.principalInvestigatorOrcid", ORCID)}
             />
           )}
         </Field>
@@ -69,13 +74,14 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
-        <Field label="Laboratory">
-          {(id) => (
+        <Field label="Laboratory" name="provenance.laboratory">
+          {(id, _labelId, errorProps) => (
             <>
               <TextInput
                 id={id}
                 placeholder="e.g. ZDB-LAB-251210-2"
-                {...register("provenance.laboratory")}
+                {...errorProps}
+                {...register("provenance.laboratory", ZFIN_LAB)}
               />
               <FieldNote>
                 No ZFIN lab ID?{" "}
@@ -93,7 +99,9 @@ const ProvenanceSection = () => {
 
         <Field label="Source of the information" required>
           {(id) => (
-            <SelectInput id={id} defaultValue="" {...register("provenance.sourceType")}>
+            <SelectInput id={id} defaultValue="" {...register("provenance.sourceType", {
+              deps: "provenance.sourceValue",
+            })}>
               <option value="">Select source type</option>
               {SOURCES.map((source) => (
                 <option key={source.value} value={source.value}>
@@ -104,12 +112,13 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
-        <Field label="Source value" required>
-          {(id) => (
+        <Field label="Source value" required name="provenance.sourceValue">
+          {(id, _labelId, errorProps) => (
             <TextInput
               id={id}
-              placeholder="PMID number, DOI url, link, etc"
-              {...register("provenance.sourceValue")}
+              placeholder="e.g. PMID 41812223 or DOI 10.1177/0023677219869037"
+              {...errorProps}
+              {...register("provenance.sourceValue", PUBLICATION)}
             />
           )}
         </Field>

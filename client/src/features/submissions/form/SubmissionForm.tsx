@@ -62,7 +62,11 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
   const [collected, setCollected] = useState<Submission | null>(null);
-  const form = useForm<Submission>({ defaultValues: emptySubmission() });
+  const form = useForm<Submission>({
+    defaultValues: emptySubmission(),
+    // Checked on leaving a field, then as it is corrected.
+    mode: "onTouched",
+  });
 
   // Watched, so a dot answers to what has been typed rather than to a save.
   const values = form.watch();
