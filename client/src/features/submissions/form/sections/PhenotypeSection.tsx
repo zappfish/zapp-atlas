@@ -72,6 +72,7 @@ const Observation = ({
             <StageField
               label="Fish stage at phenotype observation"
               name={`${at}.stage`}
+              unitName={`${at}.stageUnit`}
               required
             />
 

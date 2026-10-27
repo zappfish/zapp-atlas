@@ -2,7 +2,8 @@
  *  field is required is decided separately. */
 
 import type { Submission } from "./submission";
-import { parseStageTime, stageAt } from "./stages";
+import { get, type FieldPath } from "react-hook-form";
+import { stageAt } from "./stages";
 
 interface Check {
   validate: (value: unknown, values: Submission) => true | string;
@@ -66,14 +67,13 @@ export const ZFIN_LAB = matches(
   "Enter a ZFIN lab ID, e.g. ZDB-LAB-251210-2.",
 );
 
-/** Stage slots hold a ZFS term; it is derived from the time typed here. */
-export const STAGE_TIME: Check = {
-  validate: (value) => {
+/** Stage slots hold a ZFS term, derived from the number and its unit. */
+export const stageTime = (unitName: FieldPath<Submission>): Check => ({
+  validate: (value, values) => {
     if (isBlank(value)) return true;
-    const text = value as string;
-    if (parseStageTime(text) === null) {
-      return "Enter the stage as hours or days post fertilization, e.g. 72 hpf or 5 dpf.";
-    }
-    return stageAt(text) !== undefined || "No ZFS stage covers that time.";
+    const text = (value as string).trim();
+    if (!DECIMAL.test(text)) return "Enter a number, e.g. 72.";
+    const unit = get(values, unitName) as string;
+    return stageAt(text, unit) !== undefined || "No ZFS stage covers that time.";
   },
-};
+});

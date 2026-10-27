@@ -555,8 +555,16 @@ const ExposureEvent = ({
             </>
           )}
 
-          <StageField label="Start stage" name={`${at}.startStage`} />
-          <StageField label="End stage" name={`${at}.endStage`} />
+          <StageField
+            label="Start stage"
+            name={`${at}.startStage`}
+            unitName={`${at}.startStageUnit`}
+          />
+          <StageField
+            label="End stage"
+            name={`${at}.endStage`}
+            unitName={`${at}.endStageUnit`}
+          />
         </MeasureGrid>
       </FieldGrid>
 

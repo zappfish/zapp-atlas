@@ -43,9 +43,11 @@ export interface ExposureValues {
   intervalUnit: string;
   totalDuration: string;
   totalDurationUnit: string;
-  /** A time, e.g. "24 hpf"; its ZFS stage is derived (stages.ts). */
+  /** A number in `startStageUnit`; its ZFS stage is derived (stages.ts). */
   startStage: string;
+  startStageUnit: string;
   endStage: string;
+  endStageUnit: string;
   notes: string;
 }
 
@@ -63,6 +65,7 @@ export interface ControlValues {
 
 export interface ObservationValues {
   stage: string;
+  stageUnit: string;
   phenotype: string;
   prevalence: string;
   severity: string;
@@ -137,7 +140,9 @@ export const emptyExposure = (): ExposureValues => ({
   totalDuration: "",
   totalDurationUnit: "minute",
   startStage: "",
+  startStageUnit: "hpf",
   endStage: "",
+  endStageUnit: "hpf",
   notes: "",
 });
 
@@ -155,6 +160,7 @@ export const emptyControl = (): ControlValues => ({
 
 export const emptyObservation = (): ObservationValues => ({
   stage: "",
+  stageUnit: "hpf",
   phenotype: "",
   prevalence: "",
   severity: "",

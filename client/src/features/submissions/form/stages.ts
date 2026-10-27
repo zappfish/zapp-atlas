@@ -56,19 +56,21 @@ export const ZFS_STAGES: Stage[] = [
   { id: "ZFS:0000044", period: "Adult", name: "Adult", start: 2160, end: 17520 },
 ];
 
-const TIME = /^(\d+(?:\.\d+)?)\s*(hpf|dpf)$/i;
+export const STAGE_UNITS = ["hpf", "dpf", "month"];
 
-/** Hours post fertilization from "72 hpf" or "5 dpf"; null if not in that form. */
-export const parseStageTime = (text: string): number | null => {
-  const match = TIME.exec(text.trim());
-  if (!match) return null;
-  const [, amount = "", unit = ""] = match;
-  return unit.toLowerCase() === "dpf" ? Number(amount) * 24 : Number(amount);
+const HOURS_PER: Record<string, number> = { hpf: 1, dpf: 24, month: 30 * 24 };
+
+/** Hours post fertilization; null unless `value` is a number. */
+export const toHours = (value: string, unit: string): number | null => {
+  const text = value.trim();
+  const per = HOURS_PER[unit];
+  if (!/^\d+(\.\d+)?$/.test(text) || per === undefined) return null;
+  return Number(text) * per;
 };
 
 /** The ZFS stage a time falls in. */
-export const stageAt = (text: string): Stage | undefined => {
-  const hours = parseStageTime(text);
+export const stageAt = (value: string, unit: string): Stage | undefined => {
+  const hours = toHours(value, unit);
   if (hours === null) return undefined;
   return ZFS_STAGES.find((stage) => hours >= stage.start && hours < stage.end);
 };

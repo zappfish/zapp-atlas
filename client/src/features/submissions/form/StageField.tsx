@@ -1,24 +1,29 @@
 import { useFormContext, useWatch, type FieldPath } from "react-hook-form";
-import { TextInput } from "@/styles/elements";
+import { MeasureRow, ShortSelect, TextInput } from "@/styles/elements";
 import Field from "./Field";
-import { stageAt } from "./stages";
+import { STAGE_UNITS, stageAt } from "./stages";
 import type { Submission } from "./submission";
-import { STAGE_TIME } from "./validation";
+import { stageTime } from "./validation";
 
-/** Typed as a time; the ZFS stage it falls in is shown, and is what the
+/** A number and its unit; the ZFS stage they fall in is shown, and is what the
  *  schema stores. */
 const StageField = ({
   label,
   name,
+  unitName,
   required = false,
 }: {
   label: string;
   name: FieldPath<Submission>;
+  unitName: FieldPath<Submission>;
   required?: boolean;
 }) => {
   const { register, control } = useFormContext<Submission>();
-  const value = useWatch({ control, name });
-  const stage = typeof value === "string" ? stageAt(value) : undefined;
+  const [value, unit] = useWatch({ control, name: [name, unitName] });
+  const stage =
+    typeof value === "string" && typeof unit === "string"
+      ? stageAt(value, unit)
+      : undefined;
 
   return (
     <Field
@@ -32,12 +37,23 @@ const StageField = ({
       }
     >
       {(id, _labelId, errorProps) => (
-        <TextInput
-          id={id}
-          placeholder="e.g. 72 hpf or 5 dpf"
-          {...errorProps}
-          {...register(name, STAGE_TIME)}
-        />
+        <MeasureRow>
+          <TextInput
+            id={id}
+            inputMode="decimal"
+            placeholder="e.g. 72"
+            {...errorProps}
+            {...register(name, stageTime(unitName))}
+          />
+          <ShortSelect
+            aria-label={`${label} unit`}
+            {...register(unitName, { deps: name })}
+          >
+            {STAGE_UNITS.map((each) => (
+              <option key={each}>{each}</option>
+            ))}
+          </ShortSelect>
+        </MeasureRow>
       )}
     </Field>
   );
