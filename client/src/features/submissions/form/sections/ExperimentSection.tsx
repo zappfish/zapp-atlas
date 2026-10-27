@@ -43,6 +43,7 @@ import Field from "../Field";
 import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import InfoTip from "../InfoTip";
+import { VEHICLE_LABELS } from "../vehicles";
 import StageField from "../StageField";
 import { NUMBER, WHOLE_NUMBER } from "../validation";
 import {
@@ -51,8 +52,9 @@ import {
   REARING_INFO,
   REGIMEN_INFO,
 } from "../explanations";
-import { ManufacturerEnum } from "@/schema";
+import { ManufacturerEnum, VehicleEnum } from "@/schema";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
+import AddChemicalForm from "@/features/groups/AddChemicalForm";
 import {
   useAddChemical,
   useCabinet,
@@ -89,6 +91,7 @@ const Substance = ({
   at: `exposures.${number}`;
 }) => {
   const [isSearching, setIsSearching] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const { setValue, watch } = useFormContext<Submission>();
   const { data: cabinet = [] } = useCabinet(groupId);
   const hasCabinet = cabinet.length > 0;
@@ -157,7 +160,7 @@ const Substance = ({
     );
   }
 
-  if (isSearching || !hasCabinet) {
+  if (isSearching) {
     return (
       <SubstanceCard>
         <SubstanceHead>
@@ -167,11 +170,9 @@ const Substance = ({
               Search the database when the chemical is not in your cabinet.
             </SubstanceLead>
           </div>
-          {hasCabinet && (
-            <SubstanceBack type="button" onClick={() => setIsSearching(false)}>
-              Use cabinet
-            </SubstanceBack>
-          )}
+          <SubstanceBack type="button" onClick={() => setIsSearching(false)}>
+            Use cabinet
+          </SubstanceBack>
         </SubstanceHead>
         <SubstanceBody>
           <ChemicalPicker
@@ -192,26 +193,35 @@ const Substance = ({
           {cabinet.length === 1 ? "" : "s"})
         </SubstanceTitle>
         <SubstanceChoices>
-          <SelectInput
-            defaultValue=""
-            aria-label="Select a chemical from your cabinet"
-            onChange={(e) => {
-              const chemicalId = e.target.value;
-              if (chemicalId) take(chemicalId, names.get(chemicalId) ?? "");
-            }}
-          >
-            <option value="" disabled>
-              Select a chemical
-            </option>
-            {cabinet.map((row) => {
-              const name = names.get(row.chemical_id) ?? row.chemical_id;
-              return (
-                <option key={row.id} value={row.chemical_id}>
-                  {row.nickname ? `${row.nickname} — ${name}` : name}
-                </option>
-              );
-            })}
-          </SelectInput>
+          {hasCabinet ? (
+            <SelectInput
+              defaultValue=""
+              aria-label="Select a chemical from your cabinet"
+              onChange={(e) => {
+                const chemicalId = e.target.value;
+                if (chemicalId) take(chemicalId, names.get(chemicalId) ?? "");
+              }}
+            >
+              <option value="" disabled>
+                Select a chemical
+              </option>
+              {cabinet.map((row) => {
+                const name = names.get(row.chemical_id) ?? row.chemical_id;
+                return (
+                  <option key={row.id} value={row.chemical_id}>
+                    {row.nickname ? `${row.nickname} — ${name}` : name}
+                  </option>
+                );
+              })}
+            </SelectInput>
+          ) : (
+            <>
+              <SubstanceLead>Your cabinet is empty.</SubstanceLead>
+              <SubstanceAdd type="button" onClick={() => setIsAdding(true)}>
+                + Add chemical
+              </SubstanceAdd>
+            </>
+          )}
 
           <SubstanceOr>OR</SubstanceOr>
 
@@ -221,12 +231,18 @@ const Substance = ({
           </SubstanceSearch>
         </SubstanceChoices>
       </SubstanceBody>
+
+      <AddChemicalForm
+        groupId={groupId}
+        open={isAdding}
+        onClose={() => setIsAdding(false)}
+      />
     </SubstanceCard>
   );
 };
 
 const ROUTES = [
-  { value: "environment", label: "via environment (ambient aquatic environment route)" },
+  { value: "environment", label: "via environment (chemical added to fish water)" },
   { value: "diet", label: "via diet (ingestion)" },
   { value: "gavage", label: "via gavage" },
   { value: "injection", label: "via injection" },
@@ -301,11 +317,12 @@ const ExposureEvent = ({
 }) => {
   const { register, watch, setValue } = useFormContext<Submission>();
   const at = `exposures.${index}` as const;
-  const [route, regimen, supplier] = watch([
+  const [route, regimen, supplier, vehicle] = watch([
     `${at}.route`,
     `${at}.regimen`,
     `${at}.supplier`,
-  ]) as [Route, string, string];
+    `${at}.vehicle`,
+  ]) as [Route, string, string, string];
 
   // The regimen options differ by route, so a route change picks the first of
   // the new set rather than leaving a value the radios no longer offer.
@@ -391,23 +408,31 @@ const ExposureEvent = ({
           </Field>
         )}
 
-        <Field label="Additional information on the test substance">
-          {(id) => <TextInput
-              id={id}
-              placeholder="e.g. 99% purity"
-              {...register(`${at}.additionalInformation`)}
-            />}
-        </Field>
-
-        <Field label="Exposure description">
+        <Field label="Vehicle of dilution">
           {(id) => (
-            <TextInput
-              id={id}
-              placeholder="e.g. 4uM of ethanol were added to water every four hours"
-              {...register(`${at}.exposureDescription`)}
-            />
+            <SelectInput id={id} {...register(`${at}.vehicle`)}>
+              <option value="">Select a vehicle</option>
+              {Object.values(VehicleEnum).map((each) => (
+                <option key={each} value={each}>
+                  {VEHICLE_LABELS[each]}
+                </option>
+              ))}
+            </SelectInput>
           )}
         </Field>
+
+        {/* As with the supplier: the schema requires a name for "other". */}
+        {vehicle === VehicleEnum.other_not_listed && (
+          <Field label="Vehicle name">
+            {(id) => (
+              <TextInput
+                id={id}
+                placeholder="Enter the vehicle's name"
+                {...register(`${at}.vehicleOther`)}
+              />
+            )}
+          </Field>
+        )}
 
           <Field wide label="Exposure route" required labels="value">
             {(_id, labelId) => (
