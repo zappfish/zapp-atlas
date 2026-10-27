@@ -126,7 +126,7 @@ const ProvenanceSection = () => {
                 id={id}
                 placeholder={
                   sourceType === "DOI"
-                    ? "e.g. 10.1177/0023677219869037"
+                    ? "e.g. 10.1000/xyz123"
                     : "e.g. 41812223"
                 }
                 {...errorProps}

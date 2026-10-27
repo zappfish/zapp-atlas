@@ -47,7 +47,7 @@ export const PUBLICATION: Check = {
       case "PMID":
         return PMID_FORMAT.test(text) || "Enter a PubMed ID, e.g. 41812223.";
       case "DOI":
-        return DOI_FORMAT.test(text) || "Enter a DOI, e.g. 10.1177/0023677219869037.";
+        return DOI_FORMAT.test(text) || "Enter a DOI, e.g. 10.1000/xyz123.";
       default:
         return true;
     }
