@@ -4,8 +4,8 @@ export const SECTIONS = [
   { slug: "images", label: "Images" },
   { slug: "fish", label: "Fish Information" },
   { slug: "experiment", label: "Experiment Information" },
-  { slug: "control", label: "Control" },
   { slug: "phenotype", label: "Phenotype Observation" },
+  { slug: "control", label: "Control" },
 ] as const;
 
 export type SectionSlug = (typeof SECTIONS)[number]["slug"];
