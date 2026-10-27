@@ -62,12 +62,16 @@ const GroupView = ({ groupId }: { groupId: number }) => {
         groupId={groupId}
         entries={fishTank.rows}
         isPending={fishTank.isPending}
+        error={fishTank.error}
+        onRetry={fishTank.retry}
       />
 
       <CabinetSection
         groupId={groupId}
         entries={cabinet.rows}
         isPending={cabinet.isPending}
+        error={cabinet.error}
+        onRetry={cabinet.retry}
       />
 
       <Submissions

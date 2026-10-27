@@ -12,23 +12,30 @@ import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { signedInUser } from "@/identity";
+import {
+  ORCID,
+  PUBLICATION,
+  PUBLISHED_SOURCES,
+  ZFIN_LAB,
+} from "../validation";
 
-/**
- * Written into the document by app.html, so it is there on the first render
- * with no request. Display only — the server derives a submission's annotator
- * from the session cookie, it is never sent in the payload.
- */
+/** `value` is persisted; `label` is display-only. */
 const SOURCES = [
-  "PMID",
-  "Internal database",
-  "Non-published experimental result",
-  "Other",
+  { value: "PMID", label: "PubMed ID (PMID)" },
+  { value: "DOI", label: "DOI" },
+  { value: "Internal database", label: "Internal database" },
+  {
+    value: "Non-published experimental result",
+    label: "Non-published experimental result",
+  },
+  { value: "Other", label: "Other" },
 ];
 
 /** Who produced the data and where it was published. */
 const ProvenanceSection = () => {
   const identity = signedInUser();
-  const { register } = useFormContext<Submission>();
+  const { register, watch } = useFormContext<Submission>();
+  const sourceType = watch("provenance.sourceType");
 
   return (
     <EntryCard>
@@ -54,12 +61,16 @@ const ProvenanceSection = () => {
       </AnnotatorPanel>
 
       <FieldGrid>
-        <Field label="Principal investigator ORCID">
-          {(id) => (
+        <Field
+          label="Principal investigator ORCID"
+          name="provenance.principalInvestigatorOrcid"
+        >
+          {(id, _labelId, errorProps) => (
             <TextInput
               id={id}
               placeholder="0000-0000-0000-0000"
-              {...register("provenance.principalInvestigatorOrcid")}
+              {...errorProps}
+              {...register("provenance.principalInvestigatorOrcid", ORCID)}
             />
           )}
         </Field>
@@ -70,13 +81,14 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
-        <Field label="Laboratory">
-          {(id) => (
+        <Field label="Laboratory" name="provenance.laboratory">
+          {(id, _labelId, errorProps) => (
             <>
               <TextInput
                 id={id}
-                placeholder="e.g. ZDB-LAB-120909-1"
-                {...register("provenance.laboratory")}
+                placeholder="e.g. ZDB-LAB-251210-2"
+                {...errorProps}
+                {...register("provenance.laboratory", ZFIN_LAB)}
               />
               <FieldNote>
                 No ZFIN lab ID?{" "}
@@ -94,24 +106,50 @@ const ProvenanceSection = () => {
 
         <Field label="Source of the information" required>
           {(id) => (
-            <SelectInput id={id} defaultValue="" {...register("provenance.sourceType")}>
+            <SelectInput id={id} defaultValue="" {...register("provenance.sourceType", {
+              deps: "provenance.sourceValue",
+            })}>
               <option value="">Select source type</option>
               {SOURCES.map((source) => (
-                <option key={source}>{source}</option>
+                <option key={source.value} value={source.value}>
+                  {source.label}
+                </option>
               ))}
             </SelectInput>
           )}
         </Field>
 
-        <Field label="Source value" required>
-          {(id) => (
-            <TextInput
-              id={id}
-              placeholder="PMID number, DOI url, link, etc"
-              {...register("provenance.sourceValue")}
-            />
-          )}
-        </Field>
+            {PUBLISHED_SOURCES.includes(sourceType) && (
+          <Field label="Source value" required name="provenance.sourceValue">
+            {(id, _labelId, errorProps) => (
+              <TextInput
+                id={id}
+                placeholder={
+                  sourceType === "DOI"
+                    ? "e.g. 10.1000/xyz123"
+                    : "e.g. 41812223"
+                }
+                {...errorProps}
+                {...register("provenance.sourceValue", {
+                  ...PUBLICATION,
+                  shouldUnregister: true,
+                })}
+              />
+            )}
+          </Field>
+        )}
+
+        {sourceType && !PUBLISHED_SOURCES.includes(sourceType) && (
+          <Field label="Source note">
+            {(id) => (
+              <TextInput
+                id={id}
+                placeholder="Describe where the data comes from"
+                {...register("provenance.sourceNote", { shouldUnregister: true })}
+              />
+            )}
+          </Field>
+        )}
       </FieldGrid>
 
       <OptionalNotes name="provenance.notes" />

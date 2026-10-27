@@ -29,8 +29,8 @@ export interface ExposureValues {
   concentrationUnit: string;
   supplier: string;
   supplierOther: string;
-  additionalInformation: string;
-  exposureDescription: string;
+  vehicle: string;
+  vehicleOther: string;
   route: string;
   regimen: string;
   duration: string;
@@ -43,6 +43,7 @@ export interface ExposureValues {
   intervalUnit: string;
   totalDuration: string;
   totalDurationUnit: string;
+  /** A number in `startStageUnit`; its ZFS stage is derived (stages.ts). */
   startStage: string;
   startStageUnit: string;
   endStage: string;
@@ -77,7 +78,10 @@ export interface Submission {
     principalInvestigatorName: string;
     laboratory: string;
     sourceType: string;
+    /** PMID or DOI: Study.publication. */
     sourceValue: string;
+    /** In place of an identifier, for unpublished sources. */
+    sourceNote: string;
     notes: string;
   };
   images: ImageValues[];
@@ -86,9 +90,12 @@ export interface Submission {
     strain: string;
     lineDescription: string;
     additionalCondition: string;
+    notes: string;
+  };
+  /** The schema keeps rearing on Experiment, not on Fish. */
+  experiment: {
     rearing: string;
     rearingComment: string;
-    notes: string;
   };
   exposures: ExposureValues[];
   controls: ControlValues[];
@@ -118,8 +125,8 @@ export const emptyExposure = (): ExposureValues => ({
   concentrationUnit: "µM",
   supplier: "",
   supplierOther: "",
-  additionalInformation: "",
-  exposureDescription: "",
+  vehicle: "",
+  vehicleOther: "",
   route: "environment",
   regimen: "Continuous exposure",
   duration: "",
@@ -167,6 +174,7 @@ export const emptySubmission = (): Submission => ({
     laboratory: "",
     sourceType: "",
     sourceValue: "",
+    sourceNote: "",
     notes: "",
   },
   images: [emptyImage()],
@@ -175,9 +183,11 @@ export const emptySubmission = (): Submission => ({
     strain: "",
     lineDescription: "",
     additionalCondition: "",
+    notes: "",
+  },
+  experiment: {
     rearing: "Standard",
     rearingComment: "",
-    notes: "",
   },
   exposures: [emptyExposure()],
   controls: [emptyControl()],

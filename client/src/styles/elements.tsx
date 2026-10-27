@@ -235,6 +235,12 @@ export const VisuallyHidden = styled("span", "visually-hidden");
 export const FieldBox = styled("div", "field");
 export const FieldLabel = styled("label", "field__label");
 export const FieldHint = styled("p", "field__hint");
+export const FieldError = styled("p", "field__error");
+/** Sibling row: a <label> cannot contain a <button>. */
+export const FieldLabelRow = styled("div", "field__label-row");
+export const InfoTipBox = styled("span", "infotip");
+export const InfoTipButton = styled("button", "infotip__button");
+export const InfoTipBubble = styled("div", "infotip__bubble");
 export const TextInput = styled("input", "field__input");
 /** A value the form shows but does not collect. Text, not a box. */
 export const FieldValue = styled("p", "field__value");
@@ -288,6 +294,9 @@ export const UploadPane = ({
 );
 export const UploadChosen = styled("div", "upload__chosen");
 export const PreviewImage = styled("img", "upload__image");
+/** Fallback for a file <img> cannot render. */
+export const UploadFile = styled("div", "upload__file");
+export const UploadFileName = styled("p", "upload__file-name");
 export const UploadHint = styled("p", "upload__hint");
 export const UploadLimits = styled("p", "upload__limits");
 export const PreviewActions = styled("div", "upload__preview-actions");
@@ -301,8 +310,11 @@ export const MeasureSuffix = styled("span", "field__suffix");
 
 export const RadioGroup = styled("div", "radio-group");
 export const RadioLabel = styled("label", "radio-group__option");
+/** Keeps the InfoTip outside the <label>, so clicking it does not select. */
+export const RadioItem = styled("span", "radio-group__item");
 export const NotesToggle = styled("button", "notes-toggle");
 export const Notes = styled("div", "notes");
+export const NotesFoot = styled("div", "notes__foot");
 export const NotesRemove = styled("button", "notes__remove");
 
 /* ---- dialogs ---- */

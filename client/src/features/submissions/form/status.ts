@@ -1,21 +1,29 @@
 import type { SectionSlug, SectionStatus } from "./sections";
 import type { Submission } from "./submission";
+import { PUBLISHED_SOURCES } from "./validation";
 
 /**
- * What each section must have before it counts as finished. Images, Control
- * and Phenotype ask for nothing yet, so any value in them finishes them.
+ * What each section must have before it counts as finished. Images and
+ * Control ask for nothing yet, so any value in them finishes them.
  */
 const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
-  provenance: (s) => [s.provenance.sourceType, s.provenance.sourceValue],
-  images: () => [],
-  fish: (s) => [
-    s.fish.strain,
-    // Only asked for when the rearing was not standard.
-    ...(s.fish.rearing === "Non-standard" ? [s.fish.rearingComment] : []),
+  provenance: (s) => [
+    s.provenance.sourceType,
+    ...(PUBLISHED_SOURCES.includes(s.provenance.sourceType)
+      ? [s.provenance.sourceValue]
+      : []),
   ],
-  experiment: (s) => s.exposures.flatMap((e) => [e.substance, e.route]),
+  images: () => [],
+  fish: (s) => [s.fish.strain],
+  experiment: (s) => [
+    // Only asked for when the rearing was not standard.
+    ...(s.experiment.rearing === "Non-standard"
+      ? [s.experiment.rearingComment]
+      : []),
+    ...s.exposures.flatMap((e) => [e.substance, e.route]),
+  ],
   control: () => [],
-  phenotype: () => [],
+  phenotype: (s) => s.observations.map((o) => o.stage),
 };
 
 /** Everything a section holds, to tell an untouched one from a started one. */
@@ -23,7 +31,10 @@ const VALUES: Record<SectionSlug, (s: Submission) => unknown[]> = {
   provenance: (s) => Object.values(s.provenance),
   images: (s) => s.images.flatMap((i) => Object.values(i)),
   fish: (s) => Object.values(s.fish),
-  experiment: (s) => s.exposures.flatMap((e) => Object.values(e)),
+  experiment: (s) => [
+    ...Object.values(s.experiment),
+    ...s.exposures.flatMap((e) => Object.values(e)),
+  ],
   control: (s) => s.controls.flatMap((c) => Object.values(c)),
   phenotype: (s) => s.observations.flatMap((o) => Object.values(o)),
 };

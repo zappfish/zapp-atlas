@@ -14,15 +14,15 @@ import {
   MeasureSuffix,
   RadioGroup,
   RadioLabel,
-  MeasureRow,
-  ShortSelect,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import Field from "../Field";
 import { emptyObservation, type Submission } from "../submission";
+import { PERCENT } from "../validation";
+import StageField from "../StageField";
+import { PHENOTYPE_INFO } from "../explanations";
 
-const STAGE_UNITS = ["hpf", "dpf", "month"];
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
 
 /** A phenotype seen in the exposed fish, and how strongly. */
@@ -69,27 +69,17 @@ const Observation = ({
       {isOpen && (
         <>
           <FieldGrid>
-            <Field label="Fish stage at phenotype observation">
-              {(id) => (
-                <MeasureRow>
-                  <TextInput
-                    id={id}
-                    placeholder="e.g. 96"
-                    {...register(`${at}.stage`)}
-                  />
-                  <ShortSelect
-                    aria-label="Fish stage unit"
-                    {...register(`${at}.stageUnit`)}
-                  >
-                    {STAGE_UNITS.map((unit) => (
-                      <option key={unit}>{unit}</option>
-                    ))}
-                  </ShortSelect>
-                </MeasureRow>
-              )}
-            </Field>
+            <StageField
+              label="Fish stage at phenotype observation"
+              name={`${at}.stage`}
+              unitName={`${at}.stageUnit`}
+              required
+            />
 
-            <Field label="Observed phenotype">
+            <Field
+              label="Observed phenotype"
+              info={<p>{PHENOTYPE_INFO}</p>}
+            >
               {(id) => (
                 <>
                   <TextInput
@@ -104,13 +94,15 @@ const Observation = ({
               )}
             </Field>
 
-            <Field label="Prevalence">
-              {(id) => (
+            <Field label="Prevalence" name={`${at}.prevalence`}>
+              {(id, _labelId, errorProps) => (
                 <MeasureInput>
                   <TextInput
                     id={id}
+                    inputMode="decimal"
                     placeholder="e.g. 80"
-                    {...register(`${at}.prevalence`)}
+                    {...errorProps}
+                    {...register(`${at}.prevalence`, PERCENT)}
                   />
                   <MeasureSuffix>%</MeasureSuffix>
                 </MeasureInput>

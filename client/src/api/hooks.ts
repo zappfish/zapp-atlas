@@ -146,11 +146,13 @@ export const useGroupDashboard = (groupId: number) => {
       rows: fishTank.data ?? [],
       isPending: fishTank.isPending,
       error: fishTank.error ?? null,
+      retry: () => void fishTank.refetch(),
     },
     cabinet: {
       rows: cabinet.data ?? [],
       isPending: cabinet.isPending,
       error: cabinet.error ?? null,
+      retry: () => void cabinet.refetch(),
     },
   };
 };
