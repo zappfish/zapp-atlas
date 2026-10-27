@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useParams } from "react-router";
 import ChemicalDetail from "@/features/groups/ChemicalDetail";
 import FishDetail from "@/features/groups/FishDetail";
 import GroupView from "@/features/groups/GroupView";
+import StudyDetail from "@/features/groups/StudyDetail";
 import MySubmissions from "@/features/submissions/MySubmissions";
 import SubmissionForm from "@/features/submissions/form/SubmissionForm";
 
@@ -39,6 +40,12 @@ const ChemicalDetailRoute = () => {
   return <ChemicalDetail groupId={ids[0]!} entryId={ids[1]!} />;
 };
 
+const StudyDetailRoute = () => {
+  const ids = useIds("groupId", "studyId");
+  if (!ids) return <Navigate to="/my-submissions" replace />;
+  return <StudyDetail groupId={ids[0]!} studyId={ids[1]!} />;
+};
+
 const AppRoutes = () => (
   <Routes>
     <Route path="/my-submissions" element={<MySubmissions />} />
@@ -58,6 +65,10 @@ const AppRoutes = () => (
     <Route
       path="/research-groups/:groupId/chemical-cabinet/:entryId"
       element={<ChemicalDetailRoute />}
+    />
+    <Route
+      path="/research-groups/:groupId/studies/:studyId"
+      element={<StudyDetailRoute />}
     />
   </Routes>
 );
