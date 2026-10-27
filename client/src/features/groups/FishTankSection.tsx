@@ -44,10 +44,14 @@ const FishTankSection = ({
   groupId,
   entries,
   isPending,
+  error,
+  onRetry,
 }: {
   groupId: number;
   entries: FishTankEntry[];
   isPending: boolean;
+  error: Error | null;
+  onRetry: () => void;
 }) => {
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<Row | null>(null);
@@ -65,6 +69,8 @@ const FishTankSection = ({
         title="Fish Tank"
         rows={toRows(entries)}
         isPending={isPending}
+        error={error}
+        onRetry={onRetry}
         emptyText="Add a fish line to start building this group's tank."
         actions={
           <button
