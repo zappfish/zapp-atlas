@@ -3,8 +3,8 @@ import type { Submission } from "./submission";
 import { PUBLISHED_SOURCES } from "./validation";
 
 /**
- * What each section must have before it counts as finished. Images, Control
- * and Phenotype ask for nothing yet, so any value in them finishes them.
+ * What each section must have before it counts as finished. Images and
+ * Control ask for nothing yet, so any value in them finishes them.
  */
 const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
   provenance: (s) => [
@@ -23,7 +23,7 @@ const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
     ...s.exposures.flatMap((e) => [e.substance, e.route]),
   ],
   control: () => [],
-  phenotype: () => [],
+  phenotype: (s) => s.observations.map((o) => o.stage),
 };
 
 /** Everything a section holds, to tell an untouched one from a started one. */

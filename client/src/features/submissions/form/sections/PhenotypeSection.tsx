@@ -21,6 +21,7 @@ import Field from "../Field";
 import { emptyObservation, type Submission } from "../submission";
 import { PERCENT } from "../validation";
 import StageField from "../StageField";
+import { PHENOTYPE_INFO } from "../explanations";
 
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
 
@@ -71,9 +72,13 @@ const Observation = ({
             <StageField
               label="Fish stage at phenotype observation"
               name={`${at}.stage`}
+              required
             />
 
-            <Field label="Observed phenotype">
+            <Field
+              label="Observed phenotype"
+              info={<p>{PHENOTYPE_INFO}</p>}
+            >
               {(id) => (
                 <>
                   <TextInput

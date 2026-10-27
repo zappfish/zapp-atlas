@@ -8,6 +8,9 @@ export const CONCENTRATION_INFO =
 
 export const UPLOAD_INFO = "Each image must contain only one fish.";
 
+export const PHENOTYPE_INFO =
+  "The phenotype(s) reported here must be visible on the image(s) uploaded.";
+
 export const REGIMEN_INFO: Record<string, string> = {
   "Continuous exposure":
     "Fish remain exposed to a test substance for the entire test duration without intentional exposure free intervals. The exposure concentration is maintained at a constant or near constant level over time.",

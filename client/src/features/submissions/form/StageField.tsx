@@ -10,9 +10,11 @@ import { STAGE_TIME } from "./validation";
 const StageField = ({
   label,
   name,
+  required = false,
 }: {
   label: string;
   name: FieldPath<Submission>;
+  required?: boolean;
 }) => {
   const { register, control } = useFormContext<Submission>();
   const value = useWatch({ control, name });
@@ -22,6 +24,7 @@ const StageField = ({
     <Field
       label={label}
       name={name}
+      required={required}
       hint={
         stage
           ? `ZFS stage: ${stage.period}${stage.name === stage.period ? "" : `: ${stage.name}`} (${stage.id})`
