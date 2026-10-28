@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Graph,
   Hierarchy,
   OBOGraphLoader,
   type OBOGraphNode,
@@ -13,6 +14,8 @@ const UPHENO_ASSOCIATED_WITH = "http://purl.obolibrary.org/obo/UPHENO_0000003";
 export type ZPData = {
   zpHierarchy: Hierarchy<OBOGraphNode>;
   zfaHierarchy: Hierarchy<OBOGraphNode>;
+  /** For walking down from an anatomical entity to its parts and subtypes. */
+  zfaGraph: Graph<OBOGraphNode>;
   zpByZFA: Map<string, OBOGraphNode[]>;
   /** How many times ZFIN curated each ZP term, by term URI. */
   zfinCounts: Map<string, number>;
@@ -84,7 +87,7 @@ async function loadZPData(): Promise<ZPData> {
   }
 
 
-  return { zfaHierarchy, zpHierarchy, zpByZFA, zfinCounts };
+  return { zfaHierarchy, zfaGraph, zpHierarchy, zpByZFA, zfinCounts };
 }
 
 export function useZPGraph(): GraphsResult {

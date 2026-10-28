@@ -889,6 +889,14 @@ select.field__input {
   min-height: 0;
   overflow-y: auto;
 }
+.phenotype-picker__filter { display: flex; align-items: center; gap: 0.5rem; }
+.phenotype-picker__filter-clear {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.phenotype-picker__count { margin: 0; }
 .phenotype-picker__list { list-style: none; margin: 0; padding: 0; }
 .phenotype-picker__option {
   display: block;

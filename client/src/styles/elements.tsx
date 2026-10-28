@@ -419,6 +419,11 @@ export const PickerTools = styled("div", "phenotype-picker__tools");
 /** Scrolls on its own, so the searches above it stay put. */
 export const PickerPaneBody = styled("div", "phenotype-picker__body");
 export const PickerCheck = styled("label", "phenotype-picker__check");
+/** The anatomical entity the phenotype list is narrowed to, and its ✕. */
+export const PickerFilter = styled("div", "phenotype-picker__filter");
+export const PickerFilterClear = styled("button", "phenotype-picker__filter-clear");
+/** How many phenotypes the list holds, and whether it shows them all. */
+export const PickerCount = styled("p", "phenotype-picker__count");
 export const PhenotypeList = styled("ul", "phenotype-picker__list");
 export const PhenotypeDetail = styled("div", "phenotype-picker__detail");
 export const PhenotypeDetailHeading = styled("p", "phenotype-picker__detail-heading");
