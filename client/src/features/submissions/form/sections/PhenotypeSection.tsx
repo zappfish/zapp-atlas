@@ -1,4 +1,6 @@
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
+import type { OBOGraphNode } from "frogpot";
+import Modal from "@/components/Modal";
 import {
   AddButton,
   AddRow,
@@ -14,13 +16,24 @@ import {
   MeasureSuffix,
   RadioGroup,
   RadioLabel,
+  SearchHint,
   MeasureRow,
+  ModalBanded,
+  ModalBody,
+  ModalFoot,
+  ModalHead,
+  ModalText,
+  ModalTitle,
   ShortSelect,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import Field from "../Field";
 import { emptyObservation, type Submission } from "../submission";
+
+// Loaded the first time the picker opens, like the ontologies it shows: it
+// brings frogpot and its search indexes, which no other page needs.
+const PhenotypePicker = lazy(() => import("../PhenotypePicker"));
 
 const STAGE_UNITS = ["hpf", "dpf", "month"];
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
@@ -38,9 +51,26 @@ const Observation = ({
   const [isOpen, setIsOpen] = useState(n === 1);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
-  const { register, watch } = useFormContext<Submission>();
+  const { register, setValue, watch } = useFormContext<Submission>();
   const at = `observations.${index}` as const;
   const [phenotype, severity] = watch([`${at}.phenotype`, `${at}.severity`]);
+
+  // The picker's choice is held here until confirmed, so cancelling it
+  // leaves the field as it was.
+  const [isPicking, setIsPicking] = useState(false);
+  const [pending, setPending] = useState<OBOGraphNode | null>(null);
+  const closePicker = () => {
+    setIsPicking(false);
+    setPending(null);
+  };
+  const confirmPick = () => {
+    if (pending) {
+      setValue(`${at}.phenotype`, pending.label ?? pending.uri, {
+        shouldDirty: true,
+      });
+    }
+    closePicker();
+  };
 
   // Only what has been filled in: an empty observation says nothing.
   const summary = [severity].filter(Boolean);
@@ -92,11 +122,21 @@ const Observation = ({
             <Field label="Observed phenotype">
               {(id) => (
                 <>
-                  <TextInput
-                    id={id}
-                    placeholder="Phenotype term"
-                    {...register(`${at}.phenotype`)}
-                  />
+                  <MeasureRow>
+                    <TextInput
+                      id={id}
+                      readOnly
+                      placeholder="No phenotype chosen"
+                      {...register(`${at}.phenotype`)}
+                    />
+                    <button
+                      className="btn btn--secondary"
+                      type="button"
+                      onClick={() => setIsPicking(true)}
+                    >
+                      {phenotype ? "Change" : "Choose"}
+                    </button>
+                  </MeasureRow>
                   <FieldNote>
                     Term not represented correctly? Request a new synonym — TBD
                   </FieldNote>
@@ -137,6 +177,41 @@ const Observation = ({
 
         </>
       )}
+
+      <Modal
+        open={isPicking}
+        title="Choose a phenotype"
+        onClose={closePicker}
+        isLarge
+      >
+        <ModalBanded>
+          <ModalHead>
+            <ModalTitle>Choose a phenotype</ModalTitle>
+            <ModalText>
+              Search for a phenotype, or choose an anatomical entity to list
+              the phenotypes associated with it.
+            </ModalText>
+          </ModalHead>
+          <ModalBody>
+            <Suspense fallback={<SearchHint role="status">Loading…</SearchHint>}>
+              <PhenotypePicker onSelectNode={setPending} />
+            </Suspense>
+          </ModalBody>
+          <ModalFoot>
+            <button className="btn btn--secondary" type="button" onClick={closePicker}>
+              Cancel
+            </button>
+            <button
+              className="btn btn--primary"
+              type="button"
+              onClick={confirmPick}
+              disabled={!pending}
+            >
+              Use this phenotype
+            </button>
+          </ModalFoot>
+        </ModalBanded>
+      </Modal>
     </EntryCard>
   );
 };
