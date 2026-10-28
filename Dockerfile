@@ -29,6 +29,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
+# The ontology bundle (see extdata/README.md). It is built outside this image
+# and must already be in extdata/dist; the deploy workflows put it there, and
+# locally `just extdata` does. Copied early because it changes far less often
+# than the code. settings.py finds it at /app/extdata/dist.
+COPY extdata/dist ./extdata/dist
+
 # Install Python dependencies (cached layer) — deps only, not the local project,
 # so this layer stays cached when only server source changes.
 COPY server/pyproject.toml server/uv.lock ./server/

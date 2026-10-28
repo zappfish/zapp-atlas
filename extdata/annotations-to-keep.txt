@@ -1,0 +1,6 @@
+rdfs:label
+IAO:0000115
+oboInOwl:hasExactSynonym
+oboInOwl:hasNarrowSynonym
+oboInOwl:hasBroadSynonym
+oboInOwl:hasRelatedSynonym

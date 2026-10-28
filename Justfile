@@ -51,6 +51,10 @@ fix:
 seed:
     cd server && uv run python -m zapp_atlas.seed
 
+# Build the ontology bundle into extdata/dist (needs docker; see extdata/README.md)
+extdata:
+    make -C extdata
+
 # Build the Docker image (local/Fly.io)
 build:
     docker build -t zapp-atlas .

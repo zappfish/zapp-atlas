@@ -7,11 +7,33 @@ on:
 jobs:
   deploy:
     name: Deploy app
+    # extdata-* releases hold the ontology bundle (published by this job, see
+    # extdata/README.md). They are not app releases and must not deploy.
+    if: ${{ !startsWith(github.event.release.tag_name, 'extdata-') }}
     runs-on: ubuntu-latest
+    permissions:
+      # To publish the extdata bundle as a release.
+      contents: write
     concurrency: deploy-group
     steps:
       - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+
+      # Into extdata/dist, where the Dockerfile copies it from: the published
+      # bundle for these inputs if there is one, otherwise a fresh build.
+      - name: Fetch or build the extdata bundle
+        run: extdata/ci.sh fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - uses: superfly/flyctl-actions/setup-flyctl@1.6
       - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # After the deploy, so only a bundle that actually shipped is published.
+      # A no-op when this bundle's release already exists.
+      - name: Publish the extdata bundle
+        run: extdata/ci.sh publish
+        env:
+          GH_TOKEN: ${{ github.token }}

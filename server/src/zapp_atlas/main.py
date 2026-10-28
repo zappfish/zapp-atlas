@@ -26,8 +26,10 @@ from zapp_atlas.api.routers.research_groups import router as research_groups_rou
 from zapp_atlas.api.routers.studies import router as studies_router
 from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
+from zapp_atlas.extdata import make_extdata_router
 from zapp_atlas.html.client_router import make_client_router
 from zapp_atlas.html.router import router as html_router
+from zapp_atlas.labels import Labels
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
 
@@ -62,6 +64,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings or load_settings()
+    app.state.labels = Labels(app.state.settings.extdata_dir / "labels.db")
 
     @app.exception_handler(SchemaRuleViolation)
     def _schema_rule_violation(request: Request, exc: SchemaRuleViolation) -> JSONResponse:
@@ -94,6 +97,9 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
 
     # Static assets for the server-rendered (HTMX) viewing app.
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    # Ontology files for the client's pickers, from the extdata bundle.
+    app.include_router(make_extdata_router(app.state.settings.extdata_dir))
 
     # The React client's compiled JS/CSS, at the URL vite.config.ts `base`
     # generates. The HTML document that loads them is rendered by the client

@@ -1,0 +1,16 @@
+# Reduce an ontology to its classes' labels. Used for ChEBI, which the server
+# only needs in order to render a term's name. Terms without a label (which
+# includes ChEBI's obsolete terms) are dropped.
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT {
+  ?term a owl:Class ;
+    rdfs:label ?label .
+}
+WHERE {
+  ?term a owl:Class ;
+    rdfs:label ?label .
+  FILTER(isIRI(?term))
+}

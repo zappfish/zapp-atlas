@@ -22,3 +22,9 @@ server/src/zapp_atlas/db/data
 **/.pytest_cache
 **/.mypy_cache
 **/.ruff_cache
+
+# The extdata bundle is the only part of extdata/ the image needs. It holds
+# a SQLite database, so re-include it after the **/*.db rule above.
+extdata/*
+!extdata/dist
+!extdata/dist/*.db
