@@ -860,3 +860,46 @@ select.field__input {
   font-weight: 600;
   color: var(--teal);
 }
+
+
+/* ---- Choosing a phenotype ------------------------------------------------ */
+/* Placeholder: layout only, enough for the two panes to sit side by side and
+   scroll on their own. The picker has not been designed yet. */
+.phenotype-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+}
+.phenotype-picker__pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.phenotype-picker__head { margin: 0; }
+.phenotype-picker__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+.phenotype-picker__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.phenotype-picker__list { list-style: none; margin: 0; padding: 0; }
+.phenotype-picker__option {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.phenotype-picker__option.is-active { background: var(--teal-tint); }
+.phenotype-picker__detail { padding: 0 0.5rem 0.5rem; }
+.phenotype-picker__detail-heading { margin: 0.5rem 0 0.25rem; font-weight: 600; }

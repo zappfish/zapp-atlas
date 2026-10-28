@@ -9,6 +9,7 @@ const Modal = ({
   title,
   onClose,
   isWide = false,
+  isLarge = false,
   children,
 }: {
   open: boolean;
@@ -16,6 +17,8 @@ const Modal = ({
   onClose: () => void;
   /** For one holding a list as well as its fields. */
   isWide?: boolean;
+  /** Near full screen, for a picker with panes of its own. */
+  isLarge?: boolean;
   children: ReactNode;
 }) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -30,7 +33,9 @@ const Modal = ({
 
   return (
     <dialog
-      className={isWide ? "modal modal--wide" : "modal"}
+      className={
+        isLarge ? "modal modal--large" : isWide ? "modal modal--wide" : "modal"
+      }
       ref={ref}
       aria-label={title}
       // Fires on Escape too, so the parent's state keeps up.

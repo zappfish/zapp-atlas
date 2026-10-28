@@ -14,6 +14,8 @@ export type ZPData = {
   zpHierarchy: Hierarchy<OBOGraphNode>;
   zfaHierarchy: Hierarchy<OBOGraphNode>;
   zpByZFA: Map<string, OBOGraphNode[]>;
+  /** How many times ZFIN curated each ZP term, by term URI. */
+  zfinCounts: Map<string, number>;
 };
 
 // Loading / Loaded discriminated union
@@ -41,13 +43,29 @@ async function getDataBase(): Promise<string> {
   return `/extdata/${hash}`;
 }
 
+// zfin_counts.tsv has a header row, then one `ZP:0000041<TAB>12` per term.
+async function loadZfinCounts(uri: string): Promise<Map<string, number>> {
+  const resp = await fetch(uri);
+  if (!resp.ok) {
+    throw Error(`Error requesting ${uri}: ${resp.status} ${resp.statusText}`);
+  }
+  const counts = new Map<string, number>();
+  for (const line of (await resp.text()).split("\n").slice(1)) {
+    const [curie, count] = line.split("\t");
+    if (!curie || !count) continue;
+    counts.set(`http://purl.obolibrary.org/obo/${curie.replace(":", "_")}`, Number(count));
+  }
+  return counts;
+}
+
 async function loadZPData(): Promise<ZPData> {
   const loader = new OBOGraphLoader();
   const DATA_BASE = await getDataBase();
 
-  const [zfaGraph, zpGraph] = await Promise.all([
+  const [zfaGraph, zpGraph, zfinCounts] = await Promise.all([
     loader.fromURI(`${DATA_BASE}/zfa.json`),
     loader.fromURI(`${DATA_BASE}/zp.json`),
+    loadZfinCounts(`${DATA_BASE}/zfin_counts.tsv`),
   ]);
 
   const zfaHierarchy = zfaGraph.getHierarchy(ZFA_ROOT);
@@ -66,7 +84,7 @@ async function loadZPData(): Promise<ZPData> {
   }
 
 
-  return { zfaHierarchy, zpHierarchy, zpByZFA };
+  return { zfaHierarchy, zpHierarchy, zpByZFA, zfinCounts };
 }
 
 export function useZPGraph(): GraphsResult {
