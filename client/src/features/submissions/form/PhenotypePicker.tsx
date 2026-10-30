@@ -1,12 +1,8 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
-import {
-  HierarchyTree,
-  useNodeSearch,
-  type HierarchyTreeHandle,
-  type OBOGraphNode,
-} from "frogpot";
+import { useMemo, useState, type ReactNode } from "react";
+import { useNodeSearch, type OBOGraphNode, type Path } from "frogpot";
 import { SearchIcon } from "@/components/icons";
 import { useZPGraph } from "@/useZPGraph";
+import AnatomyTree from "./AnatomyTree";
 import { curieOf } from "./curie";
 import {
   Empty,
@@ -21,8 +17,9 @@ import {
   PhenotypeOption,
   PickerCheck,
   PickerLead,
+  PickerClear,
   PickerCount,
-  PickerFilter,
+  PickerIntro,
   PickerPane,
   PickerPaneBody,
   PickerPaneHead,
@@ -45,7 +42,13 @@ const MAX_SHOWN = 200;
 
 type Anatomy = { uri: string; label: string };
 
-/** A search box; `children` is whatever hangs off it, such as a results list. */
+/** Adds the ancestors of `path`, which opens the tree down to it. */
+const withPath = (expanded: ReadonlySet<string>, path?: Path) => {
+  const next = new Set(expanded);
+  for (let at = path?.parent(); at; at = at.parent()) next.add(at.key);
+  return next;
+};
+
 const PickerSearch = ({
   value,
   onChange,
@@ -83,10 +86,8 @@ const PickerSearch = ({
 );
 
 /**
- * Choose a ZP phenotype, by way of the anatomy it affects or by searching for
- * it directly. Choosing a ZFA term narrows the phenotype list to that term and,
- * unless "only this term" is checked, its parts and subtypes; the search box
- * then searches within that list. The direct view searches every phenotype.
+ * Two views: a ZFA term's phenotypes, including its parts and subtypes unless
+ * "only this term" is checked; or a search of every phenotype.
  *
  * Without a search, phenotypes are listed most curated by ZFIN first.
  *
@@ -99,7 +100,7 @@ const PhenotypePicker = ({
   onSelectNode?: (node: OBOGraphNode) => void;
 }) => {
   const result = useZPGraph();
-  const treeRef = useRef<HierarchyTreeHandle | null>(null);
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [isBrowsing, setIsBrowsing] = useState(true);
   const [anatomy, setAnatomy] = useState<Anatomy | null>(null);
   const [isExactOnly, setIsExactOnly] = useState(false);
@@ -209,7 +210,7 @@ const PhenotypePicker = ({
                       <SearchOption
                         type="button"
                         onClick={() => {
-                          treeRef.current?.showNode(node.uri);
+                          setExpanded(withPath(expanded, zfaHierarchy.getPathsForNode(node.uri)[0]));
                           zfaSearch.setQuery("");
                           chooseAnatomy(node);
                         }}
@@ -230,48 +231,44 @@ const PhenotypePicker = ({
             </PickerSearch>
           </PickerTools>
           <PickerPaneBody>
-            <HierarchyTree
-              key={zfaHierarchy.root.uri}
-              ref={treeRef}
+            <AnatomyTree
               hierarchy={zfaHierarchy}
-              rootURI={zfaHierarchy.root.uri}
-              onSelectNode={chooseAnatomy}
+              expanded={expanded}
+              selectedUri={anatomy?.uri}
+              onExpandedChange={setExpanded}
+              onSelect={chooseAnatomy}
             />
           </PickerPaneBody>
         </PickerPane>
 
         <PickerPane>
-          <PickerPaneHead>Phenotypes</PickerPaneHead>
-          <PickerLead>
-            {isBrowsing
-              ? "Choose an anatomical entity to list its phenotypes"
-              : "Search every zebrafish phenotype"}
-          </PickerLead>
+          <PickerIntro>
+            <div>
+              <PickerPaneHead>
+                {isBrowsing && anatomy ? `Phenotypes of ${anatomy.label}` : "Phenotypes"}
+              </PickerPaneHead>
+              <PickerLead>
+                {isBrowsing
+                  ? "Choose an anatomical entity to list its phenotypes"
+                  : "Search every zebrafish phenotype"}
+              </PickerLead>
+            </div>
+            {isBrowsing && anatomy && (
+              <PickerClear type="button" onClick={() => setAnatomy(null)}>
+                Clear anatomy filter
+              </PickerClear>
+            )}
+          </PickerIntro>
           <PickerTools>
             {isBrowsing && anatomy && (
-              <>
-                <PickerFilter>
-                  <span>
-                    Phenotypes of <strong>{anatomy.label}</strong>
-                  </span>
-                  <SearchClear
-                    type="button"
-                    onClick={() => setAnatomy(null)}
-                    aria-label={`Show phenotypes of all anatomy, not just ${anatomy.label}`}
-                    title="Clear"
-                  >
-                    ✕
-                  </SearchClear>
-                </PickerFilter>
-                <PickerCheck>
-                  <input
-                    type="checkbox"
-                    checked={isExactOnly}
-                    onChange={() => setIsExactOnly((was) => !was)}
-                  />{" "}
-                  Only “{anatomy.label}” itself, not its parts and subtypes
-                </PickerCheck>
-              </>
+              <PickerCheck>
+                <input
+                  type="checkbox"
+                  checked={isExactOnly}
+                  onChange={() => setIsExactOnly((was) => !was)}
+                />
+                Only “{anatomy.label}” itself, not its parts and subtypes
+              </PickerCheck>
             )}
             {(!isBrowsing || anatomy) && (
               <PickerSearch

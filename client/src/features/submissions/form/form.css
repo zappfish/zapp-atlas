@@ -851,22 +851,18 @@ select.field__input {
 
 
 /* ---- Choosing a phenotype ------------------------------------------------ */
-/* Two panes that scroll on their own, or one when searching directly. */
 .phenotype-picker {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   flex: 1;
   min-height: 0;
 }
-/* Hidden rather than unmounted when searching, so the tree keeps its state. */
+/* Hidden, not unmounted, so the tree keeps its state. */
 .phenotype-picker.is-searching { grid-template-columns: 1fr; }
 .phenotype-picker__pane[hidden] { display: none; }
 .is-searching .phenotype-picker__pane { padding-inline: 12%; }
-/* The shared clear button, placed in the dialog's corner and beside the filter. */
 .modal__head:has(.termsearch__clear) { position: relative; }
 .modal__head .termsearch__clear { top: 1.5rem; right: 1.5rem; transform: none; }
-.phenotype-picker__filter .termsearch__clear { position: static; transform: none; }
-/* The views and panes run edge to edge, so the body gives up its padding. */
 .modal__body:has(.phenotype-picker) { gap: 0; padding: 0; }
 .phenotype-picker__views {
   display: flex;
@@ -902,7 +898,6 @@ select.field__input {
   color: var(--muted);
 }
 .phenotype-picker__lead { margin: 0.15rem 0 0; font-size: var(--text-xs); color: var(--muted); }
-/* The shared empty state, centred in its pane without the panel's frame. */
 .phenotype-picker__body .dash-empty {
   justify-content: center;
   height: 100%;
@@ -931,19 +926,95 @@ select.field__input {
   min-height: 0;
   overflow-y: auto;
 }
-.phenotype-picker__filter { display: flex; align-items: center; gap: var(--s2); }
-.phenotype-picker__count { margin: 0; }
+.phenotype-picker__intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+.phenotype-picker__clear {
+  flex-shrink: 0;
+  min-height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--teal);
+  cursor: pointer;
+}
+.phenotype-picker__clear:hover { text-decoration: underline; }
+.phenotype-picker__check {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.phenotype-picker__count {
+  margin: 0;
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.anatomy-tree { list-style: none; margin: 0; padding: 0; }
+.anatomy-tree__row { display: flex; align-items: center; }
+/* 24px targets (WCAG 2.5.8). */
+.anatomy-tree__toggle {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.anatomy-tree__toggle:hover { color: var(--ink); }
+.anatomy-tree__leaf {
+  flex-shrink: 0;
+  width: 1.5rem;
+  font-size: var(--text-subtext);
+  text-align: center;
+  color: var(--muted);
+}
+.anatomy-tree__label {
+  flex: 1;
+  min-width: 0;
+  min-height: 1.5rem;
+  padding: var(--s1);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--ink);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.anatomy-tree__label:hover { background: var(--line); }
+/* Not by colour alone (WCAG 1.4.1). */
+.anatomy-tree__label[aria-current="true"] {
+  background: var(--line);
+  font-weight: 600;
+}
 .phenotype-picker__list { list-style: none; margin: 0; padding: 0; }
 .phenotype-picker__option {
   display: block;
   width: 100%;
-  padding: var(--s2);
+  padding: 0.75rem var(--s2);
   border: 0;
   background: none;
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
+.phenotype-picker__option .termsearch__option-id { margin-top: 0.2rem; }
 .phenotype-picker__option.is-active { background: var(--teal-tint); }
 .phenotype-picker__detail { padding: 0 var(--s2) var(--s2); }
 .phenotype-picker__detail-heading { margin: var(--s2) 0 var(--s1); font-weight: 600; }

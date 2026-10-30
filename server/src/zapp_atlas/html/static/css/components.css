@@ -59,7 +59,7 @@
 /* Near full screen, for a picker with panes that scroll on their own: its
    body takes the height left between the head and the foot. */
 .modal--large {
-  width: min(64rem, calc(100vw - 2rem));
+  width: min(80rem, calc(100vw - 2rem));
   height: calc(100vh - 4rem);
 }
 .modal--large .modal__panel--flush { height: 100%; }

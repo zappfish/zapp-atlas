@@ -1,6 +1,7 @@
 import {
   createElement,
   type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
   type ElementType,
 } from "react";
 import { Link } from "react-router";
@@ -18,7 +19,7 @@ const styled = <T extends ElementType>(tag: T, className: string) => {
   const Element = ({
     className: extra,
     ...rest
-  }: ComponentPropsWithoutRef<T> & { className?: string }) =>
+  }: ComponentPropsWithRef<T> & { className?: string }) =>
     createElement(tag, {
       // Appended, not replaced, so modifiers like "is-active" work.
       className: extra ? `${className} ${extra}` : className,
@@ -411,6 +412,11 @@ export const SubstanceSearch = styled("button", "substance__search");
 
 /** Anatomy on one side, the phenotypes it narrows to on the other. */
 export const PickerPanes = styled("div", "phenotype-picker");
+export const AnatomyList = styled("ul", "anatomy-tree");
+export const AnatomyRow = styled("li", "anatomy-tree__row");
+export const AnatomyToggle = styled("button", "anatomy-tree__toggle");
+export const AnatomyLeaf = styled("span", "anatomy-tree__leaf");
+export const AnatomyLabel = styled("button", "anatomy-tree__label");
 export const PickerViews = styled("div", "phenotype-picker__views");
 export const PickerView = styled("button", "phenotype-picker__view");
 export const PickerViewHint = styled("span", "phenotype-picker__view-hint");
@@ -421,8 +427,9 @@ export const PickerTools = styled("div", "phenotype-picker__tools");
 /** Scrolls on its own, so the searches above it stay put. */
 export const PickerPaneBody = styled("div", "phenotype-picker__body");
 export const PickerCheck = styled("label", "phenotype-picker__check");
-/** The anatomical entity the phenotype list is narrowed to, and its ✕. */
-export const PickerFilter = styled("div", "phenotype-picker__filter");
+/** A pane's heading and lead, with an action to their right. */
+export const PickerIntro = styled("div", "phenotype-picker__intro");
+export const PickerClear = styled("button", "phenotype-picker__clear");
 /** How many phenotypes the list holds, and whether it shows them all. */
 export const PickerCount = styled("p", "phenotype-picker__count");
 export const PhenotypeList = styled("ul", "phenotype-picker__list");

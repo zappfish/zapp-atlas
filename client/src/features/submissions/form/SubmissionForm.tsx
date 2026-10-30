@@ -77,7 +77,7 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Logged until there is an endpoint to send it to.
+  // No endpoint yet.
   const collect = useCallback(
     (values: Submission) => console.log("Submission", values),
     [],
