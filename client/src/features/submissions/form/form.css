@@ -641,18 +641,6 @@ select.field__input {
 }
 .form-add__button:hover { border-color: var(--teal); background: var(--teal-tint); }
 
-/* What submit collected, until there is an endpoint to send it to. */
-.form-collected {
-  margin: 0;
-  padding: var(--s3);
-  border-radius: 0.625rem;
-  background: var(--white);
-  box-shadow: var(--shadow-card);
-  font-size: var(--text-subtext);
-  white-space: pre-wrap;
-  overflow-x: auto;
-}
-
 /* ---- Actions ------------------------------------------------------------ */
 
 /* Sticky: the form is long, and saving should not mean scrolling to its end. */
@@ -863,45 +851,93 @@ select.field__input {
 
 
 /* ---- Choosing a phenotype ------------------------------------------------ */
-/* Placeholder: layout only, enough for the two panes to sit side by side and
-   scroll on their own. The picker has not been designed yet. */
+/* Two panes that scroll on their own, or one when searching directly. */
 .phenotype-picker {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   flex: 1;
   min-height: 0;
+}
+/* Hidden rather than unmounted when searching, so the tree keeps its state. */
+.phenotype-picker.is-searching { grid-template-columns: 1fr; }
+.phenotype-picker__pane[hidden] { display: none; }
+.is-searching .phenotype-picker__pane { padding-inline: 12%; }
+/* The shared clear button, placed in the dialog's corner and beside the filter. */
+.modal__head:has(.termsearch__clear) { position: relative; }
+.modal__head .termsearch__clear { top: 1.5rem; right: 1.5rem; transform: none; }
+.phenotype-picker__filter .termsearch__clear { position: static; transform: none; }
+/* The views and panes run edge to edge, so the body gives up its padding. */
+.modal__body:has(.phenotype-picker) { gap: 0; padding: 0; }
+.phenotype-picker__views {
+  display: flex;
+  gap: var(--s2);
+  padding: 0.875rem 2rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-sunken);
+}
+.phenotype-picker__view {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 15rem;
+  padding: 0.8rem var(--s3);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  color: var(--muted);
+  cursor: pointer;
+}
+.phenotype-picker__view[aria-pressed="true"] {
+  border-color: var(--line-strong);
+  background: var(--white);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+}
+.phenotype-picker__view-hint {
+  font-size: var(--text-subtext);
+  font-weight: 400;
+  color: var(--muted);
+}
+.phenotype-picker__lead { margin: 0.15rem 0 0; font-size: var(--text-xs); color: var(--muted); }
+/* The shared empty state, centred in its pane without the panel's frame. */
+.phenotype-picker__body .dash-empty {
+  justify-content: center;
+  height: 100%;
+  border: 0;
+  background: none;
 }
 .phenotype-picker__pane {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  padding: 1.75rem;
 }
-.phenotype-picker__head { margin: 0; }
+.phenotype-picker__pane:not([hidden]) + .phenotype-picker__pane {
+  border-left: 1px solid var(--line);
+}
+.phenotype-picker__pane:first-child { background: var(--surface-sunken); }
+.phenotype-picker__head { margin: 0; font-size: var(--text-md); font-weight: 600; }
 .phenotype-picker__tools {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
+  gap: var(--s2);
+  padding: var(--s3) 0 0.75rem;
 }
 .phenotype-picker__body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
-.phenotype-picker__filter { display: flex; align-items: center; gap: 0.5rem; }
-.phenotype-picker__filter-clear {
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-}
+.phenotype-picker__filter { display: flex; align-items: center; gap: var(--s2); }
 .phenotype-picker__count { margin: 0; }
 .phenotype-picker__list { list-style: none; margin: 0; padding: 0; }
 .phenotype-picker__option {
   display: block;
   width: 100%;
-  padding: 0.5rem;
+  padding: var(--s2);
   border: 0;
   background: none;
   font: inherit;
@@ -909,5 +945,5 @@ select.field__input {
   cursor: pointer;
 }
 .phenotype-picker__option.is-active { background: var(--teal-tint); }
-.phenotype-picker__detail { padding: 0 0.5rem 0.5rem; }
-.phenotype-picker__detail-heading { margin: 0.5rem 0 0.25rem; font-weight: 600; }
+.phenotype-picker__detail { padding: 0 var(--s2) var(--s2); }
+.phenotype-picker__detail-heading { margin: var(--s2) 0 var(--s1); font-weight: 600; }

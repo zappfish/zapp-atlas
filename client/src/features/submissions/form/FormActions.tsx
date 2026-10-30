@@ -7,8 +7,8 @@ import {
 
 /**
  * Stays in view as the form scrolls, so saving a draft does not mean finding
- * the end of it first. Submitting shows what the form collected; there is
- * nowhere to send it yet, and saving a draft does nothing at all.
+ * the end of it first. Submitting logs what the form collected to the console;
+ * there is nowhere to send it yet, and saving a draft does nothing at all.
  */
 const FormActions = () => (
   <FormActionBar>

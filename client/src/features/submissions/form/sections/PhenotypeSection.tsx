@@ -16,6 +16,7 @@ import {
   MeasureSuffix,
   RadioGroup,
   RadioLabel,
+  SearchClear,
   SearchHint,
   MeasureRow,
   ModalBanded,
@@ -141,9 +142,7 @@ const Observation = ({
                       <SubstanceChosen>
                         <SubstanceNames>
                           <SubstanceName>{phenotype}</SubstanceName>
-                          {phenotype !== phenotypeId && (
-                            <SubstanceId>{phenotypeId}</SubstanceId>
-                          )}
+                          <SubstanceId>{phenotypeId}</SubstanceId>
                         </SubstanceNames>
                         <SubstanceChange
                           type="button"
@@ -224,6 +223,9 @@ const Observation = ({
               Search for a phenotype, or choose an anatomical entity to list
               the phenotypes associated with it.
             </ModalText>
+            <SearchClear type="button" onClick={closePicker} aria-label="Close">
+              ✕
+            </SearchClear>
           </ModalHead>
           <ModalBody>
             <Suspense fallback={<SearchHint role="status">Loading…</SearchHint>}>
