@@ -12,8 +12,9 @@ const StudiesSection = ({ groupId }: { groupId: number }) => {
         id="studies"
         title="Studies"
         rows={[]}
+        emptyTitle="No studies yet"
         emptyText="Add a study to group this lab's submissions under it."
-        actions={
+        emptyAction={
           <button
             className="btn btn--secondary"
             type="button"
