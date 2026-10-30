@@ -8,7 +8,6 @@ import {
   FormIntro,
   FormLayout,
   BannerStrong,
-  CollectedValues,
   FormMain,
   PageHead,
   PageLead,
@@ -61,7 +60,6 @@ const GroupCrumbs = ({ groupId }: { groupId: number }) => {
 const SubmissionForm = ({ groupId }: { groupId: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
-  const [collected, setCollected] = useState<Submission | null>(null);
   const form = useForm<Submission>({ defaultValues: emptySubmission() });
 
   // Watched, so a dot answers to what has been typed rather than to a save.
@@ -79,7 +77,11 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const collect = useCallback((values: Submission) => setCollected(values), []);
+  // No endpoint yet.
+  const collect = useCallback(
+    (values: Submission) => console.log("Submission", values),
+    [],
+  );
 
   return (
     <FormLayout>
@@ -142,10 +144,6 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
             {SECTION_BODIES[slug](groupId)}
           </FormSection>
         ))}
-
-        {collected && (
-          <CollectedValues>{JSON.stringify(collected, null, 2)}</CollectedValues>
-        )}
 
         <FormActions />
       </FormMain>

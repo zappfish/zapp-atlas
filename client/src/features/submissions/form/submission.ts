@@ -66,6 +66,8 @@ export interface ObservationValues {
   stage: string;
   stageUnit: string;
   phenotype: string;
+  /** ZP CURIE. */
+  phenotypeId: string;
   prevalence: string;
   severity: string;
 }
@@ -155,6 +157,7 @@ export const emptyObservation = (): ObservationValues => ({
   stage: "",
   stageUnit: "hpf",
   phenotype: "",
+  phenotypeId: "",
   prevalence: "",
   severity: "",
 });

@@ -5,11 +5,7 @@ import {
   FormActionBar,
 } from "@/styles/elements";
 
-/**
- * Stays in view as the form scrolls, so saving a draft does not mean finding
- * the end of it first. Submitting shows what the form collected; there is
- * nowhere to send it yet, and saving a draft does nothing at all.
- */
+/** Sticky: the form is long. No endpoint yet, so Submit only logs. */
 const FormActions = () => (
   <FormActionBar>
     <ActionsPrompt>
