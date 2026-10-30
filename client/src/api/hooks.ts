@@ -22,6 +22,7 @@ import {
   updateChemical,
 } from "./cabinet";
 import { normalizeChemical, searchChemicals } from "./chemicals";
+import { createStudy, deleteStudy, fetchStudy } from "./studies";
 import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
@@ -30,6 +31,7 @@ export const keys = {
   chemical: (id: string) => ["chemicals", id] as const,
   chemicalByCurie: (curie: string) => ["chemicals", "by-curie", curie] as const,
   groups: ["groups"] as const,
+  study: (id: number) => ["studies", id] as const,
   group: (id: number) => ["group", id] as const,
   members: (id: number) => ["group", id, "members"] as const,
   fishTank: (id: number) => ["group", id, "fish-tank"] as const,
@@ -264,5 +266,33 @@ export const useDeleteChemical = (groupId: number) => {
       client.invalidateQueries({ queryKey: keys.cabinet(groupId) });
       client.removeQueries({ queryKey: keys.cabinetEntry(groupId, entryId) });
     },
+  });
+};
+
+/** One study, for its page. */
+export const useStudy = (studyId: number) =>
+  useQuery({
+    queryKey: keys.study(studyId),
+    queryFn: ({ signal }) => fetchStudy(studyId, signal),
+  });
+
+/** Seeds the new study's cache entry, so its page opens without a refetch. */
+export const useCreateStudy = (groupId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (study: Parameters<typeof createStudy>[1]) =>
+      createStudy(groupId, study),
+    onSuccess: (study) => {
+      if (study) client.setQueryData(keys.study(study.id), study);
+    },
+  });
+};
+
+export const useDeleteStudy = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (studyId: number) => deleteStudy(studyId),
+    onSuccess: (_data, studyId) =>
+      client.removeQueries({ queryKey: keys.study(studyId) }),
   });
 };

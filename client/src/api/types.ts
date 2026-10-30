@@ -36,3 +36,12 @@ export interface CabinetEntry extends Audited {
   /** What the group calls it, e.g. "BPA stock". Unique within the group. */
   nickname?: string | null;
 }
+
+export interface Study {
+  id: number;
+  research_group: number | null;
+  /** "PMID:…" or "DOI:…"; absent while unpublished. */
+  publication: string | null;
+  nickname: string | null;
+  description: string | null;
+}

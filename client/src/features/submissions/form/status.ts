@@ -1,6 +1,6 @@
 import type { SectionSlug, SectionStatus } from "./sections";
 import type { Submission } from "./submission";
-import { PUBLISHED_SOURCES } from "./validation";
+import { isPublicationType } from "@/publication";
 
 /**
  * What each section must have before it counts as finished. Images and
@@ -9,7 +9,7 @@ import { PUBLISHED_SOURCES } from "./validation";
 const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
   provenance: (s) => [
     s.provenance.sourceType,
-    ...(PUBLISHED_SOURCES.includes(s.provenance.sourceType)
+    ...(isPublicationType(s.provenance.sourceType)
       ? [s.provenance.sourceValue]
       : []),
   ],
