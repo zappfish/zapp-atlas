@@ -25,9 +25,16 @@ import {
   ModalText,
   ModalTitle,
   ShortSelect,
+  SubstanceCard,
+  SubstanceChange,
+  SubstanceChosen,
+  SubstanceId,
+  SubstanceName,
+  SubstanceNames,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
+import { curieOf } from "../curie";
 import Field from "../Field";
 import { emptyObservation, type Submission } from "../submission";
 
@@ -53,7 +60,11 @@ const Observation = ({
 
   const { register, setValue, watch } = useFormContext<Submission>();
   const at = `observations.${index}` as const;
-  const [phenotype, severity] = watch([`${at}.phenotype`, `${at}.severity`]);
+  const [phenotype, phenotypeId, severity] = watch([
+    `${at}.phenotype`,
+    `${at}.phenotypeId`,
+    `${at}.severity`,
+  ]);
 
   // The picker's choice is held here until confirmed, so cancelling it
   // leaves the field as it was.
@@ -65,9 +76,9 @@ const Observation = ({
   };
   const confirmPick = () => {
     if (pending) {
-      setValue(`${at}.phenotype`, pending.label ?? pending.uri, {
-        shouldDirty: true,
-      });
+      const curie = curieOf(pending.uri);
+      setValue(`${at}.phenotype`, pending.label ?? curie, { shouldDirty: true });
+      setValue(`${at}.phenotypeId`, curie, { shouldDirty: true });
     }
     closePicker();
   };
@@ -119,24 +130,46 @@ const Observation = ({
               )}
             </Field>
 
-            <Field label="Observed phenotype">
-              {(id) => (
+            <Field
+              label="Observed phenotype"
+              labels={phenotypeId ? "value" : "control"}
+            >
+              {(id, labelId) => (
                 <>
-                  <MeasureRow>
-                    <TextInput
-                      id={id}
-                      readOnly
-                      placeholder="No phenotype chosen"
-                      {...register(`${at}.phenotype`)}
-                    />
-                    <button
-                      className="btn btn--secondary"
-                      type="button"
-                      onClick={() => setIsPicking(true)}
-                    >
-                      {phenotype ? "Change" : "Choose"}
-                    </button>
-                  </MeasureRow>
+                  {phenotypeId ? (
+                    <SubstanceCard role="group" aria-labelledby={labelId}>
+                      <SubstanceChosen>
+                        <SubstanceNames>
+                          <SubstanceName>{phenotype}</SubstanceName>
+                          {phenotype !== phenotypeId && (
+                            <SubstanceId>{phenotypeId}</SubstanceId>
+                          )}
+                        </SubstanceNames>
+                        <SubstanceChange
+                          type="button"
+                          onClick={() => setIsPicking(true)}
+                        >
+                          Change
+                        </SubstanceChange>
+                      </SubstanceChosen>
+                    </SubstanceCard>
+                  ) : (
+                    <MeasureRow>
+                      <TextInput
+                        id={id}
+                        readOnly
+                        placeholder="No phenotype chosen"
+                        {...register(`${at}.phenotype`)}
+                      />
+                      <button
+                        className="btn btn--secondary"
+                        type="button"
+                        onClick={() => setIsPicking(true)}
+                      >
+                        Choose
+                      </button>
+                    </MeasureRow>
+                  )}
                   <FieldNote>
                     Term not represented correctly? Request a new synonym — TBD
                   </FieldNote>

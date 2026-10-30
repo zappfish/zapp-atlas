@@ -65,7 +65,9 @@ export interface ControlValues {
 export interface ObservationValues {
   stage: string;
   stageUnit: string;
+  /** The term's label; `phenotypeId` is its ZP CURIE. */
   phenotype: string;
+  phenotypeId: string;
   prevalence: string;
   severity: string;
 }
@@ -155,6 +157,7 @@ export const emptyObservation = (): ObservationValues => ({
   stage: "",
   stageUnit: "hpf",
   phenotype: "",
+  phenotypeId: "",
   prevalence: "",
   severity: "",
 });

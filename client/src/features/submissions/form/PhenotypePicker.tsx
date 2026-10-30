@@ -7,6 +7,7 @@ import {
 } from "frogpot";
 import { SearchIcon } from "@/components/icons";
 import { useZPGraph } from "@/useZPGraph";
+import { curieOf } from "./curie";
 import {
   OptionId,
   OptionName,
@@ -33,13 +34,8 @@ import {
   SearchOption,
 } from "@/styles/elements";
 
-const OBO = "http://purl.obolibrary.org/obo/";
-
 /** Rendering thousands of rows is slow and nobody scrolls that far. */
 const MAX_SHOWN = 200;
-
-/** http://purl.obolibrary.org/obo/ZP_0000055 -> ZP:0000055 */
-const curieOf = (uri: string) => uri.replace(OBO, "").replace("_", ":");
 
 type Anatomy = { uri: string; label: string };
 
