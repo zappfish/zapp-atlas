@@ -283,6 +283,11 @@
   align-items: start;
   gap: var(--s3);
 }
+/* Shared rows, so a label that wraps keeps the controls level. */
+.field-grid--measures > .field {
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+}
 
 /* ---- A field ------------------------------------------------------------ */
 
@@ -300,6 +305,8 @@
   grid-column: 1 / -1;
   min-height: 0;
 }
+/* Matches .field-grid--measures. */
+.field--short > :is(.field__input, .measure-row, .field__suffix-box) { max-width: 15rem; }
 
 .field__label {
   font-size: var(--text-xs);

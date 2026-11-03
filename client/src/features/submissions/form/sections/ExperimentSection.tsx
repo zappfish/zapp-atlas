@@ -313,7 +313,7 @@ const ExposureEvent = ({
       <Substance groupId={groupId} at={at} />
 
       <FieldGrid>
-        <Field label="Substance concentration">
+        <Field short label="Substance concentration">
           {(id) => <TextInput
               id={id}
               placeholder="e.g. 10"

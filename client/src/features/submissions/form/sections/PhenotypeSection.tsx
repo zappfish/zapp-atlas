@@ -10,6 +10,7 @@ import {
   EntryRemove,
   FieldNote,
   FieldGrid,
+  MeasureGrid,
   GroupSummaryText,
   GroupToggle,
   MeasureInput,
@@ -111,27 +112,8 @@ const Observation = ({
       {isOpen && (
         <>
           <FieldGrid>
-            <Field label="Fish stage at phenotype observation">
-              {(id) => (
-                <MeasureRow>
-                  <TextInput
-                    id={id}
-                    placeholder="e.g. 96"
-                    {...register(`${at}.stage`)}
-                  />
-                  <ShortSelect
-                    aria-label="Fish stage unit"
-                    {...register(`${at}.stageUnit`)}
-                  >
-                    {STAGE_UNITS.map((unit) => (
-                      <option key={unit}>{unit}</option>
-                    ))}
-                  </ShortSelect>
-                </MeasureRow>
-              )}
-            </Field>
-
             <Field
+              wide
               label="Observed phenotype"
               labels={phenotypeId ? "value" : "control"}
             >
@@ -176,18 +158,40 @@ const Observation = ({
               )}
             </Field>
 
-            <Field label="Prevalence">
-              {(id) => (
-                <MeasureInput>
-                  <TextInput
-                    id={id}
-                    placeholder="e.g. 80"
-                    {...register(`${at}.prevalence`)}
-                  />
-                  <MeasureSuffix>%</MeasureSuffix>
-                </MeasureInput>
-              )}
-            </Field>
+            <MeasureGrid>
+              <Field label="Fish stage at observation">
+                {(id) => (
+                  <MeasureRow>
+                    <TextInput
+                      id={id}
+                      placeholder="e.g. 96"
+                      {...register(`${at}.stage`)}
+                    />
+                    <ShortSelect
+                      aria-label="Fish stage unit"
+                      {...register(`${at}.stageUnit`)}
+                    >
+                      {STAGE_UNITS.map((unit) => (
+                        <option key={unit}>{unit}</option>
+                      ))}
+                    </ShortSelect>
+                  </MeasureRow>
+                )}
+              </Field>
+
+              <Field label="Prevalence">
+                {(id) => (
+                  <MeasureInput>
+                    <TextInput
+                      id={id}
+                      placeholder="e.g. 80"
+                      {...register(`${at}.prevalence`)}
+                    />
+                    <MeasureSuffix>%</MeasureSuffix>
+                  </MeasureInput>
+                )}
+              </Field>
+            </MeasureGrid>
 
               <Field wide label="Severity" labels="value">
                 {(_id, labelId) => (
