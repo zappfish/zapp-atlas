@@ -131,4 +131,7 @@ signed-in identity as `current_identity` to every page. Pages so far: homepage,
 login, and a research group dashboard whose fish tank / chemical cabinet /
 submissions render from placeholder data (`html/dashboard_placeholder.py`)
 until the group-scoped endpoints are wired in. The data form is not built yet.
-ORCID establishes an identity but does **not** yet gate `/api` writes.
+ZFIN's registry of fish lines is served read-only at `/api/zfin` from the
+extdata bundle, for a fish picker that is not built yet either (see
+ARCHITECTURE.md, "Reference data for the fish picker"). ORCID establishes an
+identity but does **not** yet gate `/api` writes.
