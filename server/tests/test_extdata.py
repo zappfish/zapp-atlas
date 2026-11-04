@@ -22,7 +22,8 @@ def bundle(tmp_path):
     (tmp_path / "zp.json.gz").write_bytes(gzip.compress(ZP_JSON))
     (tmp_path / "zfa.json").write_bytes(b"{}")
     (tmp_path / "zp.db").write_bytes(b"not for browsers")
-    files = {name: {} for name in ("zp.json", "zp.json.gz", "zfa.json", "zp.db")}
+    (tmp_path / "zfin.db").write_bytes(b"not for browsers either")
+    files = {name: {} for name in ("zp.json", "zp.json.gz", "zfa.json", "zp.db", "zfin.db")}
     (tmp_path / "manifest.json").write_text(json.dumps({"hash": HASH, "files": files}))
     return tmp_path
 
@@ -63,6 +64,7 @@ def test_file_without_gzipped_copy_is_sent_plain(bundle):
     [
         "/extdata/ffffffffffffffff/zp.json",  # another bundle's hash
         f"/extdata/{HASH}/zp.db",  # server-only
+        f"/extdata/{HASH}/zfin.db",  # server-only
         f"/extdata/{HASH}/manifest.json",
         f"/extdata/{HASH}/..%2Fmanifest.json",
     ],
