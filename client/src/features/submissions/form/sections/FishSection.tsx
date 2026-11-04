@@ -3,6 +3,7 @@ import { useFormContext } from "react-hook-form";
 import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
+import { required } from "../validation";
 
 /** The fish the experiment used. */
 const FishSection = () => {
@@ -22,8 +23,15 @@ const FishSection = () => {
             />}
         </Field>
 
-        <Field label="Strain / line" required>
-          {(id) => <TextInput id={id} placeholder="e.g. AB/TL" {...register("fish.strain")} />}
+        <Field label="Strain / line" required name="fish.strain">
+          {(id, _labelId, errorProps) => (
+            <TextInput
+              id={id}
+              placeholder="e.g. AB/TL"
+              {...errorProps}
+              {...register("fish.strain", required("Enter a strain or line."))}
+            />
+          )}
         </Field>
 
         <Field label="Additional condition">

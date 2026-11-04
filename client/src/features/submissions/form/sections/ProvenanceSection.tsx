@@ -17,6 +17,7 @@ import {
   PUBLICATION,
   PUBLISHED_SOURCES,
   ZFIN_LAB,
+  required,
 } from "../validation";
 
 /** `value` is persisted; `label` is display-only. */
@@ -104,9 +105,14 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
-        <Field label="Source of the information" required>
-          {(id) => (
-            <SelectInput id={id} defaultValue="" {...register("provenance.sourceType", {
+        <Field
+          label="Source of the information"
+          required
+          name="provenance.sourceType"
+        >
+          {(id, _labelId, errorProps) => (
+            <SelectInput id={id} defaultValue="" {...errorProps} {...register("provenance.sourceType", {
+              ...required("Choose a source."),
               deps: "provenance.sourceValue",
             })}>
               <option value="">Select source type</option>
@@ -131,7 +137,7 @@ const ProvenanceSection = () => {
                 }
                 {...errorProps}
                 {...register("provenance.sourceValue", {
-                  ...PUBLICATION,
+                  ...required("Enter the source value.", PUBLICATION),
                   shouldUnregister: true,
                 })}
               />

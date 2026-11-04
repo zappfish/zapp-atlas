@@ -45,7 +45,7 @@ import OptionalNotes from "../OptionalNotes";
 import InfoTip from "../InfoTip";
 import { VEHICLE_LABELS } from "../vehicles";
 import StageField from "../StageField";
-import { NUMBER, WHOLE_NUMBER } from "../validation";
+import { NUMBER, WHOLE_NUMBER, required } from "../validation";
 import {
   CONCENTRATION_INFO,
   PATTERN_INFO,
@@ -348,38 +348,40 @@ const ExposureEvent = ({
       <Substance groupId={groupId} at={at} />
 
       <FieldGrid>
-        <Field
-          label="Substance concentration"
-          name={`${at}.concentration`}
-          info={<p>{CONCENTRATION_INFO}</p>}
-        >
-          {(id, _labelId, errorProps) => (
-            <TextInput
-              id={id}
-              inputMode="decimal"
-              placeholder="e.g. 10"
-              {...errorProps}
-              {...register(`${at}.concentration`, NUMBER)}
-            />
-          )}
-        </Field>
+        <MeasureGrid>
+          <Field
+            label="Substance concentration"
+            name={`${at}.concentration`}
+            info={<p>{CONCENTRATION_INFO}</p>}
+          >
+            {(id, _labelId, errorProps) => (
+              <TextInput
+                id={id}
+                inputMode="decimal"
+                placeholder="e.g. 10"
+                {...errorProps}
+                {...register(`${at}.concentration`, NUMBER)}
+              />
+            )}
+          </Field>
 
-        <Field label="Unit" labels="value">
-          {(_id, labelId) => (
-            <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-              {CONCENTRATION_UNITS.map((unit) => (
-                <RadioLabel key={unit}>
-                  <input
-                    type="radio"
-                    value={unit}
-                    {...register(`${at}.concentrationUnit`)}
-                  />
-                  {unit}
-                </RadioLabel>
-              ))}
-            </RadioGroup>
-          )}
-        </Field>
+          <Field label="Unit" labels="value">
+            {(_id, labelId) => (
+              <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+                {CONCENTRATION_UNITS.map((unit) => (
+                  <RadioLabel key={unit}>
+                    <input
+                      type="radio"
+                      value={unit}
+                      {...register(`${at}.concentrationUnit`)}
+                    />
+                    {unit}
+                  </RadioLabel>
+                ))}
+              </RadioGroup>
+            )}
+          </Field>
+        </MeasureGrid>
 
         <Field label="Chemical supplier of the test substance">
           {(id) => (
@@ -476,19 +478,6 @@ const ExposureEvent = ({
           </Field>
 
         {sustained && (
-          <MeasureGrid>
-            <UnitField
-              label="Exposure duration"
-              placeholder="e.g. 24"
-              rules={NUMBER}
-              units={DURATION_UNITS}
-              name={`${at}.duration`}
-              unitName={`${at}.durationUnit`}
-            />
-          </MeasureGrid>
-        )}
-
-        {sustained && (
             <Field wide label="Exposure pattern" labels="value">
               {(_id, labelId) => (
                 <RadioGroup role="group" aria-labelledby={labelId}>
@@ -513,6 +502,16 @@ const ExposureEvent = ({
         )}
 
         <MeasureGrid>
+          {sustained && (
+            <UnitField
+              label="Exposure duration"
+              placeholder="e.g. 24"
+              rules={NUMBER}
+              units={DURATION_UNITS}
+              name={`${at}.duration`}
+              unitName={`${at}.durationUnit`}
+            />
+          )}
           {repeated && (
             <>
               <UnitField
@@ -559,11 +558,16 @@ const ExposureEvent = ({
             label="Start stage"
             name={`${at}.startStage`}
             unitName={`${at}.startStageUnit`}
+            revalidate={`${at}.endStage`}
           />
           <StageField
             label="End stage"
             name={`${at}.endStage`}
             unitName={`${at}.endStageUnit`}
+            after={{
+              name: `${at}.startStage`,
+              unitName: `${at}.startStageUnit`,
+            }}
           />
         </MeasureGrid>
       </FieldGrid>
@@ -610,12 +614,21 @@ const Rearing = () => {
         </Field>
 
         {rearing === "Non-standard" && (
-          <Field wide label="Describe the conditions" required>
-            {(id) => (
+          <Field
+            wide
+            label="Describe the conditions"
+            required
+            name="experiment.rearingComment"
+          >
+            {(id, _labelId, errorProps) => (
               <TextArea
                 id={id}
                 rows={3}
-                {...register("experiment.rearingComment")}
+                {...errorProps}
+                {...register("experiment.rearingComment", {
+                  ...required("Describe the conditions."),
+                  shouldUnregister: true,
+                })}
               />
             )}
           </Field>

@@ -11,8 +11,6 @@ export interface ImageValues {
   /** What "Other" stands for, when the unit is none of the listed ones. */
   scaleBarUnitOther: string;
   magnification: string;
-  magnificationUnit: string;
-  magnificationUnitOther: string;
   resolution: string;
   resolutionUnit: string;
   resolutionUnitOther: string;
@@ -67,6 +65,8 @@ export interface ObservationValues {
   stage: string;
   stageUnit: string;
   phenotype: string;
+  /** ZP CURIE. */
+  phenotypeId: string;
   prevalence: string;
   severity: string;
 }
@@ -107,8 +107,6 @@ export const emptyImage = (): ImageValues => ({
   scaleBarUnit: "",
   scaleBarUnitOther: "",
   magnification: "",
-  magnificationUnit: "",
-  magnificationUnitOther: "",
   resolution: "",
   resolutionUnit: "",
   resolutionUnitOther: "",
@@ -162,6 +160,7 @@ export const emptyObservation = (): ObservationValues => ({
   stage: "",
   stageUnit: "hpf",
   phenotype: "",
+  phenotypeId: "",
   prevalence: "",
   severity: "",
 });

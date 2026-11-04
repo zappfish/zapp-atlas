@@ -1,6 +1,7 @@
 import {
   createElement,
   type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
   type ElementType,
 } from "react";
 import { Link } from "react-router";
@@ -18,7 +19,7 @@ const styled = <T extends ElementType>(tag: T, className: string) => {
   const Element = ({
     className: extra,
     ...rest
-  }: ComponentPropsWithoutRef<T> & { className?: string }) =>
+  }: ComponentPropsWithRef<T> & { className?: string }) =>
     createElement(tag, {
       // Appended, not replaced, so modifiers like "is-active" work.
       className: extra ? `${className} ${extra}` : className,
@@ -162,8 +163,6 @@ export const Status = ({
 
 export const FormLayout = styled("div", "form-layout");
 export const FormMain = styled("form", "form-main");
-/** What the form collected, until there is somewhere to send it. */
-export const CollectedValues = styled("pre", "form-collected");
 export const FormIntro = styled("header", "form-intro");
 export const RequiredMark = styled("span", "form-required");
 
@@ -253,7 +252,6 @@ export const ShortSelect = styled("select", "field__input field__input--short");
 export const FieldGrid = styled("div", "field-grid");
 /** A row of numbers and their units, which sit three to a row. */
 export const MeasureGrid = styled("div", "field-grid--measures");
-/** A field grid held to two columns, for a section with a tall field in it. */
 export const FieldNote = styled("p", "field__note");
 
 
@@ -420,20 +418,31 @@ export const SubstanceBack = styled("button", "substance__back");
 export const SubstanceChoices = styled("div", "substance__choices");
 export const SubstanceOr = styled("span", "substance__or");
 export const SubstanceSearch = styled("button", "substance__search");
+/** Search ChEBI's button, full width with a chevron. */
+export const PhenotypeChoose = styled("button", "substance__search phenotype-choose");
 
 /* ---- choosing a phenotype ---- */
 
 /** Anatomy on one side, the phenotypes it narrows to on the other. */
 export const PickerPanes = styled("div", "phenotype-picker");
+export const AnatomyList = styled("ul", "anatomy-tree");
+export const AnatomyRow = styled("li", "anatomy-tree__row");
+export const AnatomyToggle = styled("button", "anatomy-tree__toggle");
+export const AnatomyLeaf = styled("span", "anatomy-tree__leaf");
+export const AnatomyLabel = styled("button", "anatomy-tree__label");
+export const PickerViews = styled("div", "phenotype-picker__views");
+export const PickerView = styled("button", "phenotype-picker__view");
+export const PickerViewHint = styled("span", "phenotype-picker__view-hint");
+export const PickerLead = styled("p", "phenotype-picker__lead");
 export const PickerPane = styled("section", "phenotype-picker__pane");
 export const PickerPaneHead = styled("h3", "phenotype-picker__head");
 export const PickerTools = styled("div", "phenotype-picker__tools");
 /** Scrolls on its own, so the searches above it stay put. */
 export const PickerPaneBody = styled("div", "phenotype-picker__body");
 export const PickerCheck = styled("label", "phenotype-picker__check");
-/** The anatomical entity the phenotype list is narrowed to, and its ✕. */
-export const PickerFilter = styled("div", "phenotype-picker__filter");
-export const PickerFilterClear = styled("button", "phenotype-picker__filter-clear");
+/** A pane's heading and lead, with an action to their right. */
+export const PickerIntro = styled("div", "phenotype-picker__intro");
+export const PickerClear = styled("button", "phenotype-picker__clear");
 /** How many phenotypes the list holds, and whether it shows them all. */
 export const PickerCount = styled("p", "phenotype-picker__count");
 export const PhenotypeList = styled("ul", "phenotype-picker__list");

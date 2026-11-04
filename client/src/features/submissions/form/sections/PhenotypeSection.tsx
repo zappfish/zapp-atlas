@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useState } from "react";
 import type { OBOGraphNode } from "frogpot";
 import Modal from "@/components/Modal";
+import { ChevronIcon, SearchIcon } from "@/components/icons";
 import {
   AddButton,
   AddRow,
@@ -8,25 +9,34 @@ import {
   EntryCard,
   EntryHead,
   EntryRemove,
-  FieldNote,
   FieldGrid,
+  FieldNote,
+  MeasureGrid,
   GroupSummaryText,
   GroupToggle,
   MeasureInput,
   MeasureSuffix,
   RadioGroup,
   RadioLabel,
+  SearchClear,
   SearchHint,
-  MeasureRow,
   ModalBanded,
   ModalBody,
   ModalFoot,
   ModalHead,
   ModalText,
   ModalTitle,
+  SubstanceCard,
+  SubstanceChange,
+  SubstanceChosen,
+  SubstanceId,
+  SubstanceName,
+  SubstanceNames,
+  PhenotypeChoose,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
+import { curieOf } from "../curie";
 import Field from "../Field";
 import { emptyObservation, type Submission } from "../submission";
 import { PERCENT } from "../validation";
@@ -43,18 +53,24 @@ const SEVERITIES = ["Mild", "Moderate", "Severe"];
 const Observation = ({
   n,
   index,
+  defaultOpen,
   onRemove,
 }: {
   n: number;
   index: number;
+  defaultOpen: boolean;
   onRemove?: () => void;
 }) => {
-  const [isOpen, setIsOpen] = useState(n === 1);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
   const { register, setValue, watch } = useFormContext<Submission>();
   const at = `observations.${index}` as const;
-  const [phenotype, severity] = watch([`${at}.phenotype`, `${at}.severity`]);
+  const [phenotype, phenotypeId, severity] = watch([
+    `${at}.phenotype`,
+    `${at}.phenotypeId`,
+    `${at}.severity`,
+  ]);
 
   // The picker's choice is held here until confirmed, so cancelling it
   // leaves the field as it was.
@@ -66,9 +82,9 @@ const Observation = ({
   };
   const confirmPick = () => {
     if (pending) {
-      setValue(`${at}.phenotype`, pending.label ?? pending.uri, {
-        shouldDirty: true,
-      });
+      const curie = curieOf(pending.uri);
+      setValue(`${at}.phenotype`, pending.label ?? curie, { shouldDirty: true });
+      setValue(`${at}.phenotypeId`, curie, { shouldDirty: true });
     }
     closePicker();
   };
@@ -100,34 +116,40 @@ const Observation = ({
       {isOpen && (
         <>
           <FieldGrid>
-            <StageField
-              label="Fish stage at phenotype observation"
-              name={`${at}.stage`}
-              unitName={`${at}.stageUnit`}
-              required
-            />
-
             <Field
+              wide
               label="Observed phenotype"
+              labels="value"
               info={<p>{PHENOTYPE_INFO}</p>}
             >
-              {(id) => (
+              {(_id, labelId) => (
                 <>
-                  <MeasureRow>
-                    <TextInput
-                      id={id}
-                      readOnly
-                      placeholder="No phenotype chosen"
-                      {...register(`${at}.phenotype`)}
-                    />
-                    <button
-                      className="btn btn--secondary"
+                  {phenotypeId ? (
+                    <SubstanceCard role="group" aria-labelledby={labelId}>
+                      <SubstanceChosen>
+                        <SubstanceNames>
+                          <SubstanceName>{phenotype}</SubstanceName>
+                          <SubstanceId>{phenotypeId}</SubstanceId>
+                        </SubstanceNames>
+                        <SubstanceChange
+                          type="button"
+                          onClick={() => setIsPicking(true)}
+                        >
+                          Change
+                        </SubstanceChange>
+                      </SubstanceChosen>
+                    </SubstanceCard>
+                  ) : (
+                    <PhenotypeChoose
                       type="button"
+                      aria-describedby={labelId}
                       onClick={() => setIsPicking(true)}
                     >
-                      {phenotype ? "Change" : "Choose"}
-                    </button>
-                  </MeasureRow>
+                      <SearchIcon />
+                      Choose a phenotype
+                      <ChevronIcon />
+                    </PhenotypeChoose>
+                  )}
                   <FieldNote>
                     Term not represented correctly? Request a new synonym — TBD
                   </FieldNote>
@@ -135,39 +157,47 @@ const Observation = ({
               )}
             </Field>
 
-            <Field label="Prevalence" name={`${at}.prevalence`}>
-              {(id, _labelId, errorProps) => (
-                <MeasureInput>
-                  <TextInput
-                    id={id}
-                    inputMode="decimal"
-                    placeholder="e.g. 80"
-                    {...errorProps}
-                    {...register(`${at}.prevalence`, PERCENT)}
-                  />
-                  <MeasureSuffix>%</MeasureSuffix>
-                </MeasureInput>
-              )}
-            </Field>
+            <MeasureGrid>
+              <StageField
+                label="Fish stage at observation"
+                name={`${at}.stage`}
+                unitName={`${at}.stageUnit`}
+                required
+              />
 
-              <Field wide label="Severity" labels="value">
-                {(_id, labelId) => (
-                  <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                    {SEVERITIES.map((option) => (
-                      <RadioLabel key={option}>
-                        <input
-                          type="radio"
-                          value={option}
-                          {...register(`${at}.severity`)}
-                        />
-                        {option}
-                      </RadioLabel>
-                    ))}
-                  </RadioGroup>
+              <Field label="Prevalence" name={`${at}.prevalence`}>
+                {(id, _labelId, errorProps) => (
+                  <MeasureInput>
+                    <TextInput
+                      id={id}
+                      inputMode="decimal"
+                      placeholder="e.g. 80"
+                      {...errorProps}
+                      {...register(`${at}.prevalence`, PERCENT)}
+                    />
+                    <MeasureSuffix>%</MeasureSuffix>
+                  </MeasureInput>
                 )}
               </Field>
-          </FieldGrid>
+            </MeasureGrid>
 
+            <Field wide label="Severity" labels="value">
+              {(_id, labelId) => (
+                <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+                  {SEVERITIES.map((option) => (
+                    <RadioLabel key={option}>
+                      <input
+                        type="radio"
+                        value={option}
+                        {...register(`${at}.severity`)}
+                      />
+                      {option}
+                    </RadioLabel>
+                  ))}
+                </RadioGroup>
+              )}
+            </Field>
+          </FieldGrid>
         </>
       )}
 
@@ -184,6 +214,9 @@ const Observation = ({
               Search for a phenotype, or choose an anatomical entity to list
               the phenotypes associated with it.
             </ModalText>
+            <SearchClear type="button" onClick={closePicker} aria-label="Close">
+              ✕
+            </SearchClear>
           </ModalHead>
           <ModalBody>
             <Suspense fallback={<SearchHint role="status">Loading…</SearchHint>}>
@@ -216,6 +249,9 @@ const PhenotypeSection = () => {
     control,
     name: "observations",
   });
+  // Those already there on load start collapsed after the first; one added
+  // with the button opens, since it is about to be filled in.
+  const [initialIds] = useState(() => new Set(fields.map((f) => f.id)));
 
   return (
     <>
@@ -224,6 +260,7 @@ const PhenotypeSection = () => {
           key={field.id}
           n={i + 1}
           index={i}
+          defaultOpen={i === 0 || !initialIds.has(field.id)}
           onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}

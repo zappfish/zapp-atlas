@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactNode } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, type FieldErrors } from "react-hook-form";
 import { Link } from "react-router";
 import { useGroup } from "@/api/hooks";
 import {
@@ -7,7 +7,6 @@ import {
   Crumbs,
   FormIntro,
   FormLayout,
-  CollectedValues,
   FormMain,
   PageHead,
   PageLead,
@@ -17,6 +16,7 @@ import {
 import Field from "./Field";
 import { emptySubmission, type Submission } from "./submission";
 import { sectionStatus } from "./status";
+import { required } from "./validation";
 import FormActions from "./FormActions";
 import FormNav from "./FormNav";
 import FormSection from "./FormSection";
@@ -59,7 +59,6 @@ const GroupCrumbs = ({ groupId }: { groupId: number }) => {
 const SubmissionForm = ({ groupId }: { groupId: number }) => {
   // The first section, whatever the order in sections.ts says it is.
   const [active, setActive] = useState<SectionSlug>(SECTIONS[0].slug);
-  const [collected, setCollected] = useState<Submission | null>(null);
   const form = useForm<Submission>({
     defaultValues: emptySubmission(),
     // Checked on leaving a field, then as it is corrected.
@@ -81,7 +80,17 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const collect = useCallback((values: Submission) => setCollected(values), []);
+  // No endpoint yet.
+  const collect = useCallback(
+    (values: Submission) => console.log("Submission", values),
+    [],
+  );
+  // Until the endpoint lands: what would have been sent, and what blocked it.
+  const reject = useCallback(
+    (errors: FieldErrors<Submission>) =>
+      console.log("Submission invalid", { errors, values: form.getValues() }),
+    [form],
+  );
 
   return (
     <FormLayout>
@@ -93,7 +102,7 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
       />
 
       <FormProvider {...form}>
-      <FormMain onSubmit={form.handleSubmit(collect)}>
+      <FormMain onSubmit={form.handleSubmit(collect, reject)}>
         <GroupCrumbs groupId={groupId} />
 
         <PageHead>
@@ -108,13 +117,15 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
           <Field
             label="Submission title"
             required
+            name="title"
             hint="Give your submission a short, descriptive name."
           >
-            {(id) => (
+            {(id, _labelId, errorProps) => (
               <TextInput
                 id={id}
                 placeholder="e.g. Tamoxifen - 10 µM - 24h"
-                {...form.register("title")}
+                {...errorProps}
+                {...form.register("title", required("Enter a title."))}
               />
             )}
           </Field>
@@ -146,10 +157,6 @@ const SubmissionForm = ({ groupId }: { groupId: number }) => {
             {SECTION_BODIES[slug](groupId)}
           </FormSection>
         ))}
-
-        {collected && (
-          <CollectedValues>{JSON.stringify(collected, null, 2)}</CollectedValues>
-        )}
 
         <FormActions />
       </FormMain>

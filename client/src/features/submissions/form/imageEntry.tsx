@@ -5,6 +5,7 @@
 
 import {
   useCallback,
+  useId,
   useRef,
   useState,
   type ChangeEvent,
@@ -12,6 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  FieldError,
   FieldLabel,
   FieldLabelRow,
   MeasureRow,
@@ -33,7 +35,12 @@ import {
   UploadLimits,
   UploadPane,
 } from "@/styles/elements";
-import { useFormContext, type FieldPath } from "react-hook-form";
+import {
+  get,
+  useFormContext,
+  useFormState,
+  type FieldPath,
+} from "react-hook-form";
 import Field from "./Field";
 import InfoTip from "./InfoTip";
 import type { Submission } from "./submission";
@@ -52,10 +59,11 @@ export const Measure = ({
   units?: readonly string[];
   suffix?: string;
   name: FieldPath<Submission>;
-  unitName: FieldPath<Submission>;
+  /** Where the chosen unit goes; absent for a fixed suffix. */
+  unitName?: FieldPath<Submission>;
 }) => {
   const { register, watch } = useFormContext<Submission>();
-  const unit = watch(unitName);
+  const unit = unitName ? watch(unitName) : undefined;
 
   return (
     <Field label={label}>
@@ -66,7 +74,7 @@ export const Measure = ({
             {suffix && <MeasureSuffix>{suffix}</MeasureSuffix>}
           </MeasureInput>
 
-          {units && (
+          {units && unitName && (
             <RadioGroup
               role="radiogroup"
               aria-label={`${label} unit`}
@@ -120,6 +128,15 @@ export const ImageUpload = ({
   info?: ReactNode;
 }) => {
   const { register } = useFormContext<Submission>();
+  const { errors } = useFormState<Submission>({ name });
+  const message: string | undefined = get(errors, name)?.message;
+  const errorId = useId();
+  const registration = register(name, {
+    validate: (files) =>
+      !required ||
+      (files instanceof FileList && files.length > 0) ||
+      "Choose an image.",
+  });
   const input = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -172,10 +189,12 @@ export const ImageUpload = ({
 
   const browse = useCallback(() => input.current?.click(), []);
 
+  // Through a change event, like a drop, so RHF drops the file too.
   const remove = useCallback(() => {
-    if (input.current) input.current.value = "";
-    show(undefined);
-  }, [show]);
+    if (!input.current) return;
+    input.current.value = "";
+    input.current.dispatchEvent(new Event("change", { bubbles: true }));
+  }, []);
 
   return (
     <Upload>
@@ -219,16 +238,20 @@ export const ImageUpload = ({
         className="visually-hidden"
         type="file"
         accept=".jpeg,.jpg,.png,.tif,.tiff"
-        {...register(name)}
+        aria-invalid={message ? true : undefined}
+        aria-describedby={message ? errorId : undefined}
+        {...registration}
         ref={(node) => {
-          register(name).ref(node);
+          registration.ref(node);
           input.current = node;
         }}
         onChange={(event) => {
-          void register(name).onChange(event);
+          void registration.onChange(event);
           choose(event);
         }}
       />
+
+      {message && <FieldError id={errorId}>{message}</FieldError>}
 
       {preview && (
         <PreviewActions>

@@ -72,7 +72,7 @@ const ControlImage = ({
             key={measure.label}
             {...measure}
             name={`${at}.${field}` as const}
-            unitName={`${at}.${unitField}` as const}
+            unitName={unitField && (`${at}.${unitField}` as const)}
           />
         ))}
         <Field label="Microscope information">
