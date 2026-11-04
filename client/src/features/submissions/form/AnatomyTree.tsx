@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Path, type Hierarchy, type OBOGraphNode } from "frogpot";
+import { ChevronIcon } from "@/components/icons";
 import {
   AnatomyLabel,
   AnatomyLeaf,
@@ -44,13 +45,22 @@ const AnatomyTree = ({
     [hierarchy, expanded],
   );
 
+  const list = useRef<HTMLUListElement>(null);
   const selected = useRef<HTMLButtonElement>(null);
+  // An off-screen selection scrolls to the top, children below. The pane
+  // itself: scrollIntoView would scroll the dialog too.
   useEffect(() => {
-    selected.current?.scrollIntoView({ block: "nearest" });
+    const row = selected.current;
+    const pane = list.current?.parentElement;
+    if (!row || !pane) return;
+    const at = row.getBoundingClientRect();
+    const view = pane.getBoundingClientRect();
+    if (at.top >= view.top && at.bottom <= view.bottom) return;
+    pane.scrollTo({ top: pane.scrollTop + at.top - view.top });
   }, [selectedUri]);
 
   return (
-    <AnatomyList>
+    <AnatomyList ref={list}>
       {rows.map(({ item, depth, path }) => {
         const label = item.label ?? item.uri;
         const isSelected = item.uri === selectedUri;
@@ -66,10 +76,10 @@ const AnatomyTree = ({
                 aria-label={`${isExpanded ? "Collapse" : "Expand"} ${label}`}
                 onClick={() => onExpandedChange(toggled(expanded, path))}
               >
-                <span aria-hidden="true">{isExpanded ? "▾" : "▸"}</span>
+                <ChevronIcon />
               </AnatomyToggle>
             ) : (
-              <AnatomyLeaf aria-hidden="true">•</AnatomyLeaf>
+              <AnatomyLeaf aria-hidden="true" />
             )}
             <AnatomyLabel
               ref={isSelected ? selected : undefined}

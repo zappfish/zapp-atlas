@@ -252,7 +252,6 @@ export const ShortSelect = styled("select", "field__input field__input--short");
 export const FieldGrid = styled("div", "field-grid");
 /** A row of numbers and their units, which sit three to a row. */
 export const MeasureGrid = styled("div", "field-grid--measures");
-/** A field grid held to two columns, for a section with a tall field in it. */
 export const FieldNote = styled("p", "field__note");
 
 

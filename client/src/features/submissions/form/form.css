@@ -283,11 +283,16 @@
   align-items: start;
   gap: var(--s3);
 }
-/* Shared rows, so a label that wraps keeps the controls level. */
+/* Shared rows, so a label that wraps keeps the controls level. One per child
+   (label, control, hint, error): a subgrid has no implicit rows. */
 .field-grid--measures > .field {
-  grid-row: span 3;
+  grid-row: span 4;
   grid-template-rows: subgrid;
 }
+/* Level with the input beside it. */
+.field-grid--measures > .field > .radio-group { align-self: center; }
+/* An InfoTip makes one label taller; each sits just above its control. */
+.field-grid--measures > .field > :first-child { align-self: end; }
 
 /* ---- A field ------------------------------------------------------------ */
 
@@ -305,8 +310,6 @@
   grid-column: 1 / -1;
   min-height: 0;
 }
-/* Matches .field-grid--measures. */
-.field--short > :is(.field__input, .measure-row, .field__suffix-box) { max-width: 15rem; }
 
 .field__label {
   font-size: var(--text-xs);
@@ -518,6 +521,8 @@ select.field__input {
   font-weight: 600;
   color: var(--ink);
 }
+/* Heads a group after the fields: more room than between two fields. */
+.field-grid + .form-entry__title { margin-top: calc(var(--s3) + var(--s2)); }
 .form-entry__remove {
   padding: 0;
   border: 0;
@@ -864,6 +869,16 @@ select.field__input {
   cursor: pointer;
 }
 .substance__search:hover { background: var(--teal-tint); }
+/* The phenotype field until chosen: sunken like the chemical's, its content
+   centred at half width, at least 20rem. */
+.field:has(> .substance__search) {
+  padding-block: var(--s3);
+  padding-inline: max(var(--s3), min(25%, (100% - 20rem) / 2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+.field > .substance { margin-bottom: 0; }
 
 /* The chemical once chosen, in place of the two ways of choosing it. */
 .substance:has(.substance__chosen) {
@@ -951,7 +966,6 @@ select.field__input {
 .modal__body:has(.phenotype-picker) { gap: 0; padding: 0; }
 .phenotype-picker__views {
   display: flex;
-  gap: var(--s2);
   padding: 0.875rem 2rem;
   border-bottom: 1px solid var(--line);
   background: var(--surface-sunken);
@@ -959,22 +973,23 @@ select.field__input {
 .phenotype-picker__view {
   display: grid;
   gap: 0.1rem;
-  min-width: 15rem;
-  padding: 0.8rem var(--s3);
-  border: 1px solid transparent;
-  border-radius: var(--radius);
+  padding: 0.5rem var(--s3);
+  border: 0;
   background: none;
   font: inherit;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 400;
   text-align: left;
   color: var(--muted);
   cursor: pointer;
 }
+.phenotype-picker__view + .phenotype-picker__view {
+  border-left: 1px solid var(--line-strong);
+}
+.phenotype-picker__view:hover { color: var(--ink); }
+/* Not by colour alone (WCAG 1.4.1): the chosen view is also bold. */
 .phenotype-picker__view[aria-pressed="true"] {
-  border-color: var(--line-strong);
-  background: var(--white);
-  box-shadow: var(--shadow-card);
+  font-weight: 600;
   color: var(--ink);
 }
 .phenotype-picker__view-hint {
@@ -1048,23 +1063,30 @@ select.field__input {
 .anatomy-tree__row { display: flex; align-items: center; }
 /* 24px targets (WCAG 2.5.8). */
 .anatomy-tree__toggle {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
   width: 1.5rem;
   height: 1.5rem;
   padding: 0;
   border: 0;
+  border-radius: var(--radius);
   background: none;
   color: var(--muted);
   cursor: pointer;
 }
-.anatomy-tree__toggle:hover { color: var(--ink); }
-.anatomy-tree__leaf {
-  flex-shrink: 0;
-  width: 1.5rem;
-  font-size: var(--text-subtext);
-  text-align: center;
-  color: var(--muted);
+.anatomy-tree__toggle:hover { background: var(--line); color: var(--ink); }
+.anatomy-tree__toggle .icon--chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform 0.15s ease;
 }
+.anatomy-tree__toggle[aria-expanded="true"] .icon--chevron { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) {
+  .anatomy-tree__toggle .icon--chevron { transition: none; }
+}
+/* No marker: the space keeps a leaf's label in line with its siblings'. */
+.anatomy-tree__leaf { flex-shrink: 0; width: 1.5rem; }
 .anatomy-tree__label {
   flex: 1;
   min-width: 0;

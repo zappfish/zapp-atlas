@@ -11,8 +11,6 @@ export interface ImageValues {
   /** What "Other" stands for, when the unit is none of the listed ones. */
   scaleBarUnitOther: string;
   magnification: string;
-  magnificationUnit: string;
-  magnificationUnitOther: string;
   resolution: string;
   resolutionUnit: string;
   resolutionUnitOther: string;
@@ -109,8 +107,6 @@ export const emptyImage = (): ImageValues => ({
   scaleBarUnit: "",
   scaleBarUnitOther: "",
   magnification: "",
-  magnificationUnit: "",
-  magnificationUnitOther: "",
   resolution: "",
   resolutionUnit: "",
   resolutionUnitOther: "",

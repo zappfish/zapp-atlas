@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useState } from "react";
 import type { OBOGraphNode } from "frogpot";
 import Modal from "@/components/Modal";
+import { SearchIcon } from "@/components/icons";
 import {
   AddButton,
   AddRow,
@@ -8,8 +9,8 @@ import {
   EntryCard,
   EntryHead,
   EntryRemove,
-  FieldNote,
   FieldGrid,
+  FieldNote,
   MeasureGrid,
   GroupSummaryText,
   GroupToggle,
@@ -19,7 +20,6 @@ import {
   RadioLabel,
   SearchClear,
   SearchHint,
-  MeasureRow,
   ModalBanded,
   ModalBody,
   ModalFoot,
@@ -32,6 +32,7 @@ import {
   SubstanceId,
   SubstanceName,
   SubstanceNames,
+  SubstanceSearch,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -52,13 +53,15 @@ const SEVERITIES = ["Mild", "Moderate", "Severe"];
 const Observation = ({
   n,
   index,
+  defaultOpen,
   onRemove,
 }: {
   n: number;
   index: number;
+  defaultOpen: boolean;
   onRemove?: () => void;
 }) => {
-  const [isOpen, setIsOpen] = useState(n === 1);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
   const { register, setValue, watch } = useFormContext<Submission>();
@@ -116,10 +119,10 @@ const Observation = ({
             <Field
               wide
               label="Observed phenotype"
-              labels={phenotypeId ? "value" : "control"}
+              labels="value"
               info={<p>{PHENOTYPE_INFO}</p>}
             >
-              {(id, labelId) => (
+              {(_id, labelId) => (
                 <>
                   {phenotypeId ? (
                     <SubstanceCard role="group" aria-labelledby={labelId}>
@@ -137,21 +140,14 @@ const Observation = ({
                       </SubstanceChosen>
                     </SubstanceCard>
                   ) : (
-                    <MeasureRow>
-                      <TextInput
-                        id={id}
-                        readOnly
-                        placeholder="No phenotype chosen"
-                        {...register(`${at}.phenotype`)}
-                      />
-                      <button
-                        className="btn btn--secondary"
-                        type="button"
-                        onClick={() => setIsPicking(true)}
-                      >
-                        Choose
-                      </button>
-                    </MeasureRow>
+                    <SubstanceSearch
+                      type="button"
+                      aria-describedby={labelId}
+                      onClick={() => setIsPicking(true)}
+                    >
+                      <SearchIcon />
+                      Choose a phenotype
+                    </SubstanceSearch>
                   )}
                   <FieldNote>
                     Term not represented correctly? Request a new synonym — TBD
@@ -184,24 +180,23 @@ const Observation = ({
               </Field>
             </MeasureGrid>
 
-              <Field wide label="Severity" labels="value">
-                {(_id, labelId) => (
-                  <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                    {SEVERITIES.map((option) => (
-                      <RadioLabel key={option}>
-                        <input
-                          type="radio"
-                          value={option}
-                          {...register(`${at}.severity`)}
-                        />
-                        {option}
-                      </RadioLabel>
-                    ))}
-                  </RadioGroup>
-                )}
-              </Field>
+            <Field wide label="Severity" labels="value">
+              {(_id, labelId) => (
+                <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+                  {SEVERITIES.map((option) => (
+                    <RadioLabel key={option}>
+                      <input
+                        type="radio"
+                        value={option}
+                        {...register(`${at}.severity`)}
+                      />
+                      {option}
+                    </RadioLabel>
+                  ))}
+                </RadioGroup>
+              )}
+            </Field>
           </FieldGrid>
-
         </>
       )}
 
@@ -253,6 +248,9 @@ const PhenotypeSection = () => {
     control,
     name: "observations",
   });
+  // Those already there on load start collapsed after the first; one added
+  // with the button opens, since it is about to be filled in.
+  const [initialIds] = useState(() => new Set(fields.map((f) => f.id)));
 
   return (
     <>
@@ -261,6 +259,7 @@ const PhenotypeSection = () => {
           key={field.id}
           n={i + 1}
           index={i}
+          defaultOpen={i === 0 || !initialIds.has(field.id)}
           onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}

@@ -42,10 +42,10 @@ const MAX_SHOWN = 200;
 
 type Anatomy = { uri: string; label: string };
 
-/** Adds the ancestors of `path`, which opens the tree down to it. */
+/** Opens the tree down to `path`, and `path` itself so its children show. */
 const withPath = (expanded: ReadonlySet<string>, path?: Path) => {
   const next = new Set(expanded);
-  for (let at = path?.parent(); at; at = at.parent()) next.add(at.key);
+  for (let at = path ?? null; at; at = at.parent()) next.add(at.key);
   return next;
 };
 
