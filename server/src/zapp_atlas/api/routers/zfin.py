@@ -7,6 +7,8 @@ from the extdata bundle (``zapp_atlas/zfin.py``), not anything a user wrote.
 * ``GET /zfin/alleles?q=`` -- allele autocomplete by symbol, gene or construct
 * ``GET /zfin/alleles/{id}``, ``/genotypes/{id}``, ``/fish/{id}`` -- one
   record by CURIE, for showing a saved fish's ZFIN details again
+* ``POST /zfin/resolve`` -- the registered genotype and fish a described fish
+  (background, alleles with zygosity, injected reagents) corresponds to
 * ``GET /zfin/status`` -- which ZFIN snapshot is installed, and how much of it
 
 Responses carry ZFIN's own vocabulary (SO ids for alteration types, its
@@ -27,6 +29,8 @@ from zapp_atlas.api.dto import (
     ZfinAlleleSearchOut,
     ZfinFishOut,
     ZfinGenotypeOut,
+    ZfinResolveIn,
+    ZfinResolveOut,
     ZfinStatusOut,
     ZfinWildtypeOut,
 )
@@ -82,6 +86,16 @@ def allele_endpoint(zfin: ZfinData, allele_id: str) -> ZfinAlleleOut:
     if allele is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=_NOT_FOUND)
     return ZfinAlleleOut.model_validate(allele)
+
+
+@router.post("/resolve", response_model=ZfinResolveOut)
+def resolve_endpoint(zfin: ZfinData, payload: ZfinResolveIn) -> ZfinResolveOut:
+    resolution = zfin.resolve(
+        alleles={a.allele_id: a.zygosity for a in payload.alleles},
+        background_id=payload.background_id,
+        reagents=set(payload.reagents),
+    )
+    return ZfinResolveOut.model_validate(resolution)
 
 
 @router.get("/genotypes/{genotype_id}", response_model=ZfinGenotypeOut)

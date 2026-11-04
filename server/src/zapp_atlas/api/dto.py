@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
@@ -213,6 +213,74 @@ class ZfinFishOut(_FromAttributes):
     genotype: ZfinGenotypeRefOut
     backgrounds: list[ZfinBackgroundOut]
     reagents: list[ZfinReagentOut]
+
+
+class ZfinFishRefOut(_FromAttributes):
+    fish_id: str
+    name: str
+    name_plain: str
+
+
+class ZfinDescribedAlleleIn(BaseModel):
+    allele_id: str
+    # ZFIN's words. "unknown" matches only genotypes ZFIN records as unknown.
+    zygosity: Literal["unknown", "heterozygous", "homozygous", "complex"]
+
+    @field_validator("allele_id")
+    @classmethod
+    def _valid_allele(cls, value: str) -> str:
+        if not _ZFIN_RE.match(value):
+            raise ValueError(f"Invalid ZFIN allele id: {value}")
+        return value
+
+
+class ZfinResolveIn(BaseModel):
+    """A fish as the curator describes it. Field names follow the fish data
+    model so a draft can be sent as-is."""
+
+    background_id: str | None = None  # a wild-type genotype id
+    alleles: list[ZfinDescribedAlleleIn] = []
+    reagents: list[str] = []  # transient reagent ids injected into the fish
+
+    @field_validator("background_id")
+    @classmethod
+    def _valid_background(cls, value: str | None) -> str | None:
+        if value is not None and not _ZFIN_RE.match(value):
+            raise ValueError(f"Invalid ZFIN genotype id: {value}")
+        return value
+
+    @field_validator("reagents")
+    @classmethod
+    def _valid_reagents(cls, value: list[str]) -> list[str]:
+        for reagent_id in value:
+            if not _ZFIN_RE.match(reagent_id):
+                raise ValueError(f"Invalid ZFIN reagent id: {reagent_id}")
+        return value
+
+    @field_validator("alleles")
+    @classmethod
+    def _one_zygosity_per_allele(cls, value: list[ZfinDescribedAlleleIn]) -> list:
+        ids = [a.allele_id for a in value]
+        if len(set(ids)) != len(ids):
+            raise ValueError("An allele may be listed once")
+        return value
+
+
+class ZfinResolveCandidateOut(_FromAttributes):
+    genotype: ZfinGenotypeRefOut
+    backgrounds: list[ZfinBackgroundOut]  # as ZFIN recorded them; often none
+    fish: list[ZfinFishRefOut]  # of this genotype, carrying exactly the described reagents
+
+
+class ZfinResolveOut(_FromAttributes):
+    """``genotype`` is set when exactly one registered genotype matches the
+    description, and ``fish`` when exactly one fish of it carries the
+    described reagents; ``candidates`` lists every genotype that matched, so
+    an ambiguous description can be shown for what it is."""
+
+    genotype: ZfinGenotypeRefOut | None
+    fish: ZfinFishRefOut | None
+    candidates: list[ZfinResolveCandidateOut]
 
 
 class ZfinStatusOut(BaseModel):

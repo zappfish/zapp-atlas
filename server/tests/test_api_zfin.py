@@ -117,3 +117,46 @@ def test_unknown_ids_are_404(client):
         "fish/ZFIN:ZDB-FISH-1-1",
     ):
         assert client.get(f"/api/zfin/{path}").status_code == 404
+
+
+def test_resolve(client):
+    res = client.post(
+        "/api/zfin/resolve",
+        json={
+            "background_id": "ZFIN:ZDB-GENO-960809-7",
+            "alleles": [{"allele_id": FH111, "zygosity": "heterozygous"}],
+            "reagents": ["ZFIN:ZDB-MRPHLNO-040101-1"],
+        },
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert body["genotype"]["genotype_id"] == "ZFIN:ZDB-GENO-160602-1"
+    assert body["fish"] == {
+        "fish_id": "ZFIN:ZDB-FISH-160602-2",
+        "name": "snapc1b<sup>fh111/+</sup> + MO1-fgf8a",
+        "name_plain": "snapc1bfh111/+ + MO1-fgf8a",
+    }
+    (candidate,) = body["candidates"]
+    assert candidate["genotype"]["genotype_id"] == "ZFIN:ZDB-GENO-160602-1"
+    assert [f["fish_id"] for f in candidate["fish"]] == ["ZFIN:ZDB-FISH-160602-2"]
+
+
+def test_resolve_nothing_registered(client):
+    res = client.post(
+        "/api/zfin/resolve",
+        json={"alleles": [{"allele_id": FH111, "zygosity": "complex"}]},
+    )
+    assert res.status_code == 200
+    assert res.json() == {"genotype": None, "fish": None, "candidates": []}
+
+
+def test_resolve_validates_the_description(client):
+    bad = [
+        {"alleles": [{"allele_id": FH111, "zygosity": "hemizygous"}]},
+        {"alleles": [{"allele_id": "fh111", "zygosity": "unknown"}]},
+        {"alleles": [{"allele_id": FH111, "zygosity": "unknown"}] * 2},
+        {"background_id": "AB"},
+        {"reagents": ["MO1-fgf8a"]},
+    ]
+    for payload in bad:
+        assert client.post("/api/zfin/resolve", json=payload).status_code == 422, payload

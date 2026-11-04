@@ -3,8 +3,10 @@
 The database is built offline by ``extdata/scripts/zfin_db.py`` from ZFIN's
 bulk downloads (which documents its tables and their sources) and holds the
 registered alleles, genotypes, fish, reagents and wild-type lines. This module
-is the read side: typed lookups by id, allele autocomplete, and the list of
-wild-type lines. Ids are CURIEs (``ZFIN:ZDB-ALT-...``) throughout.
+is the read side: typed lookups by id, allele autocomplete, the list of
+wild-type lines, and ``resolve``, which finds the registered genotype and
+fish a curator's description of a fish corresponds to. Ids are CURIEs
+(``ZFIN:ZDB-ALT-...``) throughout.
 
 Like ``labels.py``, it opens the file read-only and immutable once, at
 startup, and shares the connection across request threads. Without a bundle
@@ -116,6 +118,40 @@ class Fish:
     genotype: GenotypeRef
     backgrounds: tuple[Background, ...]
     reagents: tuple[Reagent, ...]
+
+
+@dataclass(frozen=True)
+class FishRef:
+    fish_id: str
+    name: str
+    name_plain: str
+
+
+@dataclass(frozen=True)
+class Candidate:
+    """A registered genotype matching a description, with the fish of that
+    genotype carrying exactly the described reagents (usually one)."""
+
+    genotype: GenotypeRef
+    backgrounds: tuple[Background, ...]
+    fish: tuple[FishRef, ...]
+
+
+@dataclass(frozen=True)
+class Resolution:
+    candidates: tuple[Candidate, ...]
+
+    @property
+    def genotype(self) -> GenotypeRef | None:
+        """The one matching genotype, when the description is unambiguous."""
+        return self.candidates[0].genotype if len(self.candidates) == 1 else None
+
+    @property
+    def fish(self) -> FishRef | None:
+        """The one registered fish for that genotype with these reagents."""
+        if len(self.candidates) == 1 and len(self.candidates[0].fish) == 1:
+            return self.candidates[0].fish[0]
+        return None
 
 
 @dataclass(frozen=True)
@@ -334,6 +370,98 @@ class Zfin:
                 )
             ),
         )
+
+    # -- resolution -----------------------------------------------------------
+
+    def resolve(
+        self,
+        alleles: dict[str, str],
+        background_id: str | None,
+        reagents: set[str],
+    ) -> Resolution:
+        """The registered genotypes carrying exactly ``alleles`` (allele id ->
+        zygosity), and for each the fish injected with exactly ``reagents``.
+
+        Matching is by identity, as ZFIN's own records are keyed: the same
+        alleles at a different zygosity are a different genotype, and
+        "unknown" is a zygosity in its own right, not a wildcard. With no
+        alleles the description is a wild-type line: ``background_id`` is the
+        genotype.
+
+        ZFIN records a background for only a third of its genotypes. When one
+        is given, genotypes on a *different* background are excluded; those on
+        none are kept unless some candidate is on the given one, which then
+        wins. Several genotypes can still match (ZFIN registers the same
+        alleles on backgrounds it did not record), so the caller gets all of
+        them and ``Resolution.genotype`` is set only when there is one.
+        """
+        if alleles:
+            placeholders = ", ".join("(?, ?)" for _ in alleles)
+            genotype_ids = [
+                row["genotype_id"]
+                for row in self.db.execute(
+                    f"""
+                    SELECT genotype_id FROM genotype_allele
+                    WHERE (allele_id, zygosity) IN (VALUES {placeholders})
+                    GROUP BY genotype_id
+                    HAVING count(*) = ? AND count(*) = (
+                        SELECT count(*) FROM genotype_allele ga
+                        WHERE ga.genotype_id = genotype_allele.genotype_id)
+                    """,
+                    [*(v for pair in alleles.items() for v in pair), len(alleles)],
+                )
+            ]
+        elif background_id:
+            genotype_ids = [
+                row["genotype_id"]
+                for row in self.db.execute(
+                    "SELECT genotype_id FROM wildtype WHERE genotype_id = ?", (background_id,)
+                )
+            ]
+        else:
+            genotype_ids = []
+
+        candidates = []
+        for genotype_id in genotype_ids:
+            backgrounds = self._backgrounds("genotype_background", "genotype_id", genotype_id)
+            recorded_on = {b.background_id for b in backgrounds}
+            if background_id and alleles and recorded_on and background_id not in recorded_on:
+                continue
+            row = self.db.execute(
+                "SELECT genotype_id, name, name_plain FROM genotype WHERE genotype_id = ?",
+                (genotype_id,),
+            ).fetchone()
+            candidates.append(
+                Candidate(
+                    genotype=GenotypeRef(**row),
+                    backgrounds=backgrounds,
+                    fish=self._fish_with_reagents(genotype_id, reagents),
+                )
+            )
+        if background_id and alleles:
+            on_background = [
+                c for c in candidates if background_id in {b.background_id for b in c.backgrounds}
+            ]
+            if on_background:
+                candidates = on_background
+        candidates.sort(key=lambda c: c.genotype.genotype_id)
+        return Resolution(tuple(candidates))
+
+    def _fish_with_reagents(self, genotype_id: str, reagents: set[str]) -> tuple[FishRef, ...]:
+        found = []
+        for row in self.db.execute(
+            "SELECT fish_id, name, name_plain FROM fish WHERE genotype_id = ? ORDER BY fish_id",
+            (genotype_id,),
+        ):
+            carried = {
+                r["reagent_id"]
+                for r in self.db.execute(
+                    "SELECT reagent_id FROM fish_reagent WHERE fish_id = ?", (row["fish_id"],)
+                )
+            }
+            if carried == reagents:
+                found.append(FishRef(**row))
+        return tuple(found)
 
     def _backgrounds(self, table: str, column: str, key: str) -> tuple[Background, ...]:
         # table/column name the two callers in this module, not request data.

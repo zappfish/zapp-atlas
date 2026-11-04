@@ -148,3 +148,68 @@ def test_fish_with_a_reagent_hitting_two_genes(zfin):
     (reagent,) = fish.reagents
     assert (reagent.symbol, reagent.kind) == ("MO1-fgf8a", "morpholino")
     assert [g.symbol for g in reagent.genes] == ["fgf8a", "fgf8b"]
+
+
+# -- resolve ------------------------------------------------------------------
+
+TI282A = "ZFIN:ZDB-ALT-980203-1091"
+MO1_FGF8A = "ZFIN:ZDB-MRPHLNO-040101-1"
+
+
+def test_resolve_alleles_on_a_background_to_one_genotype_and_fish(zfin):
+    found = zfin.resolve({FH111: "heterozygous"}, AB, set())
+    assert found.genotype.genotype_id == "ZFIN:ZDB-GENO-160602-1"
+    assert found.fish.fish_id == "ZFIN:ZDB-FISH-160602-1"
+    assert [b.name for b in found.candidates[0].backgrounds] == ["AB", "TU"]
+
+
+def test_resolve_matches_zygosity_exactly(zfin):
+    # fh111 is registered heterozygous (alone) and homozygous (with w200Tg);
+    # "unknown" is a value, not a wildcard.
+    assert zfin.resolve({FH111: "homozygous"}, AB, set()).candidates == ()
+    assert zfin.resolve({FH111: "unknown"}, AB, set()).candidates == ()
+
+
+def test_resolve_needs_the_whole_allele_set(zfin):
+    found = zfin.resolve({FH111: "homozygous", W200TG: "heterozygous"}, None, set())
+    assert found.genotype.genotype_id == "ZFIN:ZDB-GENO-170101-1"
+    # A subset of a genotype's alleles is not that genotype.
+    assert zfin.resolve({W200TG: "heterozygous"}, None, set()).candidates == ()
+
+
+def test_resolve_reagents_pick_the_fish(zfin):
+    plain = zfin.resolve({FH111: "heterozygous"}, AB, set())
+    injected = zfin.resolve({FH111: "heterozygous"}, AB, {MO1_FGF8A})
+    assert plain.genotype == injected.genotype
+    assert plain.fish.fish_id == "ZFIN:ZDB-FISH-160602-1"
+    assert injected.fish.fish_id == "ZFIN:ZDB-FISH-160602-2"
+    # A reagent combination ZFIN has no fish for: the genotype still resolves.
+    unregistered = zfin.resolve({FH111: "heterozygous"}, AB, {MO1_FGF8A, "ZFIN:ZDB-CRISPR-1-1"})
+    assert unregistered.genotype is not None
+    assert unregistered.fish is None
+
+
+def test_resolve_a_different_background_is_a_different_genotype(zfin):
+    # ti282a/ti282a is registered on TU only.
+    assert zfin.resolve({TI282A: "homozygous"}, TU, set()).genotype is not None
+    assert zfin.resolve({TI282A: "homozygous"}, AB, set()).candidates == ()
+
+
+def test_resolve_without_a_background_accepts_any(zfin):
+    found = zfin.resolve({TI282A: "homozygous"}, None, set())
+    assert found.genotype.genotype_id == "ZFIN:ZDB-GENO-180101-1"
+
+
+def test_resolve_a_genotype_with_no_recorded_background_is_kept(zfin):
+    # w200Tg's genotype has no background rows, so any stated background is compatible.
+    found = zfin.resolve({W200TG: "unknown"}, TU, set())
+    assert found.genotype.genotype_id == "ZFIN:ZDB-GENO-130130-1"
+    assert found.candidates[0].backgrounds == ()
+
+
+def test_resolve_no_alleles_is_the_wild_type_line(zfin):
+    found = zfin.resolve({}, AB, set())
+    assert found.genotype.genotype_id == AB
+    assert found.fish.fish_id == "ZFIN:ZDB-FISH-150901-27842"
+    assert zfin.resolve({}, "ZFIN:ZDB-GENO-000000-0", set()).candidates == ()
+    assert zfin.resolve({}, None, set()).candidates == ()
