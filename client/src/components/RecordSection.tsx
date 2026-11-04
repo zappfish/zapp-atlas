@@ -49,6 +49,18 @@ const EmptyState = ({ text }: { text: string }) => (
   </Empty>
 );
 
+/** In place of the rows, so a failed load is not mistaken for an empty one. */
+const LoadError = ({ title, onRetry }: { title: string; onRetry?: () => void }) => (
+  <Empty role="alert">
+    <EmptyText>Couldn&rsquo;t load the {title.toLowerCase()}.</EmptyText>
+    {onRetry && (
+      <MoreButton type="button" onClick={onRetry}>
+        Try again
+      </MoreButton>
+    )}
+  </Empty>
+);
+
 // Holds the section's height while it loads, so arriving rows do not push the
 // page down. Fewer than VISIBLE, since most groups hold a handful of records
 // and overshooting leaves a gap to collapse.
@@ -68,6 +80,8 @@ const RecordSection = ({
   rows,
   emptyText,
   isPending = false,
+  error = null,
+  onRetry,
   actions,
   rowActions,
 }: {
@@ -78,6 +92,8 @@ const RecordSection = ({
   /** Unused while pending. */
   emptyText?: string;
   isPending?: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
   /** Section-level controls, such as an add button. */
   actions?: ReactNode;
   /** A row's menu, built by the caller from the record it came from. */
@@ -93,13 +109,15 @@ const RecordSection = ({
       <SectionHead>
         <SectionTitle>
           {title}
-          {!isPending && rows.length > 0 && <Count>{rows.length}</Count>}
+          {!isPending && !error && rows.length > 0 && <Count>{rows.length}</Count>}
         </SectionTitle>
         {actions && <SectionTools>{actions}</SectionTools>}
       </SectionHead>
 
       {isPending ? (
         <Skeleton />
+      ) : error ? (
+        <LoadError title={title} onRetry={onRetry} />
       ) : rows.length === 0 ? (
         <EmptyState text={emptyText ?? ""} />
       ) : (

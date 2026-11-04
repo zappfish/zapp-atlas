@@ -20,7 +20,7 @@ const FormActions = () => (
       Save draft
     </button>
     <button className="btn btn--primary" type="submit">
-      Review submission
+      Submit
     </button>
   </FormActionBar>
 );

@@ -319,6 +319,7 @@
   color: var(--ink);
 }
 .field__input:focus { outline: none; border-color: var(--teal); }
+.field__input[aria-invalid="true"] { border-color: var(--status-retracted); }
 /* A ring as well: a 1px border change is easy to miss. */
 .field__input:focus-visible { box-shadow: 0 0 0 3px var(--teal-tint); }
 /* An example, not a value. */
@@ -363,6 +364,66 @@ select.field__input {
   color: var(--ink);
 }
 
+.field__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+/* ---- Info ---------------------------------------------------------------- */
+
+.infotip { position: relative; display: inline-flex; }
+.infotip__button {
+  display: inline-flex;
+  /* 24px target (WCAG 2.5.8). */
+  padding: 0.3rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.infotip__button .icon { width: 0.9rem; height: 0.9rem; }
+.infotip__button:hover { color: var(--ink); }
+.infotip__button:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+.infotip__bubble {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: min(22rem, 80vw);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  font-size: var(--text-subtext);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.infotip__bubble[hidden] { display: none; }
+/* Bridges the gap so hover survives the move onto the bubble. */
+.infotip__bubble::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem 0 auto;
+  height: 0.5rem;
+}
+.infotip__bubble p { margin: 0; }
+.infotip__bubble p + p { margin-top: var(--s1); }
+
+.field__error {
+  margin: 0;
+  font-size: var(--text-subtext);
+  font-weight: 600;
+  color: var(--status-retracted);
+}
+
 .field__hint,
 .field__note {
   margin: 0;
@@ -392,6 +453,7 @@ select.field__input {
   color: var(--ink);
   cursor: pointer;
 }
+.radio-group__item { display: inline-flex; align-items: center; gap: 0.15rem; }
 .radio-group__option input {
   width: 1rem;
   height: 1rem;
@@ -401,7 +463,8 @@ select.field__input {
 /* ---- Repeating entries -------------------------------------------------- */
 
 /* A group within the card, not a card of its own. */
-.form-entry + .form-entry {
+.form-entry + .form-entry,
+.form-add + .form-entry {
   margin-top: var(--s3);
   padding-top: var(--s3);
   border-top: 1px solid var(--entry-rule);
@@ -568,6 +631,14 @@ select.field__input {
   overflow: hidden;
 }
 .upload__image { max-width: 100%; max-height: 100%; object-fit: contain; }
+.upload__file { min-width: 0; text-align: center; }
+.upload__file-name {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
 .upload__preview-actions { display: flex; gap: var(--s3); }
 .upload__action {
   padding: 0;
@@ -599,8 +670,14 @@ select.field__input {
   cursor: pointer;
 }
 .notes-toggle:hover { border-color: var(--teal); color: var(--teal); }
+.notes__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s3);
+}
 .notes__remove {
-  align-self: flex-start;
+  flex-shrink: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -616,7 +693,7 @@ select.field__input {
 /* A footer under the entries, separated from them. */
 .form-add {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   margin-top: var(--s3);
   padding-top: var(--s3);
   border-top: 1px solid var(--line);
@@ -624,6 +701,7 @@ select.field__input {
 /* Belongs to the group above it rather than closing the section, so it takes
    neither the rule nor the space. */
 .form-add--inline {
+  justify-content: flex-start;
   margin-top: var(--s2);
   padding-top: 0;
   border-top: 0;

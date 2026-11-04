@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import {
   useCabinetEntry,
   useDeleteChemical,
-  useGroupDashboard,
+  useGroup,
 } from "@/api/hooks";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RecordDetail from "@/components/RecordDetail";
@@ -19,7 +19,7 @@ const ChemicalDetail = ({
   groupId: number;
   entryId: number;
 }) => {
-  const { group } = useGroupDashboard(groupId);
+  const { data: group } = useGroup(groupId);
   const { isPending, error, data } = useCabinetEntry(groupId, entryId);
   const [editing, setEditing] = useState(false);
   const [removing, setRemoving] = useState(false);
