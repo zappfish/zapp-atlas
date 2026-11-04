@@ -869,15 +869,22 @@ select.field__input {
   cursor: pointer;
 }
 .substance__search:hover { background: var(--teal-tint); }
-/* The phenotype field until chosen: sunken like the chemical's, its content
-   centred at half width, at least 20rem. */
-.field:has(> .substance__search) {
-  padding-block: var(--s3);
-  padding-inline: max(var(--s3), min(25%, (100% - 20rem) / 2));
+/* The phenotype field until chosen: a sunken panel around a full-width
+   Search ChEBI-style button. */
+.field:has(> .phenotype-choose) {
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+  padding: var(--s4) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-sunken);
 }
+.phenotype-choose {
+  justify-content: flex-start;
+  padding: var(--s3);
+  font-size: var(--text-base);
+}
+.phenotype-choose > .icon--chevron { margin-left: auto; color: var(--muted); }
 .field > .substance { margin-bottom: 0; }
 
 /* The chemical once chosen, in place of the two ways of choosing it. */

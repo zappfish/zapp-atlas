@@ -418,6 +418,8 @@ export const SubstanceBack = styled("button", "substance__back");
 export const SubstanceChoices = styled("div", "substance__choices");
 export const SubstanceOr = styled("span", "substance__or");
 export const SubstanceSearch = styled("button", "substance__search");
+/** Search ChEBI's button, full width with a chevron. */
+export const PhenotypeChoose = styled("button", "substance__search phenotype-choose");
 
 /* ---- choosing a phenotype ---- */
 

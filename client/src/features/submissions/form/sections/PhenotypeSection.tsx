@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useState } from "react";
 import type { OBOGraphNode } from "frogpot";
 import Modal from "@/components/Modal";
-import { SearchIcon } from "@/components/icons";
+import { ChevronIcon, SearchIcon } from "@/components/icons";
 import {
   AddButton,
   AddRow,
@@ -32,7 +32,7 @@ import {
   SubstanceId,
   SubstanceName,
   SubstanceNames,
-  SubstanceSearch,
+  PhenotypeChoose,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -140,14 +140,15 @@ const Observation = ({
                       </SubstanceChosen>
                     </SubstanceCard>
                   ) : (
-                    <SubstanceSearch
+                    <PhenotypeChoose
                       type="button"
                       aria-describedby={labelId}
                       onClick={() => setIsPicking(true)}
                     >
                       <SearchIcon />
                       Choose a phenotype
-                    </SubstanceSearch>
+                      <ChevronIcon />
+                    </PhenotypeChoose>
                   )}
                   <FieldNote>
                     Term not represented correctly? Request a new synonym — TBD
