@@ -260,7 +260,7 @@ def load_alleles(features: Path, affected_genes: Path, db: sqlite3.Connection) -
 
 
 def load_genotypes(path: Path, db: sqlite3.Connection) -> None:
-    genotypes: dict[str, tuple[str, str]] = {}  # id -> (name, unique name)
+    genotypes: dict[str, tuple[str, str]] = {}
     alleles: dict[str, dict[str, tuple[str, str]]] = defaultdict(
         dict
     )  # id -> allele -> (symbol, zygosity)
@@ -363,6 +363,76 @@ def write_meta(db: sqlite3.Connection, zfin_date: str) -> dict[str, int]:
     return counts
 
 
+# What must hold for the lookups to be trustworthy. Each query counts rows
+# that violate the statement, so 0 is a pass. Checked after every build: a
+# change in how ZFIN lays out a file should fail here, not surface as silent
+# gaps in the picker.
+INVARIANTS = {
+    "every fish's genotype is a known genotype": """
+        SELECT count(*) FROM fish f
+        WHERE NOT EXISTS (SELECT 1 FROM genotype g WHERE g.genotype_id = f.genotype_id)""",
+    "every allele in a genotype is a known allele": """
+        SELECT count(*) FROM genotype_allele ga
+        WHERE NOT EXISTS (SELECT 1 FROM allele a WHERE a.allele_id = ga.allele_id)""",
+    "every background is a wild-type genotype": """
+        SELECT count(*) FROM background b
+        WHERE NOT EXISTS (SELECT 1 FROM wildtype w WHERE w.genotype_id = b.background_id)""",
+    "wild-type genotypes carry no alleles": """
+        SELECT count(*) FROM genotype_allele ga
+        WHERE EXISTS (SELECT 1 FROM wildtype w WHERE w.genotype_id = ga.genotype_id)""",
+    "every other genotype carries at least one allele": """
+        SELECT count(*) FROM genotype g
+        WHERE NOT EXISTS (SELECT 1 FROM genotype_allele ga WHERE ga.genotype_id = g.genotype_id)
+          AND NOT EXISTS (SELECT 1 FROM wildtype w WHERE w.genotype_id = g.genotype_id)""",
+    # So a genotype id determines the fish id when no reagent is injected.
+    "a genotype has at most one reagent-free fish": """
+        SELECT count(*) FROM (
+            SELECT genotype_id FROM fish f
+            WHERE NOT EXISTS (SELECT 1 FROM fish_reagent fr WHERE fr.fish_id = f.fish_id)
+            GROUP BY genotype_id HAVING count(*) > 1)""",
+    "every reagent targets a gene": """
+        SELECT count(*) FROM reagent r
+        WHERE NOT EXISTS (SELECT 1 FROM reagent_gene rg WHERE rg.reagent_id = r.reagent_id)""",
+}
+
+# Parsing that degrades rather than fails: the share of rows it must cover.
+# A ZFIN layout change that broke one of these would otherwise go unnoticed.
+COVERAGE = {
+    "genotype alleles with parental zygosity parsed from the unique name": (
+        "SELECT count(*) FROM genotype_allele WHERE mother_zygosity IS NOT NULL",
+        "SELECT count(*) FROM genotype_allele",
+        0.8,
+    ),
+    "alleles linked to a gene": (
+        "SELECT count(DISTINCT allele_id) FROM allele_gene",
+        "SELECT count(*) FROM allele",
+        0.5,
+    ),
+    "genotypes with a registered fish": (
+        "SELECT count(DISTINCT genotype_id) FROM fish",
+        "SELECT count(*) FROM genotype",
+        0.95,
+    ),
+}
+
+
+def check(db: sqlite3.Connection) -> list[str]:
+    """Problems with the built database; empty when every invariant holds."""
+    problems = []
+    for table in ("wildtype", "allele", "genotype", "fish", "reagent"):
+        if db.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0:
+            problems.append(f"no rows in {table}")
+    for statement, sql in INVARIANTS.items():
+        if violations := db.execute(sql).fetchone()[0]:
+            problems.append(f"{statement}: {violations} violations")
+    for statement, (covered_sql, total_sql, minimum) in COVERAGE.items():
+        covered = db.execute(covered_sql).fetchone()[0]
+        total = db.execute(total_sql).fetchone()[0]
+        if total and covered / total < minimum:
+            problems.append(f"{statement}: {covered} of {total}, below {minimum:.0%}")
+    return problems
+
+
 def main(
     output: Annotated[Path, typer.Argument(help="SQLite database to write")],
     zfin_dir: Annotated[Path, typer.Argument(help="Directory holding the ZFIN downloads")],
@@ -384,8 +454,13 @@ def main(
         load_fish(zfin_dir / INPUTS[4], db)
         build_fts(db)
         counts = write_meta(db, zfin_date)
+    problems = check(db)
     db.execute("VACUUM")
     db.close()
+    if problems:
+        for problem in problems:
+            typer.echo(f"{output}: {problem}", err=True)
+        raise typer.Exit(1)
     typer.echo(
         f"{output}: " + ", ".join(f"{n} {table}" for table, n in counts.items()),
         err=True,
