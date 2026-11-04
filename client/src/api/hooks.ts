@@ -90,6 +90,13 @@ export const useChemicalNames = (chebiIds: string[]) =>
       new Map(chebiIds.map((id, i) => [id, results[i]?.data?.label ?? id])),
   });
 
+/** A group on its own, for pages that need only its name. */
+export const useGroup = (groupId: number) =>
+  useQuery({
+    queryKey: keys.group(groupId),
+    queryFn: ({ signal }) => fetchGroup(groupId, signal),
+  });
+
 /** A group's cabinet on its own, for anything that needs it without the page. */
 export const useCabinet = (groupId: number) =>
   useQuery({

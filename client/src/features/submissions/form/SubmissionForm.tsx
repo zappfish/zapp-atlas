@@ -1,7 +1,7 @@
 import { useCallback, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link } from "react-router";
-import { useGroupDashboard } from "@/api/hooks";
+import { useGroup } from "@/api/hooks";
 import {
   CrumbSeparator,
   Crumbs,
@@ -45,7 +45,7 @@ const SECTION_BODIES: Record<SectionSlug, (groupId: number) => ReactNode> = {
 
 /** Where the form was started from, when it was started from a group. */
 const GroupCrumbs = ({ groupId }: { groupId: number }) => {
-  const { group } = useGroupDashboard(groupId);
+  const { data: group } = useGroup(groupId);
 
   return (
     <Crumbs aria-label="Breadcrumb">
