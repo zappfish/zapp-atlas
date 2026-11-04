@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -44,3 +46,27 @@ def client(tmp_path) -> TestClient:
     # point it at the same test database.
     app.state.session_factory = SessionLocal
     return TestClient(app)
+
+
+@pytest.fixture(scope="session")
+def zfin_db(tmp_path_factory) -> Path:
+    """zfin.db built from tests/zfin_fixture by the real extdata builder."""
+    import subprocess
+
+    repo = Path(__file__).resolve().parents[2]
+    output = tmp_path_factory.mktemp("zfin") / "zfin.db"
+    subprocess.run(
+        [
+            "uv",
+            "run",
+            "--quiet",
+            "--script",
+            str(repo / "extdata" / "scripts" / "zfin_db.py"),
+            str(output),
+            str(Path(__file__).parent / "zfin_fixture"),
+            "--zfin-date",
+            "2026.11.01",
+        ],
+        check=True,
+    )
+    return output

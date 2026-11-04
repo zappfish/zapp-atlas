@@ -32,6 +32,7 @@ from zapp_atlas.html.router import router as html_router
 from zapp_atlas.labels import Labels
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
+from zapp_atlas.zfin import Zfin
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     )
     app.state.settings = settings or load_settings()
     app.state.labels = Labels(app.state.settings.extdata_dir / "labels.db")
+    app.state.zfin = Zfin(app.state.settings.extdata_dir / "zfin.db")
 
     @app.exception_handler(SchemaRuleViolation)
     def _schema_rule_violation(request: Request, exc: SchemaRuleViolation) -> JSONResponse:
