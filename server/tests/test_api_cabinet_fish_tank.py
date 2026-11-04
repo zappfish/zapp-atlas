@@ -333,6 +333,66 @@ def test_cabinet_conflict_names_the_key_that_was_broken(client: TestClient, monk
     assert "chemical" in res.json()["detail"]
 
 
+def test_cabinet_grain_includes_the_supplier(client: TestClient) -> None:
+    """One entry per stock on the shelf: the same chemical from two suppliers
+    coexists (a supplier transition), the same stock twice is a conflict —
+    including twice with no supplier, which the unique index cannot see
+    (every NULL is distinct to SQLite) and the service catches instead."""
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    sigma = {"chemical_id": BPA, "manufacturer": "sigma_aldrich"}
+    fisher = {"chemical_id": BPA, "manufacturer": "fisher_scientific"}
+    assert client.post(url, json=sigma).status_code == 201
+    assert client.post(url, json=fisher).status_code == 201
+    assert client.post(url, json=sigma).status_code == 409
+    assert client.post(url, json={"chemical_id": BPA}).status_code == 201
+    assert client.post(url, json={"chemical_id": BPA}).status_code == 409
+
+    # Patching one supplier's entry onto the other is the same conflict.
+    listed = client.get(url).json()
+    fisher_id = next(e["id"] for e in listed if e["manufacturer"] == "fisher_scientific")
+    res = client.patch(f"{url}/{fisher_id}", json={"manufacturer": "sigma_aldrich"})
+    assert res.status_code == 409, res.text
+
+
+def test_cabinet_entry_round_trips_supplier_and_vehicle(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    created = client.post(
+        url,
+        json={
+            "chemical_id": BPA,
+            "manufacturer": "other_not_listed",
+            "unrecognized_manufacturer_name": "Bob's Chemical Shack",
+            "vehicle_type": "dmso",
+        },
+    )
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["manufacturer"] == "other_not_listed"
+    assert body["unrecognized_manufacturer_name"] == "Bob's Chemical Shack"
+    assert body["vehicle_type"] == "dmso"
+
+
+def test_cabinet_rejects_unnameable_escape_hatches(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    # An other_not_listed manufacturer with no name records no supplier at all.
+    res = client.post(url, json={"chemical_id": BPA, "manufacturer": "other_not_listed"})
+    assert res.status_code == 422, res.text
+    # The entry has no slot to name an unlisted vehicle with, so the escape
+    # hatch VehicleOfTransmission allows is rejected here outright.
+    res = client.post(url, json={"chemical_id": BPA, "vehicle_type": "other_not_listed"})
+    assert res.status_code == 422, res.text
+    assert client.get(url).json() == []
+
+
 def test_cabinet_delete(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)

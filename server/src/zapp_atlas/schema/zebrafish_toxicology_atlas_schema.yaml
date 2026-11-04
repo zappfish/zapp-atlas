@@ -334,13 +334,19 @@ classes:
     is_a: ZappEntity
     description: >-
       A chemical a research group keeps on hand. Recorded once, then reused to
-      pre-fill curation instead of re-searching the chemical each time.
+      pre-fill curation instead of re-searching the chemical each time. An
+      entry is one stock on the shelf: the same chemical from two suppliers is
+      two entries, so both can be picked while a group transitions between
+      suppliers.
     annotations:
       timestamped: true
     slots:
       - research_group
       - chemical_id
       - nickname
+      - manufacturer
+      - unrecognized_manufacturer_name
+      - vehicle_type
     slot_usage:
       chemical_id:
         required: true
@@ -349,11 +355,40 @@ classes:
           What the group calls this chemical, e.g. "BPA stock". Optional; when
           given it is what the chemical is listed under when pre-filling a
           submission, and no two entries in the group may share it.
+      manufacturer:
+        description: >-
+          The supplier this stock comes from. Optional, and part of the cabinet
+          grain: entries for the same chemical are told apart by it.
+      vehicle_type:
+        required: false
+        description: >-
+          The vehicle the group habitually delivers this chemical in, offered
+          as a pre-fill default and corrected per submission like any other.
+          other_not_listed is not accepted here, because the entry has no slot
+          to name an unlisted vehicle with.
+    rules:
+      - description: >-
+          Picking the other_not_listed manufacturer escape hatch means the
+          supplier has to be named in free text; without it the entry records
+          no recoverable supplier at all.
+        preconditions:
+          slot_conditions:
+            manufacturer:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_manufacturer_name:
+              required: true
     unique_keys:
-      cabinet_grain:
+      cabinet_supplier_grain:
+        description: >-
+          Replaces cabinet_grain, which did not include manufacturer. The index
+          is matched by name on deployed databases, so the widened key needs a
+          new one, and db/migrate.py drops the old index.
         unique_key_slots:
           - research_group
           - chemical_id
+          - manufacturer
       cabinet_nickname_grain:
         unique_key_slots:
           - research_group

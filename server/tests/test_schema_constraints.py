@@ -55,11 +55,28 @@ def assert_second_insert_rejected(session: Session, row: Callable[[], object]) -
     session.rollback()
 
 
-def test_cabinet_grain_is_unique_per_group_and_chemical(session, group):
+def test_cabinet_grain_is_unique_per_group_chemical_and_supplier(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL),
+        lambda: ChemicalCabinetEntry(
+            research_group=group.id, chemical_id=ETHANOL, manufacturer="sigma_aldrich"
+        ),
     )
+
+
+def test_cabinet_may_stock_a_chemical_from_two_suppliers(session, group):
+    for supplier in ("sigma_aldrich", "fisher_scientific", None):
+        session.add(
+            ChemicalCabinetEntry(
+                research_group=group.id, chemical_id=ETHANOL, manufacturer=supplier
+            )
+        )
+    session.commit()
+
+    # Note the None row: the index treats every NULL as distinct, so a second
+    # supplier-less duplicate would NOT be rejected here — the cabinet service
+    # is what catches that one.
+    assert session.query(ChemicalCabinetEntry).count() == 3
 
 
 def test_cabinet_nickname_is_unique_per_group(session, group):

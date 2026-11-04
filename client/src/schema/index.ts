@@ -479,7 +479,7 @@ export interface ResearchGroupMember extends ZappEntity {
 
 
 /**
- * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+ * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time. An entry is one stock on the shelf: the same chemical from two suppliers is two entries, so both can be picked while a group transitions between suppliers.
  */
 export interface ChemicalCabinetEntry extends ZappEntity {
     /** The research group an entry belongs to. */
@@ -488,6 +488,12 @@ export interface ChemicalCabinetEntry extends ZappEntity {
     chemical_id: string,
     /** What the group calls this chemical, e.g. "BPA stock". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it. */
     nickname?: string,
+    /** The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it. */
+    manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
+    /** The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with. */
+    vehicle_type?: string,
 }
 
 

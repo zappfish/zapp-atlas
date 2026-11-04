@@ -3,7 +3,17 @@
   "$defs": {
     "ChemicalCabinetEntry": {
       "additionalProperties": false,
-      "description": "A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.",
+      "description": "A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time. An entry is one stock on the shelf: the same chemical from two suppliers is two entries, so both can be picked while a group transitions between suppliers.",
+      "if": {
+        "properties": {
+          "manufacturer": {
+            "const": "other_not_listed"
+          }
+        },
+        "required": [
+          "manufacturer"
+        ]
+      },
       "properties": {
         "chemical_id": {
           "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
@@ -12,6 +22,10 @@
         "id": {
           "description": "Auto-generated integer identifier.",
           "type": "integer"
+        },
+        "manufacturer": {
+          "$ref": "#/$defs/ManufacturerEnum",
+          "description": "The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it."
         },
         "nickname": {
           "description": "What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.",
@@ -24,6 +38,17 @@
         "research_group": {
           "description": "The research group an entry belongs to.",
           "type": "integer"
+        },
+        "unrecognized_manufacturer_name": {
+          "description": "Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vehicle_type": {
+          "$ref": "#/$defs/VehicleEnum",
+          "description": "The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with."
         }
       },
       "required": [
@@ -31,6 +56,14 @@
         "chemical_id",
         "id"
       ],
+      "then": {
+        "properties": {
+          "unrecognized_manufacturer_name": {}
+        },
+        "required": [
+          "unrecognized_manufacturer_name"
+        ]
+      },
       "title": "ChemicalCabinetEntry",
       "type": "object"
     },
