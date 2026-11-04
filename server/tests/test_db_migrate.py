@@ -263,6 +263,56 @@ def test_rows_that_break_a_new_key_are_reported_and_the_app_still_starts(
     assert NICKNAME_INDEXES["Study"] in {i["name"] for i in inspect(engine).get_indexes("Study")}
 
 
+@pytest.fixture
+def pre_supplier_db(tmp_path):
+    """A database from before the cabinet grain included the supplier (#175).
+
+    The generic column step covers the three new optional columns; what needs
+    its own step is the old ``cabinet_grain`` index, which nothing else drops
+    and which would keep rejecting a second supplier of the same chemical.
+    """
+    path = tmp_path / "zapp.db"
+    init_db(create_engine(f"sqlite:///{path}"))
+
+    con = sqlite3.connect(path)
+    con.executescript(
+        """
+        DROP INDEX "uq_ChemicalCabinetEntry_cabinet_supplier_grain";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "manufacturer";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "unrecognized_manufacturer_name";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "vehicle_type";
+        CREATE UNIQUE INDEX "uq_ChemicalCabinetEntry_cabinet_grain"
+            ON "ChemicalCabinetEntry" (research_group, chemical_id);
+        INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
+        INSERT INTO "ChemicalCabinetEntry" (id, research_group, chemical_id)
+            VALUES (1, 1, 'CHEBI:33216');
+        """
+    )
+    con.commit()
+    con.close()
+    return path
+
+
+def test_migrate_widens_the_cabinet_grain_to_the_supplier(pre_supplier_db) -> None:
+    engine = create_engine(f"sqlite:///{pre_supplier_db}")
+
+    migrate(engine)
+
+    indexes = {i["name"]: i for i in inspect(engine).get_indexes("ChemicalCabinetEntry")}
+    assert "uq_ChemicalCabinetEntry_cabinet_grain" not in indexes
+    widened = indexes["uq_ChemicalCabinetEntry_cabinet_supplier_grain"]
+    assert widened["unique"]
+    assert widened["column_names"] == ["research_group", "chemical_id", "manufacturer"]
+    # The stored row survived, and a second supplier of its chemical now fits.
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO ChemicalCabinetEntry (research_group, chemical_id, manufacturer) "
+                "VALUES (1, 'CHEBI:33216', 'sigma_aldrich')"
+            )
+        )
+
+
 def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:
     engine = create_engine(f"sqlite:///{tmp_path / 'fresh.db'}")
     init_db(engine)  # already runs migrate once

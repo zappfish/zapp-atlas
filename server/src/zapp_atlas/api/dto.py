@@ -11,9 +11,9 @@ expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
 
 A cabinet entry may carry a ``nickname`` (#113): what the group calls the
 chemical, and what it is listed under when picked. ``Nickname`` is the one
-definition of what counts as one, shared with the study service. Fields for
-#114 (``manufacturer``/``vehicle``) are intentionally absent; the shapes leave
-room to add them later.
+definition of what counts as one, shared with the study service. It may also
+carry a ``manufacturer`` (#175) — part of the cabinet grain, so the same
+chemical from two suppliers is two entries — and a ``vehicle_type`` default.
 """
 
 from __future__ import annotations
@@ -30,7 +30,11 @@ from pydantic import (
     field_validator,
 )
 
-from zapp_atlas.schema.pydantic_crud import ResearchGroupRoleEnum
+from zapp_atlas.schema.pydantic_crud import (
+    ManufacturerEnum,
+    ResearchGroupRoleEnum,
+    VehicleEnum,
+)
 
 # Accepts a bare ORCID or an ``ORCID:`` CURIE; the service normalizes to CURIE.
 _ORCID_RE = re.compile(r"^(ORCID:)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
@@ -80,12 +84,19 @@ Nickname = Annotated[
     BeforeValidator(blank_to_none),
 ]
 
+# Free text that collapses blank to absent, so a rule requiring it (the
+# ``other_not_listed`` escape hatches) cannot be satisfied with whitespace.
+FreeText = Annotated[str | None, BeforeValidator(blank_to_none)]
+
 
 class CabinetEntryIn(BaseModel):
     """Add a chemical to a group's cabinet. ``research_group`` is path-derived."""
 
     chemical_id: str
     nickname: Nickname = None
+    manufacturer: ManufacturerEnum | None = None
+    unrecognized_manufacturer_name: FreeText = None
+    vehicle_type: VehicleEnum | None = None
 
 
 class CabinetEntryPatch(BaseModel):
@@ -94,12 +105,18 @@ class CabinetEntryPatch(BaseModel):
 
     chemical_id: str | None = None
     nickname: Nickname = None
+    manufacturer: ManufacturerEnum | None = None
+    unrecognized_manufacturer_name: FreeText = None
+    vehicle_type: VehicleEnum | None = None
 
 
 class CabinetEntryOut(_FromAttributes):
     id: int
     chemical_id: str
     nickname: str | None
+    manufacturer: ManufacturerEnum | None
+    unrecognized_manufacturer_name: str | None
+    vehicle_type: VehicleEnum | None
     created_at: datetime | None
     updated_at: datetime | None
 
