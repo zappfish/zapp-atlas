@@ -50,10 +50,14 @@ const CabinetSection = ({
   groupId,
   entries,
   isPending,
+  error,
+  onRetry,
 }: {
   groupId: number;
   entries: CabinetEntry[];
   isPending: boolean;
+  error: Error | null;
+  onRetry: () => void;
 }) => {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -72,6 +76,8 @@ const CabinetSection = ({
         title="Chemical Cabinet"
         rows={toRows(entries)}
         isPending={isPending}
+        error={error}
+        onRetry={onRetry}
         emptyText="Add a chemical to this group's cabinet."
         actions={
           <button

@@ -15,6 +15,7 @@ import { emptyImage, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { ImageUpload, Measure } from "../imageEntry";
 import { MEASURES } from "../measures";
+import { UPLOAD_INFO } from "../explanations";
 
 const ImageEntry = ({
   n,
@@ -39,7 +40,10 @@ const ImageEntry = ({
       </EntryHead>
 
       <EntryBody>
-        <ImageUpload name={`images.${index}.file`} />
+        <ImageUpload
+          name={`images.${index}.file`}
+          info={<p>{UPLOAD_INFO}</p>}
+        />
 
         <EntryMeta>
           {MEASURES.map(({ field, unitField, ...measure }) => (
@@ -55,7 +59,7 @@ const ImageEntry = ({
             {(id) => (
               <TextInput
                 id={id}
-                placeholder="Enter text"
+                placeholder="e.g. Zeiss Axio Imager"
                 {...register(`images.${index}.microscope`)}
               />
             )}

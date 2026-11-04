@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useDeleteFish, useFishEntry, useGroupDashboard } from "@/api/hooks";
+import { useDeleteFish, useFishEntry, useGroup } from "@/api/hooks";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RecordDetail from "@/components/RecordDetail";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
@@ -14,7 +14,7 @@ const FishDetail = ({
   groupId: number;
   entryId: number;
 }) => {
-  const { group } = useGroupDashboard(groupId);
+  const { data: group } = useGroup(groupId);
   const { isPending, error, data } = useFishEntry(groupId, entryId);
   const [removing, setRemoving] = useState(false);
   const deleteFish = useDeleteFish(groupId);

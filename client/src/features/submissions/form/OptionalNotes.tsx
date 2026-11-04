@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useFormContext, type FieldPath } from "react-hook-form";
 import {
   EntryFooter,
+  FieldHint,
   Notes,
+  NotesFoot,
   NotesRemove,
   NotesToggle,
   TextArea,
@@ -22,9 +24,12 @@ const OptionalNotes = ({ name }: { name: FieldPath<Submission> }) => {
           <Field label="Notes">
             {(id) => <TextArea id={id} rows={3} {...register(name)} />}
           </Field>
-          <NotesRemove type="button" onClick={() => setIsOpen(false)}>
-            Remove notes
-          </NotesRemove>
+          <NotesFoot>
+            <FieldHint>These notes will be publicly visible in the Atlas.</FieldHint>
+            <NotesRemove type="button" onClick={() => setIsOpen(false)}>
+              Remove notes
+            </NotesRemove>
+          </NotesFoot>
         </Notes>
       ) : (
         <NotesToggle type="button" onClick={() => setIsOpen(true)}>
