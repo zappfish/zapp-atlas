@@ -56,6 +56,14 @@
 }
 /* Wide enough for a list of results and what has been staged from it. */
 .modal--wide { width: min(48rem, calc(100vw - 2rem)); }
+/* Near full screen, for a picker with panes that scroll on their own: its
+   body takes the height left between the head and the foot. */
+.modal--large {
+  width: min(80rem, calc(100vw - 2rem));
+  height: calc(100vh - 4rem);
+}
+.modal--large .modal__panel--flush { height: 100%; }
+.modal--large .modal__body { flex: 1; min-height: 0; }
 
 /* Banded rather than one column: the heading and the actions stay put while
    the middle scrolls. */

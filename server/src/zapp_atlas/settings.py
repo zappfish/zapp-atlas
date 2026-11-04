@@ -9,6 +9,9 @@ DEFAULT_DATA_DIR = PACKAGE_DIR / "db" / "data"
 DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "zapp.db"
 DEFAULT_UPLOAD_DIR = DEFAULT_DATA_DIR / "uploads"
 DEFAULT_CHEM_CACHE_PATH = DEFAULT_DATA_DIR / "chebi_and_vehicle_cache.db"
+# The ontology bundle built by extdata/ at the repo root (see its README).
+# The Docker image puts it at the same place relative to the package.
+DEFAULT_EXTDATA_DIR = PACKAGE_DIR.parents[2] / "extdata" / "dist"
 DEFAULT_MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 DEFAULT_ORCID_BASE_URL = "https://orcid.org"
 DEFAULT_ORCID_REDIRECT_URI = "http://127.0.0.1:8000/registered"
@@ -31,6 +34,10 @@ class AppSettings(BaseSettings):
     # Prebuilt ChEBI lookup cache (`python -m zapp_atlas.chem.build_cache`).
     # Optional: without it the chemical picker falls back to NodeNorm alone.
     chem_cache_path: Path = DEFAULT_CHEM_CACHE_PATH
+
+    # Built ontology bundle (`just extdata`). Optional: without it /extdata
+    # answers 404 and the rest of the app is unaffected.
+    extdata_dir: Path = DEFAULT_EXTDATA_DIR
 
     aws_endpoint_url_s3: str | None = None
     bucket_name: str | None = None

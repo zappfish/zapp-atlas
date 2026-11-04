@@ -33,6 +33,7 @@ being a separate website that happens to share a domain.
 zapp-atlas/
 ├── server/            FastAPI backend + LinkML schema (source of truth)
 ├── client/            React + Vite + TypeScript editing SPA (served at /edit)
+├── extdata/           Offline build of the read-only ontology bundle (served at /extdata)
 ├── legacy/            Archived Flask server + first-pass React demo (NOT wired in)
 ├── scripts/           One-off / operational scripts
 ├── Justfile           Task runner (dev, test, seed, docker, GCP deploy)
@@ -95,6 +96,8 @@ server/src/zapp_atlas/
 | `POST /auth/dev/login` | `auth` router | dev-only fake sign-in (see below) |
 | `/api/{studies,experiments,exposures,observations,images}` | `api` routers | JSON CRUD |
 | `/api/chemicals/{autocomplete,normalize,vehicle-info}` | `api` chemicals router | read-only chemical lookups (NodeNorm + ChEBI cache) |
+| `GET /extdata/manifest.json` | `extdata` router | the ontology bundle's hash and versions (not cached) |
+| `GET /extdata/<hash>/*` | `extdata` router | ontology files for the client, immutable per hash |
 | `GET /health` | `main` | `{"status":"ok"}` |
 
 Route order matters in `create_app`: the `/edit/assets` mount is registered
@@ -242,7 +245,14 @@ just dev-api-hmr                       # uvicorn, pointed at Vite
 just test          # pytest
 just seed          # reseed the dev database
 just build-client  # emit client/dist for production-style serving
+just extdata       # build the ontology bundle into extdata/dist (docker)
 ```
+
+The ontology bundle is built offline from pinned upstream releases, never at
+runtime: ZP and ZFA as OBO JSON for the client, and `labels.db`, a CURIE ->
+label table the server reads through `zapp_atlas/labels.py`. Without it the
+app still runs, but `/extdata` answers 404 and label lookups fall back to the
+CURIE. See [extdata/README.md](extdata/README.md).
 
 Schema regeneration after editing the LinkML YAML: `cd server && make schema`.
 
@@ -264,6 +274,12 @@ who asks. To exercise the real flow, register a sandbox app at
 Containerized via `Dockerfile`. Targets: **Fly.io** (`fly.toml`) and **GCP Cloud
 Run** (the `gcp-build` / `gcp-deploy` / `gcp-ship` recipes in the `Justfile`,
 with the SQLite DB and uploads on a mounted Cloud Storage volume).
+
+The image includes the ontology bundle from `extdata/dist`, so a local image
+build needs `just extdata` first. The deploy workflows put it there
+themselves: they download the GitHub release `extdata-<hash>` for the
+current inputs, or build it, and production deploys publish what they built.
+See [extdata/README.md](extdata/README.md#deployment).
 
 ## Conventions and current state
 

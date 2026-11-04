@@ -26,6 +26,7 @@ import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
 export const keys = {
+  zpGraph: ["extdata", "zp-graph"] as const,
   chemicalSearch: (q: string) => ["chemicals", "search", q] as const,
   chemical: (id: string) => ["chemicals", id] as const,
   chemicalByCurie: (curie: string) => ["chemicals", "by-curie", curie] as const,

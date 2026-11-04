@@ -17,6 +17,7 @@ just lint          # ruff check + ruff format --check (no changes written)
 just fix           # ruff check --fix + ruff format (applies changes)
 just build-client  # emit client/dist
 just seed          # reseed the dev database
+just extdata       # build the ontology bundle (docker; see extdata/README.md)
 ```
 
 Client lint/build: `cd client && npm run lint` / `npm run build`.
