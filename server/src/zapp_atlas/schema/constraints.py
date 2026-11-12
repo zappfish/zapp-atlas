@@ -7,8 +7,6 @@ multivalued scalar slots without a delete cascade, which is fixed up here for
 the same reason. Delete this module once the generator supports them.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -17,8 +15,7 @@ from linkml_runtime.linkml_model.meta import ClassDefinition
 from sqlalchemy import Column, DateTime, Index, Table, inspect
 
 from zapp_atlas.schema._gen.sqla import Base
-
-SCHEMA_PATH = Path(__file__).resolve().parent / "zebrafish_toxicology_atlas_schema.yaml"
+from zapp_atlas.schema.view import SCHEMA_PATH
 
 TIMESTAMPED = "timestamped"
 
