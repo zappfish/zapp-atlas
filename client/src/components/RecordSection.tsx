@@ -3,6 +3,7 @@ import {
   Count,
   Empty,
   EmptyText,
+  EmptyTitle,
   MoreButton,
   RowActions,
   Row as RowBox,
@@ -43,9 +44,19 @@ const RecordRow = ({ row, actions }: { row: Row; actions?: ReactNode }) => (
   </RowBox>
 );
 
-const EmptyState = ({ text }: { text: string }) => (
+const EmptyState = ({
+  title,
+  text,
+  action,
+}: {
+  title?: string;
+  text: string;
+  action?: ReactNode;
+}) => (
   <Empty>
+    {title && <EmptyTitle>{title}</EmptyTitle>}
     <EmptyText>{text}</EmptyText>
+    {action}
   </Empty>
 );
 
@@ -79,6 +90,8 @@ const RecordSection = ({
   title,
   rows,
   emptyText,
+  emptyTitle,
+  emptyAction,
   isPending = false,
   error = null,
   onRetry,
@@ -91,6 +104,9 @@ const RecordSection = ({
   rows: Row[];
   /** Unused while pending. */
   emptyText?: string;
+  /** Title and action inside the empty box, as Submissions lays it out. */
+  emptyTitle?: string;
+  emptyAction?: ReactNode;
   isPending?: boolean;
   error?: Error | null;
   onRetry?: () => void;
@@ -119,7 +135,11 @@ const RecordSection = ({
       ) : error ? (
         <LoadError title={title} onRetry={onRetry} />
       ) : rows.length === 0 ? (
-        <EmptyState text={emptyText ?? ""} />
+        <EmptyState
+          title={emptyTitle}
+          text={emptyText ?? ""}
+          action={emptyAction}
+        />
       ) : (
         <>
           <Rows>

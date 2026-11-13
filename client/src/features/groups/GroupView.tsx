@@ -15,6 +15,7 @@ import {
 import CabinetSection from "./CabinetSection";
 import MembersForm from "./MembersForm";
 import FishTankSection from "./FishTankSection";
+import StudiesSection from "./StudiesSection";
 
 /**
  * One research group. Each section owns its own records and the dialogs that
@@ -73,6 +74,8 @@ const GroupView = ({ groupId }: { groupId: number }) => {
         error={cabinet.error}
         onRetry={cabinet.retry}
       />
+
+      <StudiesSection groupId={groupId} />
 
       <Submissions
         submissions={[]}

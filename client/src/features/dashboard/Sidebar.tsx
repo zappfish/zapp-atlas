@@ -82,6 +82,7 @@ const GroupItem = ({
 const SECTIONS = [
   { slug: "fish-tank", label: "Fish Tank" },
   { slug: "chemical-cabinet", label: "Chemical Cabinet" },
+  { slug: "studies", label: "Studies" },
   { slug: "submissions", label: "Submissions" },
 ];
 

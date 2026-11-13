@@ -3,6 +3,11 @@
 
 import type { Submission } from "./submission";
 import { get, type FieldPath } from "react-hook-form";
+import {
+  PUBLICATION_HINTS,
+  isPublicationType,
+  toPublication,
+} from "@/publication";
 import { stageAt } from "./stages";
 
 interface Check {
@@ -34,24 +39,14 @@ export const PERCENT: Check = {
   },
 };
 
-/** Sources that are Study.publication, and so take an identifier. */
-export const PUBLISHED_SOURCES = ["PMID", "DOI"];
-
-const PMID_FORMAT = /^(PMID:)?\d+$/i;
-const DOI_FORMAT = /^(doi:\s*|https?:\/\/(dx\.)?doi\.org\/)?10\.\d{4,9}\/\S+$/i;
-
 export const PUBLICATION: Check = {
   validate: (value, values) => {
-    if (isBlank(value)) return true;
-    const text = (value as string).trim();
-    switch (values.provenance.sourceType) {
-      case "PMID":
-        return PMID_FORMAT.test(text) || "Enter a PubMed ID, e.g. 41812223.";
-      case "DOI":
-        return DOI_FORMAT.test(text) || "Enter a DOI, e.g. 10.1000/xyz123.";
-      default:
-        return true;
-    }
+    const type = values.provenance.sourceType;
+    if (isBlank(value) || !isPublicationType(type)) return true;
+    return (
+      toPublication(type, value as string) !== null ||
+      PUBLICATION_HINTS[type].message
+    );
   },
 };
 

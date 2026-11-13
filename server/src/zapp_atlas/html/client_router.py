@@ -106,6 +106,10 @@ def make_client_router(dist_dir: Path) -> APIRouter:
         "/research-groups/{group_id}/chemical-cabinet/{entry_id}",
         response_class=HTMLResponse,
     )
+    @router.get(
+        "/research-groups/{group_id}/studies/{entry_id}",
+        response_class=HTMLResponse,
+    )
     def record_detail_page(
         request: Request,
         identity: CurrentIdentity,

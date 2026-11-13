@@ -332,6 +332,7 @@ export const ModalField = styled("label", "modal__field");
 export const ModalLabel = styled("span", "modal__label");
 export const ModalInput = styled("input", "modal__input");
 export const ModalSelect = styled("select", "modal__input");
+export const ModalTextArea = styled("textarea", "modal__input");
 export const ModalActions = styled("div", "modal__actions");
 
 /* ---- searching a reference database ---- */
