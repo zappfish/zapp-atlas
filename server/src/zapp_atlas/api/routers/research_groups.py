@@ -8,8 +8,6 @@ membership management (invites, leaving a group, ownership transfer) is
 tracked separately (#104).
 """
 
-from __future__ import annotations
-
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,7 +19,7 @@ from zapp_atlas.api.authz import (
     require_current_identity,
 )
 from zapp_atlas.api.deps import get_app_settings, get_session
-from zapp_atlas.api.dto import MemberIn, MemberOut, MemberPatch
+from zapp_atlas.api.models import MemberIn, MemberOut, MemberPatch
 from zapp_atlas.api.services.research_groups import (
     add_member,
     create_group,
@@ -32,7 +30,7 @@ from zapp_atlas.api.services.research_groups import (
 )
 from zapp_atlas.auth.models import OrcidIdentity
 from zapp_atlas.auth.services import prefetch_orcid_identity
-from zapp_atlas.schema.pydantic_crud import ResearchGroupCreate, ResearchGroupRead
+from zapp_atlas.schema.pydantic_crud import ResearchGroupInput, ResearchGroupRead
 from zapp_atlas.schema.sqla import ResearchGroup, ResearchGroupMember
 from zapp_atlas.settings import AppSettings
 
@@ -53,7 +51,7 @@ def _member_out(membership: ResearchGroupMember, name: str | None) -> MemberOut:
 
 @router.post("", response_model=ResearchGroupRead, status_code=status.HTTP_201_CREATED)
 def create_group_endpoint(
-    payload: ResearchGroupCreate,
+    payload: ResearchGroupInput,
     session: SessionDep,
     identity: CurrentIdentity,
 ) -> ResearchGroupRead:

@@ -22,7 +22,12 @@ import {
   updateChemical,
 } from "./cabinet";
 import { normalizeChemical, searchChemicals } from "./chemicals";
-import { createStudy, deleteStudy, fetchStudy } from "./studies";
+import {
+  createStudy,
+  deleteStudy,
+  fetchGroupStudies,
+  fetchStudy,
+} from "./studies";
 import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
@@ -37,6 +42,7 @@ export const keys = {
   members: (id: number) => ["group", id, "members"] as const,
   fishTank: (id: number) => ["group", id, "fish-tank"] as const,
   cabinet: (id: number) => ["group", id, "cabinet"] as const,
+  groupStudies: (id: number) => ["group", id, "studies"] as const,
   fishEntry: (id: number, entryId: number) =>
     ["group", id, "fish-tank", entryId] as const,
   cabinetEntry: (id: number, entryId: number) =>
@@ -277,6 +283,13 @@ export const useDeleteChemical = (groupId: number) => {
   });
 };
 
+/** A group's studies, for its page. */
+export const useGroupStudies = (groupId: number) =>
+  useQuery({
+    queryKey: keys.groupStudies(groupId),
+    queryFn: ({ signal }) => fetchGroupStudies(groupId, signal),
+  });
+
 /** One study, for its page. */
 export const useStudy = (studyId: number) =>
   useQuery({
@@ -292,15 +305,18 @@ export const useCreateStudy = (groupId: number) => {
       createStudy(groupId, study),
     onSuccess: (study) => {
       if (study) client.setQueryData(keys.study(study.id), study);
+      client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
     },
   });
 };
 
-export const useDeleteStudy = () => {
+export const useDeleteStudy = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (studyId: number) => deleteStudy(studyId),
-    onSuccess: (_data, studyId) =>
-      client.removeQueries({ queryKey: keys.study(studyId) }),
+    onSuccess: (_data, studyId) => {
+      client.removeQueries({ queryKey: keys.study(studyId) });
+      client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
+    },
   });
 };

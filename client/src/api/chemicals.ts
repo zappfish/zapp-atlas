@@ -1,26 +1,19 @@
 /** A suggestion carries only a name and its ChEBI ids; the record is a second call. */
 
 import { get, send } from "./client";
+import type { components } from "./openapi";
 
-export interface Suggestion {
-  name: string;
-  chebi_ids: string[];
-}
+type Schemas = components["schemas"];
 
-export interface EquivalentIdentifier {
-  identifier: string | null;
-  label: string | null;
-  description: string | null;
-}
+/* These three come from the server's OpenAPI document; see ./types. */
 
-export interface Chemical {
-  normalized: boolean;
-  primary_id: string | null;
-  label: string | null;
-  description: string | null;
-  biolink_type: string[] | null;
-  equivalent_identifiers: EquivalentIdentifier[];
-}
+/** The server also sends a normalized record with each suggestion; the client
+ *  uses only these two fields, and builds suggestions of its own from them. */
+export type Suggestion = Pick<Schemas["Suggestion"], "name" | "chebi_ids">;
+
+export type EquivalentIdentifier = Schemas["EquivalentIdentifier"];
+
+export type Chemical = Schemas["NormResult"];
 
 /**
  * The sources the server accepts — chem/normalize.py NAMESPACES, whose two

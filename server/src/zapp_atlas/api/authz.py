@@ -14,12 +14,11 @@ stores ``member`` as a CURIE (``ORCID:0000-...``); ``orcid_curie`` bridges
 that seam so the membership lookup compares like with like.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.deps import get_session
@@ -116,5 +115,36 @@ def require_group_admin(
     return context
 
 
+def groups_of(session: Session, identity: OrcidIdentity | None) -> list[int]:
+    """The ids of the research groups a caller belongs to; none when signed out."""
+    if identity is None:
+        return []
+    return list(
+        session.scalars(
+            select(ResearchGroupMember.research_group).where(
+                ResearchGroupMember.member == orcid_curie(identity.orcid_id)
+            )
+        )
+    )
+
+
+def is_member(session: Session, group_id: int, identity: OrcidIdentity | None) -> bool:
+    return identity is not None and _find_membership(session, group_id, identity) is not None
+
+
+def require_membership(session: Session, group_id: int, identity: OrcidIdentity) -> None:
+    """Refuse a caller who is not a member of ``group_id``.
+
+    For a resource the caller can already see, where there is nothing to hide
+    by answering 404: they are told plainly that the group is not theirs.
+    """
+    if not is_member(session, group_id, identity):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only members of the study's research group may change it",
+        )
+
+
+SignedIn = Annotated[OrcidIdentity, Depends(require_current_identity)]
 GroupMember = Annotated[GroupContext, Depends(require_group_member)]
 GroupAdmin = Annotated[GroupContext, Depends(require_group_admin)]

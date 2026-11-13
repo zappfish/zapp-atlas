@@ -1,12 +1,12 @@
-from __future__ import annotations
-
 """End-to-end test: GET /studies/{id} returns the full nested graph."""
 
 from fastapi.testclient import TestClient
+from support import study_fields
 
 
 def test_get_study_returns_nested_experiments_exposures_observations(
     client: TestClient,
+    group: int,
 ) -> None:
     study = client.post(
         "/api/studies",
@@ -14,7 +14,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
             "publication": "PMID:333",
             "lab": "ZFIN:ZDB-LAB-1-1",
             "annotator": ["ORCID:0000-0000-0000-0000"],
-            "experiment": [],
+            **study_fields(group),
         },
     ).json()
 
@@ -24,7 +24,6 @@ def test_get_study_returns_nested_experiments_exposures_observations(
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-3", "name": "AB"},
             "control": [],
-            "exposure_event": [],
         },
     ).json()
 
@@ -41,7 +40,6 @@ def test_get_study_returns_nested_experiments_exposures_observations(
                     "concentration": {"unit": "µg/L", "numeric_value": "100"},
                 }
             ],
-            "phenotype_observation": [],
         },
     ).json()
 
@@ -58,7 +56,6 @@ def test_get_study_returns_nested_experiments_exposures_observations(
                     },
                 }
             ],
-            "image": [],
             "control_image": [],
         },
     )

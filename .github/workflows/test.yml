@@ -28,6 +28,20 @@ jobs:
         run: |
           npm ci
           npm run build
+      # The client's API types are generated from the OpenAPI document. A test
+      # below checks the committed document is current; this checks the types
+      # generated from it are.
+      - name: Check generated API types
+        working-directory: client
+        run: npm run api-types -- --check
+      # Browser tests: Playwright starts the real server on a throwaway
+      # database and drives the built client. See client/playwright.config.ts.
+      - name: Install the browser for end-to-end tests
+        working-directory: client
+        run: npx playwright install --with-deps --only-shell chromium
+      - name: Run end-to-end tests
+        working-directory: client
+        run: npm run e2e
       - name: Run tests
         working-directory: server
         run: uv run --no-sync pytest

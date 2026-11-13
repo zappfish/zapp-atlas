@@ -47,6 +47,16 @@ fix:
     cd server && uv run ruff check --fix
     cd server && uv run ruff format
 
+# Run the browser tests against a real server on a throwaway database
+# (first time: `cd client && npx playwright install --only-shell chromium`)
+e2e:
+    cd client && npm run e2e
+
+# Regenerate the client's API types from the server's OpenAPI document
+api-types:
+    cd server && uv run python -m zapp_atlas.api.openapi ../client/src/api/openapi.json
+    cd client && npm run api-types
+
 # Seed the dev database
 seed:
     cd server && uv run python -m zapp_atlas.seed

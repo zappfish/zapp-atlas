@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.authz import GroupMember
 from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.dto import CabinetEntryIn, CabinetEntryOut, CabinetEntryPatch
+from zapp_atlas.api.models import CabinetEntryIn, CabinetEntryOut, CabinetEntryPatch
 from zapp_atlas.api.services.cabinet import (
     add_entry,
     delete_entry,

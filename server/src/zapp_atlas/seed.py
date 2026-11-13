@@ -15,8 +15,6 @@ Currently seeded:
   co-exposure amplifies pericardial edema.
 """
 
-from __future__ import annotations
-
 from sqlalchemy.orm import Session
 
 from zapp_atlas.db import get_engine, get_session_factory, init_db
@@ -45,7 +43,9 @@ SEEDED_PUBLICATIONS = {
 }
 
 # The dev sign-in's identity (ZAPP_DEV_AUTH), so a preview opens on a group
-# that already holds records rather than an empty dashboard.
+# that already holds records rather than an empty dashboard. Every study
+# belongs to a research group and only its members may edit it, so the seeded
+# studies go to this group too.
 DEV_GROUP_NAME = "Zebrafish Toxicology Lab"
 DEV_MEMBER = "ORCID:0000-0002-1825-0097"
 
@@ -331,8 +331,8 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
 # ---------------------------------------------------------------------------
 
 
-def _build_dev_group(session: Session) -> None:
-    """A group for the dev identity, stocked from the studies seeded above.
+def _build_dev_group(session: Session) -> ResearchGroup:
+    """A group for the dev identity, stocked from the seeded studies.
 
     Previews have no volume, so this runs again on every restart; each piece
     is looked up before it is added.
@@ -371,6 +371,8 @@ def _build_dev_group(session: Session) -> None:
         if entry is None:
             session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=chemical_id))
 
+    return group
+
 
 def seed(session: Session) -> None:
     """Seed the database with demo data. Idempotent on `Study.publication`."""
@@ -388,12 +390,15 @@ def seed(session: Session) -> None:
         "PMID:41812223": _build_moreira_guanitoxin_study,
     }
 
+    group = _build_dev_group(session)
     for pub, builder in builders.items():
         if pub in existing:
             continue
-        session.add(builder(session))
+        study = builder(session)
+        study.research_group = group.id
+        study.status = "published"
+        session.add(study)
 
-    _build_dev_group(session)
     session.commit()
 
 

@@ -1,51 +1,32 @@
-"""Image upload / fetch endpoints.
+"""Image endpoints.
 
-* POST /observations/{observation_id}/images — multipart upload
-* GET /images/{image_id} — stream bytes (local) or redirect to signed URL (S3)
+An image is a file plus a row describing it. The file is uploaded once, beneath
+an observation, and never replaced; the description can be.
 """
-
-from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    Form,
-    HTTPException,
-    UploadFile,
-    status,
-)
-from fastapi.responses import RedirectResponse, Response
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile, status
+from fastapi.responses import RedirectResponse
 
-from zapp_atlas.api.deps import get_app_settings, get_session
-from zapp_atlas.api.services.images import (
-    ImageTooLargeError,
-    UnsupportedImageTypeError,
-    create_image_for_observation,
-    delete_image,
-    get_image_by_id,
-    image_url,
-    load_image_bytes,
-)
-from zapp_atlas.db.image_storage import Storage, get_storage
-from zapp_atlas.schema.pydantic_crud import ImageRead
-from zapp_atlas.settings import AppSettings
+from zapp_atlas.api.authz import SignedIn
+from zapp_atlas.api.deps import SessionDep, SettingsDep, StorageDep
+from zapp_atlas.api.resources import readable, writable
+from zapp_atlas.api.services import levels
+from zapp_atlas.schema.pydantic_crud import ImageInput, ImageRead
+from zapp_atlas.schema.sqla import Image, PhenotypeObservationSet
 
 router = APIRouter(tags=["images"])
 
-
-def get_storage_dep(
-    settings: Annotated[AppSettings, Depends(get_app_settings)],
-) -> Storage:
-    return get_storage(settings)
+Readable = Annotated[Image, readable("Image")]
+Writable = Annotated[Image, writable("Image")]
+WritableParent = Annotated[PhenotypeObservationSet, writable("PhenotypeObservationSet")]
 
 
-SessionDep = Annotated[Session, Depends(get_session)]
-SettingsDep = Annotated[AppSettings, Depends(get_app_settings)]
-StorageDep = Annotated[Storage, Depends(get_storage_dep)]
+class ImageUpload(ImageInput):
+    """An image's description, sent as form fields alongside its file."""
+
+    file: UploadFile
 
 
 @router.post(
@@ -53,70 +34,54 @@ StorageDep = Annotated[Storage, Depends(get_storage_dep)]
     response_model=ImageRead,
     status_code=status.HTTP_201_CREATED,
 )
-async def upload_image_endpoint(
-    observation_id: int,
+async def upload_image(
+    parent: WritableParent,
+    upload: Annotated[ImageUpload, File()],
+    identity: SignedIn,
     session: SessionDep,
     settings: SettingsDep,
     storage: StorageDep,
-    file: Annotated[UploadFile, File()],
-    magnification: Annotated[str | None, Form()] = None,
-    resolution: Annotated[str | None, Form()] = None,
-    scale_bar: Annotated[str | None, Form()] = None,
-) -> ImageRead:
-    data = await file.read()
-
-    try:
-        image = create_image_for_observation(
-            session,
-            observation_id=observation_id,
-            data=data,
-            content_type=file.content_type or "application/octet-stream",
-            storage=storage,
-            max_bytes=settings.max_upload_bytes,
-            magnification=magnification,
-            resolution=resolution,
-            scale_bar=scale_bar,
+) -> Image:
+    content_type = upload.file.content_type or ""
+    if not content_type.startswith("image/"):
+        raise HTTPException(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Unsupported content type: {content_type}"
         )
-    except UnsupportedImageTypeError as exc:
+    data = await upload.file.read()
+    if len(data) > settings.max_upload_bytes:
         raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported content type: {exc}",
-        ) from exc
-    except ImageTooLargeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail=str(exc),
-        ) from exc
+            status.HTTP_413_CONTENT_TOO_LARGE,
+            f"The file is larger than {settings.max_upload_bytes} bytes",
+        )
 
-    if image is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
-    return image  # type: ignore[return-value]
+    body = ImageInput.model_validate(upload.model_dump(exclude={"file"}))
+    image = levels.create(session, "Image", body, parent=parent, by=identity)
+    storage.put(levels.image_key(image.id), data, content_type)
+    return image
 
 
 @router.get("/images/{image_id}")
-def fetch_image_endpoint(
-    image_id: int,
-    session: SessionDep,
-    storage: StorageDep,
-):
-    if get_image_by_id(session, image_id) is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
-
-    url = image_url(image_id, storage)
+def fetch_image(image: Readable, storage: StorageDep) -> Response:
+    key = levels.image_key(image.id)
+    url = storage.url_for(key)
     if url:
         return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
-    stored = load_image_bytes(image_id, storage)
+    stored = storage.get(key)
     if stored is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image blob missing")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Image file missing")
     return Response(content=stored.data, media_type=stored.content_type)
 
 
+@router.put("/images/{image_id}", response_model=ImageRead)
+def replace_image(
+    image: Writable, body: ImageInput, identity: SignedIn, session: SessionDep
+) -> Image:
+    return levels.replace(session, "Image", image, body, by=identity)
+
+
 @router.delete("/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_image_endpoint(
-    image_id: int,
-    session: SessionDep,
-    storage: StorageDep,
+def delete_image(
+    image: Writable, identity: SignedIn, session: SessionDep, storage: StorageDep
 ) -> None:
-    if not delete_image(session, image_id, storage=storage):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+    levels.delete(session, "Image", image, storage, by=identity)

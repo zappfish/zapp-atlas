@@ -4,10 +4,10 @@ The generated ``pydantic_crud`` classes match the *data model*, not this API
 boundary: they carry ``research_group`` (which these nested routes take from
 the path), their Read side can't see the ``created_at``/``updated_at`` columns
 that ``schema.constraints`` injects after generation, and their ``member``
-field is CURIE-only. These DTOs are shaped for the endpoints instead —
+field is CURIE-only. These models are shaped for the endpoints instead —
 path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
-``ResearchGroupCreate``/``ResearchGroupRead`` (they fit as-is).
+``ResearchGroupInput``/``ResearchGroupRead`` (they fit as-is).
 
 A cabinet entry may carry a ``nickname`` (#113): what the group calls the
 chemical, and what it is listed under when picked. ``Nickname`` is the one
@@ -15,8 +15,6 @@ definition of what counts as one, shared with the study service. It may also
 carry a ``manufacturer`` (#175) — part of the cabinet grain, so the same
 chemical from two suppliers is two entries — and a ``vehicle_type`` default.
 """
-
-from __future__ import annotations
 
 import re
 from datetime import datetime
@@ -312,3 +310,21 @@ class ZfinResolveOut(_FromAttributes):
 class ZfinStatusOut(BaseModel):
     zfin_date: str  # the archive snapshot the bundle was built from
     counts: dict[str, int]
+
+
+class RevisionSummary(_FromAttributes):
+    """One entry in a study's history: which save it was, who made it, and when."""
+
+    version: int
+    saved_by: str
+    created_at: datetime
+
+
+class Revision(RevisionSummary):
+    """A study as it stood after one save.
+
+    The document is returned as it was stored. It was a ``StudyRead`` when it
+    was written, and may not match today's if the schema has changed since.
+    """
+
+    document: dict[str, object]

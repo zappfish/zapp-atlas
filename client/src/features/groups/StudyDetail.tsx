@@ -16,7 +16,7 @@ const StudyDetail = ({
   const { group } = useGroupDashboard(groupId);
   const { isPending, error, data } = useStudy(studyId);
   const [removing, setRemoving] = useState(false);
-  const deleteStudy = useDeleteStudy();
+  const deleteStudy = useDeleteStudy(groupId);
   const navigate = useNavigate();
 
   if (error) return <p>This study is not available.</p>;
