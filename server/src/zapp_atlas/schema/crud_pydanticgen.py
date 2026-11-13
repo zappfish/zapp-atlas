@@ -1,14 +1,16 @@
 """CRUD Pydantic model generator for zebrafish-toxicology-atlas-schema.
 
-Extends LinkML's PydanticGenerator to produce Create, Update, and Read model
-variants for entity subclasses. Create variants omit the server-generated ``id``
-field and swap nested entity references to their Create variants. Update variants
-make all fields Optional for partial PATCH updates. Read variants keep all fields,
-inherit from ``ReadBaseModel`` (``from_attributes=True``, ``extra="ignore"``), and
-swap nested references to their Read variants.
-"""
+Extends LinkML's PydanticGenerator to produce Input, Create, Update, and Read
+model variants for entity subclasses.
 
-from __future__ import annotations
+Input variants are what the API accepts for a class: no server-generated ``id``,
+nested entities swapped for their own Input variants, and -- for a class the API
+layout names as a level -- no slot holding the next level down, which is a
+resource of its own. Read variants keep all fields, inherit from
+``ReadBaseModel`` (``from_attributes=True``, ``extra="ignore"``), and swap nested
+references to their Read variants. Create and Update variants are the older
+request shapes and go away with the routes that take them.
+"""
 
 import re
 from dataclasses import dataclass
@@ -21,6 +23,8 @@ from linkml.generators.pydanticgen.template import (
     PydanticModule,
 )
 from linkml_runtime.utils.schemaview import SchemaView
+
+from zapp_atlas.api.layout import Layout, SlotKind
 
 READBASEMODEL_SRC = """class ReadBaseModel(BaseModel):
     model_config = ConfigDict(
@@ -86,6 +90,22 @@ def _make_create_variant(
         bases="ConfiguredBaseModel",
         description=f"Create schema for {cls.name} — id is server-generated.",
         attributes=new_attrs or None,
+    )
+
+
+def _make_input_variant(cls: PydanticClass, id_attr_name: str, layout: Layout) -> PydanticClass:
+    """Build an Input variant: no id, and nothing from the next level down."""
+    next_level = {slot.name for slot in layout.slots(cls.name) if slot.kind is SlotKind.LEVEL}
+    return PydanticClass(
+        name=f"{cls.name}Input",
+        bases="ConfiguredBaseModel",
+        description=f"What the API accepts for {cls.name}.",
+        attributes={
+            name: attr.model_copy()
+            for name, attr in (cls.attributes or {}).items()
+            if name != id_attr_name and name not in next_level
+        }
+        or None,
     )
 
 
@@ -170,7 +190,9 @@ class CrudPydanticGenerator(PydanticGenerator):
         if not zapp_classes and not read_classes:
             return template
 
+        layout = Layout(sv)
         new_classes: dict[str, PydanticClass] = {}
+        input_variants: dict[str, PydanticClass] = {}
         create_variants: dict[str, PydanticClass] = {}
         read_variants: dict[str, PydanticClass] = {}
 
@@ -179,6 +201,10 @@ class CrudPydanticGenerator(PydanticGenerator):
 
             if class_name in zapp_classes:
                 id_attr_name = _get_id_attr_name(class_name, sv)
+
+                input_cls = _make_input_variant(cls, id_attr_name, layout)
+                new_classes[input_cls.name] = input_cls
+                input_variants[input_cls.name] = input_cls
 
                 create_cls = _make_create_variant(cls, id_attr_name)
                 update_cls = _make_update_variant(cls, id_attr_name)
@@ -191,6 +217,12 @@ class CrudPydanticGenerator(PydanticGenerator):
                 read_cls = _make_read_variant(cls)
                 new_classes[read_cls.name] = read_cls
                 read_variants[read_cls.name] = read_cls
+
+        for input_cls in input_variants.values():
+            if input_cls.attributes:
+                input_cls.attributes = _swap_nested_references(
+                    input_cls.attributes, zapp_classes, suffix="Input"
+                )
 
         # Swap nested references in Create variants
         for create_cls in create_variants.values():
