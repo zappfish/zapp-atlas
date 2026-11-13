@@ -4,7 +4,7 @@ The generated ``pydantic_crud`` classes match the *data model*, not this API
 boundary: they carry ``research_group`` (which these nested routes take from
 the path), their Read side can't see the ``created_at``/``updated_at`` columns
 that ``schema.constraints`` injects after generation, and their ``member``
-field is CURIE-only. These DTOs are shaped for the endpoints instead —
+field is CURIE-only. These models are shaped for the endpoints instead —
 path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
 ``ResearchGroupInput``/``ResearchGroupRead`` (they fit as-is).

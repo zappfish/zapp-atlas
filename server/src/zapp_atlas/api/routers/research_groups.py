@@ -19,7 +19,7 @@ from zapp_atlas.api.authz import (
     require_current_identity,
 )
 from zapp_atlas.api.deps import get_app_settings, get_session
-from zapp_atlas.api.dto import MemberIn, MemberOut, MemberPatch
+from zapp_atlas.api.models import MemberIn, MemberOut, MemberPatch
 from zapp_atlas.api.services.research_groups import (
     add_member,
     create_group,
