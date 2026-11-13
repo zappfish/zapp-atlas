@@ -47,6 +47,11 @@ fix:
     cd server && uv run ruff check --fix
     cd server && uv run ruff format
 
+# Regenerate the client's API types from the server's OpenAPI document
+api-types:
+    cd server && uv run python -m zapp_atlas.api.openapi ../client/src/api/openapi.json
+    cd client && npm run api-types
+
 # Seed the dev database
 seed:
     cd server && uv run python -m zapp_atlas.seed
