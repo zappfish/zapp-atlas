@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZAPP fish form — iteration 1 (known allele)</title>
+<!--
+  THE FISH PICKER PROTOTYPE — a spec that runs, not production code.
+
+  Scenario 1: the curator KNOWS their allele symbol (or gene, or construct
+  fragment) and their wild-type background. They type names and answer
+  zygosity; every ZFIN identifier attaches silently. The payload it emits is
+  the exact FishCreate the API accepts.
+
+  Per issue #152 the production widget is a React build inside the signed-in
+  app, with display strings computed server-side — this page is the spec for
+  that build's behavior, not code to extend. See README.md next to this file.
+
+  Live mode (searches all ~81k alleles) needs the API running with dev CORS:
+      just fish-picker
+  (and `just fetch-zfin` once, to populate the reference files).
+  Without it the page falls back to a tiny embedded sample so it still opens
+  standalone as a design hand-off.
+-->
+<style>
+  :root{--bg:#fdfbf4;--white:#fff;--text:#1d3a4a;--muted:#6b7280;--soft:#3d5561;
+        --border:#e0ddd6;--panel:#f5f3ee;--accent:#2a9d8a;--deep:#1a535c;
+        --tint:#e6f5f3;--warn-bg:#f5ecd7;--warn-bd:#e4d3a8;--warn-tx:#5f430c;
+        --bad:#b4443a;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:14px/1.5 -apple-system,'Helvetica Neue',Segoe UI,sans-serif}
+  header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border)}
+  header h1{font-size:17px;margin:0}
+  header .sub{color:var(--muted);font-size:12.5px}
+  .pill{margin-left:auto;font:600 11.5px var(--mono);padding:4px 10px;border-radius:99px;border:1px solid}
+  .pill.live{color:var(--accent);border-color:var(--accent);background:var(--tint)}
+  .pill.sample{color:var(--warn-tx);border-color:var(--warn-bd);background:var(--warn-bg)}
+  main{display:grid;grid-template-columns:minmax(430px,1.15fr) minmax(360px,1fr);gap:22px;
+       padding:22px 28px;max-width:1250px;margin:0 auto}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  section.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+  h2{font-size:13px;margin:0 0 4px;color:var(--deep)}
+  h2 .step{display:inline-block;background:var(--deep);color:#fff;font:600 11px var(--mono);
+           border-radius:99px;padding:1px 7px;margin-right:7px;vertical-align:1px}
+  .hint{color:var(--muted);font-size:12px;margin:0 0 10px}
+  label{display:block;font-size:11.5px;color:var(--soft);margin-bottom:3px}
+  input,select{width:100%;background:var(--white);color:var(--text);border:1px solid var(--border);
+               border-radius:7px;padding:7px 9px;font-size:13px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--tint)}
+  .searchbox{position:relative}
+  .drop{position:absolute;z-index:5;left:0;right:0;top:calc(100% + 4px);background:var(--white);
+        border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 22px rgba(29,58,74,.12);
+        max-height:320px;overflow-y:auto}
+  .opt{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+       padding:8px 12px;border-bottom:1px solid var(--panel);cursor:pointer}
+  .optside{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;
+           max-width:210px;text-align:right}
+  .optlab{font-size:11px;color:var(--muted);line-height:1.3}
+  .opt:last-child{border-bottom:none}
+  .opt:hover,.opt.sel{background:var(--tint)}
+  .opt .sym{font:600 13px var(--mono);color:var(--deep)}
+  .opt .meta{font-size:11.5px;color:var(--soft)}
+  .badge{display:inline-block;font:600 10px var(--mono);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+  .badge.tg{background:var(--tint);color:var(--deep);border:1px solid var(--accent)}
+  .badge.inst{background:var(--panel);color:var(--muted);border:1px solid var(--border);font-weight:500}
+  .badge.rg{background:#f3ecf7;color:#6b3d78;border:1px solid #c9a8d4}
+  .allele.reagent{border-color:#c9a8d4;border-left-color:#a678b4}
+  .allele{border:1px solid var(--accent);border-left:4px solid var(--accent);border-radius:9px;
+          padding:12px 14px;margin-top:12px;background:var(--white)}
+  .allele .head{display:flex;align-items:baseline;gap:8px}
+  .allele .title{font:600 14px var(--mono)}
+  .allele .kind{font-size:11.5px;color:var(--muted)}
+  .allele .rm{margin-left:12px;background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px}
+  .zlink{margin-left:auto;font-size:11.5px;color:var(--deep);text-decoration:none;border-bottom:1px dotted var(--accent);white-space:nowrap}
+  .zlink:hover{color:var(--accent)}
+  .facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:10px 0 2px;font-size:12.5px}
+  .facts .fl{color:var(--muted);font-size:11.5px;padding-top:1px}
+  .facts .fv{color:var(--text)}
+  .fid{font:11px var(--mono);color:var(--muted);background:var(--panel);border-radius:4px;
+       padding:1px 5px;margin-left:7px;white-space:nowrap}
+  .zyg{display:flex;gap:0;margin-top:10px;border:1px solid var(--border);border-radius:7px;overflow:hidden;width:fit-content}
+  .zyg button{border:none;background:var(--white);padding:6px 13px;font-size:12.5px;cursor:pointer;color:var(--soft);
+              border-right:1px solid var(--border)}
+  .zyg button:last-child{border-right:none}
+  .zyg button.on{background:var(--deep);color:#fff}
+  details{margin-top:8px}
+  summary{font-size:12px;color:var(--muted);cursor:pointer}
+  .parents{display:flex;gap:12px;margin-top:8px}
+  .parents>div{flex:1}
+  .addbtn{margin-top:12px;background:var(--white);border:1px dashed var(--accent);color:var(--deep);
+          border-radius:8px;padding:7px 14px;font-size:12.5px;cursor:pointer}
+  pre{background:#12262e;color:#d7e7e4;border-radius:10px;padding:14px 16px;font:12px/1.55 var(--mono);
+      overflow-x:auto;margin:0}
+  pre .k{color:#7fd1c3}
+  pre .s{color:#e8d48b}
+  .note{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:9px;color:var(--warn-tx);
+        font-size:12.5px;padding:10px 14px;margin-top:14px;line-height:1.55}
+  .attachlog{font-size:12.5px;color:var(--soft);margin:10px 0 0;padding:0 0 0 2px;list-style:none}
+  .attachlog li{margin:3px 0}
+  .attachlog li::before{content:"✓";color:var(--accent);font-weight:700;margin-right:7px}
+  .attachlog li.later::before{content:"…";color:var(--muted)}
+  .copy{margin-top:8px;background:var(--deep);border:none;color:#fff;border-radius:7px;
+        padding:7px 14px;font-size:12.5px;cursor:pointer}
+  .offline{display:none;font-size:12px;margin-top:8px;color:var(--warn-tx)}
+  code{font:12px var(--mono);background:var(--panel);border-radius:4px;padding:1px 4px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Describe your fish</h1>
+    <div class="sub">Scenario 1 — you know your allele name · nobody types a ZFIN identifier</div>
+  </div>
+  <span id="pill" class="pill sample">checking index…</span>
+</header>
+
+<main>
+<div><!-- left column: the form -->
+
+  <section class="card">
+    <h2><span class="step">1</span>Wild-type background</h2>
+    <p class="hint">The strain your line is maintained on. Its ZFIN fish + genotype ids attach automatically.</p>
+    <select id="bg">
+      <option value="">— choose a strain —</option>
+      <option value="__unknown__">unknown / not recorded</option>
+    </select>
+    <div class="offline" id="bg-offline">Live index offline — showing 3 sample strains (real list: 32).</div>
+  </section>
+
+  <section class="card">
+    <h2><span class="step">2</span>Alleles <span style="font-weight:500;color:var(--muted)">(Mutations / Transgenic Constructs)</span></h2>
+    <p class="hint">Searchable by allele name (<code>fh111</code>), gene name (<code>fgf8a</code>), or construct
+      (<code>mpeg1:YFP</code>). Add several for more complex genotypes (e.g. double and triple mutants).</p>
+    <div class="searchbox">
+      <input id="q" placeholder="fh111 · fgf8a · mpeg1:YFP" autocomplete="off">
+      <div class="drop" id="drop" hidden></div>
+    </div>
+    <div id="alleles"></div>
+  </section>
+
+  <section class="card" id="reagent-section">
+    <h2><span class="step">3</span>Injected reagents <span style="font-weight:500;color:var(--muted)">(Morpholinos / CRISPRs / TALENs)</span></h2>
+    <p class="hint">Optional. Transient reagents injected into the embryos — not heritable, so they belong
+      to the fish, not the genotype. Searchable by reagent (<code>MO1-gata1a</code>) or target gene
+      (<code>gata1a</code>). Skip this if your fish only carries the alleles above.</p>
+    <div class="searchbox">
+      <input id="rq" placeholder="MO1-gata1a · CRISPR1-tp53 · gata1a" autocomplete="off">
+      <div class="drop" id="rdrop" hidden></div>
+    </div>
+    <div id="reagents"></div>
+  </section>
+
+</div>
+<div><!-- right column: what the model receives -->
+
+  <section class="card">
+    <h2>What ZAPP stores <span class="hint" style="display:inline">— the exact <code>fish</code> payload the API takes today</span></h2>
+    <pre id="out"></pre>
+    <button class="copy" id="copybtn">copy JSON</button>
+    <ul class="attachlog" id="log"></ul>
+    <div class="note" id="note" hidden></div>
+  </section>
+
+</div>
+</main>
+
+<script>
+'use strict';
+const API = 'http://127.0.0.1:8000/api';
+
+/* Transient reagents live in the DATA MODEL (and /api/zfin/reagents exists),
+   but they are not surfaced to curators in v1 — that's a v2 concern. The
+   section stays wired behind this flag so the v2 preview is one flip away;
+   with it off, payload(), the morphant branch, and the attach-log all
+   degrade to allele-only behavior on their own (everything is
+   length-guarded on state.reagents). */
+const V2_REAGENTS = false;
+if (!V2_REAGENTS) document.getElementById('reagent-section').hidden = true;
+
+/* Embedded fallback so the page opens standalone (shaped exactly like the API).
+   Lab of origin comes from the server (vendored ZFIN line-designation registry). */
+const SAMPLE = {
+  wildtypes: [
+    {name:'AB', abbreviation:'AB', fish_id:'ZFIN:ZDB-FISH-150901-27842', genotype_id:'ZFIN:ZDB-GENO-960809-7'},
+    {name:'TU', abbreviation:'TU', fish_id:'ZFIN:ZDB-FISH-150901-29105', genotype_id:'ZFIN:ZDB-GENO-990623-3'},
+    {name:'WIK', abbreviation:'WIK', fish_id:'ZFIN:ZDB-FISH-150901-28277', genotype_id:'ZFIN:ZDB-GENO-010531-2'},
+  ],
+  alleles: [
+    {allele_symbol:'fh111', allele_id:'ZFIN:ZDB-ALT-160602-14', is_transgenic:false,
+     alteration_type:'point_mutation', alteration_label:'Allele with one point mutation', mutagen:'ENU',
+     institution:'Fred Hutchinson Cancer Research Center',
+     constructs:[], affected_genes:[{gene_symbol:'snapc1b', gene_id:'ZFIN:ZDB-GENE-040426-716'}]},
+    {allele_symbol:'ti282a', allele_id:'ZFIN:ZDB-ALT-980203-1091', is_transgenic:false,
+     alteration_type:'point_mutation', alteration_label:'Allele with one point mutation', mutagen:'ENU',
+     institution:'Tübingen (big-screen designation)',
+     constructs:[], affected_genes:[{gene_symbol:'fgf8a', gene_id:'ZFIN:ZDB-GENE-990415-72'}]},
+    {allele_symbol:'w200Tg', allele_id:'ZFIN:ZDB-ALT-130130-3', is_transgenic:true,
+     alteration_type:'transgenic_insertion', alteration_label:'Transgenic Insertion', mutagen:'DNA',
+     institution:'University of Washington',
+     constructs:[{construct_id:'ZFIN:ZDB-TGCONSTRCT-130130-3', construct_name:'Tg(mpeg1:YFP)'}], affected_genes:[]},
+  ],
+  reagents: [
+    {reagent_symbol:'MO1-gata1a', reagent_id:'ZFIN:ZDB-MRPHLNO-050208-10', reagent_type:'morpholino',
+     targeted_genes:[{gene_symbol:'gata1a', gene_id:'ZFIN:ZDB-GENE-980526-476'}]},
+    {reagent_symbol:'CRISPR1-tp53', reagent_id:'ZFIN:ZDB-CRISPR-160122-1', reagent_type:'crispr',
+     targeted_genes:[{gene_symbol:'tp53', gene_id:'ZFIN:ZDB-GENE-990415-270'}]},
+  ],
+};
+
+/* "Unknown background" is stored as ABSENCE: every fish has *some* background,
+   so an omitted background can only mean "not recorded" — no fake record. */
+const UNKNOWN_BG = { unknown: true };
+
+const state = { live:false, wildtypes:[], background:null, alleles:[], reagents:[] };
+
+/* ---------- data access (live with sample fallback) ---------- */
+async function boot(){
+  const pill = document.getElementById('pill');
+  try {
+    const r = await fetch(`${API}/zfin/wildtypes`);
+    if (!r.ok) throw new Error(await r.text());
+    state.wildtypes = await r.json();
+    state.live = true;
+    pill.textContent = 'live ZFIN index';
+    pill.className = 'pill live';
+  } catch {
+    state.wildtypes = SAMPLE.wildtypes;
+    pill.textContent = 'sample data — start the API for the real 81k-allele index';
+    pill.className = 'pill sample';
+    document.getElementById('bg-offline').style.display = 'block';
+  }
+  const bg = document.getElementById('bg');
+  for (const w of state.wildtypes) bg.append(new Option(w.name, w.name));
+  render();
+}
+
+let seq = 0;
+async function searchAlleles(q){
+  if (!state.live) {
+    const s = q.toLowerCase();
+    return SAMPLE.alleles.filter(a =>
+      a.allele_symbol.toLowerCase().includes(s) ||
+      a.affected_genes.some(g => g.gene_symbol.toLowerCase().includes(s)) ||
+      a.constructs.some(c => c.construct_name.toLowerCase().includes(s))).slice(0, 12);
+  }
+  const my = ++seq;
+  const r = await fetch(`${API}/zfin/alleles?q=${encodeURIComponent(q)}&limit=12`);
+  if (my !== seq) return null;              // a newer keystroke superseded us
+  if (!r.ok) return [];
+  return (await r.json()).results;
+}
+
+let rseq = 0;
+async function searchReagents(q){
+  if (!state.live) {
+    const s = q.toLowerCase();
+    return SAMPLE.reagents.filter(r =>
+      r.reagent_symbol.toLowerCase().includes(s) ||
+      r.targeted_genes.some(g => g.gene_symbol.toLowerCase().includes(s))).slice(0, 12);
+  }
+  const my = ++rseq;
+  const r = await fetch(`${API}/zfin/reagents?q=${encodeURIComponent(q)}&limit=12`);
+  if (my !== rseq) return null;
+  if (!r.ok) return [];
+  return (await r.json()).results;
+}
+
+/* ---------- search dropdown ---------- */
+const qEl = document.getElementById('q'), dropEl = document.getElementById('drop');
+let hits = [], debounce = null;
+
+qEl.oninput = () => {
+  clearTimeout(debounce);
+  const v = qEl.value.trim();
+  if (v.length < 2) { dropEl.hidden = true; return; }
+  debounce = setTimeout(async () => {
+    const res = await searchAlleles(v);
+    if (res === null) return;
+    hits = res;
+    dropEl.innerHTML = hits.length
+      ? hits.map((h, i) => optHtml(h, i)).join('')
+      : `<div class="opt"><span class="meta">No match — that may be a nickname or a brand-new allele
+         (both are later scenarios). Nothing is guessed.</span></div>`;
+    dropEl.hidden = false;
+  }, 220);
+};
+document.addEventListener('click', e => { if (!e.target.closest('.searchbox')) { dropEl.hidden = true; rdropEl.hidden = true; } });
+
+const rqEl = document.getElementById('rq'), rdropEl = document.getElementById('rdrop');
+let rhits = [], rdebounce = null;
+rqEl.oninput = () => {
+  clearTimeout(rdebounce);
+  const v = rqEl.value.trim();
+  if (v.length < 2) { rdropEl.hidden = true; return; }
+  rdebounce = setTimeout(async () => {
+    const res = await searchReagents(v);
+    if (res === null) return;
+    rhits = res;
+    rdropEl.innerHTML = rhits.length
+      ? rhits.map((h, i) => reagentOptHtml(h, i)).join('')
+      : `<div class="opt"><span class="meta">No match — reagents are searched by their ZFIN symbol
+         (MO1-…, CRISPR1-…) or the gene they target. Nothing is guessed.</span></div>`;
+    rdropEl.hidden = false;
+  }, 220);
+};
+
+/* "What this allele IS" — always result-in-the-genome, never the agent that
+   caused it. The construct/ENU/CRISPR is the cause and reads as "made with". */
+function alleleDesc(r){
+  if (r.is_transgenic)
+    return `integration of ${r.constructs.map(c => c.construct_name).join(' + ') || 'a transgene'}`;
+  const kind = (r.alteration_type ? r.alteration_type.replace(/_/g, ' ') : r.alteration_label).toLowerCase();
+  const genes = r.affected_genes.map(g => g.gene_symbol).join(', ');
+  return genes ? `${kind} in ${genes}` : `${kind} · gene unknown`;
+}
+const bareId = id => id.replace(/^ZFIN:/, '');
+
+/* "made with" = ZFIN's mutagen column: the agent that caused the allele.
+   Glossed for non-geneticists — display only, never stored. */
+const MUTAGEN_GLOSS = {
+  'ENU': 'ENU (random chemical mutagenesis)',
+  'DNA': 'DNA injection (transgenesis)',
+  'CRISPR': 'CRISPR (targeted gene editing)',
+  'TALEN': 'TALEN (targeted gene editing)',
+  'DNA and CRISPR': 'DNA + CRISPR (targeted knock-in)',
+  'DNA and TALEN': 'DNA + TALEN (targeted knock-in)',
+  'zinc finger nuclease': 'zinc-finger nuclease (targeted gene editing)',
+  'spontaneous': 'spontaneous (arose naturally)',
+  'g-rays': 'gamma irradiation',
+  'TMP': 'TMP (chemical mutagenesis)',
+  'EMS': 'EMS (chemical mutagenesis)',
+};
+const glossMutagen = m => MUTAGEN_GLOSS[m] || m;
+
+/* Institution = registered holder of the symbol's naming prefix. NOT ZFIN's
+   per-feature "Lab of Origin" (curated per allele, can differ — e.g.
+   la012336Tg is Burgess & Lin Lab); that lives on the linked ZFIN page. */
+const INST_TITLE = 'Institution that registered this allele symbol’s naming prefix. '
+  + 'The specific lab of origin is on the ZFIN record.';
+
+/* Reagent kind, glossed for non-geneticists — display only, never stored. */
+const REAGENT_KIND = {
+  morpholino: ['MO', 'morpholino — blocks the gene\'s mRNA (transient knockdown)'],
+  crispr: ['CRISPR', 'injected CRISPR guide (transient, targeted)'],
+  talen: ['TALEN', 'injected TALEN pair (transient, targeted)'],
+};
+function reagentDesc(r){
+  const genes = r.targeted_genes.map(g => g.gene_symbol).join(', ');
+  return genes ? `targets ${genes}` : 'target gene not recorded';
+}
+
+/* One consistent row shape for every result: identity + description on the
+   left, provenance (lab) + ZFIN link on the right. The link doesn't select. */
+function optHtml(h, i){
+  return `<div class="opt" onclick="pick(${i})">
+    <div>
+      <span class="sym">${h.allele_symbol}</span>
+      ${h.is_transgenic ? '<span class="badge tg">Tg</span>' : ''}
+      ${h.institution ? `<span class="badge inst" title="${INST_TITLE}">${h.institution}</span>` : ''}
+      <div class="meta">${alleleDesc(h)}${h.mutagen ? ' · made with ' + glossMutagen(h.mutagen) : ''}</div>
+    </div>
+    <div class="optside">
+      <a class="zlink" href="https://zfin.org/${bareId(h.allele_id)}" target="_blank"
+         rel="noopener" onclick="event.stopPropagation()">view on ZFIN ↗</a>
+    </div>
+  </div>`;
+}
+
+function pick(i){
+  const h = hits[i];
+  if (!h) return;
+  if (state.alleles.some(a => a.rec.allele_id === h.allele_id)) { dropEl.hidden = true; return; }
+  state.alleles.push({ rec: h, zygosity: null, mother: 'unknown', father: 'unknown' });
+  qEl.value = ''; dropEl.hidden = true;
+  render();
+}
+
+function reagentOptHtml(h, i){
+  const [badge] = REAGENT_KIND[h.reagent_type] || [h.reagent_type];
+  return `<div class="opt" onclick="pickReagent(${i})">
+    <div>
+      <span class="sym">${h.reagent_symbol}</span>
+      <span class="badge rg">${badge}</span>
+      <div class="meta">${reagentDesc(h)}</div>
+    </div>
+    <div class="optside">
+      <a class="zlink" href="https://zfin.org/${bareId(h.reagent_id)}" target="_blank"
+         rel="noopener" onclick="event.stopPropagation()">view on ZFIN ↗</a>
+    </div>
+  </div>`;
+}
+
+function pickReagent(i){
+  const h = rhits[i];
+  if (!h) return;
+  if (state.reagents.some(r => r.reagent_id === h.reagent_id)) { rdropEl.hidden = true; return; }
+  state.reagents.push(h);
+  rqEl.value = ''; rdropEl.hidden = true;
+  render();
+}
+
+/* ---------- allele cards ---------- */
+const ZYG = ['homozygous', 'heterozygous', 'unknown'];
+function alleleCards(){
+  const host = document.getElementById('alleles');
+  host.innerHTML = state.alleles.map((a, i) => {
+    const r = a.rec;
+    // The card is the captured data model, human-readable facts first;
+    // identifiers ride along quietly beside the thing they identify.
+    const facts = [
+      ['allele name', `<span style="font:600 12.5px var(--mono);color:var(--deep)">${r.allele_symbol}</span>`],
+      ['what it is', alleleDesc(r)],
+      ...r.affected_genes.map(g =>
+        ['gene', `${g.gene_symbol}<code class="fid">${bareId(g.gene_id)}</code>`]),
+      ...r.constructs.map(c =>
+        ['construct', `${c.construct_name}<code class="fid">${bareId(c.construct_id)}</code>`]),
+      ...(r.mutagen ? [['made with', glossMutagen(r.mutagen)]] : []),
+      ['institution', `<span title="${INST_TITLE}">${r.institution || '—'}</span>`],
+      ['allele id', `<code class="fid" style="margin-left:0">${bareId(r.allele_id)}</code>`],
+    ].map(([l, v]) => `<span class="fl">${l}</span><span class="fv">${v}</span>`).join('');
+    return `<div class="allele">
+      <div class="head"><span class="title">${r.allele_symbol}</span>
+        ${r.is_transgenic ? '<span class="badge tg">Tg</span>' : ''}
+        ${r.institution ? `<span class="badge inst" title="${INST_TITLE}">${r.institution}</span>` : ''}
+        <a class="zlink" href="https://zfin.org/${bareId(r.allele_id)}"
+           target="_blank" rel="noopener">view on ZFIN ↗</a>
+        <button class="rm" onclick="rm(${i})">remove</button></div>
+      <div class="facts">${facts}</div>
+      <label style="margin-top:6px">zygosity in your fish</label>
+      <div class="zyg">${ZYG.map(z =>
+        `<button class="${a.zygosity === z ? 'on' : ''}" onclick="setZ(${i},'${z}')">${z}</button>`).join('')}</div>
+      <details${a.mother !== 'unknown' || a.father !== 'unknown' ? ' open' : ''}>
+        <summary>parents' zygosity (if known)</summary>
+        <div class="parents">
+          <div><label>mother</label><select onchange="setP(${i},'mother',this.value)">
+            ${parentOpts(a.mother)}</select></div>
+          <div><label>father</label><select onchange="setP(${i},'father',this.value)">
+            ${parentOpts(a.father)}</select></div>
+        </div>
+      </details>
+    </div>`;
+  }).join('');
+}
+/* Parents' zygosity: no "not recorded" — unknown IS the floor (ZFIN's triples
+   always carry three values; U covers unrecorded). wild_type = ZFIN's W. */
+const PARENT_ZYG = [
+  ['unknown', 'unknown'],
+  ['wild_type', 'wild type'],
+  ['heterozygous', 'heterozygous'],
+  ['homozygous', 'homozygous'],
+];
+function parentOpts(cur){
+  return PARENT_ZYG.map(([v, label]) =>
+    `<option value="${v}"${v === cur ? ' selected' : ''}>${label}</option>`).join('');
+}
+function rm(i){ state.alleles.splice(i, 1); render(); }
+function setZ(i, z){ state.alleles[i].zygosity = z; render(); }
+function setP(i, which, v){ state.alleles[i][which] = v; render(); }
+function rmReagent(i){ state.reagents.splice(i, 1); render(); }
+
+/* ---------- reagent cards: no zygosity to ask, no dose (that's the
+   experiment's exposure record, not the fish) ---------- */
+function reagentCards(){
+  const host = document.getElementById('reagents');
+  host.innerHTML = state.reagents.map((r, i) => {
+    const [badge, gloss] = REAGENT_KIND[r.reagent_type] || [r.reagent_type, r.reagent_type];
+    const facts = [
+      ['reagent name', `<span style="font:600 12.5px var(--mono);color:var(--deep)">${r.reagent_symbol}</span>`],
+      ['what it is', gloss],
+      ...r.targeted_genes.map(g =>
+        ['targets', `${g.gene_symbol}<code class="fid">${bareId(g.gene_id)}</code>`]),
+      ['reagent id', `<code class="fid" style="margin-left:0">${bareId(r.reagent_id)}</code>`],
+    ].map(([l, v]) => `<span class="fl">${l}</span><span class="fv">${v}</span>`).join('');
+    return `<div class="allele reagent">
+      <div class="head"><span class="title">${r.reagent_symbol}</span>
+        <span class="badge rg">${badge}</span>
+        <a class="zlink" href="https://zfin.org/${bareId(r.reagent_id)}"
+           target="_blank" rel="noopener">view on ZFIN ↗</a>
+        <button class="rm" onclick="rmReagent(${i})">remove</button></div>
+      <div class="facts">${facts}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- payload + explanation ---------- */
+function payload(){
+  const wt = state.background && !state.background.unknown ? state.background : null;
+  const fish = {};
+  if (!state.alleles.length && wt) {
+    // No alleles: the genotype IS the strain, so its genotype id applies
+    // directly. The strain's own FISH id only applies when nothing was
+    // injected — a reagent-carrying fish is a different ZFIN fish record.
+    fish.genotype_zfin_id = wt.genotype_id;
+    if (!state.reagents.length) fish.fish_zfin_id = wt.fish_id;
+  }
+  const mut = [], tg = [];
+  for (const a of state.alleles) {
+    const r = a.rec;
+    const base = { allele_symbol: r.allele_symbol, allele_id: r.allele_id };
+    if (r.alteration_type) base.alteration_type = r.alteration_type;
+    const g = r.affected_genes[0];
+    if (g) { base.affected_gene_symbol = g.gene_symbol; base.affected_gene_id = g.gene_id; }
+    if (a.zygosity) base.zygosity = a.zygosity;
+    base.mother_zygosity = a.mother;
+    base.father_zygosity = a.father;
+    if (r.is_transgenic) {
+      const c = r.constructs[0];
+      if (c) { base.construct_id = c.construct_id; base.construct_name = c.construct_name; }
+      tg.push(base);
+    } else mut.push(base);
+  }
+  if (mut.length) fish.mutant_allele = mut;
+  if (tg.length) fish.transgenic_allele = tg;
+  if (state.reagents.length)
+    fish.transient_reagent = state.reagents.map(r => {
+      const entry = { reagent_id: r.reagent_id, reagent_symbol: r.reagent_symbol,
+                      reagent_type: r.reagent_type };
+      const g = r.targeted_genes[0];
+      if (g) { entry.affected_gene_symbol = g.gene_symbol; entry.affected_gene_id = g.gene_id; }
+      return entry;
+    });
+  if (wt) { fish.background_name = wt.name; fish.background_zfin_id = wt.genotype_id; }
+  return fish;
+}
+
+function logLines(){
+  const L = [];
+  if (state.background?.unknown)
+    L.push('background unknown — stored as absent; no record is guessed');
+  const wt = state.background && !state.background.unknown ? state.background : null;
+  if (wt && !state.alleles.length && !state.reagents.length)
+    L.push(`wild-type ${wt.name}: fish id <code>${wt.fish_id}</code> and genotype id <code>${wt.genotype_id}</code> attached — 1 picklist, 0 typing`);
+  if (wt && !state.alleles.length && state.reagents.length)
+    L.push(`${wt.name}: its genotype id attached — but NOT its fish id (an injected fish is a different ZFIN fish record)`);
+  if (wt && state.alleles.length)
+    L.push(`background ${wt.name}: its genotype id attached`);
+  for (const a of state.alleles)
+    L.push(`${a.rec.allele_symbol}: allele id${a.rec.affected_genes.length ? ' + gene id' : ''}${a.rec.constructs.length ? ' + construct id' : ''} attached from one typed word`);
+  for (const r of state.reagents)
+    L.push(`${r.reagent_symbol}: reagent id${r.targeted_genes.length ? ' + target gene id' : ''} attached — transient, so no zygosity to ask`);
+  return L;
+}
+
+function render(){
+  alleleCards();
+  reagentCards();
+
+  const p = payload();
+  document.getElementById('out').innerHTML =
+    JSON.stringify(p, null, 2)
+      .replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:')
+      .replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>');
+
+  const log = document.getElementById('log');
+  log.innerHTML = logLines().map(l => `<li>${l}</li>`).join('');
+  if (state.alleles.length || state.reagents.length) {
+    log.innerHTML += `<li class="later">the COMBINATION's own ids (ZDB-GENO / ZDB-FISH) — iteration 2:
+      resolve this allele set + zygosities + background${state.reagents.length ? ' + reagent set' : ''}
+      against ZFIN's registries and offer ranked candidates (never a silent pick)</li>`;
+  }
+
+  const note = document.getElementById('note');
+  const missing = state.alleles.filter(a => !a.zygosity).length;
+  if (missing) { note.hidden = false;
+    note.innerHTML = `${missing} allele${missing > 1 ? 's' : ''} still need${missing > 1 ? '' : 's'} a zygosity answer — the one question ZFIN's genotype records hinge on.`; }
+  else note.hidden = true;
+}
+
+document.getElementById('bg').onchange = e => {
+  const v = e.target.value;
+  state.background = v === '__unknown__'
+    ? UNKNOWN_BG
+    : (state.wildtypes.find(w => w.name === v) || null);
+  render();
+};
+document.getElementById('copybtn').onclick = () =>
+  navigator.clipboard.writeText(JSON.stringify(payload(), null, 2));
+
+boot();
+</script>
+</body>
+</html>

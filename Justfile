@@ -71,6 +71,13 @@ fetch-zfin:
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/CRISPR.txt https://zfin.org/downloads/CRISPR.txt
     curl -fL --retry 3 -o server/src/zapp_atlas/db/data/zfin/TALEN.txt https://zfin.org/downloads/TALEN.txt
 
+# Run the API with dev CORS for the fish picker prototype (see prototypes/fish_picker/README.md)
+fish-picker:
+    @echo "Fish picker: open file://{{justfile_directory()}}/prototypes/fish_picker/index.html"
+    @echo "Check for the 'live ZFIN index' pill in its header once the server is up."
+    # Port pinned to 8000: the prototype page calls http://127.0.0.1:8000/api.
+    cd server && ZAPP_CORS_DEV=true uv run uvicorn zapp_atlas.main:app --reload --port 8000
+
 # Re-execute the ZFIN ingest QC notebook and render notebooks/zfin_ingest_qc.html
 qc-report:
     cd server && uv run --group notebook python -m nbconvert --to html --execute \
