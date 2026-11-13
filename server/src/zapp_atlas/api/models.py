@@ -16,8 +16,6 @@ carry a ``manufacturer`` (#175) — part of the cabinet grain, so the same
 chemical from two suppliers is two entries — and a ``vehicle_type`` default.
 """
 
-from __future__ import annotations
-
 import re
 from datetime import datetime
 from typing import Annotated, Literal
@@ -312,3 +310,21 @@ class ZfinResolveOut(_FromAttributes):
 class ZfinStatusOut(BaseModel):
     zfin_date: str  # the archive snapshot the bundle was built from
     counts: dict[str, int]
+
+
+class RevisionSummary(_FromAttributes):
+    """One entry in a study's history: which save it was, who made it, and when."""
+
+    version: int
+    saved_by: str
+    created_at: datetime
+
+
+class Revision(RevisionSummary):
+    """A study as it stood after one save.
+
+    The document is returned as it was stored. It was a ``StudyRead`` when it
+    was written, and may not match today's if the schema has changed since.
+    """
+
+    document: dict[str, object]

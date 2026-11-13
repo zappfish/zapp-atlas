@@ -3,7 +3,8 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import zapp_atlas.auth.models  # noqa: F401
+import zapp_atlas.auth.models
+import zapp_atlas.db.revisions  # noqa: F401
 from zapp_atlas.db.migrate import migrate
 from zapp_atlas.schema.sqla import Base
 from zapp_atlas.settings import AppSettings, load_settings

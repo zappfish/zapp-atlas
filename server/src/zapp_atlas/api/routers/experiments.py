@@ -7,6 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, status
 
+from zapp_atlas.api.authz import SignedIn
 from zapp_atlas.api.deps import SessionDep, StorageDep
 from zapp_atlas.api.resources import readable, writable
 from zapp_atlas.api.services import levels
@@ -26,9 +27,9 @@ WritableParent = Annotated[Study, writable("Study")]
     status_code=status.HTTP_201_CREATED,
 )
 def create_experiment(
-    parent: WritableParent, body: ExperimentInput, session: SessionDep
+    parent: WritableParent, body: ExperimentInput, identity: SignedIn, session: SessionDep
 ) -> Experiment:
-    return levels.create(session, "Experiment", body, parent=parent)
+    return levels.create(session, "Experiment", body, parent=parent, by=identity)
 
 
 @router.get("/experiments/{experiment_id}", response_model=ExperimentRead)
@@ -38,11 +39,13 @@ def read_experiment(experiment: Readable) -> Experiment:
 
 @router.put("/experiments/{experiment_id}", response_model=ExperimentRead)
 def replace_experiment(
-    experiment: Writable, body: ExperimentInput, session: SessionDep
+    experiment: Writable, body: ExperimentInput, identity: SignedIn, session: SessionDep
 ) -> Experiment:
-    return levels.replace(session, "Experiment", experiment, body)
+    return levels.replace(session, "Experiment", experiment, body, by=identity)
 
 
 @router.delete("/experiments/{experiment_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_experiment(experiment: Writable, session: SessionDep, storage: StorageDep) -> None:
-    levels.delete(session, "Experiment", experiment, storage)
+def delete_experiment(
+    experiment: Writable, identity: SignedIn, session: SessionDep, storage: StorageDep
+) -> None:
+    levels.delete(session, "Experiment", experiment, storage, by=identity)

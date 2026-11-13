@@ -22,11 +22,11 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.authz import SignedIn, is_member, require_membership
 from zapp_atlas.api.deps import SessionDep
-from zapp_atlas.api.layout import Level, layout
+from zapp_atlas.api.tree import study_of
 from zapp_atlas.auth.deps import CurrentIdentity
 from zapp_atlas.schema import sqla
 from zapp_atlas.schema.pydantic_crud import StudyStatusEnum
-from zapp_atlas.schema.sqla import Base, Study
+from zapp_atlas.schema.sqla import Base
 
 # What each level's id is called in a path.
 PATH_PARAMETERS = {
@@ -38,24 +38,13 @@ PATH_PARAMETERS = {
 }
 
 
-def study_of(session: Session, level: Level, row: Base) -> Study:
-    """The study a row sits in, however many levels down it is."""
-    while level.parent is not None:
-        # ``gen-sqla`` names a child's foreign key after its parent's class.
-        parent_id = getattr(row, f"{level.parent.name}_id")
-        row = session.get_one(getattr(sqla, level.parent.name), parent_id)
-        level = level.parent
-    return row
-
-
 def readable(level_name: str) -> params.Depends:
     """A dependency giving the row the path names, if the caller may see it."""
-    level = layout().levels[level_name]
     find = _finder(level_name)
 
     def load(identity: CurrentIdentity, session: SessionDep, row_id: _row_id(level_name)) -> Base:
         row = find(session, row_id)
-        study = study_of(session, level, row)
+        study = study_of(session, level_name, row)
         if study.status != StudyStatusEnum.published.value and not is_member(
             session, study.research_group, identity
         ):
@@ -67,12 +56,11 @@ def readable(level_name: str) -> params.Depends:
 
 def writable(level_name: str) -> params.Depends:
     """A dependency giving the row the path names, if the caller may change it."""
-    level = layout().levels[level_name]
     find = _finder(level_name)
 
     def load(identity: SignedIn, session: SessionDep, row_id: _row_id(level_name)) -> Base:
         row = find(session, row_id)
-        study = study_of(session, level, row)
+        study = study_of(session, level_name, row)
         if not is_member(session, study.research_group, identity):
             if study.status != StudyStatusEnum.published.value:
                 raise _not_found(level_name)

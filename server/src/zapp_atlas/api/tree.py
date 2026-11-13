@@ -74,6 +74,17 @@ def _shared(session: Session, class_name: str, body: BaseModel) -> Base:
     return row
 
 
+def study_of(session: Session, level_name: str, row: Base) -> sqla.Study:
+    """The study a row sits in, however many levels down it is."""
+    level = layout().levels[level_name]
+    while level.parent is not None:
+        # ``gen-sqla`` names a child's foreign key after its parent's class.
+        parent_id = getattr(row, f"{level.parent.name}_id")
+        row = session.get_one(getattr(sqla, level.parent.name), parent_id)
+        level = level.parent
+    return row
+
+
 def images_within(class_name: str, row: Base) -> Iterator[Base]:
     """Every image at or beneath a row, whose stored files outlive the rows."""
     if class_name == "Image":

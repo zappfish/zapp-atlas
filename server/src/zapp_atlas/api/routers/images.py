@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, File, HTTPException, Response, UploadFile, status
 from fastapi.responses import RedirectResponse
 
+from zapp_atlas.api.authz import SignedIn
 from zapp_atlas.api.deps import SessionDep, SettingsDep, StorageDep
 from zapp_atlas.api.resources import readable, writable
 from zapp_atlas.api.services import levels
@@ -36,6 +37,7 @@ class ImageUpload(ImageInput):
 async def upload_image(
     parent: WritableParent,
     upload: Annotated[ImageUpload, File()],
+    identity: SignedIn,
     session: SessionDep,
     settings: SettingsDep,
     storage: StorageDep,
@@ -53,7 +55,7 @@ async def upload_image(
         )
 
     body = ImageInput.model_validate(upload.model_dump(exclude={"file"}))
-    image = levels.create(session, "Image", body, parent=parent)
+    image = levels.create(session, "Image", body, parent=parent, by=identity)
     storage.put(levels.image_key(image.id), data, content_type)
     return image
 
@@ -72,10 +74,14 @@ def fetch_image(image: Readable, storage: StorageDep) -> Response:
 
 
 @router.put("/images/{image_id}", response_model=ImageRead)
-def replace_image(image: Writable, body: ImageInput, session: SessionDep) -> Image:
-    return levels.replace(session, "Image", image, body)
+def replace_image(
+    image: Writable, body: ImageInput, identity: SignedIn, session: SessionDep
+) -> Image:
+    return levels.replace(session, "Image", image, body, by=identity)
 
 
 @router.delete("/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_image(image: Writable, session: SessionDep, storage: StorageDep) -> None:
-    levels.delete(session, "Image", image, storage)
+def delete_image(
+    image: Writable, identity: SignedIn, session: SessionDep, storage: StorageDep
+) -> None:
+    levels.delete(session, "Image", image, storage, by=identity)
