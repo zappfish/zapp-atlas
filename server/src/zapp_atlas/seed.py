@@ -21,15 +21,19 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.schema.sqla import (  # type: ignore
+    ChemicalCabinetEntry,
     Experiment,
     ExposureEvent,
     ExposureRoute,
     ExposureType,
     Fish,
+    FishTankEntry,
     Phenotype,
     PhenotypeObservationSet,
     PhenotypeTerm,
     QuantityValue,
+    ResearchGroup,
+    ResearchGroupMember,
     StressorChemical,
     Study,
 )
@@ -39,6 +43,11 @@ SEEDED_PUBLICATIONS = {
     "PMID:40359302",
     "PMID:41812223",
 }
+
+# The dev sign-in's identity (ZAPP_DEV_AUTH), so a preview opens on a group
+# that already holds records rather than an empty dashboard.
+DEV_GROUP_NAME = "Zebrafish Toxicology Lab"
+DEV_MEMBER = "ORCID:0000-0002-1825-0097"
 
 
 # ---------------------------------------------------------------------------
@@ -322,6 +331,47 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
 # ---------------------------------------------------------------------------
 
 
+def _build_dev_group(session: Session) -> None:
+    """A group for the dev identity, stocked from the studies seeded above.
+
+    Previews have no volume, so this runs again on every restart; each piece
+    is looked up before it is added.
+    """
+    group = session.query(ResearchGroup).filter_by(name=DEV_GROUP_NAME).one_or_none()
+    if group is None:
+        group = ResearchGroup(name=DEV_GROUP_NAME)
+        session.add(group)
+        session.flush()
+
+    membership = (
+        session.query(ResearchGroupMember)
+        .filter_by(research_group=group.id, member=DEV_MEMBER)
+        .one_or_none()
+    )
+    if membership is None:
+        session.add(ResearchGroupMember(research_group=group.id, member=DEV_MEMBER, role="admin"))
+
+    zfin_id = "ZFIN:ZDB-GENO-960809-7"
+    _upsert_fish(session, zfin_id=zfin_id, name="AB")
+    entry = (
+        session.query(FishTankEntry)
+        .filter_by(research_group=group.id, fish_zfin_id=zfin_id)
+        .one_or_none()
+    )
+    if entry is None:
+        session.add(FishTankEntry(research_group=group.id, fish_zfin_id=zfin_id))
+
+    # The chemicals the seeded studies use, so the cabinet is not empty.
+    for chemical_id in ("CHEBI:33216", "CHEBI:15367", "CHEBI:6651", "CHEBI:9747"):
+        entry = (
+            session.query(ChemicalCabinetEntry)
+            .filter_by(research_group=group.id, chemical_id=chemical_id)
+            .one_or_none()
+        )
+        if entry is None:
+            session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=chemical_id))
+
+
 def seed(session: Session) -> None:
     """Seed the database with demo data. Idempotent on `Study.publication`."""
 
@@ -343,6 +393,7 @@ def seed(session: Session) -> None:
             continue
         session.add(builder(session))
 
+    _build_dev_group(session)
     session.commit()
 
 

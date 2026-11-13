@@ -33,6 +33,8 @@ being a separate website that happens to share a domain.
 zapp-atlas/
 ├── server/            FastAPI backend + LinkML schema (source of truth)
 ├── client/            React + Vite + TypeScript editing SPA (served at /edit)
+├── extdata/           Offline build of the read-only reference bundle: ontologies
+│                      (served at /extdata) and ZFIN's registry of fish lines
 ├── legacy/            Archived Flask server + first-pass React demo (NOT wired in)
 ├── scripts/           One-off / operational scripts
 ├── Justfile           Task runner (dev, test, seed, docker, GCP deploy)
@@ -67,8 +69,12 @@ server/src/zapp_atlas/
 │   └── models.py      OrcidIdentity (SQLAlchemy)
 ├── api/               Read-write JSON API (mounted under /api)
 │   ├── deps.py        get_session / get_app_settings dependencies
-│   ├── routers/       studies, experiments, exposures, observations, images
+│   ├── routers/       studies, experiments, exposures, observations, images,
+│   │                  chemicals (read-only lookups for the chemical picker),
+│   │                  zfin (read-only lookups for the fish picker)
 │   └── services/      CRUD business logic per resource
+├── chem/              NodeNorm client + the ChEBI lookup cache
+│                      (read side, and the offline tools that build it)
 ├── db/                Persistence
 │   ├── db.py          SQLAlchemy 2.0 engine + session factory
 │   ├── init_db.py     table creation
@@ -91,6 +97,11 @@ server/src/zapp_atlas/
 | `/auth/orcid/*`, `GET /registered` | `auth` router | ORCID OAuth + status |
 | `POST /auth/dev/login` | `auth` router | dev-only fake sign-in (see below) |
 | `/api/{studies,experiments,exposures,observations,images}` | `api` routers | JSON CRUD |
+| `/api/chemicals/{autocomplete,normalize,vehicle-info}` | `api` chemicals router | read-only chemical lookups (NodeNorm + ChEBI cache) |
+| `GET /api/zfin/{wildtypes,status}`, `GET /api/zfin/alleles?q=`, `GET /api/zfin/{alleles,genotypes,fish}/{id}` | `api` zfin router | read-only ZFIN lookups from the bundle's `zfin.db` (503 without it) |
+| `POST /api/zfin/resolve` | `api` zfin router | the registered ZFIN genotype and fish a described fish corresponds to |
+| `GET /extdata/manifest.json` | `extdata` router | the ontology bundle's hash and versions (not cached) |
+| `GET /extdata/<hash>/*` | `extdata` router | ontology files for the client, immutable per hash |
 | `GET /health` | `main` | `{"status":"ok"}` |
 
 Route order matters in `create_app`: the `/edit/assets` mount is registered
@@ -238,7 +249,32 @@ just dev-api-hmr                       # uvicorn, pointed at Vite
 just test          # pytest
 just seed          # reseed the dev database
 just build-client  # emit client/dist for production-style serving
+just extdata       # build the ontology bundle into extdata/dist (docker)
 ```
+
+The reference bundle is built offline from pinned upstream releases, never at
+runtime: ZP and ZFA as OBO JSON for the client, `labels.db`, a CURIE ->
+label table the server reads through `zapp_atlas/labels.py`, and `zfin.db`,
+ZFIN's registered alleles, genotypes, fish and wild-type lines, read through
+`zapp_atlas/zfin.py`. Without it the app still runs, but `/extdata` answers
+404, label lookups fall back to the CURIE, and `/api/zfin` answers 503. See
+[extdata/README.md](extdata/README.md).
+
+### Reference data for the fish picker
+
+The fish form is meant to work by description: the curator picks a wild-type
+background, adds alleles by typing a symbol or gene and setting zygosity
+(later, injected reagents too), and the form asks ZFIN's registry whether a
+fish with exactly that description exists. Ids attach silently; "none
+registered" is a real answer. `/api/zfin` serves that flow from `zfin.db`:
+`wildtypes` for the background list, `alleles?q=` for the autocomplete,
+`resolve` for the match (exact identity, as ZFIN's own records are keyed;
+"unknown" zygosity is a value, not a wildcard; several genotypes can match
+because ZFIN records a background for only a third of them, and the response
+says so), and the by-id routes to show a saved fish's ZFIN details again.
+Responses use ZFIN's own vocabulary (SO ids, its zygosity words) rather than
+the schema's enums, so the lookup surface does not move when the fish data
+model is reworked.
 
 Schema regeneration after editing the LinkML YAML: `cd server && make schema`.
 
@@ -260,6 +296,12 @@ who asks. To exercise the real flow, register a sandbox app at
 Containerized via `Dockerfile`. Targets: **Fly.io** (`fly.toml`) and **GCP Cloud
 Run** (the `gcp-build` / `gcp-deploy` / `gcp-ship` recipes in the `Justfile`,
 with the SQLite DB and uploads on a mounted Cloud Storage volume).
+
+The image includes the ontology bundle from `extdata/dist`, so a local image
+build needs `just extdata` first. The deploy workflows put it there
+themselves: they download the GitHub release `extdata-<hash>` for the
+current inputs, or build it, and production deploys publish what they built.
+See [extdata/README.md](extdata/README.md#deployment).
 
 ## Conventions and current state
 

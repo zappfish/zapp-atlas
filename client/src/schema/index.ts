@@ -210,10 +210,16 @@ export interface ZfinEntity {
  * A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
  */
 export interface Study extends ZappEntity {
+    /** The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid. */
+    research_group?: ResearchGroupId,
     /** The experiment in a study. */
     experiment?: Experiment[],
-    /** The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished. */
+    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
     publication?: string,
+    /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one. */
+    nickname?: string,
+    /** A free-text summary of what the study set out to do. */
+    description?: string,
     /** ORCID identifier of the indidvidual submitting the study data. */
     annotator?: string[],
     /** ZFIN lab identifier of the laboratory that produced the study data. */
@@ -473,13 +479,21 @@ export interface ResearchGroupMember extends ZappEntity {
 
 
 /**
- * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+ * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time. An entry is one stock on the shelf: the same chemical from two suppliers is two entries, so both can be picked while a group transitions between suppliers.
  */
 export interface ChemicalCabinetEntry extends ZappEntity {
     /** The research group an entry belongs to. */
     research_group: ResearchGroupId,
     /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
     chemical_id: string,
+    /** What the group calls this chemical, e.g. "BPA stock". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it. */
+    nickname?: string,
+    /** The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it. */
+    manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
+    /** The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with. */
+    vehicle_type?: string,
 }
 
 

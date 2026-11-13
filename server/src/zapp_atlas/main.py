@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.routers.cabinet import router as cabinet_router
+from zapp_atlas.api.routers.chemicals import router as chemicals_router
 from zapp_atlas.api.routers.experiments import router as experiments_router
 from zapp_atlas.api.routers.exposures import router as exposures_router
 from zapp_atlas.api.routers.fish_tank import router as fish_tank_router
@@ -23,19 +24,25 @@ from zapp_atlas.api.routers.images import router as images_router
 from zapp_atlas.api.routers.observations import router as observations_router
 from zapp_atlas.api.routers.research_groups import router as research_groups_router
 from zapp_atlas.api.routers.studies import router as studies_router
+from zapp_atlas.api.routers.zfin import router as zfin_router
+from zapp_atlas.api.routers.zfin import zfin_unavailable_handler
 from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
-from zapp_atlas.html.edit_router import make_edit_router
+from zapp_atlas.extdata import make_extdata_router
+from zapp_atlas.html.client_router import make_client_router
 from zapp_atlas.html.router import router as html_router
+from zapp_atlas.labels import Labels
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
+from zapp_atlas.zfin import Zfin, ZfinUnavailable
 
 logger = logging.getLogger(__name__)
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = PACKAGE_DIR / "html" / "static"
-# Built React editing client. Lives at the repo-root `client/` (sibling of
-# `server/`); served at `/edit` once it has been built (`npm run build`).
+# Built React client. Lives at the repo-root `client/` (sibling of `server/`);
+# served on the routes in html/client_router.py once it has been built
+# (`npm run build`).
 CLIENT_DIST_DIR = PACKAGE_DIR.parents[2] / "client" / "dist"
 
 
@@ -60,6 +67,8 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings or load_settings()
+    app.state.labels = Labels(app.state.settings.extdata_dir / "labels.db")
+    app.state.zfin = Zfin(app.state.settings.extdata_dir / "zfin.db")
 
     @app.exception_handler(SchemaRuleViolation)
     def _schema_rule_violation(request: Request, exc: SchemaRuleViolation) -> JSONResponse:
@@ -70,6 +79,8 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content={"detail": [{"type": "schema_rule", "msg": str(exc)}]},
         )
+
+    app.add_exception_handler(ZfinUnavailable, zfin_unavailable_handler)
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -87,23 +98,29 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     api.include_router(research_groups_router)
     api.include_router(cabinet_router)
     api.include_router(fish_tank_router)
+    api.include_router(chemicals_router)
+    api.include_router(zfin_router)
     app.include_router(api)
 
     # Static assets for the server-rendered (HTMX) viewing app.
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-    # The React editing client's compiled JS/CSS. The HTML document that loads
-    # them is rendered by the edit router below (templates/edit.html), so that
-    # the SPA sits inside the same shell as the server-rendered pages.
+    # Ontology files for the client's pickers, from the extdata bundle.
+    app.include_router(make_extdata_router(app.state.settings.extdata_dir))
+
+    # The React client's compiled JS/CSS, at the URL vite.config.ts `base`
+    # generates. The HTML document that loads them is rendered by the client
+    # router below, so the React app sits inside the same shell as the
+    # server-rendered pages.
     #
-    # This mount must be registered *before* the edit router, whose catch-all
-    # would otherwise swallow requests for these files.
+    # This mount must be registered *before* the client router, whose
+    # catch-all would otherwise swallow requests for these files.
     client_assets_dir = CLIENT_DIST_DIR / "assets"
     if client_assets_dir.is_dir():
         app.mount(
-            "/edit/assets",
+            "/assets",
             StaticFiles(directory=client_assets_dir),
-            name="edit-assets",
+            name="client-assets",
         )
     else:
         logger.warning(
@@ -113,7 +130,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
             CLIENT_DIST_DIR,
         )
 
-    app.include_router(make_edit_router(CLIENT_DIST_DIR))
+    app.include_router(make_client_router(CLIENT_DIST_DIR))
 
     return app
 

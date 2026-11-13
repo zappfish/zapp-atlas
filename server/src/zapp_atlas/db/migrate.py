@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy import Engine, inspect, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import CreateColumn
 
 from zapp_atlas.schema.sqla import Base
@@ -68,6 +69,43 @@ def _add_missing_columns(engine: Engine) -> None:
             log.info("added column %s.%s", table.name, column.name)
 
 
+def _add_missing_unique_indexes(engine: Engine) -> None:
+    """Create every unique index the models declare that the database lacks.
+
+    ``create_all`` skips a table that already exists, indexes and all, so a
+    ``unique_keys`` entry added to an existing class never reaches a deployed
+    database on its own. Runs after the column pass, since a new key may sit on
+    a new column.
+
+    If the rows already there break a key, that index is skipped and the
+    problem is logged: the app still starts, and the duplicates need a
+    hand-written fix rather than a guess about which row to keep. Indexes are
+    matched by name only, so a key whose slots change needs a new name to
+    reach a database that already has the old one.
+    """
+    inspector = inspect(engine)
+    present_tables = set(inspector.get_table_names())
+
+    for table in Base.metadata.sorted_tables:
+        if table.name not in present_tables:
+            continue
+        existing = {index["name"] for index in inspector.get_indexes(table.name)}
+        for index in table.indexes:
+            if not index.unique or index.name in existing:
+                continue
+            try:
+                with engine.begin() as connection:
+                    index.create(connection)
+            except IntegrityError:
+                log.error(
+                    "could not add unique index %s: rows already in %s break it",
+                    index.name,
+                    table.name,
+                )
+                continue
+            log.info("added unique index %s on %s", index.name, table.name)
+
+
 def _move_chemical_names_into_synonyms(engine: Engine) -> None:
     """Carry the dropped ``chemical_name`` column over to ``synonym``.
 
@@ -95,6 +133,20 @@ def _move_chemical_names_into_synonyms(engine: Engine) -> None:
         log.info("moved %s chemical_name value(s) into StressorChemical_synonym", moved)
 
 
+def _widen_cabinet_grain_to_supplier(engine: Engine) -> None:
+    """Drop the cabinet's pre-#175 unique index, which manufacturer widened.
+
+    The old ``(research_group, chemical_id)`` key allowed one entry per
+    chemical; ``cabinet_supplier_grain`` adds manufacturer so the same
+    chemical from two suppliers can both be stocked. The new index arrives
+    through ``_add_missing_unique_indexes`` (indexes are matched by name,
+    which is why the key was renamed), but nothing else removes the old one,
+    and while it exists a second supplier is still rejected.
+    """
+    with engine.begin() as connection:
+        connection.execute(text('DROP INDEX IF EXISTS "uq_ChemicalCabinetEntry_cabinet_grain"'))
+
+
 def _rename_vehicle_types(engine: Engine) -> None:
     """Rewrite stored vehicle values whose enum member was renamed."""
     if "VehicleOfTransmission" not in inspect(engine).get_table_names():
@@ -115,5 +167,7 @@ def _rename_vehicle_types(engine: Engine) -> None:
 def migrate(engine: Engine) -> None:
     """Apply every outstanding fix. Idempotent; safe on an up-to-date database."""
     _add_missing_columns(engine)
+    _widen_cabinet_grain_to_supplier(engine)
+    _add_missing_unique_indexes(engine)
     _move_chemical_names_into_synonyms(engine)
     _rename_vehicle_types(engine)

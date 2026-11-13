@@ -13,6 +13,13 @@ place says the same thing unconditionally, which is what the rule means.
 Rules that do carry a precondition already emit a real ``if``/``then`` pair
 and are left alone.
 
+**"When X is absent" rules count a blank X as absent.** A precondition of
+``value_presence: ABSENT`` is emitted as ``if: {not: {required: [X]}}``, which
+only asks whether the key is there. The client's blank forms carry every text
+field as ``""`` (see ``makeEmpty``), so the key is always there and the rule
+would never apply. The server treats blank as missing; this makes the client
+agree, for the rule's condition and for the fields it then requires.
+
 **The do-not-edit notice is injected.** JSON has no comments, so it rides in
 the standard ``$comment`` keyword as the first key.
 """
@@ -51,9 +58,49 @@ def hoist_unconditional_then(node: Any) -> Any:
     return node
 
 
+# Text that is really there: a string with something in it besides spaces.
+FILLED_IN = {"type": "string", "pattern": "\\S"}
+
+
+def _is_text(declared: dict[str, Any]) -> bool:
+    kinds = declared.get("type", [])
+    return "string" in ([kinds] if isinstance(kinds, str) else kinds)
+
+
+def blank_counts_as_absent(node: Any) -> Any:
+    """Make every "when X is absent, require Y" rule treat blank text as absent.
+
+    Only rules of that shape are touched -- an ``if`` that is
+    ``{not: {required: [...]}}`` -- and only their text slots. The condition
+    becomes "X is not filled in", and the text the rule requires must be
+    filled in, not merely present.
+    """
+    if isinstance(node, list):
+        return [blank_counts_as_absent(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+
+    node = {key: blank_counts_as_absent(value) for key, value in node.items()}
+    absent = node.get("if", {}).get("not", {}).get("required")
+    required = node.get("then", {}).get("required")
+    if not (absent and required):
+        return node
+
+    declared = node.get("properties", {})
+
+    def filled_in(names: list[str]) -> dict[str, Any]:
+        text = {name: FILLED_IN for name in names if _is_text(declared.get(name, {}))}
+        return {"required": names, "properties": text}
+
+    node["if"] = {"not": filled_in(absent)}
+    node["then"] = {**node["then"], **filled_in(required)}
+    return node
+
+
 def main() -> None:
     schema = json.load(sys.stdin)
     schema = hoist_unconditional_then(schema)
+    schema = blank_counts_as_absent(schema)
     json.dump({"$comment": NOTICE, **schema}, sys.stdout, indent=2, ensure_ascii=False)
     print()
 

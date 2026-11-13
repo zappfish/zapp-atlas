@@ -55,11 +55,47 @@ classes:
   Study:
     is_a: ZappEntity
     description: A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
+    annotations:
+      timestamped: true
     slots:
+      - research_group
       - experiment
       - publication
+      - nickname
+      - description
       - annotator
       - lab
+    slot_usage:
+      research_group:
+        required: false
+        description: >-
+          The research group the study belongs to. Optional only so that
+          studies recorded before groups existed remain valid.
+      nickname:
+        description: >-
+          A short working name for the study, and what it is listed under when
+          picking a study. Required while the study has no publication
+          identifier; no two studies in a research group may share one.
+      description:
+        description: A free-text summary of what the study set out to do.
+    rules:
+      - description: >-
+          A study that has no publication identifier yet must still be
+          recognisable to the people working on it, so an unpublished study
+          carries a nickname instead.
+        preconditions:
+          slot_conditions:
+            publication:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            nickname:
+              required: true
+    unique_keys:
+      study_nickname_grain:
+        unique_key_slots:
+          - research_group
+          - nickname
 
   Experiment:
     is_a: ZappEntity
@@ -143,6 +179,12 @@ classes:
           (a standardized identifier / CURIE) or unrecognized_chemical_name
           (the free-text fallback for a chemical that could not be resolved)
           must be present.
+        # WORKAROUND: an empty preconditions block keeps `gen-doc` from
+        # crashing on this unconditional rule (its class template iterates
+        # rule.preconditions, which is None when the key is left out). This
+        # breaks the zappfish.github.io schema docs build. Remove once the
+        # LinkML docgen template handles rules with no preconditions.
+        preconditions: {}
         postconditions:
           any_of:
             - slot_conditions:
@@ -294,20 +336,65 @@ classes:
     is_a: ZappEntity
     description: >-
       A chemical a research group keeps on hand. Recorded once, then reused to
-      pre-fill curation instead of re-searching the chemical each time.
+      pre-fill curation instead of re-searching the chemical each time. An
+      entry is one stock on the shelf: the same chemical from two suppliers is
+      two entries, so both can be picked while a group transitions between
+      suppliers.
     annotations:
       timestamped: true
     slots:
       - research_group
       - chemical_id
+      - nickname
+      - manufacturer
+      - unrecognized_manufacturer_name
+      - vehicle_type
     slot_usage:
       chemical_id:
         required: true
+      nickname:
+        description: >-
+          What the group calls this chemical, e.g. "BPA stock". Optional; when
+          given it is what the chemical is listed under when pre-filling a
+          submission, and no two entries in the group may share it.
+      manufacturer:
+        description: >-
+          The supplier this stock comes from. Optional, and part of the cabinet
+          grain: entries for the same chemical are told apart by it.
+      vehicle_type:
+        required: false
+        description: >-
+          The vehicle the group habitually delivers this chemical in, offered
+          as a pre-fill default and corrected per submission like any other.
+          other_not_listed is not accepted here, because the entry has no slot
+          to name an unlisted vehicle with.
+    rules:
+      - description: >-
+          Picking the other_not_listed manufacturer escape hatch means the
+          supplier has to be named in free text; without it the entry records
+          no recoverable supplier at all.
+        preconditions:
+          slot_conditions:
+            manufacturer:
+              equals_string: other_not_listed
+        postconditions:
+          slot_conditions:
+            unrecognized_manufacturer_name:
+              required: true
     unique_keys:
-      cabinet_grain:
+      cabinet_supplier_grain:
+        description: >-
+          Replaces cabinet_grain, which did not include manufacturer. The index
+          is matched by name on deployed databases, so the widened key needs a
+          new one, and db/migrate.py drops the old index.
         unique_key_slots:
           - research_group
           - chemical_id
+          - manufacturer
+      cabinet_nickname_grain:
+        unique_key_slots:
+          - research_group
+          - nickname
 
   FishTankEntry:
     is_a: ZappEntity
@@ -367,7 +454,22 @@ slots:
       limited to what is visible in the imaged region.
     range: ImageScopeEnum
   publication:
-    description: The publication identifier (e.g., PMID, DOI) for the study or "not published" if the study is unpublished.
+    description: >-
+      The persistent publication identifier (e.g., PMID, DOI) for the study.
+      Absent while the study is unpublished, in which case its nickname
+      identifies it instead.
+    range: string
+  nickname:
+    description: >-
+      An informal label a research group gives to something it works with,
+      shown in place of its formal name when picking it. Unlike a synonym it
+      is not a formally recognised name, and it is unique only within the
+      group that chose it. At most 200 characters.
+    range: string
+    # LinkML has no length limit of its own; the pattern is how one is said.
+    pattern: "^.{0,200}$"
+  description:
+    description: A free-text description of an entity.
     range: string
   synonym:
     description: Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.

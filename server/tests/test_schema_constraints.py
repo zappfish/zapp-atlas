@@ -21,6 +21,7 @@ from zapp_atlas.schema.sqla import (
     FishTankEntry,
     ResearchGroup,
     ResearchGroupMember,
+    Study,
 )
 
 ORCID = "ORCID:0000-0002-1825-0097"
@@ -54,11 +55,60 @@ def assert_second_insert_rejected(session: Session, row: Callable[[], object]) -
     session.rollback()
 
 
-def test_cabinet_grain_is_unique_per_group_and_chemical(session, group):
+def test_cabinet_grain_is_unique_per_group_chemical_and_supplier(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL),
+        lambda: ChemicalCabinetEntry(
+            research_group=group.id, chemical_id=ETHANOL, manufacturer="sigma_aldrich"
+        ),
     )
+
+
+def test_cabinet_may_stock_a_chemical_from_two_suppliers(session, group):
+    for supplier in ("sigma_aldrich", "fisher_scientific", None):
+        session.add(
+            ChemicalCabinetEntry(
+                research_group=group.id, chemical_id=ETHANOL, manufacturer=supplier
+            )
+        )
+    session.commit()
+
+    # Note the None row: the index treats every NULL as distinct, so a second
+    # supplier-less duplicate would NOT be rejected here — the cabinet service
+    # is what catches that one.
+    assert session.query(ChemicalCabinetEntry).count() == 3
+
+
+def test_cabinet_nickname_is_unique_per_group(session, group):
+    chemicals = iter([ETHANOL, "CHEBI:33216"])
+    assert_second_insert_rejected(
+        session,
+        lambda: ChemicalCabinetEntry(
+            research_group=group.id, chemical_id=next(chemicals), nickname="stock"
+        ),
+    )
+
+
+def test_cabinet_entries_without_a_nickname_do_not_collide(session, group):
+    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL))
+    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id="CHEBI:33216"))
+    session.commit()
+
+
+def test_study_nickname_is_unique_per_group(session, group):
+    assert_second_insert_rejected(
+        session,
+        lambda: Study(research_group=group.id, nickname="BPA pilot"),
+    )
+
+
+def test_two_groups_may_give_a_study_the_same_nickname(session, group):
+    other = ResearchGroup(name="Other Lab")
+    session.add(other)
+    session.commit()
+    session.add(Study(research_group=group.id, nickname="BPA pilot"))
+    session.add(Study(research_group=other.id, nickname="BPA pilot"))
+    session.commit()
 
 
 def test_tank_grain_is_unique_per_group_and_fish(session, group):
@@ -95,3 +145,13 @@ def test_annotated_classes_get_audit_timestamps(session, group):
 
     assert entry.created_at is not None
     assert entry.updated_at is not None
+
+
+def test_study_records_submission_date(session):
+    # created_at is the submission date (#140, #118).
+    study = Study(publication="not published")
+    session.add(study)
+    session.commit()
+
+    assert study.created_at is not None
+    assert study.updated_at is not None

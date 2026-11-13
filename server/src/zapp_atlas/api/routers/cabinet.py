@@ -1,8 +1,12 @@
 """Chemical cabinet endpoints (a research group's on-hand chemicals).
 
 All endpoints are scoped to a group in the path and require membership. The
-grain ``(research_group, chemical_id)`` is unique, so a duplicate POST is a
-409. ``research_group`` is always taken from the path, never a request body.
+grain ``(research_group, chemical_id, manufacturer)`` is unique — one entry
+per stock on the shelf — so a duplicate POST is a 409. ``research_group`` is
+always taken from the path, never a request body.
+
+An entry may carry a ``nickname``: what the group calls the chemical. It is
+optional and unique within the group; reusing one is a 409 as well.
 """
 
 from __future__ import annotations
@@ -52,7 +56,15 @@ def add_cabinet_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> CabinetEntryOut:
-    entry = add_entry(session, group_id, payload.chemical_id)
+    entry = add_entry(
+        session,
+        group_id,
+        payload.chemical_id,
+        nickname=payload.nickname,
+        manufacturer=payload.manufacturer,
+        unrecognized_manufacturer_name=payload.unrecognized_manufacturer_name,
+        vehicle_type=payload.vehicle_type,
+    )
     return CabinetEntryOut.model_validate(entry)
 
 
@@ -77,7 +89,16 @@ def patch_cabinet_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> CabinetEntryOut:
-    entry = update_entry(session, group_id, entry_id, chemical_id=patch.chemical_id)
+    entry = update_entry(
+        session,
+        group_id,
+        entry_id,
+        chemical_id=patch.chemical_id,
+        nickname=patch.nickname,
+        manufacturer=patch.manufacturer,
+        unrecognized_manufacturer_name=patch.unrecognized_manufacturer_name,
+        vehicle_type=patch.vehicle_type,
+    )
     if entry is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=_NOT_FOUND)
     return CabinetEntryOut.model_validate(entry)

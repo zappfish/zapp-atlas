@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -9,6 +11,18 @@ from sqlalchemy.pool import StaticPool
 from zapp_atlas.api.deps import get_session
 from zapp_atlas.main import create_app
 from zapp_atlas.settings import AppSettings
+
+
+@pytest.fixture(autouse=True)
+def _no_orcid_public_api(monkeypatch) -> None:
+    """Keep tests off the network: ORCID public-name lookups find nothing.
+
+    Tests that care about the prefetched name monkeypatch the same symbol.
+    """
+    monkeypatch.setattr(
+        "zapp_atlas.auth.services.fetch_orcid_public_name",
+        lambda *args, **kwargs: None,
+    )
 
 
 @pytest.fixture
@@ -44,3 +58,27 @@ def client(tmp_path) -> TestClient:
     # point it at the same test database.
     app.state.session_factory = SessionLocal
     return TestClient(app)
+
+
+@pytest.fixture(scope="session")
+def zfin_db(tmp_path_factory) -> Path:
+    """zfin.db built from tests/zfin_fixture by the real extdata builder."""
+    import subprocess
+
+    repo = Path(__file__).resolve().parents[2]
+    output = tmp_path_factory.mktemp("zfin") / "zfin.db"
+    subprocess.run(
+        [
+            "uv",
+            "run",
+            "--quiet",
+            "--script",
+            str(repo / "extdata" / "scripts" / "zfin_db.py"),
+            str(output),
+            str(Path(__file__).parent / "zfin_fixture"),
+            "--zfin-date",
+            "2026.11.01",
+        ],
+        check=True,
+    )
+    return output

@@ -130,7 +130,10 @@ class Study(ZappEntity):
 
     __tablename__ = "Study"
 
+    research_group: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     publication: Mapped[str | None] = mapped_column(Text())
+    nickname: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[str | None] = mapped_column(Text())
     lab: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
@@ -145,7 +148,7 @@ class Study(ZappEntity):
     )
 
     def __repr__(self):
-        return f"Study(publication={self.publication},lab={self.lab},id={self.id},)"
+        return f"Study(research_group={self.research_group},publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -512,17 +515,21 @@ class ResearchGroupMember(ZappEntity):
 
 class ChemicalCabinetEntry(ZappEntity):
     """
-    A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+    A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time. An entry is one stock on the shelf: the same chemical from two suppliers is two entries, so both can be picked while a group transitions between suppliers.
     """
 
     __tablename__ = "ChemicalCabinetEntry"
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     chemical_id: Mapped[str] = mapped_column(Text())
+    nickname: Mapped[str | None] = mapped_column(Text())
+    manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', 'other_not_listed', name='ManufacturerEnum'))
+    unrecognized_manufacturer_name: Mapped[str | None] = mapped_column(Text())
+    vehicle_type: Mapped[str | None] = mapped_column(Enum('acetone', 'acetonitrile', 'bsa', 'butanone_mek', 'cyclodextrin_hpbcd', 'dimethyl_formamide', 'dmso', 'embryonic_media', 'ethanol', 'glycerol', 'isopropanol', 'methanol', 'methylcellulose', 'pbs', 'polyethylene_glycol', 'propylene_glycol', 'solketal', 'water', 'other_not_listed', name='VehicleEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
     def __repr__(self):
-        return f"ChemicalCabinetEntry(research_group={self.research_group},chemical_id={self.chemical_id},id={self.id},)"
+        return f"ChemicalCabinetEntry(research_group={self.research_group},chemical_id={self.chemical_id},nickname={self.nickname},manufacturer={self.manufacturer},unrecognized_manufacturer_name={self.unrecognized_manufacturer_name},vehicle_type={self.vehicle_type},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 
