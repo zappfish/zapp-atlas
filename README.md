@@ -8,6 +8,24 @@ The previous Flask upload endpoint and the first-pass React/Vite UI are
 archived under [`legacy/`](legacy/README.md); neither is wired into the
 current build.
 
+## Fish picker prototype (this branch)
+
+This branch is the handoff of the fish data-model work (PR #154) plus the
+runnable **fish picker prototype**. Start from
+[prototypes/fish_picker/README.md](prototypes/fish_picker/README.md); the
+short version:
+
+```sh
+just install && just fetch-zfin     # one-time; the fetch is ~77 MB of ZFIN files
+just fish-picker                    # API on :8000 with the CORS flag the page needs
+open prototypes/fish_picker/index.html   # the widget — a file:// page, not a server route
+```
+
+The page's header pill must read **"live ZFIN index"**. The embedded-sample
+fallback instead means the API isn't up, the fetch is incomplete (10 files
+expected in `server/src/zapp_atlas/db/data/zfin/`), or the server was started
+without the CORS flag — plain `just dev-api` won't do.
+
 ## Dev quickstart
 
 ```sh

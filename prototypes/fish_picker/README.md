@@ -72,9 +72,10 @@ log narrating which ZFIN ids attached and why.
 
 ## Branch mechanics
 
-This branch is `fish-genotype-zfin-ids` (PR #154, base `2e4e02a`) plus one
-commit adding this directory and the `fish-picker` recipe. It is a frozen,
-self-contained snapshot: clone-and-run works regardless of what happens to
-#154. Main has moved ~200 commits since the base and #154 currently conflicts
-with it — reconciling is a separate task; when the #154 content lands
-somewhere, cherry-pick this branch's tip commit onto it.
+This branch is `fish-genotype-zfin-ids` (PR #154, base `2e4e02a`) plus the
+commits adding this directory, the `fish-picker` recipe, and the front-door
+pointer in the repo README. It is a frozen, self-contained snapshot:
+clone-and-run works regardless of what happens to #154. Main has moved ~200
+commits since the base and #154 currently conflicts with it — reconciling is
+a separate task; when the #154 content lands somewhere, cherry-pick
+everything after `411247e` onto it.
