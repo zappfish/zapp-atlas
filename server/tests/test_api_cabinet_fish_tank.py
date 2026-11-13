@@ -1,8 +1,8 @@
 """API tests for research groups, chemical cabinet, and fish tank.
 
 Covers the authorization matrix (signed-out / outsider / member / admin), the
-unique-grain 409s, cross-group isolation, fish get-or-create, and the
-hand-written boundary shape (path-derived research_group; audit timestamps in
+unique-grain 409s, cross-group isolation, the described fish a tank entry
+owns, and the hand-written boundary shape (path-derived research_group; audit timestamps in
 responses).
 """
 
@@ -619,44 +619,74 @@ def test_cabinet_delete(client: TestClient) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_tank_add_get_or_creates_fish(client: TestClient) -> None:
+AB = {"background_zfin_id": AB_LINE, "background_name": "AB"}
+TI282A = {
+    "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+    "allele_symbol": "ti282a",
+    "alteration_type": "point_mutation",
+    "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+    "affected_gene_symbol": "fgf8a",
+    "zygosity": "heterozygous",
+}
+
+
+def test_tank_add_stores_the_described_fish(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     created = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": AB_LINE, "name": "AB"}},
+        json={"fish": {**AB, "mutant_allele": [TI282A]}, "nickname": "fgf8a carriers"},
     )
     assert created.status_code == 201, created.text
     body = created.json()
-    assert body["fish"] == {"zfin_id": AB_LINE, "name": "AB"}
+    assert body["nickname"] == "fgf8a carriers"
+    assert body["fish"]["background_name"] == "AB"
+    assert body["fish"]["fish_zfin_id"] is None
+    [allele] = body["fish"]["mutant_allele"]
+    assert allele["allele_symbol"] == "ti282a"
+    assert allele["father_zygosity"] is None
     assert body["created_at"] is not None
 
 
-def test_tank_grain_conflict(client: TestClient) -> None:
+def test_tank_nickname_is_optional_and_unique(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     url = f"/api/research-groups/{group_id}/fish-tank"
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
-    assert client.post(url, json=fish).status_code == 201
-    assert client.post(url, json=fish).status_code == 409
+    assert client.post(url, json={"fish": AB}).status_code == 201
+    assert client.post(url, json={"fish": AB}).status_code == 201  # no nickname, no clash
+    assert client.post(url, json={"fish": AB, "nickname": "house AB"}).status_code == 201
+    res = client.post(url, json={"fish": AB, "nickname": "house AB"})
+    assert res.status_code == 409
+    assert "nickname" in res.json()["detail"]
 
 
-def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
+def test_tank_rejects_malformed_ids_and_zygosity(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
-    res = client.post(
-        f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": "not-a-zfin", "name": "Mystery"}},
-    )
-    assert res.status_code == 422
+    url = f"/api/research-groups/{group_id}/fish-tank"
+    bad = [
+        {"fish": {**AB, "background_zfin_id": "not-a-zfin"}},
+        {"fish": {**AB, "fish_zfin_id": AB_LINE}},  # a genotype id where a fish id goes
+        {"fish": {**AB, "mutant_allele": [{**TI282A, "zygosity": "hemizygous"}]}},
+        {"fish": {**AB, "mutant_allele": [{**TI282A, "allele_symbol": None}]}},
+    ]
+    for payload in bad:
+        assert client.post(url, json=payload).status_code == 422, payload
+
+
+def test_tank_delete_takes_the_fish_with_it(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/fish-tank"
+    entry = client.post(url, json={"fish": {**AB, "mutant_allele": [TI282A]}}).json()
+    assert client.delete(f"{url}/{entry['id']}").status_code == 204
+    assert client.get(f"{url}/{entry['id']}").status_code == 404
 
 
 def test_two_groups_may_tank_the_same_fish(client: TestClient) -> None:
-    # The second entry reuses the existing Fish row rather than re-creating it.
     group_a = make_group(client, "Lab A")
     group_b = make_group(client, "Lab B")
     signin(client, ADMIN)
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
-    a = client.post(f"/api/research-groups/{group_a}/fish-tank", json=fish)
-    b = client.post(f"/api/research-groups/{group_b}/fish-tank", json=fish)
+    a = client.post(f"/api/research-groups/{group_a}/fish-tank", json={"fish": AB})
+    b = client.post(f"/api/research-groups/{group_b}/fish-tank", json={"fish": AB})
     assert a.status_code == 201 and b.status_code == 201

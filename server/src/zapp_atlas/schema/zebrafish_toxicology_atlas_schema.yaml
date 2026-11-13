@@ -22,6 +22,8 @@ prefixes:
   ZP: http://purl.obolibrary.org/obo/ZP_
   ORCID: https://orcid.org/
   ZFIN: https://zfin.org/
+  SO: http://purl.obolibrary.org/obo/SO_
+  GENO: http://purl.obolibrary.org/obo/GENO_
   UMLS: https://uts.nlm.nih.gov/uts/umls/concept/
   "PUBCHEM.COMPOUND": https://identifiers.org/pubchem.compound/
   UNII: https://fdasis.nlm.nih.gov/srs/unii/
@@ -44,12 +46,6 @@ classes:
   OntologyEntity:
     description: Entities representing ontology terms with URI identifiers.
     abstract: true
-
-  ZfinEntity:
-    description: Entities with ZFIN database identifiers.
-    abstract: true
-    slots:
-      - zfin_id
 
   # Internal entities (integer autoincrement)
   Study:
@@ -296,14 +292,87 @@ classes:
       term_label:
         required: true
 
-  # ZFIN entities (ZFIN database identifiers)
+  # The fish, as the curator describes it
   Fish:
-    is_a: ZfinEntity
-    description: Zebrafish used as subject in the study.
+    is_a: ZappEntity
+    description: >-
+      A zebrafish line as the curator describes it: alleles on a wild-type
+      background, plus any transient reagents injected into the embryos. The
+      ZFIN ids are filled by matching the description against ZFIN's
+      registered records (POST /api/zfin/resolve) and are absent when ZFIN
+      has no such record.
     slots:
-      - name
+      - fish_zfin_id
+      - genotype_zfin_id
+      - background_zfin_id
+      - background_name
+      - mutant_allele
+      - transgenic_allele
+      - transient_reagent
+      - line_description
+
+  MutantAllele:
+    is_a: ZappEntity
+    description: >-
+      A mutant allele the fish carries: which gene it alters, and its zygosity
+      in the fish and, when known, the parents.
+    slots:
+      - allele_zfin_id
+      - allele_symbol
+      - alteration_type
+      - affected_gene_zfin_id
+      - affected_gene_symbol
+      - zygosity
+      - mother_zygosity
+      - father_zygosity
     slot_usage:
-      name:
+      allele_symbol:
+        required: true
+      zygosity:
+        required: true
+
+  TransgenicAllele:
+    is_a: ZappEntity
+    description: >-
+      A transgenic insertion the fish carries: the construct it holds, and its
+      zygosity in the fish and, when known, the parents.
+    slots:
+      - allele_zfin_id
+      - allele_symbol
+      - alteration_type
+      - construct_zfin_id
+      - construct_name
+      - affected_gene_zfin_id
+      - affected_gene_symbol
+      - zygosity
+      - mother_zygosity
+      - father_zygosity
+    slot_usage:
+      allele_symbol:
+        required: true
+      alteration_type:
+        description: The kind of alteration; a transgenic insertion unless ZFIN says otherwise.
+      affected_gene_zfin_id:
+        description: ZFIN's id for the construct's driver or reporter gene, when recorded.
+      affected_gene_symbol:
+        description: The driver or reporter gene's symbol, e.g. fli1a.
+      zygosity:
+        required: true
+
+  TransientReagent:
+    is_a: ZappEntity
+    description: >-
+      A sequence-targeting reagent injected into the embryos (a morpholino,
+      CRISPR or TALEN). Transient and not heritable, so part of the fish and
+      not of its genotype. Dose and injection stage belong to the experiment.
+    slots:
+      - reagent_zfin_id
+      - reagent_symbol
+      - reagent_type
+      - affected_gene_zfin_id
+      - affected_gene_symbol
+    slot_usage:
+      reagent_symbol:
         required: true
 
   # Operational entities (research groups and what they keep on hand)
@@ -405,15 +474,21 @@ classes:
     slots:
       - research_group
       - fish
+      - nickname
     slot_usage:
       fish:
         required: true
         description: The fish line the group maintains.
+      nickname:
+        description: >-
+          What the group calls this line, e.g. "our fli1 reporter". Optional;
+          when given it is what the line is listed under when pre-filling a
+          submission, and no two entries in the group may share it.
     unique_keys:
-      tank_grain:
+      tank_nickname_grain:
         unique_key_slots:
           - research_group
-          - fish
+          - nickname
 
   # Value objects (not entities, inlined)
   QuantityValue:
@@ -437,15 +512,6 @@ slots:
     description: The URI of the phenotype ontology term.
     range: uriorcurie
     required: true
-
-  zfin_id:
-    identifier: true
-    description: ZFIN database identifier.
-    range: string
-    required: true
-    pattern: "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$"
-    examples:
-      - value: ZFIN:ZDB-GENO-960809-7
 
   # Other slots
   image_scope:
@@ -510,6 +576,121 @@ slots:
     range: Fish
     inlined_as_list: true
     inlined: true
+
+  # How a fish is described (see Fish). Every ZFIN id is a CURIE with the
+  # prefix ZFIN and ZFIN's own ZDB id, whose middle part says what kind of
+  # record it names.
+  fish_zfin_id:
+    description: >-
+      ZFIN's id for the registered fish this description matches (ZDB-FISH-…),
+      when it matches one.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-FISH-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-FISH-150901-27842
+  genotype_zfin_id:
+    description: >-
+      ZFIN's id for the registered genotype this description matches
+      (ZDB-GENO-…), when it matches one.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-GENO-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-GENO-960809-7
+  background_zfin_id:
+    description: >-
+      The wild-type line the fish is kept on, as ZFIN's genotype id for that
+      line (ZDB-GENO-…). Picked from ZFIN's wild-type lines.
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-GENO-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-GENO-960809-7
+  background_name:
+    description: The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.
+    range: string
+    examples:
+      - value: AB
+  mutant_allele:
+    description: The mutant alleles the fish carries.
+    range: MutantAllele
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  transgenic_allele:
+    description: The transgenic insertions the fish carries.
+    range: TransgenicAllele
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  transient_reagent:
+    description: The reagents injected into the embryos.
+    range: TransientReagent
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  line_description:
+    description: >-
+      Free text for what the structured description cannot say: a line ZFIN
+      has not registered, or how the fish differs from the record it matched.
+    range: string
+  allele_zfin_id:
+    description: ZFIN's id for the allele (ZDB-ALT-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-ALT-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-ALT-980203-1091
+  allele_symbol:
+    description: The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
+    range: string
+    examples:
+      - value: ti282a
+  alteration_type:
+    description: The kind of sequence alteration the allele is.
+    range: SequenceAlterationTypeEnum
+  affected_gene_zfin_id:
+    description: ZFIN's id for the gene the allele affects (ZDB-GENE-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-GENE-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-GENE-990415-72
+  affected_gene_symbol:
+    description: The symbol of the gene the allele affects, e.g. fgf8a.
+    range: string
+    examples:
+      - value: fgf8a
+  construct_zfin_id:
+    description: ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-TGCONSTRCT-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-TGCONSTRCT-130130-3
+  construct_name:
+    description: The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).
+    range: string
+    examples:
+      - value: Tg(mpeg1:YFP)
+  zygosity:
+    description: The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.
+    range: ZygosityEnum
+  mother_zygosity:
+    description: The allele's zygosity in the mother, when known.
+    range: ZygosityEnum
+  father_zygosity:
+    description: The allele's zygosity in the father, when known.
+    range: ZygosityEnum
+  reagent_zfin_id:
+    description: ZFIN's id for the reagent (ZDB-MRPHLNO-, ZDB-CRISPR- or ZDB-TALEN-…).
+    range: uriorcurie
+    pattern: "^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-MRPHLNO-040101-1
+  reagent_symbol:
+    description: The reagent's name as ZFIN writes it, e.g. MO1-fgf8a.
+    range: string
+    examples:
+      - value: MO1-fgf8a
+  reagent_type:
+    description: What kind of reagent it is.
+    range: ReagentTypeEnum
   image:
     description: Images associated with this observation.
     range: Image
@@ -750,3 +931,69 @@ enums:
 
   # VehicleEnum and ManufacturerEnum are defined in chemical_enums.yaml
   # (imported above) to keep this schema focused on structure.
+
+  SequenceAlterationTypeEnum:
+    description: >-
+      The kinds of sequence alteration ZFIN records for its alleles, each with
+      its Sequence Ontology term. The SO id is how a ZFIN record maps onto
+      these values.
+    permissible_values:
+      point_mutation:
+        meaning: SO:1000008
+      substitution:
+        meaning: SO:1000002
+      deletion:
+        meaning: SO:0000159
+      insertion:
+        meaning: SO:0000667
+      indel:
+        meaning: SO:1000032
+      mnv:
+        description: A multiple-nucleotide variant.
+        meaning: SO:0002007
+      inversion:
+        meaning: SO:1000036
+      duplication:
+        meaning: SO:1000035
+      transgenic_insertion:
+        meaning: SO:0001218
+      complex_substitution:
+        meaning: SO:1000005
+      deficiency:
+        description: A chromosomal deletion.
+        meaning: SO:1000029
+      translocation:
+        meaning: SO:0000199
+      multiple_variants:
+        description: An allele with several variants.
+        meaning: SO:0001023
+      unknown:
+        description: An alteration ZFIN has not characterised.
+        meaning: SO:0001059
+
+  ZygosityEnum:
+    description: >-
+      An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with
+      unknown zygosity, so unknown is a value here too, and a description
+      saying unknown matches only those genotypes.
+    permissible_values:
+      unknown:
+        meaning: GENO:0000137
+      heterozygous:
+        meaning: GENO:0000135
+      homozygous:
+        meaning: GENO:0000136
+      complex:
+        description: Several alleles of one gene in a combination ZFIN calls complex.
+      wild_type:
+        description: The parent does not carry the allele. Only a parent's zygosity can be this.
+
+  ReagentTypeEnum:
+    description: The kinds of transient, sequence-targeting reagent ZFIN registers.
+    permissible_values:
+      morpholino:
+        meaning: SO:0000034
+      crispr:
+        description: A CRISPR guide. ZFIN's SO term for these describes the binding site rather than the reagent, so none is given.
+      talen:
+        description: A TALEN. As for CRISPR, no SO term is given.

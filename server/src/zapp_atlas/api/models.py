@@ -29,6 +29,8 @@ from pydantic import (
 )
 
 from zapp_atlas.schema.pydantic_crud import (
+    FishInput,
+    FishRead,
     ManufacturerEnum,
     ResearchGroupRoleEnum,
     VehicleEnum,
@@ -36,7 +38,7 @@ from zapp_atlas.schema.pydantic_crud import (
 
 # Accepts a bare ORCID or an ``ORCID:`` CURIE; the service normalizes to CURIE.
 _ORCID_RE = re.compile(r"^(ORCID:)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
-# ZFIN line identifier, matching the schema's ``zfin_id`` pattern.
+# Any ZFIN record id as a CURIE; the schema's per-kind slots are narrower.
 _ZFIN_RE = re.compile(r"^ZFIN:ZDB-[A-Z]+-\d{6}-\d+$")
 
 
@@ -128,27 +130,18 @@ class CabinetEntryOut(_FromAttributes):
     updated_at: datetime | None
 
 
-class FishRef(_FromAttributes):
-    zfin_id: str
-    name: str
-
-    @field_validator("zfin_id")
-    @classmethod
-    def _valid_zfin(cls, value: str) -> str:
-        if not _ZFIN_RE.match(value):
-            raise ValueError(f"Invalid ZFIN id: {value}")
-        return value
-
-
 class TankEntryIn(BaseModel):
-    """Add a fish line to a group's tank. ``research_group`` is path-derived."""
+    """Add a fish line to a group's tank: the fish as the curator describes it,
+    and optionally what the group calls it. ``research_group`` is path-derived."""
 
-    fish: FishRef
+    fish: FishInput
+    nickname: Nickname = None
 
 
 class TankEntryOut(_FromAttributes):
     id: int
-    fish: FishRef
+    fish: FishRead
+    nickname: str | None
     created_at: datetime | None
     updated_at: datetime | None
 

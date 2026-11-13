@@ -55,12 +55,20 @@ DEV_MEMBER = "ORCID:0000-0002-1825-0097"
 # ---------------------------------------------------------------------------
 
 
-def _upsert_fish(session: Session, *, zfin_id: str, name: str) -> Fish:
-    fish = session.query(Fish).filter_by(zfin_id=zfin_id).one_or_none()
-    if fish is None:
-        fish = Fish(zfin_id=zfin_id, name=name)
-        session.add(fish)
-    return fish
+AB_GENOTYPE = "ZFIN:ZDB-GENO-960809-7"
+AB_FISH = "ZFIN:ZDB-FISH-150901-27842"
+
+
+def _ab_fish() -> Fish:
+    """Wild-type AB: the background is the line itself, with ZFIN's genotype
+    and fish ids for it. Each experiment and tank entry owns its own Fish row,
+    so this returns a new one each time."""
+    return Fish(
+        background_zfin_id=AB_GENOTYPE,
+        background_name="AB",
+        genotype_zfin_id=AB_GENOTYPE,
+        fish_zfin_id=AB_FISH,
+    )
 
 
 def _upsert_phenotype_term(session: Session, *, term_uri: str, term_label: str) -> PhenotypeTerm:
@@ -109,7 +117,7 @@ def _build_bpa_study(session: Session) -> Study:
     embryos produces pericardial edema at 72 hpf.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _ab_fish()
     bpa = {
         "chemical_id": "CHEBI:33216",
         "cas_id": "80-05-7",
@@ -175,7 +183,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     embryos from dome stage (ZFS:0000013) through hatching-day larva.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _ab_fish()
     bpa = {
         "chemical_id": "CHEBI:33216",
         "cas_id": "80-05-7",
@@ -254,7 +262,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     seed are simplified representative concentrations.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _ab_fish()
     malathion = {
         "chemical_id": "CHEBI:6651",
         "cas_id": "121-75-5",
@@ -351,15 +359,12 @@ def _build_dev_group(session: Session) -> ResearchGroup:
     if membership is None:
         session.add(ResearchGroupMember(research_group=group.id, member=DEV_MEMBER, role="admin"))
 
-    zfin_id = "ZFIN:ZDB-GENO-960809-7"
-    _upsert_fish(session, zfin_id=zfin_id, name="AB")
+    # The line the seeded studies use, under the nickname the group would pick it by.
     entry = (
-        session.query(FishTankEntry)
-        .filter_by(research_group=group.id, fish_zfin_id=zfin_id)
-        .one_or_none()
+        session.query(FishTankEntry).filter_by(research_group=group.id, nickname="AB").one_or_none()
     )
     if entry is None:
-        session.add(FishTankEntry(research_group=group.id, fish_zfin_id=zfin_id))
+        session.add(FishTankEntry(research_group=group.id, nickname="AB", fish=_ab_fish()))
 
     # The chemicals the seeded studies use, so the cabinet is not empty.
     for chemical_id in ("CHEBI:33216", "CHEBI:15367", "CHEBI:6651", "CHEBI:9747"):

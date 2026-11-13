@@ -14,8 +14,8 @@ def schema_view() -> SchemaView:
 
 
 # Classes whose rows are shared reference data, looked up by a natural
-# identifier, descend from one of these.
-REFERENCE_BASES = ("OntologyEntity", "ZfinEntity")
+# identifier, descend from this.
+REFERENCE_BASES = ("OntologyEntity",)
 
 
 def is_reference(view: SchemaView, class_name: str) -> bool:

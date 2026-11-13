@@ -384,21 +384,83 @@
     },
     "Fish": {
       "additionalProperties": false,
-      "description": "Zebrafish used as subject in the study.",
+      "description": "A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The ZFIN ids are filled by matching the description against ZFIN's registered records (POST /api/zfin/resolve) and are absent when ZFIN has no such record.",
       "properties": {
-        "name": {
-          "description": "Name or label of an entity.",
-          "type": "string"
+        "background_name": {
+          "description": "The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
-        "zfin_id": {
-          "description": "ZFIN database identifier.",
-          "pattern": "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$",
-          "type": "string"
+        "background_zfin_id": {
+          "description": "The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines.",
+          "pattern": "^ZFIN:ZDB-GENO-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fish_zfin_id": {
+          "description": "ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.",
+          "pattern": "^ZFIN:ZDB-FISH-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "genotype_zfin_id": {
+          "description": "ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.",
+          "pattern": "^ZFIN:ZDB-GENO-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "line_description": {
+          "description": "Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mutant_allele": {
+          "description": "The mutant alleles the fish carries.",
+          "items": {
+            "$ref": "#/$defs/MutantAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "transgenic_allele": {
+          "description": "The transgenic insertions the fish carries.",
+          "items": {
+            "$ref": "#/$defs/TransgenicAllele"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "transient_reagent": {
+          "description": "The reagents injected into the embryos.",
+          "items": {
+            "$ref": "#/$defs/TransientReagent"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
         }
       },
       "required": [
-        "name",
-        "zfin_id"
+        "id"
       ],
       "title": "Fish",
       "type": "object"
@@ -414,6 +476,14 @@
         "id": {
           "description": "Auto-generated integer identifier.",
           "type": "integer"
+        },
+        "nickname": {
+          "description": "What the group calls this line, e.g. \"our fli1 reporter\". Optional; when given it is what the line is listed under when pre-filling a submission, and no two entries in the group may share it.",
+          "pattern": "^.{0,200}$",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "research_group": {
           "description": "The research group an entry belongs to.",
@@ -515,6 +585,66 @@
       ],
       "title": "ManufacturerEnum",
       "type": "string"
+    },
+    "MutantAllele": {
+      "additionalProperties": false,
+      "description": "A mutant allele the fish carries: which gene it alters, and its zygosity in the fish and, when known, the parents.",
+      "properties": {
+        "affected_gene_symbol": {
+          "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affected_gene_zfin_id": {
+          "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-…).",
+          "pattern": "^ZFIN:ZDB-GENE-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allele_symbol": {
+          "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
+          "type": "string"
+        },
+        "allele_zfin_id": {
+          "description": "ZFIN's id for the allele (ZDB-ALT-…).",
+          "pattern": "^ZFIN:ZDB-ALT-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "alteration_type": {
+          "$ref": "#/$defs/SequenceAlterationTypeEnum",
+          "description": "The kind of sequence alteration the allele is."
+        },
+        "father_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "The allele's zygosity in the father, when known."
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "mother_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "The allele's zygosity in the mother, when known."
+        },
+        "zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this."
+        }
+      },
+      "required": [
+        "allele_symbol",
+        "zygosity",
+        "id"
+      ],
+      "title": "MutantAllele",
+      "type": "object"
     },
     "OntologyEntity": {
       "additionalProperties": false,
@@ -659,6 +789,16 @@
       "title": "QuantityValue",
       "type": "object"
     },
+    "ReagentTypeEnum": {
+      "description": "The kinds of transient, sequence-targeting reagent ZFIN registers.",
+      "enum": [
+        "morpholino",
+        "crispr",
+        "talen"
+      ],
+      "title": "ReagentTypeEnum",
+      "type": "string"
+    },
     "Regimen": {
       "additionalProperties": false,
       "description": "The schedule and pattern of an exposure event.",
@@ -776,6 +916,27 @@
         "member"
       ],
       "title": "ResearchGroupRoleEnum",
+      "type": "string"
+    },
+    "SequenceAlterationTypeEnum": {
+      "description": "The kinds of sequence alteration ZFIN records for its alleles, each with its Sequence Ontology term. The SO id is how a ZFIN record maps onto these values.",
+      "enum": [
+        "point_mutation",
+        "substitution",
+        "deletion",
+        "insertion",
+        "indel",
+        "mnv",
+        "inversion",
+        "duplication",
+        "transgenic_insertion",
+        "complex_substitution",
+        "deficiency",
+        "translocation",
+        "multiple_variants",
+        "unknown"
+      ],
+      "title": "SequenceAlterationTypeEnum",
       "type": "string"
     },
     "SeverityEnum": {
@@ -1014,6 +1175,128 @@
       "title": "StudyStatusEnum",
       "type": "string"
     },
+    "TransgenicAllele": {
+      "additionalProperties": false,
+      "description": "A transgenic insertion the fish carries: the construct it holds, and its zygosity in the fish and, when known, the parents.",
+      "properties": {
+        "affected_gene_symbol": {
+          "description": "The driver or reporter gene's symbol, e.g. fli1a.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affected_gene_zfin_id": {
+          "description": "ZFIN's id for the construct's driver or reporter gene, when recorded.",
+          "pattern": "^ZFIN:ZDB-GENE-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allele_symbol": {
+          "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
+          "type": "string"
+        },
+        "allele_zfin_id": {
+          "description": "ZFIN's id for the allele (ZDB-ALT-…).",
+          "pattern": "^ZFIN:ZDB-ALT-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "alteration_type": {
+          "$ref": "#/$defs/SequenceAlterationTypeEnum",
+          "description": "The kind of alteration; a transgenic insertion unless ZFIN says otherwise."
+        },
+        "construct_name": {
+          "description": "The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "construct_zfin_id": {
+          "description": "ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…).",
+          "pattern": "^ZFIN:ZDB-TGCONSTRCT-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "father_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "The allele's zygosity in the father, when known."
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "mother_zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "The allele's zygosity in the mother, when known."
+        },
+        "zygosity": {
+          "$ref": "#/$defs/ZygosityEnum",
+          "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this."
+        }
+      },
+      "required": [
+        "allele_symbol",
+        "zygosity",
+        "id"
+      ],
+      "title": "TransgenicAllele",
+      "type": "object"
+    },
+    "TransientReagent": {
+      "additionalProperties": false,
+      "description": "A sequence-targeting reagent injected into the embryos (a morpholino, CRISPR or TALEN). Transient and not heritable, so part of the fish and not of its genotype. Dose and injection stage belong to the experiment.",
+      "properties": {
+        "affected_gene_symbol": {
+          "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affected_gene_zfin_id": {
+          "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-…).",
+          "pattern": "^ZFIN:ZDB-GENE-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Auto-generated integer identifier.",
+          "type": "integer"
+        },
+        "reagent_symbol": {
+          "description": "The reagent's name as ZFIN writes it, e.g. MO1-fgf8a.",
+          "type": "string"
+        },
+        "reagent_type": {
+          "$ref": "#/$defs/ReagentTypeEnum",
+          "description": "What kind of reagent it is."
+        },
+        "reagent_zfin_id": {
+          "description": "ZFIN's id for the reagent (ZDB-MRPHLNO-, ZDB-CRISPR- or ZDB-TALEN-…).",
+          "pattern": "^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\\d{6}-\\d+$",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "reagent_symbol",
+        "id"
+      ],
+      "title": "TransientReagent",
+      "type": "object"
+    },
     "VehicleEnum": {
       "description": "An enumeration of vehicles used to deliver stressors in exposure events.",
       "enum": [
@@ -1180,21 +1463,17 @@
       "title": "ZappEntity",
       "type": "object"
     },
-    "ZfinEntity": {
-      "additionalProperties": false,
-      "description": "Entities with ZFIN database identifiers.",
-      "properties": {
-        "zfin_id": {
-          "description": "ZFIN database identifier.",
-          "pattern": "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "zfin_id"
+    "ZygosityEnum": {
+      "description": "An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with unknown zygosity, so unknown is a value here too, and a description saying unknown matches only those genotypes.",
+      "enum": [
+        "unknown",
+        "heterozygous",
+        "homozygous",
+        "complex",
+        "wild_type"
       ],
-      "title": "ZfinEntity",
-      "type": "object"
+      "title": "ZygosityEnum",
+      "type": "string"
     }
   },
   "$id": "https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema",

@@ -1,9 +1,9 @@
 """Fish tank endpoints (a research group's maintained fish lines).
 
-Scoped to a group in the path and requires membership. The grain
-``(research_group, fish)`` is unique, so a duplicate POST is a 409. The
-referenced ``Fish`` is get-or-created from the payload; a malformed ``zfin_id``
-is rejected by the request model (422). ``research_group`` is always path-derived.
+Scoped to a group in the path and requires membership. An entry carries the
+fish as the curator describes it (see ``Fish`` in the schema) and, optionally,
+the group's nickname for it, which is unique within the group: a reused one
+is a 409. ``research_group`` is always path-derived.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ def add_tank_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> TankEntryOut:
-    entry = add_entry(session, group_id, payload.fish)
+    entry = add_entry(session, group_id, payload)
     return TankEntryOut.model_validate(entry)
 
 

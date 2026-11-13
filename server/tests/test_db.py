@@ -61,7 +61,7 @@ def test_study_round_trip():
 
     # --- leaf / reference entities ----------------------------------------
 
-    fish = Fish(zfin_id="ZDB-GENO-960809-7", name="AB")
+    fish = Fish(background_zfin_id="ZFIN:ZDB-GENO-960809-7", background_name="AB")
 
     concentration = QuantityValue(unit="µg/L", numeric_value="100")
 
@@ -138,8 +138,8 @@ def test_study_round_trip():
 
     [loaded_exp] = loaded_study.experiment
     assert loaded_exp.standard_rearing_condition is True
-    assert loaded_exp.fish.zfin_id == "ZDB-GENO-960809-7"
-    assert loaded_exp.fish.name == "AB"
+    assert loaded_exp.fish.background_zfin_id == "ZFIN:ZDB-GENO-960809-7"
+    assert loaded_exp.fish.background_name == "AB"
 
     [loaded_ee] = loaded_exp.exposure_event
     assert loaded_ee.exposure_start_stage == "ZFS:0000011"

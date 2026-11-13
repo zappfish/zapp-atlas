@@ -3,7 +3,6 @@ GENERATED FILE. DO NOT EDIT.
 */
 
 export type ZappEntityId = number;
-export type ZfinEntityZfinId = string;
 export type StudyId = number;
 export type ExperimentId = number;
 export type PhenotypeObservationSetId = number;
@@ -18,7 +17,10 @@ export type ControlImageId = number;
 export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
-export type FishZfinId = string;
+export type FishId = number;
+export type MutantAlleleId = number;
+export type TransgenicAlleleId = number;
+export type TransientReagentId = number;
 export type ResearchGroupId = number;
 export type ResearchGroupMemberId = number;
 export type ChemicalCabinetEntryId = number;
@@ -189,6 +191,54 @@ export enum ExposureRegimenTypeEnum {
     /** Repeated exposure */
     repeated = "repeated",
 };
+/**
+* The kinds of sequence alteration ZFIN records for its alleles, each with its Sequence Ontology term. The SO id is how a ZFIN record maps onto these values.
+*/
+export enum SequenceAlterationTypeEnum {
+    
+    point_mutation = "point_mutation",
+    substitution = "substitution",
+    deletion = "deletion",
+    insertion = "insertion",
+    indel = "indel",
+    /** A multiple-nucleotide variant. */
+    mnv = "mnv",
+    inversion = "inversion",
+    duplication = "duplication",
+    transgenic_insertion = "transgenic_insertion",
+    complex_substitution = "complex_substitution",
+    /** A chromosomal deletion. */
+    deficiency = "deficiency",
+    translocation = "translocation",
+    /** An allele with several variants. */
+    multiple_variants = "multiple_variants",
+    /** An alteration ZFIN has not characterised. */
+    unknown = "unknown",
+};
+/**
+* An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with unknown zygosity, so unknown is a value here too, and a description saying unknown matches only those genotypes.
+*/
+export enum ZygosityEnum {
+    
+    unknown = "unknown",
+    heterozygous = "heterozygous",
+    homozygous = "homozygous",
+    /** Several alleles of one gene in a combination ZFIN calls complex. */
+    complex = "complex",
+    /** The parent does not carry the allele. Only a parent's zygosity can be this. */
+    wild_type = "wild_type",
+};
+/**
+* The kinds of transient, sequence-targeting reagent ZFIN registers.
+*/
+export enum ReagentTypeEnum {
+    
+    morpholino = "morpholino",
+    /** A CRISPR guide. ZFIN's SO term for these describes the binding site rather than the reagent, so none is given. */
+    crispr = "crispr",
+    /** A TALEN. As for CRISPR, no SO term is given. */
+    talen = "talen",
+};
 
 
 /**
@@ -204,15 +254,6 @@ export interface ZappEntity {
  * Entities representing ontology terms with URI identifiers.
  */
 export interface OntologyEntity {
-}
-
-
-/**
- * Entities with ZFIN database identifiers.
- */
-export interface ZfinEntity {
-    /** ZFIN database identifier. */
-    zfin_id: string,
 }
 
 
@@ -460,11 +501,92 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * Zebrafish used as subject in the study.
+ * A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The ZFIN ids are filled by matching the description against ZFIN's registered records (POST /api/zfin/resolve) and are absent when ZFIN has no such record.
  */
-export interface Fish extends ZfinEntity {
-    /** Name or label of an entity. */
-    name: string,
+export interface Fish extends ZappEntity {
+    /** ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one. */
+    fish_zfin_id?: string,
+    /** ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one. */
+    genotype_zfin_id?: string,
+    /** The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines. */
+    background_zfin_id?: string,
+    /** The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL. */
+    background_name?: string,
+    /** The mutant alleles the fish carries. */
+    mutant_allele?: MutantAllele[],
+    /** The transgenic insertions the fish carries. */
+    transgenic_allele?: TransgenicAllele[],
+    /** The reagents injected into the embryos. */
+    transient_reagent?: TransientReagent[],
+    /** Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched. */
+    line_description?: string,
+}
+
+
+/**
+ * A mutant allele the fish carries: which gene it alters, and its zygosity in the fish and, when known, the parents.
+ */
+export interface MutantAllele extends ZappEntity {
+    /** ZFIN's id for the allele (ZDB-ALT-…). */
+    allele_zfin_id?: string,
+    /** The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg. */
+    allele_symbol: string,
+    /** The kind of sequence alteration the allele is. */
+    alteration_type?: string,
+    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…). */
+    affected_gene_zfin_id?: string,
+    /** The symbol of the gene the allele affects, e.g. fgf8a. */
+    affected_gene_symbol?: string,
+    /** The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
+    zygosity: string,
+    /** The allele's zygosity in the mother, when known. */
+    mother_zygosity?: string,
+    /** The allele's zygosity in the father, when known. */
+    father_zygosity?: string,
+}
+
+
+/**
+ * A transgenic insertion the fish carries: the construct it holds, and its zygosity in the fish and, when known, the parents.
+ */
+export interface TransgenicAllele extends ZappEntity {
+    /** ZFIN's id for the allele (ZDB-ALT-…). */
+    allele_zfin_id?: string,
+    /** The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg. */
+    allele_symbol: string,
+    /** The kind of alteration; a transgenic insertion unless ZFIN says otherwise. */
+    alteration_type?: string,
+    /** ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…). */
+    construct_zfin_id?: string,
+    /** The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP). */
+    construct_name?: string,
+    /** ZFIN's id for the construct's driver or reporter gene, when recorded. */
+    affected_gene_zfin_id?: string,
+    /** The driver or reporter gene's symbol, e.g. fli1a. */
+    affected_gene_symbol?: string,
+    /** The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
+    zygosity: string,
+    /** The allele's zygosity in the mother, when known. */
+    mother_zygosity?: string,
+    /** The allele's zygosity in the father, when known. */
+    father_zygosity?: string,
+}
+
+
+/**
+ * A sequence-targeting reagent injected into the embryos (a morpholino, CRISPR or TALEN). Transient and not heritable, so part of the fish and not of its genotype. Dose and injection stage belong to the experiment.
+ */
+export interface TransientReagent extends ZappEntity {
+    /** ZFIN's id for the reagent (ZDB-MRPHLNO-, ZDB-CRISPR- or ZDB-TALEN-…). */
+    reagent_zfin_id?: string,
+    /** The reagent's name as ZFIN writes it, e.g. MO1-fgf8a. */
+    reagent_symbol: string,
+    /** What kind of reagent it is. */
+    reagent_type?: string,
+    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…). */
+    affected_gene_zfin_id?: string,
+    /** The symbol of the gene the allele affects, e.g. fgf8a. */
+    affected_gene_symbol?: string,
 }
 
 
@@ -517,6 +639,8 @@ export interface FishTankEntry extends ZappEntity {
     research_group: ResearchGroupId,
     /** The fish line the group maintains. */
     fish: Fish,
+    /** What the group calls this line, e.g. "our fli1 reporter". Optional; when given it is what the line is listed under when pre-filling a submission, and no two entries in the group may share it. */
+    nickname?: string,
 }
 
 

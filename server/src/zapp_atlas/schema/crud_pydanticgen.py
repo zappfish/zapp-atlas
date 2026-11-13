@@ -91,9 +91,7 @@ class CrudPydanticGenerator(PydanticGenerator):
     def before_render_template(self, template: PydanticModule, sv: SchemaView) -> PydanticModule:
         layout = Layout(sv)
         entities = _descendants(template, sv, {"ZappEntity"})
-        readable = _descendants(template, sv, {"ZappEntity", "OntologyEntity", "ZfinEntity"}) | {
-            "QuantityValue"
-        }
+        readable = _descendants(template, sv, {"ZappEntity", "OntologyEntity"}) | {"QuantityValue"}
 
         classes: dict[str, PydanticClass] = {}
         for name, cls in template.classes.items():
