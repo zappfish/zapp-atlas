@@ -15,7 +15,7 @@ from linkml_runtime.linkml_model.meta import ClassDefinition
 from sqlalchemy import Column, DateTime, Index, Table, inspect
 
 from zapp_atlas.schema._gen.sqla import Base
-from zapp_atlas.schema.view import SCHEMA_PATH
+from zapp_atlas.schema.view import SCHEMA_PATH, owned_slots
 
 TIMESTAMPED = "timestamped"
 
@@ -86,6 +86,28 @@ def _apply_child_cascades(model: type) -> None:
         relationship.cascade = "all, delete-orphan"
 
 
+def _apply_owned_cascades(view: SchemaView, model: type, definition: ClassDefinition) -> None:
+    """Make an object's inlined parts live and die with it.
+
+    The schema says which objects are part of another by inlining them, but
+    ``gen-sqla`` emits a plain relationship either way. Without a cascade,
+    replacing a study's experiments or an exposure's regimen leaves the old rows
+    behind with nothing pointing at them.
+
+    This has to happen before SQLAlchemy configures the mappers: orphan
+    tracking is built into each attribute at that point and cannot be switched
+    on afterwards. ``get_property`` looks a relationship up without triggering
+    that configuration, which ``inspect(model).relationships`` would.
+    """
+    mapper = inspect(model)
+    for slot_name in owned_slots(view, definition.name):
+        relationship = mapper.get_property(slot_name)
+        # The foreign key sits on this side for a single-valued slot, so
+        # SQLAlchemy needs telling that no other row shares the target.
+        relationship.single_parent = True
+        relationship.cascade = "all, delete-orphan"
+
+
 def _apply_timestamps(model: type) -> None:
     if "created_at" in model.__table__.c:
         return
@@ -96,16 +118,21 @@ def _apply_timestamps(model: type) -> None:
 
 
 def apply_schema_constraints(schema_path: Path = SCHEMA_PATH) -> None:
-    """Attach schema-declared unique keys, timestamps, and child cascades.
+    """Attach schema-declared unique keys, timestamps, and cascades.
 
     Idempotent.
     """
     view = SchemaView(str(schema_path))
     models = {mapper.class_.__name__: mapper.class_ for mapper in Base.registry.mappers}
-    for class_name, definition in view.all_classes().items():
-        model = models.get(class_name)
-        if model is None:
-            continue
+    mapped = [
+        (models[class_name], definition)
+        for class_name, definition in view.all_classes().items()
+        if class_name in models
+    ]
+    # First, and for every model, because the steps after it configure the mappers.
+    for model, definition in mapped:
+        _apply_owned_cascades(view, model, definition)
+    for model, definition in mapped:
         _apply_unique_keys(view, model, definition)
         _apply_child_cascades(model)
         if TIMESTAMPED in definition.annotations:

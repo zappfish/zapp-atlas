@@ -18,7 +18,7 @@ from functools import cache, cached_property
 
 from linkml_runtime import SchemaView
 
-from zapp_atlas.schema.view import schema_view
+from zapp_atlas.schema.view import is_reference, schema_view
 
 # Outermost first. Each is nested in the one before through a single slot.
 LEVELS = (
@@ -38,10 +38,6 @@ STANDALONE = (
     "ChemicalCabinetEntry",
     "FishTankEntry",
 )
-
-# Classes whose rows are shared reference data, looked up by a natural
-# identifier, descend from one of these.
-REFERENCE_BASES = ("OntologyEntity", "ZfinEntity")
 
 
 class SlotKind(Enum):
@@ -99,12 +95,13 @@ class Layout:
             return SlotKind.VALUE
         if range_name in LEVELS:
             return SlotKind.LEVEL
-        if self.is_reference(range_name):
+        if self.is_shared(range_name):
             return SlotKind.REFERENCE
         return SlotKind.OWNED
 
-    def is_reference(self, class_name: str) -> bool:
-        return any(base in self.view.class_ancestors(class_name) for base in REFERENCE_BASES)
+    def is_shared(self, class_name: str) -> bool:
+        """Is this a class of shared reference rows, found by a natural identifier?"""
+        return is_reference(self.view, class_name)
 
     @cached_property
     def levels(self) -> dict[str, Level]:

@@ -1,11 +1,10 @@
-from __future__ import annotations
-
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from zapp_atlas.api.deps import get_session
@@ -82,3 +81,14 @@ def zfin_db(tmp_path_factory) -> Path:
         check=True,
     )
     return output
+
+
+@pytest.fixture
+def session() -> Iterator[Session]:
+    """A session on an empty in-memory database, for tests below the HTTP layer."""
+    from zapp_atlas.db import init_db
+
+    engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
+    init_db(engine)
+    with Session(engine) as session:
+        yield session

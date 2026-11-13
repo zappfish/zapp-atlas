@@ -445,6 +445,8 @@ slots:
     range: string
     required: true
     pattern: "^ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+$"
+    examples:
+      - value: ZFIN:ZDB-GENO-960809-7
 
   # Other slots
   image_scope:
@@ -668,10 +670,14 @@ slots:
     range: uriorcurie
     multivalued: true
     pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
+    examples:
+      - value: ORCID:0000-0002-1825-0097
   lab:
     description: ZFIN lab identifier of the laboratory that produced the study data.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$"
+    examples:
+      - value: ZFIN:ZDB-LAB-970408-1
   phenotype_comments:
     description: Comments about the phenotype in the control image.
     range: string
@@ -684,6 +690,8 @@ slots:
     range: uriorcurie
     required: true
     pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
+    examples:
+      - value: ORCID:0000-0002-1825-0097
   role:
     description: A member's permission level within a research group.
     range: ResearchGroupRoleEnum
