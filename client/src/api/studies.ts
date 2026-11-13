@@ -1,7 +1,9 @@
-/** Studies are not yet listed per group; see the group dashboard. */
-
 import { get, send } from "./client";
-import type { Study, StudyBody } from "./types";
+import type { Study, StudyBody, StudySummary } from "./types";
+
+/** A group's studies, drafts included: the caller is one of its members. */
+export const fetchGroupStudies = (groupId: number, signal?: AbortSignal) =>
+  get<StudySummary[]>(`/studies?research_group=${groupId}`, signal);
 
 export const fetchStudy = (studyId: number, signal?: AbortSignal) =>
   get<Study>(`/studies/${studyId}`, signal);

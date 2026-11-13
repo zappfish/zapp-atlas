@@ -31,7 +31,7 @@ test("signing in shows the caller's research group", async ({ page }) => {
   await expect(page.getByRole("link", { name: GROUP })).toBeVisible();
 });
 
-test("a group's page lists its fish tank and chemical cabinet", async ({
+test("a group's page lists its fish tank, chemical cabinet and studies", async ({
   page,
 }) => {
   await signIn(page);
@@ -40,6 +40,8 @@ test("a group's page lists its fish tank and chemical cabinet", async ({
   await expect(page.getByRole("heading", { name: GROUP })).toBeVisible();
   await expect(page.getByText("ZFIN:ZDB-GENO-960809-7")).toBeVisible();
   await expect(page.getByText("CHEBI:33216")).toBeVisible();
+  // One of the studies the seed gives the group.
+  await expect(page.getByText("PMID:22194820")).toBeVisible();
 });
 
 test("the submission form opens for a group", async ({ page }) => {
@@ -53,7 +55,7 @@ test("the submission form opens for a group", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
 });
 
-test("a study added on the group page is saved as a draft", async ({
+test("a study added on the group page is saved as a draft, and listed", async ({
   page,
   playwright,
 }) => {
@@ -80,6 +82,13 @@ test("a study added on the group page is saved as a draft", async ({
   });
   expect((await anonymous.get(`/api/studies/${id}`)).status()).toBe(404);
   await anonymous.dispose();
+
+  // Back on the group's page, the new study is in its list.
+  await page.goto(page.url().replace(/\/studies\/\d+$/, ""));
+  const studies = page.locator("#studies");
+  const more = studies.getByRole("button", { name: /View \d+ more/ });
+  if (await more.isVisible()) await more.click();
+  await expect(studies.getByText("Smoke test study")).toBeVisible();
 });
 
 test("the signed-in session can save a study, and a draft stays private", async ({

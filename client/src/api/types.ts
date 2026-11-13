@@ -22,5 +22,8 @@ export type CabinetEntry = Schemas["CabinetEntryOut"];
 /** A study with everything beneath it, as `GET /api/studies/{id}` returns it. */
 export type Study = Schemas["StudyRead"];
 
+/** A study's own fields, without its experiments: one row of a list. */
+export type StudySummary = Schemas["StudySummary"];
+
 /** What `POST` and `PUT` accept for a study: its own fields, no experiments. */
 export type StudyBody = Schemas["StudyInput"];
