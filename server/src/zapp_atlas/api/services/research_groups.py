@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from sqlalchemy import literal
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.authz import orcid_curie
@@ -41,13 +42,24 @@ def list_groups_for(session: Session, identity: OrcidIdentity) -> list[ResearchG
     )
 
 
-def list_members(session: Session, group_id: int) -> list[ResearchGroupMember]:
-    return (
-        session.query(ResearchGroupMember)
+def list_members(session: Session, group_id: int) -> list[tuple[ResearchGroupMember, str | None]]:
+    """Memberships paired with the member's display name, when one is known.
+
+    ``ResearchGroupMember.member`` holds a CURIE while ``OrcidIdentity.orcid_id``
+    is bare, hence the concatenated join; the outer join keeps members who have
+    no identity row yet.
+    """
+    rows = (
+        session.query(ResearchGroupMember, OrcidIdentity.name)
+        .outerjoin(
+            OrcidIdentity,
+            ResearchGroupMember.member == literal("ORCID:") + OrcidIdentity.orcid_id,
+        )
         .filter(ResearchGroupMember.research_group == group_id)
         .order_by(ResearchGroupMember.id)
         .all()
     )
+    return [(membership, name) for membership, name in rows]
 
 
 def add_member(session: Session, group_id: int, member: str, role: str) -> ResearchGroupMember:
