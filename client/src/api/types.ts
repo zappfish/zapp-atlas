@@ -17,6 +17,15 @@ export type ResearchGroupRole = Schemas["ResearchGroupRoleEnum"];
 
 export type FishTankEntry = Schemas["TankEntryOut"];
 
+/** A fish as the curator described it, with the ZFIN ids that description resolved to. */
+export type Fish = Schemas["FishRead"];
+
+/** What `POST` accepts for a tank entry: the described fish and an optional nickname. */
+export type FishTankEntryBody = Schemas["TankEntryIn"];
+
+/** One of ZFIN's wild-type lines. */
+export type Wildtype = Schemas["ZfinWildtypeOut"];
+
 export type CabinetEntry = Schemas["CabinetEntryOut"];
 
 /** A study with everything beneath it, as `GET /api/studies/{id}` returns it. */

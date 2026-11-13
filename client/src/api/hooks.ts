@@ -12,8 +12,9 @@ import {
   fetchMembers,
   removeMember,
 } from "./groups";
-import type { ResearchGroupRole } from "./types";
+import type { FishTankEntryBody, ResearchGroupRole } from "./types";
 import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
+import { fetchWildtypes } from "./zfin";
 import {
   addChemical,
   deleteChemical,
@@ -47,6 +48,7 @@ export const keys = {
     ["group", id, "fish-tank", entryId] as const,
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
+  wildtypes: ["zfin", "wildtypes"] as const,
 };
 
 export const MIN_SEARCH_LENGTH = 2;
@@ -111,6 +113,14 @@ export const useCabinet = (groupId: number) =>
   useQuery({
     queryKey: keys.cabinet(groupId),
     queryFn: ({ signal }) => fetchCabinet(groupId, signal),
+  });
+
+/** ZFIN's wild-type lines. Reference data from the bundle: it does not move. */
+export const useWildtypes = () =>
+  useQuery({
+    queryKey: keys.wildtypes,
+    queryFn: ({ signal }) => fetchWildtypes(signal),
+    staleTime: Infinity,
   });
 
 /** One record, for its detail page. */
@@ -215,8 +225,7 @@ export const useRemoveMember = (groupId: number) => {
 export const useAddFish = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (fish: { zfin_id: string; name: string }) =>
-      addFish(groupId, fish),
+    mutationFn: (entry: FishTankEntryBody) => addFish(groupId, entry),
     onSuccess: () =>
       client.invalidateQueries({ queryKey: keys.fishTank(groupId) }),
   });

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useAddFish } from "@/api/hooks";
+import { useAddFish, useWildtypes } from "@/api/hooks";
 import Modal from "@/components/Modal";
 import {
   ModalActions,
@@ -7,13 +7,16 @@ import {
   ModalForm,
   ModalInput,
   ModalLabel,
+  ModalSelect,
   ModalText,
   ModalTitle,
 } from "@/styles/elements";
 
-/** Matches the schema's zfin_id pattern, which the API validates too. */
-const ZFIN_PATTERN = "ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+";
-
+/**
+ * A fish line is described, not named: its wild-type background, and later
+ * the alleles it carries. The form takes the background for now; alleles
+ * come with the fish picker. A nickname is what the group will pick it by.
+ */
 const AddFishForm = ({
   groupId,
   open,
@@ -23,21 +26,30 @@ const AddFishForm = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  const [zfinId, setZfinId] = useState("");
-  const [name, setName] = useState("");
+  const [background, setBackground] = useState("");
+  const [nickname, setNickname] = useState("");
+  const wildtypes = useWildtypes();
   const addFish = useAddFish(groupId);
 
   const close = () => {
     addFish.reset();
-    setZfinId("");
-    setName("");
+    setBackground("");
+    setNickname("");
     onClose();
   };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    const line = wildtypes.data?.find((w) => w.genotype_id === background);
+    if (!line) return;
     addFish.mutate(
-      { zfin_id: zfinId.trim(), name: name.trim() },
+      {
+        fish: {
+          background_zfin_id: line.genotype_id,
+          background_name: line.abbreviation,
+        },
+        nickname: nickname.trim() || null,
+      },
       { onSuccess: close },
     );
   };
@@ -48,26 +60,36 @@ const AddFishForm = ({
         <ModalTitle>Add fish line</ModalTitle>
 
         <ModalField>
-          <ModalLabel>ZFIN id</ModalLabel>
-          <ModalInput
-            value={zfinId}
-            onChange={(e) => setZfinId(e.target.value)}
+          <ModalLabel>Wild-type background</ModalLabel>
+          <ModalSelect
+            value={background}
+            onChange={(e) => setBackground(e.target.value)}
             required
             autoFocus
-            placeholder="ZFIN:ZDB-GENO-960809-7"
-            pattern={ZFIN_PATTERN}
-            title="e.g. ZFIN:ZDB-GENO-960809-7"
-          />
+            disabled={!wildtypes.data}
+          >
+            <option value="" disabled>
+              {wildtypes.error
+                ? "ZFIN's wild-type lines are not available"
+                : wildtypes.data
+                  ? "Choose a line"
+                  : "Loading…"}
+            </option>
+            {wildtypes.data?.map((w) => (
+              <option key={w.genotype_id} value={w.genotype_id}>
+                {w.name}
+              </option>
+            ))}
+          </ModalSelect>
         </ModalField>
 
         <ModalField>
-          <ModalLabel>Name</ModalLabel>
+          <ModalLabel>Nickname (optional)</ModalLabel>
           <ModalInput
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
             maxLength={200}
-            placeholder="e.g. AB"
+            placeholder="What this group calls the line"
           />
         </ModalField>
 
@@ -82,7 +104,7 @@ const AddFishForm = ({
           <button
             className="btn btn--primary"
             type="submit"
-            disabled={addFish.isPending}
+            disabled={addFish.isPending || !wildtypes.data}
           >
             {addFish.isPending ? "Adding…" : "Add"}
           </button>
