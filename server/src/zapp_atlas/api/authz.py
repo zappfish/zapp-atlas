@@ -14,8 +14,6 @@ stores ``member`` as a CURIE (``ORCID:0000-...``); ``orcid_curie`` bridges
 that seam so the membership lookup compares like with like.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -116,5 +114,19 @@ def require_group_admin(
     return context
 
 
+def require_membership(session: Session, group_id: int, identity: OrcidIdentity) -> None:
+    """Refuse a caller who is not a member of ``group_id``.
+
+    For resources anyone may read, where there is nothing to hide by answering
+    404: the caller is told plainly that the group is not theirs.
+    """
+    if _find_membership(session, group_id, identity) is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only members of the study's research group may change it",
+        )
+
+
+SignedIn = Annotated[OrcidIdentity, Depends(require_current_identity)]
 GroupMember = Annotated[GroupContext, Depends(require_group_member)]
 GroupAdmin = Annotated[GroupContext, Depends(require_group_admin)]

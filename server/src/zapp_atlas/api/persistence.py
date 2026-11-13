@@ -1,20 +1,22 @@
 """Shared persistence helpers for the API services."""
 
-from __future__ import annotations
+from collections.abc import Iterator
+from contextlib import contextmanager
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 
-def commit_or_conflict(
+@contextmanager
+def conflicts_as_409(
     session: Session, detail: str, *, named: dict[str, str] | None = None
-) -> None:
-    """Commit, turning a unique-grain violation into a 409 instead of a 500.
+) -> Iterator[None]:
+    """Turn a unique-key violation inside the block into a 409 instead of a 500.
 
-    The join tables enforce their grain with unique indexes
-    (``cabinet_grain``, ``tank_grain``, ``membership_grain``), so a duplicate
-    insert raises ``IntegrityError``. Surface that as a clean conflict.
+    The tables enforce their grain with unique indexes (``cabinet_grain``,
+    ``tank_grain``, ``membership_grain``, ``study_nickname_grain``), so a
+    duplicate insert raises ``IntegrityError``. Surface that as a clean conflict.
 
     A table with more than one unique key passes ``named``: a detail to use
     instead when the database's message mentions the given word, so the
@@ -22,7 +24,7 @@ def commit_or_conflict(
     Both SQLite and PostgreSQL name the offending columns or index.
     """
     try:
-        session.commit()
+        yield
     except IntegrityError as exc:
         session.rollback()
         message = str(exc.orig)
@@ -31,3 +33,11 @@ def commit_or_conflict(
                 detail = specific
                 break
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc
+
+
+def commit_or_conflict(
+    session: Session, detail: str, *, named: dict[str, str] | None = None
+) -> None:
+    """Commit, answering 409 if that breaks a unique key."""
+    with conflicts_as_409(session, detail, named=named):
+        session.commit()

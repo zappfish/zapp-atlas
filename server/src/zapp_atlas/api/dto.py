@@ -7,7 +7,7 @@ that ``schema.constraints`` injects after generation, and their ``member``
 field is CURIE-only. These DTOs are shaped for the endpoints instead —
 path-derived ``research_group`` is never accepted in a body, and responses
 expose the audit timestamps. ``ResearchGroup`` itself reuses the generated
-``ResearchGroupCreate``/``ResearchGroupRead`` (they fit as-is).
+``ResearchGroupInput``/``ResearchGroupRead`` (they fit as-is).
 
 A cabinet entry may carry a ``nickname`` (#113): what the group calls the
 chemical, and what it is listed under when picked. ``Nickname`` is the one

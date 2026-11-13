@@ -210,8 +210,8 @@ export interface ZfinEntity {
  * A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
  */
 export interface Study extends ZappEntity {
-    /** The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid. */
-    research_group?: ResearchGroupId,
+    /** The research group the study belongs to, whose members may edit it. */
+    research_group: ResearchGroupId,
     /** The experiment in a study. */
     experiment?: Experiment[],
     /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */

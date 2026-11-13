@@ -67,10 +67,8 @@ classes:
       - lab
     slot_usage:
       research_group:
-        required: false
         description: >-
-          The research group the study belongs to. Optional only so that
-          studies recorded before groups existed remain valid.
+          The research group the study belongs to, whose members may edit it.
       nickname:
         description: >-
           A short working name for the study, and what it is listed under when

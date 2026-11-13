@@ -147,9 +147,9 @@ def test_annotated_classes_get_audit_timestamps(session, group):
     assert entry.updated_at is not None
 
 
-def test_study_records_submission_date(session):
+def test_study_records_submission_date(session, group):
     # created_at is the submission date (#140, #118).
-    study = Study(publication="not published")
+    study = Study(research_group=group.id, publication="not published")
     session.add(study)
     session.commit()
 

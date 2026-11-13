@@ -1,32 +1,26 @@
-"""PhenotypeObservationSet endpoints.
+"""Observation endpoints.
 
-* POST /exposures/{exposure_id}/observations
-* GET /observations/{observation_id}
-* PATCH /observations/{observation_id}
+Created beneath an exposure event, then read, replaced and deleted by its own id.
 """
-
-from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, status
 
-from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.services.observations import (
-    create_observation_for_exposure,
-    delete_observation,
-    get_observation_by_id,
-    patch_observation,
-)
-from zapp_atlas.db.image_storage import Storage, get_storage
+from zapp_atlas.api.deps import SessionDep, StorageDep
+from zapp_atlas.api.resources import readable, writable
+from zapp_atlas.api.services import levels
 from zapp_atlas.schema.pydantic_crud import (
-    PhenotypeObservationSetCreate,
+    PhenotypeObservationSetInput,
     PhenotypeObservationSetRead,
-    PhenotypeObservationSetUpdate,
 )
+from zapp_atlas.schema.sqla import ExposureEvent, PhenotypeObservationSet
 
 router = APIRouter(tags=["observations"])
+
+Readable = Annotated[PhenotypeObservationSet, readable("PhenotypeObservationSet")]
+Writable = Annotated[PhenotypeObservationSet, writable("PhenotypeObservationSet")]
+WritableParent = Annotated[ExposureEvent, writable("ExposureEvent")]
 
 
 @router.post(
@@ -34,45 +28,24 @@ router = APIRouter(tags=["observations"])
     response_model=PhenotypeObservationSetRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_observation_endpoint(
-    exposure_id: int,
-    payload: PhenotypeObservationSetCreate,
-    session: Annotated[Session, Depends(get_session)],
-) -> PhenotypeObservationSetRead:
-    obs = create_observation_for_exposure(session, exposure_id=exposure_id, payload=payload)
-    if obs is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exposure not found")
-    return obs  # type: ignore[return-value]
+def create_observation(
+    parent: WritableParent, body: PhenotypeObservationSetInput, session: SessionDep
+) -> PhenotypeObservationSet:
+    return levels.create(session, "PhenotypeObservationSet", body, parent=parent)
 
 
 @router.get("/observations/{observation_id}", response_model=PhenotypeObservationSetRead)
-def get_observation_endpoint(
-    observation_id: int,
-    session: Annotated[Session, Depends(get_session)],
-) -> PhenotypeObservationSetRead:
-    obs = get_observation_by_id(session, observation_id)
-    if obs is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
-    return obs  # type: ignore[return-value]
+def read_observation(observation: Readable) -> PhenotypeObservationSet:
+    return observation
 
 
-@router.patch("/observations/{observation_id}", response_model=PhenotypeObservationSetRead)
-def patch_observation_endpoint(
-    observation_id: int,
-    patch: PhenotypeObservationSetUpdate,
-    session: Annotated[Session, Depends(get_session)],
-) -> PhenotypeObservationSetRead:
-    obs = patch_observation(session, observation_id, patch)
-    if obs is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
-    return obs  # type: ignore[return-value]
+@router.put("/observations/{observation_id}", response_model=PhenotypeObservationSetRead)
+def replace_observation(
+    observation: Writable, body: PhenotypeObservationSetInput, session: SessionDep
+) -> PhenotypeObservationSet:
+    return levels.replace(session, "PhenotypeObservationSet", observation, body)
 
 
 @router.delete("/observations/{observation_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_observation_endpoint(
-    observation_id: int,
-    session: Annotated[Session, Depends(get_session)],
-    storage: Annotated[Storage, Depends(get_storage)],
-) -> None:
-    if not delete_observation(session, observation_id, storage=storage):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found")
+def delete_observation(observation: Writable, session: SessionDep, storage: StorageDep) -> None:
+    levels.delete(session, "PhenotypeObservationSet", observation, storage)

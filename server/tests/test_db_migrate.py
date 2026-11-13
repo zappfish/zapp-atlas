@@ -157,7 +157,6 @@ def test_migrate_is_idempotent(legacy_db) -> None:
 # generic column step covers them. The unique keys on the nicknames are what
 # needed the index step: create_all never adds an index to an existing table.
 NICKNAME_ADDED = [
-    ("Study", "research_group"),
     ("Study", "nickname"),
     ("Study", "description"),
     ("ChemicalCabinetEntry", "nickname"),
@@ -172,8 +171,8 @@ NICKNAME_INDEXES = {
 def pre_nickname_db(tmp_path):
     """A database created before nicknames existed, holding two published studies.
 
-    ``Study`` is recreated wholesale in its earlier layout: SQLite will not
-    DROP a foreign-key column such as ``research_group``.
+    ``Study`` is recreated wholesale in its earlier layout, which is simpler
+    than dropping its columns and the index over them one at a time.
     """
     path = tmp_path / "zapp.db"
     init_db(create_engine(f"sqlite:///{path}"))
@@ -182,7 +181,10 @@ def pre_nickname_db(tmp_path):
     con.executescript(
         """
         DROP TABLE "Study";
-        CREATE TABLE "Study" (publication TEXT, lab TEXT, id INTEGER NOT NULL PRIMARY KEY);
+        CREATE TABLE "Study" (
+            research_group INTEGER NOT NULL, publication TEXT, lab TEXT,
+            id INTEGER NOT NULL PRIMARY KEY
+        );
         DROP INDEX "uq_ChemicalCabinetEntry_cabinet_nickname_grain";
         ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "nickname";
         INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
@@ -190,8 +192,12 @@ def pre_nickname_db(tmp_path):
             VALUES (1, 1, 'CHEBI:16236');
         """
     )
-    con.execute("INSERT INTO Study (id, publication) VALUES (1, 'PMID:22194820')")
-    con.execute("INSERT INTO Study (id, publication) VALUES (2, 'PMID:40359302')")
+    con.execute(
+        "INSERT INTO Study (id, research_group, publication) VALUES (1, 1, 'PMID:22194820')"
+    )
+    con.execute(
+        "INSERT INTO Study (id, research_group, publication) VALUES (2, 1, 'PMID:40359302')"
+    )
     con.commit()
     con.close()
     return path
@@ -212,7 +218,7 @@ def test_migrate_adds_the_nickname_columns(pre_nickname_db) -> None:
         study = session.get(Study, 1)
         assert study.publication == "PMID:22194820"
         # Existing rows are published, belong to no group, and have no nickname yet.
-        assert study.research_group is None
+        assert study.research_group == 1
         assert study.nickname is None
         assert study.description is None
         entry = session.get(ChemicalCabinetEntry, 1)

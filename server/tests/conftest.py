@@ -92,3 +92,27 @@ def session() -> Iterator[Session]:
     init_db(engine)
     with Session(engine) as session:
         yield session
+
+
+@pytest.fixture
+def group(client: TestClient) -> int:
+    """A research group whose admin, the curator, is left signed in."""
+    from support import CURATOR, make_group, signin
+
+    signin(client, CURATOR)
+    return make_group(client, "Test Lab")
+
+
+@pytest.fixture
+def tree(client: TestClient, group: int) -> dict[str, dict]:
+    """One row of every JSON level, each inside the one before, as created."""
+    from support import JSON_LEVELS, body, collection_url
+
+    made: dict[str, dict] = {}
+    parent_id = None
+    for level in JSON_LEVELS:
+        res = client.post(collection_url(level, parent_id), json=body(level, group))
+        assert res.status_code == 201, res.text
+        made[level] = res.json()
+        parent_id = made[level]["id"]
+    return made

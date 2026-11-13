@@ -1,86 +1,61 @@
-"""Study CRUD endpoints.
+"""Study endpoints.
 
-This router is intentionally thin: all persistence/mapping details are pushed
-into `api.services.studies`.
+A study's body carries the study's own fields. Its experiments are resources of
+their own, created beneath it and saved separately; reading a study returns them
+all the same, so one request loads the whole tree.
 """
-
-from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, status
+from sqlalchemy import select
 
-from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.services.studies import (
-    create_study,
-    delete_study,
-    get_study_by_id,
-    list_studies,
-    patch_study,
-)
-from zapp_atlas.db.image_storage import Storage, get_storage
-
-# LinkML-generated Pydantic CRUD models
-from zapp_atlas.schema.pydantic_crud import (
-    StudyCreate,
-    StudyRead,
-    StudyUpdate,
-)
+from zapp_atlas.api.authz import SignedIn, require_membership
+from zapp_atlas.api.deps import SessionDep, StorageDep
+from zapp_atlas.api.resources import readable, writable
+from zapp_atlas.api.services import levels
+from zapp_atlas.schema.pydantic_crud import StudyInput, StudyRead, StudySummary
+from zapp_atlas.schema.sqla import Study
 
 router = APIRouter(prefix="/studies", tags=["studies"])
 
+Readable = Annotated[Study, readable("Study")]
+Writable = Annotated[Study, writable("Study")]
 
-def _as_read(study) -> StudyRead:
-    return StudyRead.model_validate(study, from_attributes=True)
+
+@router.get("", response_model=list[StudySummary])
+def list_studies(
+    session: SessionDep,
+    research_group: int | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[Study]:
+    query = select(Study).order_by(Study.id).offset(offset).limit(limit)
+    if research_group is not None:
+        query = query.where(Study.research_group == research_group)
+    return list(session.scalars(query))
 
 
 @router.post("", response_model=StudyRead, status_code=status.HTTP_201_CREATED)
-def create_study_endpoint(
-    payload: StudyCreate,
-    session: Annotated[Session, Depends(get_session)],
-) -> StudyRead:
-    return _as_read(create_study(session, payload))
+def create_study(body: StudyInput, identity: SignedIn, session: SessionDep) -> Study:
+    require_membership(session, body.research_group, identity)
+    return levels.create(session, "Study", body, parent=None)
 
 
 @router.get("/{study_id}", response_model=StudyRead)
-def get_study_endpoint(
-    study_id: int,
-    session: Annotated[Session, Depends(get_session)],
-) -> StudyRead:
-    study = get_study_by_id(session, study_id)
-    if study is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
-    return _as_read(study)
+def read_study(study: Readable) -> Study:
+    return study
 
 
-@router.get("", response_model=list[StudyRead])
-def list_studies_endpoint(
-    session: Annotated[Session, Depends(get_session)],
-    limit: int = 50,
-    offset: int = 0,
-) -> list[StudyRead]:
-    rows = list_studies(session, limit=limit, offset=offset)
-    return [_as_read(s) for s in rows]
-
-
-@router.patch("/{study_id}", response_model=StudyRead)
-def patch_study_endpoint(
-    study_id: int,
-    patch: StudyUpdate,
-    session: Annotated[Session, Depends(get_session)],
-) -> StudyRead:
-    study = patch_study(session, study_id, patch)
-    if study is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
-    return _as_read(study)
+@router.put("/{study_id}", response_model=StudyRead)
+def replace_study(
+    study: Writable, body: StudyInput, identity: SignedIn, session: SessionDep
+) -> Study:
+    # Moving a study to another group takes membership of both.
+    require_membership(session, body.research_group, identity)
+    return levels.replace(session, "Study", study, body)
 
 
 @router.delete("/{study_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_study_endpoint(
-    study_id: int,
-    session: Annotated[Session, Depends(get_session)],
-    storage: Annotated[Storage, Depends(get_storage)],
-) -> None:
-    if not delete_study(session, study_id, storage=storage):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
+def delete_study(study: Writable, session: SessionDep, storage: StorageDep) -> None:
+    levels.delete(session, "Study", study, storage)

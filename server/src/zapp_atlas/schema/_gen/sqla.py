@@ -130,7 +130,7 @@ class Study(ZappEntity):
 
     __tablename__ = "Study"
 
-    research_group: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     publication: Mapped[str | None] = mapped_column(Text())
     nickname: Mapped[str | None] = mapped_column(Text())
     description: Mapped[str | None] = mapped_column(Text())

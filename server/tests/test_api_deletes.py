@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 """Cascade delete tests across the study → observation hierarchy."""
 
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from support import study_fields
 
 _PNG_1X1_RED = bytes.fromhex(
     "89504E470D0A1A0A0000000D49484452000000010000000108020000"
@@ -13,7 +12,7 @@ _PNG_1X1_RED = bytes.fromhex(
 )
 
 
-def _build_study_graph(client: TestClient) -> dict:
+def _build_study_graph(client: TestClient, group: int) -> dict:
     """Create a full study → experiment → exposure → observation + image
     for delete-cascade testing. Returns the ids."""
     study = client.post(
@@ -22,7 +21,7 @@ def _build_study_graph(client: TestClient) -> dict:
             "publication": "PMID:delete-1",
             "lab": "ZFIN:ZDB-LAB-1-1",
             "annotator": ["ORCID:0000-0000-0000-0000"],
-            "experiment": [],
+            **study_fields(group),
         },
     ).json()
     exp = client.post(
@@ -31,16 +30,15 @@ def _build_study_graph(client: TestClient) -> dict:
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-960809-7", "name": "AB"},
             "control": [],
-            "exposure_event": [],
         },
     ).json()
     exposure = client.post(
         f"/api/experiments/{exp['id']}/exposures",
-        json={"stressor": [], "phenotype_observation": []},
+        json={"stressor": []},
     ).json()
     obs = client.post(
         f"/api/exposures/{exposure['id']}/observations",
-        json={"phenotype": [], "image": [], "control_image": []},
+        json={"phenotype": [], "control_image": []},
     ).json()
     image = client.post(
         f"/api/observations/{obs['id']}/images",
@@ -55,8 +53,8 @@ def _build_study_graph(client: TestClient) -> dict:
     }
 
 
-def test_delete_image_removes_row_and_blob(client: TestClient, tmp_path: Path) -> None:
-    ids = _build_study_graph(client)
+def test_delete_image_removes_row_and_blob(client: TestClient, group: int, tmp_path: Path) -> None:
+    ids = _build_study_graph(client, group)
     blob = tmp_path / "images" / str(ids["image_id"])
     assert blob.is_file()
 
@@ -67,8 +65,10 @@ def test_delete_image_removes_row_and_blob(client: TestClient, tmp_path: Path) -
     assert not blob.exists()
 
 
-def test_delete_observation_cascades_to_images(client: TestClient, tmp_path: Path) -> None:
-    ids = _build_study_graph(client)
+def test_delete_observation_cascades_to_images(
+    client: TestClient, group: int, tmp_path: Path
+) -> None:
+    ids = _build_study_graph(client, group)
 
     res = client.delete(f"/api/observations/{ids['observation_id']}")
     assert res.status_code == 204
@@ -77,8 +77,8 @@ def test_delete_observation_cascades_to_images(client: TestClient, tmp_path: Pat
     assert client.get(f"/api/images/{ids['image_id']}").status_code == 404
 
 
-def test_delete_exposure_cascades(client: TestClient) -> None:
-    ids = _build_study_graph(client)
+def test_delete_exposure_cascades(client: TestClient, group: int) -> None:
+    ids = _build_study_graph(client, group)
 
     res = client.delete(f"/api/exposures/{ids['exposure_id']}")
     assert res.status_code == 204
@@ -88,8 +88,8 @@ def test_delete_exposure_cascades(client: TestClient) -> None:
     assert client.get(f"/api/images/{ids['image_id']}").status_code == 404
 
 
-def test_delete_experiment_cascades(client: TestClient) -> None:
-    ids = _build_study_graph(client)
+def test_delete_experiment_cascades(client: TestClient, group: int) -> None:
+    ids = _build_study_graph(client, group)
 
     res = client.delete(f"/api/experiments/{ids['experiment_id']}")
     assert res.status_code == 204
@@ -99,8 +99,8 @@ def test_delete_experiment_cascades(client: TestClient) -> None:
     assert client.get(f"/api/observations/{ids['observation_id']}").status_code == 404
 
 
-def test_delete_study_cascades_all_the_way_down(client: TestClient) -> None:
-    ids = _build_study_graph(client)
+def test_delete_study_cascades_all_the_way_down(client: TestClient, group: int) -> None:
+    ids = _build_study_graph(client, group)
 
     res = client.delete(f"/api/studies/{ids['study_id']}")
     assert res.status_code == 204
@@ -112,7 +112,7 @@ def test_delete_study_cascades_all_the_way_down(client: TestClient) -> None:
     assert client.get(f"/api/images/{ids['image_id']}").status_code == 404
 
 
-def test_delete_missing_entities_404(client: TestClient) -> None:
+def test_delete_missing_entities_404(client: TestClient, group: int) -> None:
     for path in (
         "/api/studies/999999",
         "/api/experiments/999999",
@@ -123,7 +123,7 @@ def test_delete_missing_entities_404(client: TestClient) -> None:
         assert client.delete(path).status_code == 404
 
 
-def _exposure_with_synonyms(client: TestClient) -> int:
+def _exposure_with_synonyms(client: TestClient, group: int) -> int:
     """An exposure whose stressor and vehicle both carry synonym rows."""
     study = client.post(
         "/api/studies",
@@ -131,7 +131,7 @@ def _exposure_with_synonyms(client: TestClient) -> int:
             "publication": "PMID:delete-synonyms",
             "lab": "ZFIN:ZDB-LAB-1-1",
             "annotator": ["ORCID:0000-0000-0000-0000"],
-            "experiment": [],
+            **study_fields(group),
         },
     ).json()
     exp = client.post(
@@ -140,7 +140,6 @@ def _exposure_with_synonyms(client: TestClient) -> int:
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-1", "name": "AB"},
             "control": [],
-            "exposure_event": [],
         },
     ).json()
     res = client.post(
@@ -148,14 +147,13 @@ def _exposure_with_synonyms(client: TestClient) -> int:
         json={
             "stressor": [{"chemical_id": "CHEBI:33216", "synonym": ["bisphenol A", "BPA"]}],
             "vehicle": [{"vehicle_type": "dmso", "synonym": ["DMSO", "methyl sulfoxide"]}],
-            "phenotype_observation": [],
         },
     )
     assert res.status_code == 201, res.text
     return res.json()["id"]
 
 
-def test_delete_exposure_takes_synonym_rows_with_it(client: TestClient) -> None:
+def test_delete_exposure_takes_synonym_rows_with_it(client: TestClient, group: int) -> None:
     """Synonyms are the mainline way a chemical carries its readable names.
 
     Their rows key on the parent's id *and* the value, so nothing can detach
@@ -167,7 +165,7 @@ def test_delete_exposure_takes_synonym_rows_with_it(client: TestClient) -> None:
         VehicleOfTransmissionSynonym,
     )
 
-    exposure_id = _exposure_with_synonyms(client)
+    exposure_id = _exposure_with_synonyms(client, group)
 
     assert client.delete(f"/api/exposures/{exposure_id}").status_code == 204
 
@@ -176,13 +174,13 @@ def test_delete_exposure_takes_synonym_rows_with_it(client: TestClient) -> None:
     assert session.query(VehicleOfTransmissionSynonym).count() == 0
 
 
-def test_delete_study_takes_nested_synonym_rows_with_it(client: TestClient) -> None:
+def test_delete_study_takes_nested_synonym_rows_with_it(client: TestClient, group: int) -> None:
     from zapp_atlas.schema._gen.sqla import (
         StressorChemicalSynonym,
         VehicleOfTransmissionSynonym,
     )
 
-    _exposure_with_synonyms(client)
+    _exposure_with_synonyms(client, group)
     study_id = client.get("/api/studies").json()[0]["id"]
 
     assert client.delete(f"/api/studies/{study_id}").status_code == 204

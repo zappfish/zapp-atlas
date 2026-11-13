@@ -1,61 +1,18 @@
-from __future__ import annotations
-
 """API tests for the FastAPI Study endpoints.
 
 These tests are intended to validate the FastAPI wiring + basic CRUD semantics.
-
-Note: per project direction, these may not run yet until:
-* the schema package is vendored into this repo and import paths stabilize
-* SQLAlchemy models are available on this branch
-* dependencies like uvicorn/httpx are installed
 """
 
-
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from zapp_atlas.api.deps import get_session
-from zapp_atlas.main import create_app
+from support import make_group, study_fields
 
 
-def _make_test_app():
-    """Create an app instance configured with an in-memory sqlite session."""
-
-    # Schema-provided SQLAlchemy base (assumed to exist)
-    from zapp_atlas.schema.sqla import Base  # type: ignore
-
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(engine)
-    SessionLocal = sessionmaker(bind=engine)
-
-    app = create_app()
-
-    def _override_get_session():
-        session = SessionLocal()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    app.dependency_overrides[get_session] = _override_get_session
-    return app
-
-
-def test_study_create_then_get_round_trip_minimal():
-    app = _make_test_app()
-    client = TestClient(app)
-
+def test_study_create_then_get_round_trip_minimal(client: TestClient, group: int) -> None:
     payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
         "annotator": ["ORCID:0000-0000-0000-0000"],
-        "experiment": [],
+        **study_fields(group),
     }
     create_res = client.post("/api/studies", json=payload)
     assert create_res.status_code == 201, create_res.text
@@ -68,30 +25,25 @@ def test_study_create_then_get_round_trip_minimal():
     assert got["id"] == created["id"]
 
 
-def test_study_get_missing_404():
-    app = _make_test_app()
-    client = TestClient(app)
-
+def test_study_get_missing_404(client: TestClient, group: int) -> None:
     res = client.get("/api/studies/999999")
     assert res.status_code == 404
 
 
-def test_study_patch_updates_top_level_fields():
-    app = _make_test_app()
-    client = TestClient(app)
-
+def test_study_put_updates_top_level_fields(client: TestClient, group: int) -> None:
     create_payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
         "annotator": ["ORCID:0000-0000-0000-0000"],
-        "experiment": [],
+        **study_fields(group),
     }
     created = client.post("/api/studies", json=create_payload).json()
 
     patch_payload = {
+        **create_payload,
         "publication": "PMID:654321",
     }
-    patch_res = client.patch(f"/api/studies/{created['id']}", json=patch_payload)
+    patch_res = client.put(f"/api/studies/{created['id']}", json=patch_payload)
     assert patch_res.status_code == 200, patch_res.text
     patched = patch_res.json()
     assert patched["publication"] == "PMID:654321"
@@ -105,20 +57,16 @@ UNPUBLISHED = {
     "nickname": "BPA dose-response pilot",
     "description": "Pilot exposure of AB embryos to a BPA dilution series, 6-96 hpf.",
     "lab": "ZFIN:ZDB-LAB-1-1",
-    "experiment": [],
 }
 
 
-def test_unpublished_study_needs_only_a_nickname():
-    app = _make_test_app()
-    client = TestClient(app)
-
-    bare = client.post("/api/studies", json={"nickname": "just a name", "experiment": []})
+def test_unpublished_study_needs_only_a_nickname(client: TestClient, group: int) -> None:
+    bare = client.post("/api/studies", json={"nickname": "just a name", **study_fields(group)})
     assert bare.status_code == 201, bare.text
     assert bare.json()["publication"] is None
     assert bare.json()["description"] is None
 
-    res = client.post("/api/studies", json=UNPUBLISHED)
+    res = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)})
     assert res.status_code == 201, res.text
     created = res.json()
     assert created["publication"] is None
@@ -130,51 +78,49 @@ def test_unpublished_study_needs_only_a_nickname():
     assert got["description"] == UNPUBLISHED["description"]
 
 
-def test_unpublished_study_without_a_nickname_is_rejected():
+def test_unpublished_study_without_a_nickname_is_rejected(client: TestClient, group: int) -> None:
     """The schema rule: no publication means a nickname is required."""
-    app = _make_test_app()
-    client = TestClient(app)
-
-    res = client.post("/api/studies", json={"description": "no handle at all", "experiment": []})
+    res = client.post(
+        "/api/studies", json={"description": "no handle at all", **study_fields(group)}
+    )
     assert res.status_code == 422, res.text
     assert "nickname" in res.text
 
     # A blank nickname is not a way around the rule ...
     for blank in ("", "   "):
-        res = client.post("/api/studies", json={"nickname": blank, "experiment": []})
+        res = client.post("/api/studies", json={"nickname": blank, **study_fields(group)})
         assert res.status_code == 422, res.text
     # ... and neither is a blank publication.
     for blank in ("", "   "):
-        res = client.post("/api/studies", json={"publication": blank, "experiment": []})
+        res = client.post("/api/studies", json={"publication": blank, **study_fields(group)})
         assert res.status_code == 422, res.text
 
 
-def test_a_blank_publication_is_stored_as_none():
-    app = _make_test_app()
-    client = TestClient(app)
-
-    res = client.post("/api/studies", json={**UNPUBLISHED, "publication": "   "})
+def test_a_blank_publication_is_stored_as_none(client: TestClient, group: int) -> None:
+    res = client.post(
+        "/api/studies", json={**UNPUBLISHED, **study_fields(group), "publication": "   "}
+    )
     assert res.status_code == 201, res.text
     assert res.json()["publication"] is None
 
 
-def test_a_study_nickname_has_the_same_length_limit_as_the_others():
-    app = _make_test_app()
-    client = TestClient(app)
-
-    res = client.post("/api/studies", json={"nickname": "x" * 200, "experiment": []})
+def test_a_study_nickname_has_the_same_length_limit_as_the_others(
+    client: TestClient, group: int
+) -> None:
+    res = client.post("/api/studies", json={"nickname": "x" * 200, **study_fields(group)})
     assert res.status_code == 201, res.text
-    res = client.post("/api/studies", json={"nickname": "x" * 201, "experiment": []})
+    res = client.post("/api/studies", json={"nickname": "x" * 201, **study_fields(group)})
     assert res.status_code == 422, res.text
 
 
-def test_a_published_study_may_also_carry_a_nickname():
-    app = _make_test_app()
-    client = TestClient(app)
-
+def test_a_published_study_may_also_carry_a_nickname(client: TestClient, group: int) -> None:
     res = client.post(
         "/api/studies",
-        json={"publication": "PMID:123456", "nickname": "the 2012 BPA paper", "experiment": []},
+        json={
+            "publication": "PMID:123456",
+            "nickname": "the 2012 BPA paper",
+            **study_fields(group),
+        },
     )
     assert res.status_code == 201, res.text
     assert res.json()["nickname"] == "the 2012 BPA paper"
@@ -182,169 +128,133 @@ def test_a_published_study_may_also_carry_a_nickname():
     assert res.json()["description"] is None
 
 
-def _make_group(app, name: str) -> int:
-    """Add a research group straight to the test database."""
-    from zapp_atlas.schema.sqla import ResearchGroup  # type: ignore
+def test_a_study_nickname_is_unique_within_its_research_group(
+    client: TestClient, group: int
+) -> None:
+    lab_a = make_group(client, "Lab A")
+    lab_b = make_group(client, "Lab B")
 
-    sessions = app.dependency_overrides[get_session]()
-    session = next(sessions)
-    group = ResearchGroup(name=name)
-    session.add(group)
-    session.commit()
-    group_id = group.id
-    sessions.close()
-    return group_id
-
-
-def test_a_study_nickname_is_unique_within_its_research_group():
-    app = _make_test_app()
-    client = TestClient(app)
-    lab_a = _make_group(app, "Lab A")
-    lab_b = _make_group(app, "Lab B")
-
-    first = client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab_a})
+    first = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(lab_a)})
     assert first.status_code == 201, first.text
     assert first.json()["research_group"] == lab_a
 
     # The same group cannot use the nickname twice ...
-    again = client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab_a})
+    again = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(lab_a)})
     assert again.status_code == 409, again.text
     # ... but another group may call its own study the same thing.
-    other = client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab_b})
+    other = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(lab_b)})
     assert other.status_code == 201, other.text
-    # So may a study that belongs to no group.
-    assert client.post("/api/studies", json=UNPUBLISHED).status_code == 201
 
 
-def test_a_study_cannot_join_a_research_group_that_does_not_exist():
-    app = _make_test_app()
-    client = TestClient(app)
+def test_a_study_cannot_join_a_research_group_that_does_not_exist(
+    client: TestClient, group: int
+) -> None:
+    # Nobody is a member of a group that does not exist.
+    res = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(99999)})
+    assert res.status_code == 403, res.text
 
-    res = client.post("/api/studies", json={**UNPUBLISHED, "research_group": 99999})
-    assert res.status_code == 422, res.text
 
+def test_put_cannot_move_a_study_into_a_group_that_uses_its_nickname(
+    client: TestClient, group: int
+) -> None:
+    lab_a = make_group(client, "Lab A")
 
-def test_patch_cannot_move_a_study_into_a_group_that_uses_its_nickname():
-    app = _make_test_app()
-    client = TestClient(app)
-    lab_a = _make_group(app, "Lab A")
+    client.post("/api/studies", json={**UNPUBLISHED, **study_fields(lab_a)})
+    loose = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)}).json()
 
-    client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab_a})
-    loose = client.post("/api/studies", json=UNPUBLISHED).json()
-
-    res = client.patch(f"/api/studies/{loose['id']}", json={"research_group": lab_a})
+    res = client.put(f"/api/studies/{loose['id']}", json={**UNPUBLISHED, **study_fields(lab_a)})
     assert res.status_code == 409, res.text
-    assert client.get(f"/api/studies/{loose['id']}").json()["research_group"] is None
+    assert client.get(f"/api/studies/{loose['id']}").json()["research_group"] == group
 
 
-def test_two_studies_without_a_group_cannot_share_a_nickname():
-    """Studies that belong to no group are held to the rule among themselves."""
-    app = _make_test_app()
-    client = TestClient(app)
-
-    assert client.post("/api/studies", json=UNPUBLISHED).status_code == 201
-    res = client.post("/api/studies", json=UNPUBLISHED)
+def test_two_studies_in_a_group_cannot_share_a_nickname(client: TestClient, group: int) -> None:
+    assert (
+        client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)}).status_code == 201
+    )
+    res = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)})
     assert res.status_code == 409, res.text
 
     # Surrounding whitespace does not make a nickname a different one ...
-    padded = {**UNPUBLISHED, "nickname": f"  {UNPUBLISHED['nickname']}  "}
+    padded = {
+        **UNPUBLISHED,
+        **study_fields(group),
+        "nickname": f"  {UNPUBLISHED['nickname']}  ",
+    }
     assert client.post("/api/studies", json=padded).status_code == 409
     # ... and a published study is held to the same rule.
-    published = {"publication": "PMID:123456", "nickname": UNPUBLISHED["nickname"]}
+    published = {
+        "publication": "PMID:123456",
+        "nickname": UNPUBLISHED["nickname"],
+        **study_fields(group),
+    }
     assert client.post("/api/studies", json=published).status_code == 409
 
     # Studies with no nickname at all never collide with each other.
     for pmid in ("PMID:1", "PMID:2"):
-        res = client.post("/api/studies", json={"publication": pmid, "experiment": []})
+        res = client.post("/api/studies", json={"publication": pmid, **study_fields(group)})
         assert res.status_code == 201, res.text
 
 
-def test_patch_cannot_take_another_studys_nickname():
-    app = _make_test_app()
-    client = TestClient(app)
+def test_put_cannot_take_another_studys_nickname(client: TestClient, group: int) -> None:
+    client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)})
+    other = client.post(
+        "/api/studies", json={"nickname": "second pilot", **study_fields(group)}
+    ).json()
 
-    client.post("/api/studies", json=UNPUBLISHED)
-    other = client.post("/api/studies", json={"nickname": "second pilot", "experiment": []}).json()
-
-    res = client.patch(f"/api/studies/{other['id']}", json={"nickname": UNPUBLISHED["nickname"]})
+    res = client.put(
+        f"/api/studies/{other['id']}",
+        json={"nickname": UNPUBLISHED["nickname"], **study_fields(group)},
+    )
     assert res.status_code == 409, res.text
     assert client.get(f"/api/studies/{other['id']}").json()["nickname"] == "second pilot"
 
     # Sending a study its own nickname back is not a clash.
-    res = client.patch(f"/api/studies/{other['id']}", json={"nickname": "second pilot"})
+    res = client.put(
+        f"/api/studies/{other['id']}", json={"nickname": "second pilot", **study_fields(group)}
+    )
     assert res.status_code == 200, res.text
 
 
-def test_study_patch_renames_a_study():
-    app = _make_test_app()
-    client = TestClient(app)
-
-    created = client.post("/api/studies", json=UNPUBLISHED).json()
-    res = client.patch(
+def test_study_put_renames_a_study(client: TestClient, group: int) -> None:
+    created = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)}).json()
+    res = client.put(
         f"/api/studies/{created['id']}",
-        json={"nickname": "BPA pilot, round 2", "description": "Repeat with a wider series."},
+        json={
+            "nickname": "BPA pilot, round 2",
+            "description": "Repeat with a wider series.",
+            **study_fields(group),
+        },
     )
     assert res.status_code == 200, res.text
     assert res.json()["nickname"] == "BPA pilot, round 2"
     assert res.json()["description"] == "Repeat with a wider series."
 
 
-def test_reconciling_an_unpublished_study_to_a_pmid_is_a_patch():
+def test_reconciling_an_unpublished_study_to_a_pmid_is_a_put(
+    client: TestClient, group: int
+) -> None:
     """The transition #157 describes: the temp handle gives way to a PMID."""
-    app = _make_test_app()
-    client = TestClient(app)
-
-    created = client.post("/api/studies", json=UNPUBLISHED).json()
-    res = client.patch(f"/api/studies/{created['id']}", json={"publication": "PMID:99999"})
+    created = client.post("/api/studies", json={**UNPUBLISHED, **study_fields(group)}).json()
+    res = client.put(
+        f"/api/studies/{created['id']}",
+        json={**UNPUBLISHED, **study_fields(group), "publication": "PMID:99999"},
+    )
     assert res.status_code == 200, res.text
     assert res.json()["publication"] == "PMID:99999"
-    # The nickname survives reconciliation: it is still how the lab refers to it.
+    # The nickname is sent along and kept: it is still how the lab refers to it.
     assert res.json()["nickname"] == UNPUBLISHED["nickname"]
 
 
-def test_patch_cannot_blank_out_a_publication():
-    """A blank field in a PATCH is left as it is, so a study cannot be stranded."""
-    app = _make_test_app()
-    client = TestClient(app)
-
+def test_put_cannot_blank_out_the_publication_of_an_unnamed_study(
+    client: TestClient, group: int
+) -> None:
+    """A study with neither a publication nor a nickname is refused, so none is stranded."""
     created = client.post(
-        "/api/studies", json={"publication": "PMID:123456", "experiment": []}
+        "/api/studies", json={"publication": "PMID:123456", **study_fields(group)}
     ).json()
     for blank in ("", "   "):
-        res = client.patch(f"/api/studies/{created['id']}", json={"publication": blank})
-        assert res.status_code == 200, res.text
-        assert res.json()["publication"] == "PMID:123456"
-
-
-def test_the_study_rules_are_checked_on_patch_too(monkeypatch):
-    """A study that reached the database without a name cannot be edited until it has one."""
-    from zapp_atlas.api.services import studies
-
-    app = _make_test_app()
-    client = TestClient(app)
-
-    with monkeypatch.context() as unchecked:
-        unchecked.setattr(studies, "_check_study_rules", lambda session, study: None)
-        stranded = client.post("/api/studies", json={"experiment": []}).json()
-
-    res = client.patch(f"/api/studies/{stranded['id']}", json={"lab": "ZFIN:ZDB-LAB-1-1"})
-    assert res.status_code == 422, res.text
-    res = client.patch(f"/api/studies/{stranded['id']}", json={"nickname": "found again"})
-    assert res.status_code == 200, res.text
-
-
-def test_two_saves_at_the_same_instant_are_a_conflict_not_a_crash(monkeypatch):
-    """With the check out of the way, the database's own refusal reads the same."""
-    from zapp_atlas.api.services import studies
-
-    app = _make_test_app()
-    client = TestClient(app)
-    lab = _make_group(app, "Lab A")
-    monkeypatch.setattr(studies, "_check_nickname_is_free", lambda session, study: None)
-
-    assert (
-        client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab}).status_code == 201
-    )
-    res = client.post("/api/studies", json={**UNPUBLISHED, "research_group": lab})
-    assert res.status_code == 409, res.text
-    assert "nickname" in res.json()["detail"]
+        res = client.put(
+            f"/api/studies/{created['id']}", json={"publication": blank, **study_fields(group)}
+        )
+        assert res.status_code == 422, res.text
+        assert client.get(f"/api/studies/{created['id']}").json()["publication"] == "PMID:123456"

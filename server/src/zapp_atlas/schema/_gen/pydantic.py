@@ -457,17 +457,14 @@ class Study(ZappEntity):
                                                     'share one.',
                                      'name': 'nickname'},
                         'research_group': {'description': 'The research group the '
-                                                          'study belongs to. Optional '
-                                                          'only so that studies '
-                                                          'recorded before groups '
-                                                          'existed remain valid.',
-                                           'name': 'research_group',
-                                           'required': False}},
+                                                          'study belongs to, whose '
+                                                          'members may edit it.',
+                                           'name': 'research_group'}},
          'unique_keys': {'study_nickname_grain': {'unique_key_name': 'study_nickname_grain',
                                                   'unique_key_slots': ['research_group',
                                                                        'nickname']}}})
 
-    research_group: Optional[int] = Field(default=None, description="""The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: int = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
