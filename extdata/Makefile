@@ -31,7 +31,10 @@ BUNDLE := \
 	$(DIST)/zp.json $(DIST)/zp.json.gz \
 	$(DIST)/zfa.json $(DIST)/zfa.json.gz \
 	$(DIST)/zfin_counts.tsv \
-	$(DIST)/labels.db
+	$(DIST)/labels.db \
+	$(DIST)/zfin.db
+
+ZFIN_INPUTS := $(addprefix $(TMP)/zfin/,$(ZFIN_FILES))
 
 .PHONY: all clean
 .DELETE_ON_ERROR:
@@ -41,7 +44,7 @@ all: $(DIST)/manifest.json
 clean:
 	rm -rf $(DIST) $(TMP)
 
-$(DIST) $(TMP) $(TMP)/plugins:
+$(DIST) $(TMP) $(TMP)/plugins $(TMP)/zfin:
 	mkdir -p $@
 
 # --- Downloads ---------------------------------------------------------------
@@ -61,6 +64,10 @@ $(TMP)/chebi_lite.owl.gz: sources.mk | $(TMP)
 # ROBOT finds plugins by file name: this one is invoked as `robot upheno:...`.
 $(TMP)/plugins/upheno.jar: sources.mk | $(TMP)/plugins
 	curl -fsSL -o $@ $(UPHENO_PLUGIN_URL)
+
+# ZFIN's server is slow and sometimes answers 5xx; retry those too.
+$(TMP)/zfin/%: sources.mk | $(TMP)/zfin
+	curl -fsSL --retry 5 --retry-all-errors -o $@ $(ZFIN_BASE)/$*
 
 # --- Filtering ---------------------------------------------------------------
 #
@@ -141,6 +148,11 @@ $(DIST)/labels.db: $(TMP)/zp-labels.tsv $(TMP)/zfa-filtered-labels.tsv $(TMP)/ch
 $(DIST)/zfin_counts.tsv: $(TMP)/fish_to_phenotype.tsv scripts/zfin_counts.py $(RECIPES) | $(DIST)
 	$(PY) scripts/zfin_counts.py $< $@
 
+# ZFIN's registered alleles, genotypes, fish and wild-type lines, for the
+# server's fish lookups (see scripts/zfin_db.py).
+$(DIST)/zfin.db: $(ZFIN_INPUTS) scripts/zfin_db.py $(RECIPES) | $(DIST)
+	$(PY) scripts/zfin_db.py $@ $(TMP)/zfin --zfin-date $(ZFIN_DATE)
+
 # Always rewritten (it takes a moment): it records the current hash, which can
 # change without any data file needing a rebuild, e.g. after a comment edit.
 .PHONY: $(DIST)/manifest.json
@@ -151,5 +163,6 @@ $(DIST)/manifest.json: $(BUNDLE) scripts/manifest.py
 		zfa '$(ZFA_URL)' $(TMP)/zfa.owl \
 		chebi '$(CHEBI_URL)' $(TMP)/chebi_lite.owl.gz \
 		upheno_plugin '$(UPHENO_PLUGIN_URL)' $(TMP)/plugins/upheno.jar \
+		$(foreach f,$(ZFIN_FILES),zfin/$(f) '$(ZFIN_BASE)/$(f)' $(TMP)/zfin/$(f)) \
 		> $(TMP)/sources.tsv
 	$(PY) scripts/manifest.py $(DIST) --hash $(EXTDATA_HASH) --sources $(TMP)/sources.tsv

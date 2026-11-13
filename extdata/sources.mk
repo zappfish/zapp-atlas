@@ -23,3 +23,16 @@ CHEBI_URL := https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel255/ontology/c
 # already carry. Remove it, and the step that uses it in the Makefile, once a
 # ZP release includes those edges.
 UPHENO_PLUGIN_URL := https://github.com/monarch-initiative/monarch-robot-plugins/releases/download/v0.0.3/monarch-robot-extensions.jar
+
+# ZFIN bulk downloads (https://zfin.org/downloads), pinned to one day's
+# snapshot from the archive: the unversioned downloads/<file> URLs are
+# refreshed in place, the archive keeps every day since 2012. To update, set
+# ZFIN_DATE to a day listed at https://zfin.org/downloads/archive.
+ZFIN_DATE  := 2026.11.01
+ZFIN_BASE  := https://zfin.org/downloads/archive/$(ZFIN_DATE)
+ZFIN_FILES := \
+	features.txt \
+	features-affected-genes.txt \
+	wildtypes_fish.txt \
+	genotype_features.txt \
+	fish_components_fish.txt

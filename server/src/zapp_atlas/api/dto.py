@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
@@ -144,3 +144,162 @@ class TankEntryOut(_FromAttributes):
     fish: FishRef
     created_at: datetime | None
     updated_at: datetime | None
+
+
+# --- ZFIN reference lookups (/api/zfin) -------------------------------------
+#
+# Read models over ``zapp_atlas.zfin``'s dataclasses. Ids are CURIEs
+# (``ZFIN:ZDB-ALT-...``). Vocabulary is ZFIN's own -- ``so_id`` for the kind
+# of alteration, its zygosity words, reagent kinds by id prefix -- so the
+# lookup surface stays put while the fish data model is reworked.
+
+
+class ZfinGeneOut(_FromAttributes):
+    gene_id: str
+    symbol: str
+
+
+class ZfinConstructOut(_FromAttributes):
+    construct_id: str
+    name: str
+
+
+class ZfinWildtypeOut(_FromAttributes):
+    fish_id: str
+    genotype_id: str
+    name: str
+    abbreviation: str
+
+
+class ZfinBackgroundOut(_FromAttributes):
+    background_id: str  # a wild-type genotype
+    name: str
+
+
+class ZfinAlleleOut(_FromAttributes):
+    allele_id: str
+    symbol: str
+    name: str  # differs from the symbol for deficiencies and translocations
+    so_id: str | None  # the Sequence Ontology term for the kind of alteration
+    type_label: str  # ZFIN's words for it
+    mutagen: str | None
+    is_transgenic: bool
+    genes: list[ZfinGeneOut]  # usually one; none for most transgenics
+    constructs: list[ZfinConstructOut]  # usually one; more for co-injected lines
+
+
+class ZfinAlleleSearchOut(BaseModel):
+    query: str
+    total_matches: int
+    results: list[ZfinAlleleOut]
+
+
+class ZfinGenotypeAlleleOut(_FromAttributes):
+    allele_id: str
+    symbol: str
+    zygosity: str  # unknown | heterozygous | homozygous | complex
+    # The parents' zygosity, also "wild type"; None when ZFIN's unique name
+    # did not parse.
+    mother_zygosity: str | None
+    father_zygosity: str | None
+
+
+class ZfinGenotypeRefOut(_FromAttributes):
+    genotype_id: str
+    name: str  # as ZFIN writes it, alleles in <sup>
+    name_plain: str
+
+
+class ZfinGenotypeOut(ZfinGenotypeRefOut):
+    unique_name: str | None  # ZFIN's zygosity-encoded handle; None for wild types
+    alleles: list[ZfinGenotypeAlleleOut]
+    backgrounds: list[ZfinBackgroundOut]
+
+
+class ZfinReagentOut(_FromAttributes):
+    reagent_id: str
+    symbol: str
+    kind: str  # morpholino | crispr | talen
+    genes: list[ZfinGeneOut]
+
+
+class ZfinFishOut(_FromAttributes):
+    fish_id: str
+    name: str
+    name_plain: str
+    genotype: ZfinGenotypeRefOut
+    backgrounds: list[ZfinBackgroundOut]
+    reagents: list[ZfinReagentOut]
+
+
+class ZfinFishRefOut(_FromAttributes):
+    fish_id: str
+    name: str
+    name_plain: str
+
+
+class ZfinDescribedAlleleIn(BaseModel):
+    allele_id: str
+    # ZFIN's words. "unknown" matches only genotypes ZFIN records as unknown.
+    zygosity: Literal["unknown", "heterozygous", "homozygous", "complex"]
+
+    @field_validator("allele_id")
+    @classmethod
+    def _valid_allele(cls, value: str) -> str:
+        if not _ZFIN_RE.match(value):
+            raise ValueError(f"Invalid ZFIN allele id: {value}")
+        return value
+
+
+class ZfinResolveIn(BaseModel):
+    """A fish as the curator describes it. Field names follow the fish data
+    model so a draft can be sent as-is."""
+
+    background_id: str | None = None  # a wild-type genotype id
+    alleles: list[ZfinDescribedAlleleIn] = []
+    reagents: list[str] = []  # transient reagent ids injected into the fish
+
+    @field_validator("background_id")
+    @classmethod
+    def _valid_background(cls, value: str | None) -> str | None:
+        if value is not None and not _ZFIN_RE.match(value):
+            raise ValueError(f"Invalid ZFIN genotype id: {value}")
+        return value
+
+    @field_validator("reagents")
+    @classmethod
+    def _valid_reagents(cls, value: list[str]) -> list[str]:
+        for reagent_id in value:
+            if not _ZFIN_RE.match(reagent_id):
+                raise ValueError(f"Invalid ZFIN reagent id: {reagent_id}")
+        return value
+
+    @field_validator("alleles")
+    @classmethod
+    def _one_zygosity_per_allele(cls, value: list[ZfinDescribedAlleleIn]) -> list:
+        ids = [a.allele_id for a in value]
+        if len(set(ids)) != len(ids):
+            raise ValueError("An allele may be listed once")
+        return value
+
+
+class ZfinResolveCandidateOut(_FromAttributes):
+    genotype: ZfinGenotypeRefOut
+    backgrounds: list[ZfinBackgroundOut]  # as ZFIN recorded them; often none
+    fish: list[ZfinFishRefOut]  # of this genotype, carrying exactly the described reagents
+
+
+class ZfinResolveOut(_FromAttributes):
+    """``genotype`` is set when exactly one registered genotype matches the
+    description, and ``fish`` when exactly one fish of it carries the
+    described reagents; ``candidates`` lists every genotype that matched, so
+    an ambiguous description can be shown for what it is."""
+
+    genotype: ZfinGenotypeRefOut | None
+    fish: ZfinFishRefOut | None
+    candidates: list[ZfinResolveCandidateOut]
+
+
+class ZfinStatusOut(BaseModel):
+    zfin_date: str  # the archive snapshot the bundle was built from
+    counts: dict[str, int]
