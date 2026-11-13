@@ -13,6 +13,7 @@ from support import (
     comparable,
     item_url,
     make_group,
+    make_tree,
     signin,
     signout,
 )
@@ -116,7 +117,7 @@ def test_studies_can_be_listed_by_research_group(client: TestClient, tree: dict)
 
 
 def test_a_nickname_is_unique_within_a_research_group(client: TestClient, group: int) -> None:
-    named = {"research_group": group, "nickname": "BPA pilot"}
+    named = {"research_group": group, "status": "draft", "nickname": "BPA pilot"}
     assert client.post("/api/studies", json=named).status_code == 201
 
     again = client.post("/api/studies", json=named)
@@ -128,12 +129,12 @@ def test_a_nickname_is_unique_within_a_research_group(client: TestClient, group:
 
 
 def test_a_nickname_is_at_most_200_characters(client: TestClient, group: int) -> None:
-    res = client.post("/api/studies", json={"research_group": group, "nickname": "x" * 201})
+    res = client.post("/api/studies", json={**body("Study", group), "nickname": "x" * 201})
     assert res.status_code == 422
 
 
 def test_a_schema_rule_is_a_422(client: TestClient, group: int, tree: dict) -> None:
-    unnamed = client.post("/api/studies", json={"research_group": group})
+    unnamed = client.post("/api/studies", json={"research_group": group, "status": "draft"})
     assert unnamed.status_code == 422
     assert unnamed.json()["detail"][0]["type"] == "schema_rule"
 
@@ -200,3 +201,62 @@ def test_moving_a_study_takes_membership_of_both_groups(
 
     mine = make_group(client, "My Other Lab")
     assert client.put(url, json=body("Study", mine)).status_code == 200
+
+
+# -- drafts ----------------------------------------------------------------
+
+
+@pytest.fixture
+def draft(client: TestClient, group: int) -> dict[str, dict]:
+    """A draft study with every level beneath it, and an image at the bottom."""
+    made = make_tree(client, group, status="draft")
+    upload = client.post(
+        f"/api/observations/{made['PhenotypeObservationSet']['id']}/images",
+        files={"file": ("fish.png", b"a picture", "image/png")},
+    )
+    assert upload.status_code == 201, upload.text
+    return made | {"Image": upload.json()}
+
+
+@pytest.mark.parametrize("who", [None, OUTSIDER])
+def test_nothing_in_a_draft_study_can_be_read_from_outside_its_group(
+    client: TestClient, group: int, draft: dict, who: str | None
+) -> None:
+    signout(client)
+    if who is not None:
+        signin(client, who)
+
+    for level, row in draft.items():
+        assert client.get(item_url(level, row["id"])).status_code == 404, level
+    assert client.get("/api/studies").json() == []
+    assert client.get("/api/studies", params={"research_group": group}).json() == []
+
+
+def test_an_outsider_cannot_tell_a_draft_exists_by_writing_to_it(
+    client: TestClient, group: int, draft: dict
+) -> None:
+    signin(client, OUTSIDER)
+    for level in JSON_LEVELS:
+        url = item_url(level, draft[level]["id"])
+        assert client.put(url, json=body(level, group)).status_code == 404, level
+        assert client.delete(url).status_code == 404, level
+
+
+def test_members_see_and_edit_their_drafts(client: TestClient, group: int, draft: dict) -> None:
+    for level, row in draft.items():
+        assert client.get(item_url(level, row["id"])).status_code == 200, level
+    assert [study["id"] for study in client.get("/api/studies").json()] == [draft["Study"]["id"]]
+    url = item_url("Experiment", draft["Experiment"]["id"])
+    assert client.put(url, json={}).status_code == 200
+
+
+def test_publishing_a_study_opens_everything_beneath_it(
+    client: TestClient, group: int, draft: dict
+) -> None:
+    url = item_url("Study", draft["Study"]["id"])
+    assert client.put(url, json=body("Study", group, status="published")).status_code == 200
+
+    signout(client)
+    for level, row in draft.items():
+        assert client.get(item_url(level, row["id"])).status_code == 200, level
+    assert len(client.get("/api/studies").json()) == 1

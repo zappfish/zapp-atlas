@@ -8,13 +8,14 @@ all the same, so one request loads the whole tree.
 from typing import Annotated
 
 from fastapi import APIRouter, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
-from zapp_atlas.api.authz import SignedIn, require_membership
+from zapp_atlas.api.authz import SignedIn, groups_of, require_membership
 from zapp_atlas.api.deps import SessionDep, StorageDep
 from zapp_atlas.api.resources import readable, writable
 from zapp_atlas.api.services import levels
-from zapp_atlas.schema.pydantic_crud import StudyInput, StudyRead, StudySummary
+from zapp_atlas.auth.deps import CurrentIdentity
+from zapp_atlas.schema.pydantic_crud import StudyInput, StudyRead, StudyStatusEnum, StudySummary
 from zapp_atlas.schema.sqla import Study
 
 router = APIRouter(prefix="/studies", tags=["studies"])
@@ -26,11 +27,17 @@ Writable = Annotated[Study, writable("Study")]
 @router.get("", response_model=list[StudySummary])
 def list_studies(
     session: SessionDep,
+    identity: CurrentIdentity,
     research_group: int | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> list[Study]:
-    query = select(Study).order_by(Study.id).offset(offset).limit(limit)
+    """Published studies, and the drafts of the caller's own research groups."""
+    visible = or_(
+        Study.status == StudyStatusEnum.published.value,
+        Study.research_group.in_(groups_of(session, identity)),
+    )
+    query = select(Study).where(visible).order_by(Study.id).offset(offset).limit(limit)
     if research_group is not None:
         query = query.where(Study.research_group == research_group)
     return list(session.scalars(query))

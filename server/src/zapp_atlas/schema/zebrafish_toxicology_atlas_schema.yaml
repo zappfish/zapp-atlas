@@ -59,6 +59,7 @@ classes:
       timestamped: true
     slots:
       - research_group
+      - status
       - experiment
       - publication
       - nickname
@@ -690,6 +691,12 @@ slots:
     pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
     examples:
       - value: ORCID:0000-0002-1825-0097
+  status:
+    description: >-
+      Whether a study is still being worked on or is ready to be seen. A draft
+      is visible only to the members of its research group.
+    range: StudyStatusEnum
+    required: true
   role:
     description: A member's permission level within a research group.
     range: ResearchGroupRoleEnum
@@ -704,6 +711,14 @@ enums:
         description: The entire fish, head to tail.
       partial_organism:
         description: A specific region, organ, or structure (e.g., head, heart, fin, eye).
+
+  StudyStatusEnum:
+    description: An enumeration of how far along a study is.
+    permissible_values:
+      draft:
+        description: Still being entered; visible only to its research group.
+      published:
+        description: Ready to be seen; visible to everyone.
 
   ResearchGroupRoleEnum:
     description: An enumeration of permission levels within a research group.

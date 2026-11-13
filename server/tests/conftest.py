@@ -106,13 +106,6 @@ def group(client: TestClient) -> int:
 @pytest.fixture
 def tree(client: TestClient, group: int) -> dict[str, dict]:
     """One row of every JSON level, each inside the one before, as created."""
-    from support import JSON_LEVELS, body, collection_url
+    from support import make_tree
 
-    made: dict[str, dict] = {}
-    parent_id = None
-    for level in JSON_LEVELS:
-        res = client.post(collection_url(level, parent_id), json=body(level, group))
-        assert res.status_code == 201, res.text
-        made[level] = res.json()
-        parent_id = made[level]["id"]
-    return made
+    return make_tree(client, group)

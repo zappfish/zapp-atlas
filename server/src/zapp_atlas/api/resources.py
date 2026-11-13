@@ -4,9 +4,14 @@ A route asks for the row it works on as a parameter::
 
     def replace(experiment: Annotated[Experiment, writable("Experiment")], ...)
 
-and gets it already loaded, with a 404 for a row that does not exist and, for
-``writable``, a 401 or 403 for a caller who may not change it. Every level is
-authorized against the study that contains it.
+and gets it already loaded. Every level is authorized against the study that
+contains it:
+
+* ``readable`` -- anyone, once the study is published. While it is a draft only
+  members of its research group may see it, and everyone else gets the same
+  404 as for a row that does not exist.
+* ``writable`` -- members of the study's research group. A signed-out caller
+  gets a 401, and one from another group a 403.
 """
 
 from collections.abc import Callable
@@ -15,10 +20,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Path, params, status
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.authz import SignedIn, require_membership
+from zapp_atlas.api.authz import SignedIn, is_member, require_membership
 from zapp_atlas.api.deps import SessionDep
 from zapp_atlas.api.layout import Level, layout
+from zapp_atlas.auth.deps import CurrentIdentity
 from zapp_atlas.schema import sqla
+from zapp_atlas.schema.pydantic_crud import StudyStatusEnum
 from zapp_atlas.schema.sqla import Base, Study
 
 # What each level's id is called in a path.
@@ -42,32 +49,55 @@ def study_of(session: Session, level: Level, row: Base) -> Study:
 
 
 def readable(level_name: str) -> params.Depends:
-    """A dependency giving the row of ``level_name`` that the path names."""
-    return Depends(_loader(level_name))
+    """A dependency giving the row the path names, if the caller may see it."""
+    level = layout().levels[level_name]
+    find = _finder(level_name)
+
+    def load(identity: CurrentIdentity, session: SessionDep, row_id: _row_id(level_name)) -> Base:
+        row = find(session, row_id)
+        study = study_of(session, level, row)
+        if study.status != StudyStatusEnum.published.value and not is_member(
+            session, study.research_group, identity
+        ):
+            raise _not_found(level_name)
+        return row
+
+    return Depends(load)
 
 
 def writable(level_name: str) -> params.Depends:
-    """As ``readable``, but only for a member of the group that owns the study."""
+    """A dependency giving the row the path names, if the caller may change it."""
     level = layout().levels[level_name]
-    load = _loader(level_name)
+    find = _finder(level_name)
 
-    def load_for_writing(
-        identity: SignedIn, session: SessionDep, row: Annotated[Base, Depends(load)]
-    ) -> Base:
-        require_membership(session, study_of(session, level, row).research_group, identity)
+    def load(identity: SignedIn, session: SessionDep, row_id: _row_id(level_name)) -> Base:
+        row = find(session, row_id)
+        study = study_of(session, level, row)
+        if not is_member(session, study.research_group, identity):
+            if study.status != StudyStatusEnum.published.value:
+                raise _not_found(level_name)
+            require_membership(session, study.research_group, identity)
         return row
 
-    return Depends(load_for_writing)
+    return Depends(load)
 
 
-def _loader(level_name: str) -> Callable[..., Base]:
+def _row_id(level_name: str) -> object:
+    """The path parameter holding a level's id, whatever that level calls it."""
+    return Annotated[int, Path(alias=PATH_PARAMETERS[level_name])]
+
+
+def _not_found(level_name: str) -> HTTPException:
+    return HTTPException(status.HTTP_404_NOT_FOUND, f"{level_name} not found")
+
+
+def _finder(level_name: str) -> Callable[[Session, int], Base]:
     model = getattr(sqla, level_name)
-    parameter = PATH_PARAMETERS[level_name]
 
-    def load(session: SessionDep, row_id: Annotated[int, Path(alias=parameter)]) -> Base:
+    def find(session: Session, row_id: int) -> Base:
         row = session.get(model, row_id)
         if row is None:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, f"{level_name} not found")
+            raise _not_found(level_name)
         return row
 
-    return load
+    return find

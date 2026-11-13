@@ -101,3 +101,18 @@ def test_every_write_requires_a_signed_in_caller(client: TestClient) -> None:
         and require_current_identity not in _calls(route.dependant)
     }
     assert ungated == set()
+
+
+def test_every_route_naming_a_row_loads_it_through_the_gate(client: TestClient) -> None:
+    """A route that fetched its own row would skip the check that hides drafts."""
+    ungated = {
+        key
+        for key, route in _api_routes(client).items()
+        if "{" in key[1]
+        and not key[1].startswith(OUTSIDE_THE_TREE)
+        and not any(
+            getattr(call, "__module__", None) == "zapp_atlas.api.resources"
+            for call in _calls(route.dependant)
+        )
+    }
+    assert ungated == set()

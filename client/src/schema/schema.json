@@ -980,10 +980,15 @@
         "research_group": {
           "description": "The research group the study belongs to, whose members may edit it.",
           "type": "integer"
+        },
+        "status": {
+          "$ref": "#/$defs/StudyStatusEnum",
+          "description": "Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group."
         }
       },
       "required": [
         "research_group",
+        "status",
         "id"
       ],
       "then": {
@@ -999,6 +1004,15 @@
       },
       "title": "Study",
       "type": "object"
+    },
+    "StudyStatusEnum": {
+      "description": "An enumeration of how far along a study is.",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "title": "StudyStatusEnum",
+      "type": "string"
     },
     "VehicleEnum": {
       "description": "An enumeration of vehicles used to deliver stressors in exposure events.",

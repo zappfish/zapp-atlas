@@ -349,6 +349,20 @@ class ImageScopeEnum(str, Enum):
     """
 
 
+class StudyStatusEnum(str, Enum):
+    """
+    An enumeration of how far along a study is.
+    """
+    draft = "draft"
+    """
+    Still being entered; visible only to its research group.
+    """
+    published = "published"
+    """
+    Ready to be seen; visible to everyone.
+    """
+
+
 class ResearchGroupRoleEnum(str, Enum):
     """
     An enumeration of permission levels within a research group.
@@ -476,6 +490,7 @@ class Study(ZappEntity):
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
+    status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
@@ -532,6 +547,7 @@ class StudyInput(ConfiguredBaseModel):
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
+    status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
@@ -586,6 +602,7 @@ class StudyRead(ReadBaseModel):
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
+    status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     experiment: Optional[list[ExperimentRead]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
@@ -642,6 +659,7 @@ class StudySummary(ReadBaseModel):
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
+    status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })

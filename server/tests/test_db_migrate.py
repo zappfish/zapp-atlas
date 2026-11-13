@@ -182,7 +182,7 @@ def pre_nickname_db(tmp_path):
         """
         DROP TABLE "Study";
         CREATE TABLE "Study" (
-            research_group INTEGER NOT NULL, publication TEXT, lab TEXT,
+            research_group INTEGER NOT NULL, status TEXT NOT NULL, publication TEXT, lab TEXT,
             id INTEGER NOT NULL PRIMARY KEY
         );
         DROP INDEX "uq_ChemicalCabinetEntry_cabinet_nickname_grain";
@@ -193,10 +193,12 @@ def pre_nickname_db(tmp_path):
         """
     )
     con.execute(
-        "INSERT INTO Study (id, research_group, publication) VALUES (1, 1, 'PMID:22194820')"
+        "INSERT INTO Study (id, research_group, status, publication) "
+        "VALUES (1, 1, 'published', 'PMID:22194820')"
     )
     con.execute(
-        "INSERT INTO Study (id, research_group, publication) VALUES (2, 1, 'PMID:40359302')"
+        "INSERT INTO Study (id, research_group, status, publication) "
+        "VALUES (2, 1, 'published', 'PMID:40359302')"
     )
     con.commit()
     con.close()

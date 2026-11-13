@@ -148,6 +148,16 @@ export enum ImageScopeEnum {
     partial_organism = "partial_organism",
 };
 /**
+* An enumeration of how far along a study is.
+*/
+export enum StudyStatusEnum {
+    
+    /** Still being entered; visible only to its research group. */
+    draft = "draft",
+    /** Ready to be seen; visible to everyone. */
+    published = "published",
+};
+/**
 * An enumeration of permission levels within a research group.
 */
 export enum ResearchGroupRoleEnum {
@@ -212,6 +222,8 @@ export interface ZfinEntity {
 export interface Study extends ZappEntity {
     /** The research group the study belongs to, whose members may edit it. */
     research_group: ResearchGroupId,
+    /** Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group. */
+    status: string,
     /** The experiment in a study. */
     experiment?: Experiment[],
     /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */

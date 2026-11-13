@@ -98,8 +98,8 @@ def test_blank_text_is_stored_as_none(session: Session) -> None:
         ("StressorChemical", {}),
         ("StressorChemical", {"chemical_id": "CHEBI:1", "manufacturer": "other_not_listed"}),
         ("VehicleOfTransmission", {"vehicle_type": "other_not_listed"}),
-        ("Study", {"research_group": 1}),
-        ("Study", {"research_group": 1, "nickname": "  "}),
+        ("Study", {"research_group": 1, "status": "draft"}),
+        ("Study", {"research_group": 1, "status": "draft", "nickname": "  "}),
     ],
 )
 def test_schema_rules_are_enforced(session: Session, class_name: str, body: dict) -> None:

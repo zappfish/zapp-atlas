@@ -52,13 +52,19 @@ def collection_url(level: str, parent_id: int | None) -> str:
     return f"{item_url(parent.name, parent_id)}/{SEGMENTS[level]}"
 
 
-def body(level: str, group: int, *, full: bool = True) -> dict[str, object]:
+def body(
+    level: str, group: int, *, full: bool = True, status: str = "published"
+) -> dict[str, object]:
     """A request body for a level, built from the schema."""
     made = sample(level, full=full)
     if level == "Study":
         # A study names its group, and the rule that an unpublished study
         # carries a nickname is the one thing required slots alone do not meet.
-        made |= {"research_group": group, "nickname": made.get("nickname", "a working name")}
+        made |= {
+            "research_group": group,
+            "status": status,
+            "nickname": made.get("nickname", "a working name"),
+        }
     return made
 
 
@@ -81,3 +87,15 @@ def comparable(value: object) -> object:
 def carried(level: str, read: dict[str, object]) -> dict[str, object]:
     """A response cut down to the slots a request body for the level carries."""
     return {slot.name: comparable(read[slot.name]) for slot in layout().body_slots(level)}
+
+
+def make_tree(client: TestClient, group: int, *, status: str = "published") -> dict[str, dict]:
+    """Create one row of every JSON level, each inside the one before."""
+    made: dict[str, dict] = {}
+    parent_id = None
+    for level in JSON_LEVELS:
+        res = client.post(collection_url(level, parent_id), json=body(level, group, status=status))
+        assert res.status_code == 201, res.text
+        made[level] = res.json()
+        parent_id = made[level]["id"]
+    return made

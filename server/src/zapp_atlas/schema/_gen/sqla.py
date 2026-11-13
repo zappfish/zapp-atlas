@@ -131,6 +131,7 @@ class Study(ZappEntity):
     __tablename__ = "Study"
 
     research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    status: Mapped[str] = mapped_column(Enum('draft', 'published', name='StudyStatusEnum'))
     publication: Mapped[str | None] = mapped_column(Text())
     nickname: Mapped[str | None] = mapped_column(Text())
     description: Mapped[str | None] = mapped_column(Text())
@@ -148,7 +149,7 @@ class Study(ZappEntity):
     )
 
     def __repr__(self):
-        return f"Study(research_group={self.research_group},publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},)"
+        return f"Study(research_group={self.research_group},status={self.status},publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},)"
 
     __mapper_args__ = {"concrete": True}
 

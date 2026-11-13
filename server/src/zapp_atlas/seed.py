@@ -396,6 +396,7 @@ def seed(session: Session) -> None:
             continue
         study = builder(session)
         study.research_group = group.id
+        study.status = "published"
         session.add(study)
 
     session.commit()
