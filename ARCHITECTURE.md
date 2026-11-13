@@ -134,16 +134,15 @@ and regenerate, never edit the outputs.
 
 | Output | Generator | Used by |
 |--------|-----------|---------|
-| `schema/_gen/pydantic.py` | `gen-pydantic` | request/response validation |
-| `schema/_gen/pydantic_crud.py` | `crud_pydanticgen.py` (custom) | create/read API variants |
+| `schema/_gen/pydantic_crud.py` | `crud_pydanticgen.py` (custom) | request/response validation: the Pydantic models, plus the API's `Input` / `Read` / `Summary` variants |
 | `schema/_gen/sqla.py` | `gen-sqla` | ORM tables |
 | `client/src/schema/index.ts` | `gen-typescript` + `typescript_post` | React app's types |
 
 ```sh
-cd server && make schema      # regenerate all four after editing the YAML
+cd server && make schema      # regenerate these after editing the YAML
 ```
 
-The thin wrappers `schema/{pydantic,pydantic_crud,sqla}.py` re-export the `_gen/`
+The thin wrappers `schema/{pydantic_crud,sqla}.py` re-export the `_gen/`
 modules so application code imports a stable path.
 
 ### Types across the boundary
