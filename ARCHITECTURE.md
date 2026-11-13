@@ -350,6 +350,18 @@ ZFIN's registered alleles, genotypes, fish and wild-type lines, read through
 
 ### Reference data for the fish picker
 
+`Fish` is the curator's description of a line, not a ZFIN-keyed record: a
+wild-type background (`background_zfin_id`, `background_name`), mutant and
+transgenic alleles with their zygosity, injected reagents (in the model, not
+yet in the form), and `line_description` for anything else. `fish_zfin_id`
+and `genotype_zfin_id` are optional and are filled from `/api/zfin/resolve`,
+not entered by hand; a fish without them is one ZFIN has not registered.
+Each experiment and tank entry owns its own `Fish` row, built by the generic
+save path like any other owned part. The alteration and zygosity enums carry
+SO and GENO terms as meanings, which is how a ZFIN record's SO id maps to an
+enum value. Until the picker is built, the tank's add form takes a wild-type
+background and a nickname.
+
 The fish form is meant to work by description: the curator picks a wild-type
 background, adds alleles by typing a symbol or gene and setting zygosity
 (later, injected reagents too), and the form asks ZFIN's registry whether a
@@ -361,8 +373,8 @@ registered" is a real answer. `/api/zfin` serves that flow from `zfin.db`:
 because ZFIN records a background for only a third of them, and the response
 says so), and the by-id routes to show a saved fish's ZFIN details again.
 Responses use ZFIN's own vocabulary (SO ids, its zygosity words) rather than
-the schema's enums, so the lookup surface does not move when the fish data
-model is reworked.
+the schema's enums, so the lookup surface does not move when the data model
+does; `resolve` takes and returns the `Fish` slot names.
 
 Schema regeneration after editing the LinkML YAML: `cd server && make schema`.
 
