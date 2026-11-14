@@ -24,7 +24,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 
-from zapp_atlas.api.dto import (
+from zapp_atlas.api.models import (
     ZfinAlleleOut,
     ZfinAlleleSearchOut,
     ZfinFishOut,

@@ -69,15 +69,25 @@ server/src/zapp_atlas/
 │   └── models.py      OrcidIdentity (SQLAlchemy)
 ├── api/               Read-write JSON API (mounted under /api)
 │   ├── deps.py        get_session / get_app_settings dependencies
+│   ├── layout.py      which classes the API saves as a unit (the "levels")
+│   ├── tree.py        stores any level from its request body, using layout
+│   ├── resources.py   loads the row a path names and checks who may use it
+│   ├── authz.py       research-group membership checks
+│   ├── models.py      hand-written request/response models (groups, history)
+│   ├── openapi.py     writes the OpenAPI document the client's types come from
 │   ├── routers/       studies, experiments, exposures, observations, images,
-│   │                  chemicals (read-only lookups for the chemical picker),
+│   │                  research groups, cabinet, fish tank, chemicals
+│   │                  (read-only lookups for the chemical picker), and
 │   │                  zfin (read-only lookups for the fish picker)
-│   └── services/      CRUD business logic per resource
+│   └── services/      levels.py (create, replace and delete any level, and
+│                      store the revision), plus one module per standalone
+│                      resource
 ├── chem/              NodeNorm client + the ChEBI lookup cache
 │                      (read side, and the offline tools that build it)
 ├── db/                Persistence
 │   ├── db.py          SQLAlchemy 2.0 engine + session factory
 │   ├── init_db.py     table creation
+│   ├── revisions.py   StudyRevision: a copy of a study on every save
 │   ├── image_storage.py  local-dir or S3-compatible image storage
 │   └── data/          SQLite db + uploads (gitignored)
 ├── schema/            LinkML schema + generated models (see below)
@@ -96,7 +106,9 @@ server/src/zapp_atlas/
 | `GET /edit/assets/*` | `StaticFiles` | the client's built JS/CSS |
 | `/auth/orcid/*`, `GET /registered` | `auth` router | ORCID OAuth + status |
 | `POST /auth/dev/login` | `auth` router | dev-only fake sign-in (see below) |
-| `/api/{studies,experiments,exposures,observations,images}` | `api` routers | JSON CRUD |
+| `/api/{studies,experiments,exposures,observations,images}` | `api` routers | the study tree, one resource per level (see below) |
+| `/api/studies/{id}/revisions` | `api` studies router | a study's history |
+| `/api/research-groups/…` | `api` routers | groups, members, chemical cabinet, fish tank |
 | `/api/chemicals/{autocomplete,normalize,vehicle-info}` | `api` chemicals router | read-only chemical lookups (NodeNorm + ChEBI cache) |
 | `GET /api/zfin/{wildtypes,status}`, `GET /api/zfin/alleles?q=`, `GET /api/zfin/{alleles,genotypes,fish}/{id}` | `api` zfin router | read-only ZFIN lookups from the bundle's `zfin.db` (503 without it) |
 | `POST /api/zfin/resolve` | `api` zfin router | the registered ZFIN genotype and fish a described fish corresponds to |
@@ -111,6 +123,68 @@ requests for the asset files.
 If the client is neither built nor pointed at a dev server, `/edit` returns a
 503 page explaining how to start it — a missing build is a setup problem, not a
 404.
+
+### The study tree: one resource per level
+
+A study contains experiments, an experiment contains exposure events, an
+exposure event contains observations, and an observation has images. The API
+saves each of those **levels** as a unit:
+
+| Level | Create under its parent | Read / replace / delete |
+|---|---|---|
+| Study | `POST /api/studies` | `/api/studies/{study_id}` |
+| Experiment | `POST /api/studies/{study_id}/experiments` | `/api/experiments/{experiment_id}` |
+| Exposure event | `POST /api/experiments/{experiment_id}/exposures` | `/api/exposures/{exposure_id}` |
+| Observation | `POST /api/exposures/{exposure_id}/observations` | `/api/observations/{observation_id}` |
+| Image | `POST /api/observations/{observation_id}/images` (multipart) | `/api/images/{image_id}` |
+
+- A request body carries the level's own fields and the parts it owns, and
+  never the level below. An exposure event's body holds its stressors, vehicles
+  and regimen. Its observations are saved through their own routes.
+- `PUT` replaces the level. A value the body leaves out is cleared. The parts
+  the level owns are deleted and recreated, so their ids change on every save.
+  The level below is not touched.
+- `GET /api/studies/{id}` returns the whole tree. `GET /api/images/{id}`
+  returns the file itself.
+- `GET /api/studies` lists summaries, optionally for one research group.
+
+`api/layout.py` is the only hand-written statement of this structure. It names
+the levels and the classes that have routes of their own. What a level owns,
+what it refers to and where it stops are read from the LinkML schema.
+`api/tree.py` stores a level by going through those slots, so no slot is named
+in Python. The routers are written by hand, but they only name the generated
+models and never list fields.
+
+These tests keep the hand-written parts consistent with the schema:
+
+| Problem | Test that catches it |
+|---|---|
+| A class is added to the schema but not placed in the layout | `tests/test_api_layout.py` |
+| A level is missing a route, or a route takes the wrong model | `tests/test_api_routes.py` |
+| The save code drops a slot, or leaves rows behind | `tests/test_api_tree.py` (bodies built from the schema) |
+| A write route does not require sign-in | `tests/test_api_routes.py` |
+| The client's API types are out of date | `tests/test_api_openapi.py`, and a CI check on the generated types |
+
+### Who may read and write
+
+- Writing to any level requires a signed-in member of the research group the
+  study belongs to: 401 when signed out, 403 from another group. Every study
+  belongs to a group.
+- Anyone may read a published study.
+- A draft study (`status: draft`), with everything under it including its
+  images and history, is visible only to its group. Anyone else gets a 404,
+  the same as for a record that does not exist, on write routes too.
+
+A route gets the row it works on from `api/resources.py` (`readable` /
+`writable`), which loads it and applies these rules using the study that
+contains it. Do not fetch a row in a route directly.
+
+### History
+
+Every create, replace and delete at any level stores a copy of the whole study
+in `StudyRevision`, numbered from 1, with the ORCID of whoever made the change.
+The table is written by hand in `db/revisions.py` and is not part of the LinkML
+schema.
 
 ### Persistence
 
@@ -134,16 +208,29 @@ and regenerate, never edit the outputs.
 
 | Output | Generator | Used by |
 |--------|-----------|---------|
-| `schema/_gen/pydantic.py` | `gen-pydantic` | request/response validation |
-| `schema/_gen/pydantic_crud.py` | `crud_pydanticgen.py` (custom) | create/read API variants |
+| `schema/_gen/pydantic_crud.py` | `crud_pydanticgen.py` (custom) | request/response validation: the Pydantic models, plus the API's `Input` / `Read` / `Summary` variants |
 | `schema/_gen/sqla.py` | `gen-sqla` | ORM tables |
 | `client/src/schema/index.ts` | `gen-typescript` + `typescript_post` | React app's types |
 
 ```sh
-cd server && make schema      # regenerate all four after editing the YAML
+cd server && make schema      # regenerate these after editing the YAML
 ```
 
-The thin wrappers `schema/{pydantic,pydantic_crud,sqla}.py` re-export the `_gen/`
+The custom generator emits three variants of each class. `Input` is what the
+API accepts: no `id`, and for a level, no slot for the level below. `Read` is
+what it returns, with everything below it. `Summary` is a `Read` without the
+level below.
+
+Two more generated files come from the running API, not from the schema:
+`client/src/api/openapi.json`, the server's OpenAPI document, and
+`client/src/api/openapi.d.ts`, the TypeScript types generated from it. The
+client's API types (`client/src/api/types.ts`) are aliases of these.
+
+```sh
+just api-types                # regenerate both after changing a route or model
+```
+
+The thin wrappers `schema/{pydantic_crud,sqla}.py` re-export the `_gen/`
 modules so application code imports a stable path.
 
 ### Types across the boundary
@@ -247,6 +334,7 @@ just dev-api-hmr                       # uvicorn, pointed at Vite
 #   → open http://localhost:8000/edit/  (NOT :5173)
 
 just test          # pytest
+just e2e           # browser tests (Playwright) against a real server
 just seed          # reseed the dev database
 just build-client  # emit client/dist for production-style serving
 just extdata       # build the ontology bundle into extdata/dist (docker)
@@ -321,6 +409,6 @@ See [extdata/README.md](extdata/README.md#deployment).
   put only editor-specific rules in the latter. Both are currently empty — the
   shell is intentionally unstyled.
 - **`legacy/` is archived** and not part of the build.
-- ORCID login exists but is not yet enforced as an authorization gate on `/api`
-  writes — it currently establishes an identity only. Anonymous writes are
-  therefore still possible; worth deciding before the form goes live.
+- Every `/api` write requires a signed-in caller, and writes to the study tree
+  require membership of the study's research group. A test fails if a write
+  route is added without that.

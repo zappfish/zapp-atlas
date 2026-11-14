@@ -1,6 +1,5 @@
 SCHEMA_DIR := src/zapp_atlas/schema
 LINKML_SCHEMA := $(SCHEMA_DIR)/zebrafish_toxicology_atlas_schema.yaml
-PYDANTIC_OUTPUT := $(SCHEMA_DIR)/_gen/pydantic.py
 PYDANTIC_CRUD_OUTPUT := $(SCHEMA_DIR)/_gen/pydantic_crud.py
 SQLA_OUTPUT := $(SCHEMA_DIR)/_gen/sqla.py
 TS_OUTPUT := ../client/src/schema/index.ts
@@ -15,12 +14,7 @@ JSON_SCHEMA_OUTPUT := ../client/src/schema/schema.json
 SCHEMA_IMPORTS := $(SCHEMA_DIR)/chemical_enums.yaml
 
 .PHONY: schema
-schema: $(PYDANTIC_OUTPUT) $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
-
-$(PYDANTIC_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
-	mkdir -p $(@D)
-	echo "# GENERATED FILE. DO NOT EDIT." > $@
-	uv run gen-pydantic $< >> $@
+schema: $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
 
 $(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)

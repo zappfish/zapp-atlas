@@ -1,18 +1,17 @@
-from __future__ import annotations
-
 """API tests for Exposure event endpoints."""
 
 from fastapi.testclient import TestClient
+from support import study_fields
 
 
-def _create_study_and_experiment(client: TestClient) -> tuple[int, int]:
+def _create_study_and_experiment(client: TestClient, group: int) -> tuple[int, int]:
     study = client.post(
         "/api/studies",
         json={
             "publication": "PMID:111",
             "lab": "ZFIN:ZDB-LAB-1-1",
             "annotator": ["ORCID:0000-0000-0000-0000"],
-            "experiment": [],
+            **study_fields(group),
         },
     ).json()
     exp = client.post(
@@ -21,14 +20,13 @@ def _create_study_and_experiment(client: TestClient) -> tuple[int, int]:
             "standard_rearing_condition": True,
             "fish": {"zfin_id": "ZFIN:ZDB-GENO-990101-1", "name": "AB"},
             "control": [],
-            "exposure_event": [],
         },
     ).json()
     return study["id"], exp["id"]
 
 
-def test_create_exposure_for_experiment(client: TestClient) -> None:
-    _, exp_id = _create_study_and_experiment(client)
+def test_create_exposure_for_experiment(client: TestClient, group: int) -> None:
+    _, exp_id = _create_study_and_experiment(client, group)
 
     payload = {
         "exposure_start_stage": "ZFS:0000011",
@@ -41,7 +39,6 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
                 "concentration": {"unit": "µg/L", "numeric_value": "100"},
             }
         ],
-        "phenotype_observation": [],
     }
 
     res = client.post(f"/api/experiments/{exp_id}/exposures", json=payload)
@@ -52,19 +49,19 @@ def test_create_exposure_for_experiment(client: TestClient) -> None:
     assert created["stressor"][0]["chemical_id"] == "CHEBI:33216"
 
 
-def test_create_exposure_missing_experiment_404(client: TestClient) -> None:
+def test_create_exposure_missing_experiment_404(client: TestClient, group: int) -> None:
     res = client.post(
         "/api/experiments/999999/exposures",
-        json={"stressor": [], "phenotype_observation": []},
+        json={"stressor": []},
     )
     assert res.status_code == 404
 
 
-def test_get_exposure(client: TestClient) -> None:
-    _, exp_id = _create_study_and_experiment(client)
+def test_get_exposure(client: TestClient, group: int) -> None:
+    _, exp_id = _create_study_and_experiment(client, group)
     created = client.post(
         f"/api/experiments/{exp_id}/exposures",
-        json={"stressor": [], "phenotype_observation": []},
+        json={"stressor": []},
     ).json()
 
     res = client.get(f"/api/exposures/{created['id']}")
@@ -72,23 +69,22 @@ def test_get_exposure(client: TestClient) -> None:
     assert res.json()["id"] == created["id"]
 
 
-def test_get_exposure_missing_404(client: TestClient) -> None:
+def test_get_exposure_missing_404(client: TestClient, group: int) -> None:
     assert client.get("/api/exposures/999999").status_code == 404
 
 
-def test_patch_exposure_updates_fields(client: TestClient) -> None:
-    _, exp_id = _create_study_and_experiment(client)
+def test_put_exposure_updates_fields(client: TestClient, group: int) -> None:
+    _, exp_id = _create_study_and_experiment(client, group)
     created = client.post(
         f"/api/experiments/{exp_id}/exposures",
         json={
             "comment": "",
             "exposure_start_stage": "ZFS:0000011",
             "stressor": [],
-            "phenotype_observation": [],
         },
     ).json()
 
-    res = client.patch(
+    res = client.put(
         f"/api/exposures/{created['id']}",
         json={"comment": "revised note", "exposure_start_stage": "ZFS:0000012"},
     )
@@ -98,8 +94,8 @@ def test_patch_exposure_updates_fields(client: TestClient) -> None:
     assert patched["exposure_start_stage"] == "ZFS:0000012"
 
 
-def test_patch_exposure_missing_404(client: TestClient) -> None:
-    assert client.patch("/api/exposures/999999", json={"comment": "x"}).status_code == 404
+def test_put_exposure_missing_404(client: TestClient, group: int) -> None:
+    assert client.put("/api/exposures/999999", json={"comment": "x"}).status_code == 404
 
 
 # -- ontology-backed fields round-trip as {term_uri, term_label} objects ------
@@ -107,8 +103,8 @@ def test_patch_exposure_missing_404(client: TestClient) -> None:
 # term via autocomplete and send both the URI and the label.
 
 
-def test_create_exposure_with_route_round_trips(client: TestClient) -> None:
-    _, exp_id = _create_study_and_experiment(client)
+def test_create_exposure_with_route_round_trips(client: TestClient, group: int) -> None:
+    _, exp_id = _create_study_and_experiment(client, group)
 
     res = client.post(
         f"/api/experiments/{exp_id}/exposures",
@@ -122,7 +118,6 @@ def test_create_exposure_with_route_round_trips(client: TestClient) -> None:
                 "term_label": "exposure to bisphenol A",
             },
             "stressor": [],
-            "phenotype_observation": [],
         },
     )
     assert res.status_code == 201, res.text
@@ -141,8 +136,8 @@ def test_create_exposure_with_route_round_trips(client: TestClient) -> None:
     assert got["exposure_type"]["term_label"] == "exposure to bisphenol A"
 
 
-def test_patch_exposure_replaces_route(client: TestClient) -> None:
-    _, exp_id = _create_study_and_experiment(client)
+def test_put_exposure_replaces_route(client: TestClient, group: int) -> None:
+    _, exp_id = _create_study_and_experiment(client, group)
 
     created = client.post(
         f"/api/experiments/{exp_id}/exposures",
@@ -152,11 +147,10 @@ def test_patch_exposure_replaces_route(client: TestClient) -> None:
                 "term_label": "inhalation route",
             },
             "stressor": [],
-            "phenotype_observation": [],
         },
     ).json()
 
-    res = client.patch(
+    res = client.put(
         f"/api/exposures/{created['id']}",
         json={
             "route": {

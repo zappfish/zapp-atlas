@@ -1,14 +1,14 @@
 """FastAPI dependencies (database sessions, etc.)."""
 
-from __future__ import annotations
-
 from collections.abc import Generator, Iterator
 from contextlib import contextmanager
+from typing import Annotated
 
-from fastapi import Request
+from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
 from zapp_atlas.db import get_engine, get_session_factory
+from zapp_atlas.db.image_storage import Storage, get_storage
 from zapp_atlas.settings import AppSettings, load_settings
 
 
@@ -47,3 +47,12 @@ def get_app_settings(request: Request) -> AppSettings:
         settings = load_settings()
         request.app.state.settings = settings
     return settings
+
+
+def get_image_storage(settings: Annotated[AppSettings, Depends(get_app_settings)]) -> Storage:
+    return get_storage(settings)
+
+
+SessionDep = Annotated[Session, Depends(get_session)]
+SettingsDep = Annotated[AppSettings, Depends(get_app_settings)]
+StorageDep = Annotated[Storage, Depends(get_image_storage)]

@@ -1,14 +1,17 @@
-"""CRUD Pydantic model generator for zebrafish-toxicology-atlas-schema.
+"""Pydantic model generator for the API's request and response shapes.
 
-Extends LinkML's PydanticGenerator to produce Create, Update, and Read model
-variants for entity subclasses. Create variants omit the server-generated ``id``
-field and swap nested entity references to their Create variants. Update variants
-make all fields Optional for partial PATCH updates. Read variants keep all fields,
-inherit from ``ReadBaseModel`` (``from_attributes=True``, ``extra="ignore"``), and
-swap nested references to their Read variants.
+Extends LinkML's PydanticGenerator to emit, beside each class, the variants the
+API speaks in:
+
+* ``Input`` -- what the API accepts for a class: no server-generated ``id``,
+  nested entities as their own Input variants, and -- for a class the API layout
+  names as a level -- no slot holding the next level down, which is a resource
+  of its own.
+* ``Read`` -- what the API returns: every field, nested classes as their Read
+  variants, built straight from ORM rows (``from_attributes=True``).
+* ``Summary`` -- a Read that stops where the Input does, for listing a level
+  without everything beneath it.
 """
-
-from __future__ import annotations
 
 import re
 from dataclasses import dataclass
@@ -22,6 +25,8 @@ from linkml.generators.pydanticgen.template import (
 )
 from linkml_runtime.utils.schemaview import SchemaView
 
+from zapp_atlas.api.layout import Layout, SlotKind
+
 READBASEMODEL_SRC = """class ReadBaseModel(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
@@ -31,195 +36,110 @@ READBASEMODEL_SRC = """class ReadBaseModel(BaseModel):
     )"""
 
 
-def _get_zapp_entity_classes(template: PydanticModule, sv: SchemaView) -> set[str]:
-    """Return class names that are concrete ZappEntity subclasses."""
-    result: set[str] = set()
-    for class_name in template.classes:
-        cls_def = sv.get_class(class_name, strict=False)
-        if cls_def is None or cls_def.abstract:
-            continue
-        if "ZappEntity" in sv.class_ancestors(class_name):
-            result.add(class_name)
-    return result
+def _descendants(template: PydanticModule, sv: SchemaView, bases: set[str]) -> set[str]:
+    """The concrete classes descending from any of ``bases``."""
+    return {
+        name
+        for name in template.classes
+        if not sv.get_class(name).abstract and bases & set(sv.class_ancestors(name))
+    }
 
 
-def _get_all_read_entity_classes(template: PydanticModule, sv: SchemaView) -> set[str]:
-    """Return class names for ALL types needing Read variants.
-
-    Includes ZappEntity, OntologyEntity, and ZfinEntity subclasses,
-    plus QuantityValue (matched by name).
-    """
-    base_entities = {"ZappEntity", "OntologyEntity", "ZfinEntity"}
-    result: set[str] = set()
-    for class_name in template.classes:
-        cls_def = sv.get_class(class_name, strict=False)
-        if cls_def is None or cls_def.abstract:
-            continue
-        ancestors = sv.class_ancestors(class_name)
-        if base_entities & set(ancestors) or class_name == "QuantityValue":
-            result.add(class_name)
-    return result
-
-
-def _get_id_attr_name(class_name: str, sv: SchemaView) -> str:
-    """Get the identifier attribute name for a class."""
-    id_slot = sv.get_identifier_slot(class_name)
-    if id_slot is None:
-        return "id"
-    return id_slot.name
-
-
-def _make_create_variant(
+def _variant(
     cls: PydanticClass,
-    id_attr_name: str,
+    suffix: str,
+    *,
+    base: str,
+    description: str,
+    without: set[str],
+    nested: set[str],
+    nested_suffix: str,
 ) -> PydanticClass:
-    """Build a Create variant: no id, inherits from ConfiguredBaseModel."""
-    new_attrs: dict[str, PydanticAttribute] = {}
-    if cls.attributes:
-        for attr_name, attr in cls.attributes.items():
-            if attr_name == id_attr_name:
-                continue
-            new_attrs[attr_name] = attr.model_copy()
-
+    """A copy of ``cls`` minus some attributes, its nested classes swapped for theirs."""
     return PydanticClass(
-        name=f"{cls.name}Create",
-        bases="ConfiguredBaseModel",
-        description=f"Create schema for {cls.name} — id is server-generated.",
-        attributes=new_attrs or None,
+        name=f"{cls.name}{suffix}",
+        bases=base,
+        description=description,
+        attributes={
+            name: _with_nested_variants(attr, nested, nested_suffix)
+            for name, attr in (cls.attributes or {}).items()
+            if name not in without
+        }
+        or None,
     )
 
 
-def _make_update_variant(
-    cls: PydanticClass,
-    id_attr_name: str,
-) -> PydanticClass:
-    """Build an Update variant: no id, all fields Optional."""
-    new_attrs: dict[str, PydanticAttribute] = {}
-    if cls.attributes:
-        for attr_name, attr in cls.attributes.items():
-            if attr_name == id_attr_name:
-                continue
-            updates: dict[str, object] = {}
-            if attr.required or attr.identifier or attr.key:
-                updates["required"] = False
-                updates["identifier"] = False
-                updates["key"] = False
-                if attr.range and not attr.range.startswith("Optional["):
-                    updates["range"] = f"Optional[{attr.range}]"
-            new_attrs[attr_name] = attr.model_copy(update=updates) if updates else attr.model_copy()
-
-    return PydanticClass(
-        name=f"{cls.name}Update",
-        bases="ConfiguredBaseModel",
-        description=f"Update schema for {cls.name} — all fields optional for partial updates.",
-        attributes=new_attrs or None,
+def _with_nested_variants(
+    attr: PydanticAttribute, class_names: set[str], suffix: str
+) -> PydanticAttribute:
+    """Point the class references in an attribute's type at their suffixed variants."""
+    if not attr.range:
+        return attr.model_copy()
+    # One pass over whole words, so ``Control`` is not rewritten inside ``ControlImage``.
+    swapped = re.sub(
+        r"\b\w+\b",
+        lambda word: word[0] + suffix if word[0] in class_names else word[0],
+        attr.range,
     )
-
-
-def _make_read_variant(cls: PydanticClass) -> PydanticClass:
-    """Build a Read variant: all fields kept, inherits from ReadBaseModel."""
-    new_attrs: dict[str, PydanticAttribute] = {}
-    if cls.attributes:
-        for attr_name, attr in cls.attributes.items():
-            new_attrs[attr_name] = attr.model_copy()
-
-    return PydanticClass(
-        name=f"{cls.name}Read",
-        bases="ReadBaseModel",
-        description=f"Read schema for {cls.name} — from_attributes=True, extra=ignore.",
-        attributes=new_attrs or None,
-    )
-
-
-def _swap_nested_references(
-    attrs: dict[str, PydanticAttribute],
-    class_names: set[str],
-    suffix: str = "Create",
-) -> dict[str, PydanticAttribute]:
-    """Replace type references in range strings to point to suffixed variants."""
-    new_attrs: dict[str, PydanticAttribute] = {}
-    # Sort by length descending to avoid partial matches (e.g., ControlImage before Control)
-    sorted_names = sorted(class_names, key=len, reverse=True)
-
-    for attr_name, attr in attrs.items():
-        if attr.range:
-            new_range = attr.range
-            for cls_name in sorted_names:
-                new_range = re.sub(
-                    r"\b" + re.escape(cls_name) + r"\b",
-                    cls_name + suffix,
-                    new_range,
-                )
-            if new_range != attr.range:
-                new_attrs[attr_name] = attr.model_copy(update={"range": new_range})
-            else:
-                new_attrs[attr_name] = attr
-        else:
-            new_attrs[attr_name] = attr
-    return new_attrs
+    return attr.model_copy(update={"range": swapped})
 
 
 @dataclass
 class CrudPydanticGenerator(PydanticGenerator):
-    """PydanticGenerator subclass that adds Create/Update/Read model variants."""
+    """PydanticGenerator subclass that adds the Input, Read and Summary variants."""
 
     def before_render_template(self, template: PydanticModule, sv: SchemaView) -> PydanticModule:
-        zapp_classes = _get_zapp_entity_classes(template, sv)
-        read_classes = _get_all_read_entity_classes(template, sv)
+        layout = Layout(sv)
+        entities = _descendants(template, sv, {"ZappEntity"})
+        readable = _descendants(template, sv, {"ZappEntity", "OntologyEntity", "ZfinEntity"}) | {
+            "QuantityValue"
+        }
 
-        if not zapp_classes and not read_classes:
-            return template
+        classes: dict[str, PydanticClass] = {}
+        for name, cls in template.classes.items():
+            classes[name] = cls
+            next_level = {s.name for s in layout.slots(name) if s.kind is SlotKind.LEVEL}
 
-        new_classes: dict[str, PydanticClass] = {}
-        create_variants: dict[str, PydanticClass] = {}
-        read_variants: dict[str, PydanticClass] = {}
-
-        for class_name, cls in template.classes.items():
-            new_classes[class_name] = cls
-
-            if class_name in zapp_classes:
-                id_attr_name = _get_id_attr_name(class_name, sv)
-
-                create_cls = _make_create_variant(cls, id_attr_name)
-                update_cls = _make_update_variant(cls, id_attr_name)
-
-                new_classes[create_cls.name] = create_cls
-                new_classes[update_cls.name] = update_cls
-                create_variants[create_cls.name] = create_cls
-
-            if class_name in read_classes:
-                read_cls = _make_read_variant(cls)
-                new_classes[read_cls.name] = read_cls
-                read_variants[read_cls.name] = read_cls
-
-        # Swap nested references in Create variants
-        for create_cls in create_variants.values():
-            if create_cls.attributes:
-                create_cls.attributes = _swap_nested_references(
-                    create_cls.attributes, zapp_classes, suffix="Create"
+            if name in entities:
+                classes[f"{name}Input"] = _variant(
+                    cls,
+                    "Input",
+                    base="ConfiguredBaseModel",
+                    description=f"What the API accepts for {name}.",
+                    without=next_level | {"id"},
+                    nested=entities,
+                    nested_suffix="Input",
+                )
+            if name in readable:
+                classes[f"{name}Read"] = _variant(
+                    cls,
+                    "Read",
+                    base="ReadBaseModel",
+                    description=f"What the API returns for {name}, with everything beneath it.",
+                    without=set(),
+                    nested=readable,
+                    nested_suffix="Read",
+                )
+            if next_level:
+                classes[f"{name}Summary"] = _variant(
+                    cls,
+                    "Summary",
+                    base="ReadBaseModel",
+                    description=f"What the API returns for {name} alone, without the next level.",
+                    without=next_level,
+                    nested=readable,
+                    nested_suffix="Read",
                 )
 
-        # Swap nested references in Read variants
-        for read_cls in read_variants.values():
-            if read_cls.attributes:
-                read_cls.attributes = _swap_nested_references(
-                    read_cls.attributes, read_classes, suffix="Read"
-                )
-
-        # Inject ReadBaseModel
-        if read_classes:
-            if template.injected_classes is None:
-                template.injected_classes = []
-            template.injected_classes.append(READBASEMODEL_SRC)
-
-        template.classes = new_classes
+        template.injected_classes = [*(template.injected_classes or []), READBASEMODEL_SRC]
+        template.classes = classes
         return template
 
 
 @click.command()
 @click.argument("yamlfile")
 def cli(yamlfile: str) -> None:
-    """Generate Pydantic models with CRUD variants."""
+    """Generate Pydantic models with the API's variants."""
     gen = CrudPydanticGenerator(schema=yamlfile)
     print(gen.serialize())
 

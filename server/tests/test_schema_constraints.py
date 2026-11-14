@@ -98,7 +98,7 @@ def test_cabinet_entries_without_a_nickname_do_not_collide(session, group):
 def test_study_nickname_is_unique_per_group(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: Study(research_group=group.id, nickname="BPA pilot"),
+        lambda: Study(status="draft", research_group=group.id, nickname="BPA pilot"),
     )
 
 
@@ -106,8 +106,8 @@ def test_two_groups_may_give_a_study_the_same_nickname(session, group):
     other = ResearchGroup(name="Other Lab")
     session.add(other)
     session.commit()
-    session.add(Study(research_group=group.id, nickname="BPA pilot"))
-    session.add(Study(research_group=other.id, nickname="BPA pilot"))
+    session.add(Study(status="draft", research_group=group.id, nickname="BPA pilot"))
+    session.add(Study(status="draft", research_group=other.id, nickname="BPA pilot"))
     session.commit()
 
 
@@ -147,9 +147,9 @@ def test_annotated_classes_get_audit_timestamps(session, group):
     assert entry.updated_at is not None
 
 
-def test_study_records_submission_date(session):
+def test_study_records_submission_date(session, group):
     # created_at is the submission date (#140, #118).
-    study = Study(publication="not published")
+    study = Study(status="draft", research_group=group.id, publication="not published")
     session.add(study)
     session.commit()
 

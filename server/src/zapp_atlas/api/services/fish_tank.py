@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.dto import FishRef
+from zapp_atlas.api.models import FishRef
 from zapp_atlas.api.persistence import commit_or_conflict
 from zapp_atlas.schema.sqla import Fish, FishTankEntry
 

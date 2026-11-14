@@ -88,8 +88,8 @@ def test_the_unpublished_study_rule_reaches_the_client_as_a_conditional() -> Non
 
     assert study["if"]["not"]["required"] == ["publication"]
     assert study["then"]["required"] == ["nickname"]
-    # And the unconditional `required` list still asks for nothing but `id`.
-    assert study["required"] == ["id"]
+    # And the unconditional `required` list still does not ask for a nickname.
+    assert "nickname" not in study["required"]
 
 
 def test_only_absence_rules_are_rewritten() -> None:

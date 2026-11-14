@@ -3,7 +3,7 @@
 Scoped to a group in the path and requires membership. The grain
 ``(research_group, fish)`` is unique, so a duplicate POST is a 409. The
 referenced ``Fish`` is get-or-created from the payload; a malformed ``zfin_id``
-is rejected by the DTO (422). ``research_group`` is always path-derived.
+is rejected by the request model (422). ``research_group`` is always path-derived.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.authz import GroupMember
 from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.dto import TankEntryIn, TankEntryOut
+from zapp_atlas.api.models import TankEntryIn, TankEntryOut
 from zapp_atlas.api.services.fish_tank import (
     add_entry,
     delete_entry,
