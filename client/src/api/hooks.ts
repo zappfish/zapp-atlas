@@ -12,9 +12,13 @@ import {
   fetchMembers,
   removeMember,
 } from "./groups";
-import type { FishTankEntryBody, ResearchGroupRole } from "./types";
+import type {
+  FishDescription,
+  FishTankEntryBody,
+  ResearchGroupRole,
+} from "./types";
 import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
-import { fetchWildtypes } from "./zfin";
+import { fetchWildtypes, resolveFish, searchAlleles } from "./zfin";
 import {
   addChemical,
   deleteChemical,
@@ -49,6 +53,9 @@ export const keys = {
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
   wildtypes: ["zfin", "wildtypes"] as const,
+  alleleSearch: (q: string) => ["zfin", "alleles", q] as const,
+  resolveFish: (description: FishDescription) =>
+    ["zfin", "resolve", description] as const,
 };
 
 export const MIN_SEARCH_LENGTH = 2;
@@ -122,6 +129,33 @@ export const useWildtypes = () =>
     queryFn: ({ signal }) => fetchWildtypes(signal),
     staleTime: Infinity,
   });
+
+/** ZFIN alleles matching what has been typed, by symbol, gene or construct. */
+export const useAlleleSearch = (q: string) =>
+  useQuery({
+    queryKey: keys.alleleSearch(q),
+    queryFn: ({ signal }) => searchAlleles(q, signal),
+    enabled: q.trim().length >= MIN_SEARCH_LENGTH,
+    staleTime: Infinity,
+  });
+
+/**
+ * What ZFIN has registered for a description, or nothing when there is no
+ * description yet. Cached for good: the bundle does not change while the app
+ * runs.
+ */
+export const useResolveFish = (description: FishDescription | null) => {
+  const asked = description ?? NO_DESCRIPTION;
+  return useQuery({
+    queryKey: keys.resolveFish(asked),
+    queryFn: ({ signal }) => resolveFish(asked, signal),
+    enabled: description !== null,
+    staleTime: Infinity,
+  });
+};
+
+/** Stands in for a missing description so the query has a stable key; never sent. */
+const NO_DESCRIPTION: FishDescription = { alleles: [], reagents: [] };
 
 /** One record, for its detail page. */
 export const useFishEntry = (groupId: number, entryId: number) =>

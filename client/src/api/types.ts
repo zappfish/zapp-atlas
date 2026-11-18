@@ -23,8 +23,23 @@ export type Fish = Schemas["FishRead"];
 /** What `POST` accepts for a tank entry: the described fish and an optional nickname. */
 export type FishTankEntryBody = Schemas["TankEntryIn"];
 
+/** A fish as `POST` accepts it, inside a tank entry or an experiment. */
+export type FishBody = Schemas["FishInput"];
+
+export type MutantAlleleBody = Schemas["MutantAlleleInput"];
+export type TransgenicAlleleBody = Schemas["TransgenicAlleleInput"];
+export type Zygosity = Schemas["ZygosityEnum"];
+
 /** One of ZFIN's wild-type lines. */
 export type Wildtype = Schemas["ZfinWildtypeOut"];
+
+/** A registered ZFIN allele, as the lookup returns it. */
+export type ZfinAllele = Schemas["ZfinAlleleOut"];
+export type ZfinAlleleSearch = Schemas["ZfinAlleleSearchOut"];
+
+/** A description to match against ZFIN's registry, and what it matched. */
+export type FishDescription = Schemas["ZfinResolveIn"];
+export type FishResolution = Schemas["ZfinResolveOut"];
 
 export type CabinetEntry = Schemas["CabinetEntryOut"];
 
