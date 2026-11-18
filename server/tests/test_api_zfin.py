@@ -58,6 +58,17 @@ def test_allele_search(client):
     assert allele["constructs"] == []
 
 
+def test_allele_results_carry_the_schemas_alteration_type(client):
+    by_symbol = {
+        a["symbol"]: a["alteration_type"]
+        for q in ("fh111", "w200Tg", "mn001")
+        for a in client.get("/api/zfin/alleles", params={"q": q}).json()["results"]
+    }
+    assert by_symbol["fh111"] == "point_mutation"
+    assert by_symbol["w200Tg"] == "transgenic_insertion"
+    assert by_symbol["mn001"] is None  # ZFIN gives no SO term for its mnv alleles
+
+
 def test_allele_search_is_limited_and_reports_the_total(client):
     res = client.get("/api/zfin/alleles", params={"q": "tg", "limit": 1})
     assert res.json()["total_matches"] == 2

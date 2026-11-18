@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 from sampling import sample
 
-from zapp_atlas.api.layout import LEVELS, layout
+from zapp_atlas.api.layout import LEVELS, SlotKind, layout
 
 CURATOR = "0000-0002-1825-0097"
 OUTSIDER = "0000-0003-3333-4444"
@@ -75,10 +75,20 @@ def study_fields(group: int) -> dict[str, object]:
     }
 
 
+# What a response has that no body sent: generated ids, and the slots the
+# server works out itself.
+NOT_SENT = {"id"} | {
+    slot.name
+    for class_name in layout().view.all_classes()
+    for slot in layout().slots(class_name)
+    if slot.kind is SlotKind.DERIVED
+}
+
+
 def comparable(value: object) -> object:
-    """Drop generated ids, and treat an empty list and an absent one alike."""
+    """Drop what was never sent, and treat an empty list and an absent one alike."""
     if isinstance(value, dict):
-        return {key: comparable(item) for key, item in value.items() if key != "id"}
+        return {key: comparable(item) for key, item in value.items() if key not in NOT_SENT}
     if isinstance(value, list):
         return [comparable(item) for item in value] or None
     return value

@@ -129,3 +129,62 @@ test("the signed-in session can save a study, and a draft stays private", async 
   ).toBe(401);
   await anonymous.dispose();
 });
+
+test("a fish described in the tank dialog gets its ZFIN ids, and the form offers it", async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.getByRole("link", { name: GROUP }).click();
+  await page.getByRole("button", { name: "+ Add fish" }).click();
+
+  // The lines and alleles come from server/tests/zfin_fixture: fh111 is
+  // registered heterozygous on AB as ZDB-GENO-160602-1 / ZDB-FISH-160602-1.
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Wild-type background").selectOption({ label: "AB" });
+  await dialog.getByPlaceholder(/Allele \(fh111\)/).fill("fh111");
+  await dialog.getByRole("button", { name: /^fh111/ }).click();
+  await expect(dialog.getByText(/1 allele still needs a zygosity/)).toBeVisible();
+  await dialog.getByLabel("Zygosity in this fish").selectOption("heterozygous");
+  await expect(dialog.getByText("Matches ZFIN fish ZFIN:ZDB-FISH-160602-1", { exact: false })).toBeVisible();
+  await dialog.getByPlaceholder("What this group calls the line").fill("fh111 carriers");
+  await dialog.getByRole("button", { name: "Add to tank" }).click();
+
+  // Listed under its nickname, with the genotype ZFIN matched.
+  const tank = page.locator("#fish-tank");
+  await expect(tank.getByText("fh111 carriers")).toBeVisible();
+  await expect(tank.getByText("ZFIN:ZDB-GENO-160602-1")).toBeVisible();
+
+  // Stored as described, with the ids the server matched.
+  const groups = await (await page.request.get("/api/research-groups")).json();
+  const entries = await (
+    await page.request.get(`/api/research-groups/${groups[0].id}/fish-tank`)
+  ).json();
+  const saved = entries.find((e: { nickname: string | null }) => e.nickname === "fh111 carriers");
+  expect(saved.fish).toMatchObject({
+    background_zfin_id: "ZFIN:ZDB-GENO-960809-7",
+    background_name: "AB",
+    genotype_zfin_id: "ZFIN:ZDB-GENO-160602-1",
+    fish_zfin_id: "ZFIN:ZDB-FISH-160602-1",
+    allele: [
+      {
+        allele_zfin_id: "ZFIN:ZDB-ALT-160602-14",
+        allele_symbol: "fh111",
+        alteration_type: "point_mutation",
+        affected_gene_symbol: "snapc1b",
+        zygosity: "heterozygous",
+        // Left alone in the dialog, so not recorded.
+        mother_zygosity: null,
+        father_zygosity: null,
+      },
+    ],
+  });
+
+  // The form offers the tank's lines, and shows the chosen one.
+  await page.getByRole("link", { name: "+ New Submission" }).click();
+  await page
+    .getByLabel("Select a fish line from your tank")
+    .selectOption({ label: "fh111 carriers — fh111/+ (AB)" });
+  const fish = page.locator("#fish");
+  await expect(fish.getByText("fh111 carriers")).toBeVisible();
+  await expect(fish.getByText(/ZFIN:ZDB-GENO-160602-1/)).toBeVisible();
+});

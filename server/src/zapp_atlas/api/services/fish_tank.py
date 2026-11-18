@@ -1,28 +1,21 @@
-"""Fish tank persistence (a group's maintained fish lines)."""
+"""Fish tank persistence (a group's maintained fish lines).
+
+An entry owns its Fish row, built by the same code that builds one inside an
+experiment, and deleted with the entry. Two entries may describe the same
+line. The nickname is unique within the group (``tank_nickname_grain``), so a
+reused one is a 409.
+"""
 
 from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from zapp_atlas.api.models import FishRef
+from zapp_atlas.api import tree
+from zapp_atlas.api.models import TankEntryIn
 from zapp_atlas.api.persistence import commit_or_conflict
-from zapp_atlas.schema.sqla import Fish, FishTankEntry
+from zapp_atlas.schema.sqla import FishTankEntry
 
-
-def _get_or_create_fish(session: Session, ref: FishRef) -> Fish:
-    """Fish is a shared, ZFIN-keyed entity; reuse the row if it exists.
-
-    When the row already exists its stored ``name`` wins — a payload ``name``
-    is not written back, so the response echoes the canonical name rather than
-    the submitted one. Names are a property of the shared Fish, not the tank
-    entry.
-    """
-    fish = session.get(Fish, ref.zfin_id)
-    if fish is None:
-        fish = Fish(zfin_id=ref.zfin_id, name=ref.name)
-        session.add(fish)
-        session.flush()
-    return fish
+_NICKNAME_TAKEN = "That nickname is already used in this tank"
 
 
 def list_entries(
@@ -50,11 +43,14 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> FishTankEntry |
     )
 
 
-def add_entry(session: Session, group_id: int, fish: FishRef) -> FishTankEntry:
-    row = _get_or_create_fish(session, fish)
-    entry = FishTankEntry(research_group=group_id, fish_zfin_id=row.zfin_id)
+def add_entry(session: Session, group_id: int, payload: TankEntryIn) -> FishTankEntry:
+    entry = FishTankEntry(
+        research_group=group_id,
+        nickname=payload.nickname,
+        fish=tree.build(session, "Fish", payload.fish),
+    )
     session.add(entry)
-    commit_or_conflict(session, "That fish line is already in this tank")
+    commit_or_conflict(session, _NICKNAME_TAKEN)
     session.refresh(entry)
     return entry
 

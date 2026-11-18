@@ -4,6 +4,7 @@ import pytest
 from sampling import sample
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+from support import comparable
 
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.layout import LEVELS, layout
@@ -17,19 +18,10 @@ SPARSE = {level: sample(level, full=False) for level in LEVELS}
 SPARSE["Study"]["nickname"] = "a working name"
 
 
-def _comparable(value: object) -> object:
-    """Drop generated ids, and treat an empty list and an absent one alike."""
-    if isinstance(value, dict):
-        return {key: _comparable(item) for key, item in value.items() if key != "id"}
-    if isinstance(value, list):
-        return [_comparable(item) for item in value] or None
-    return value
-
-
 def _stored(level: str, row: sqla.Base) -> dict[str, object]:
     """What a row reads back as, cut down to the slots a body carries."""
     read = getattr(models, f"{level}Read").model_validate(row).model_dump()
-    return {slot.name: _comparable(read[slot.name]) for slot in layout().body_slots(level)}
+    return {slot.name: comparable(read[slot.name]) for slot in layout().body_slots(level)}
 
 
 def _saved(session: Session, level: str, *, full: bool) -> tuple[sqla.Base, dict[str, object]]:
@@ -37,7 +29,7 @@ def _saved(session: Session, level: str, *, full: bool) -> tuple[sqla.Base, dict
     row = build(session, level, body)
     session.add(row)
     session.commit()
-    return row, _comparable(body.model_dump())
+    return row, comparable(body.model_dump())
 
 
 @pytest.mark.parametrize("level", LEVELS)
@@ -54,7 +46,7 @@ def test_replacing_a_level_leaves_nothing_behind(session: Session, level: str) -
     assign(session, level, row, sparse)
     session.commit()
 
-    assert _stored(level, row) == _comparable(sparse.model_dump())
+    assert _stored(level, row) == comparable(sparse.model_dump())
     lay = layout()
     for class_name in lay.within(level):
         if not lay.is_shared(class_name):

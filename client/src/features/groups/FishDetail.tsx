@@ -5,6 +5,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import RecordDetail from "@/components/RecordDetail";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
 import { TrashIcon } from "@/components/icons";
+import { describeFish, zfinStatus } from "@/fish";
 import { onDate } from "@/format";
 
 const FishDetail = ({
@@ -22,6 +23,8 @@ const FishDetail = ({
 
   if (error) return <p>This fish line is not available.</p>;
 
+  const name = data && (data.nickname ?? describeFish(data.fish));
+
   const confirmRemove = () =>
     deleteFish.mutate(entryId, {
       // The record is gone, so its page is too.
@@ -35,20 +38,36 @@ const FishDetail = ({
         groupName={group?.name}
         section="fish-tank"
         sectionLabel="Fish Tank"
-        title={data?.fish.name}
-        badge={data?.fish.zfin_id}
+        title={name}
+        badge={data?.fish.background_name ?? undefined}
         isPending={isPending}
         fields={
           data
             ? [
-                { label: "Name", value: data.fish.name },
-                { label: "ZFIN ID", value: data.fish.zfin_id, mono: true },
+                { label: "Nickname", value: data.nickname ?? "—" },
+                { label: "Line", value: describeFish(data.fish) },
+                { label: "Background", value: data.fish.background_name ?? "—" },
+                ...(data.fish.allele ?? []).map((allele, i) => ({
+                  label: `Allele ${i + 1}`,
+                  value: [
+                    allele.allele_symbol,
+                    allele.zygosity,
+                    allele.alteration_type?.replace(/_/g, " "),
+                    allele.affected_gene_symbol && `in ${allele.affected_gene_symbol}`,
+                    allele.allele_zfin_id,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                })),
+                { label: "ZFIN genotype", value: zfinStatus(data.fish), mono: true },
+                { label: "ZFIN fish", value: data.fish.fish_zfin_id ?? "—", mono: true },
+                { label: "Notes", value: data.fish.line_description ?? "—" },
                 { label: "Added on", value: onDate(data.created_at) },
               ]
             : []
         }
         actions={
-          <RowMenu label={`Actions for ${data?.fish.name ?? "this record"}`}>
+          <RowMenu label={`Actions for ${name ?? "this record"}`}>
             <RowMenuItem
               icon={<TrashIcon />}
               label="Remove"
@@ -62,7 +81,7 @@ const FishDetail = ({
       <ConfirmDialog
         open={removing}
         title="Remove fish line"
-        message={`Remove ${data?.fish.name ?? ""} from this group's tank?`}
+        message={`Remove ${name ?? ""} from this group's tank?`}
         isPending={deleteFish.isPending}
         error={deleteFish.error?.message}
         onConfirm={confirmRemove}

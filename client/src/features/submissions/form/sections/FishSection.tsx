@@ -1,49 +1,96 @@
-import { EntryCard, FieldGrid, TextArea, TextInput } from "@/styles/elements";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { useFishTank } from "@/api/hooks";
+import type { FishTankEntry } from "@/api/types";
+import { StockAdd, StockChoices, StockChosen } from "@/components/StockPanel";
+import AddFishForm from "@/features/groups/AddFishForm";
+import { copyOf, describeFish, zfinStatus } from "@/fish";
+import { EntryCard, FieldGrid, TextInput } from "@/styles/elements";
 import Field from "../Field";
 import type { Submission } from "../submission";
-import OptionalNotes from "../OptionalNotes";
+
+/**
+ * The fish the experiment used, picked from the group's tank, or added to
+ * it through the tank's own dialog and picked on save.
+ */
+const FishFromTank = ({ groupId }: { groupId: number }) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const { setValue, watch } = useFormContext<Submission>();
+  const { data: tank = [] } = useFishTank(groupId);
+  const [entryId, description] = watch(["fish.entryId", "fish.description"]);
+
+  const take = (entry: FishTankEntry) => {
+    setValue("fish.entryId", String(entry.id));
+    // The experiment stores its own copy, so the tank entry can change later
+    // without rewriting what this submission said.
+    setValue("fish.description", copyOf(entry.fish));
+  };
+
+  const clear = () => {
+    setValue("fish.entryId", "");
+    setValue("fish.description", null);
+  };
+
+  if (description) {
+    // The copy has no ZFIN ids until it is saved; the entry it came from does.
+    const entry = tank.find((row) => String(row.id) === entryId);
+    const nickname = entry?.nickname;
+    return (
+      <StockChosen
+        name={nickname ?? describeFish(description)}
+        detail={[nickname && describeFish(description), entry && zfinStatus(entry.fish)]
+          .filter(Boolean)
+          .join(" · ")}
+        onChange={clear}
+      />
+    );
+  }
+
+  const add = (
+    <StockAdd type="button" onClick={() => setIsAdding(true)}>
+      + Add a fish line to the tank
+    </StockAdd>
+  );
+
+  return (
+    <StockChoices
+      title={`From your tank (${tank.length} fish line${tank.length === 1 ? "" : "s"})`}
+      selectLabel="Select a fish line from your tank"
+      placeholder="Select a fish line"
+      options={tank.map((row) => ({
+        value: String(row.id),
+        label: row.nickname ? `${row.nickname} — ${describeFish(row.fish)}` : describeFish(row.fish),
+      }))}
+      onPick={(value) => {
+        const entry = tank.find((row) => String(row.id) === value);
+        if (entry) take(entry);
+      }}
+      emptyText="Your tank is empty."
+      alternatives={add}
+    >
+      <AddFishForm
+        groupId={groupId}
+        open={isAdding}
+        onClose={() => setIsAdding(false)}
+        onAdded={take}
+      />
+    </StockChoices>
+  );
+};
 
 /** The fish the experiment used. */
-const FishSection = () => {
+const FishSection = ({ groupId }: { groupId: number }) => {
   const { register } = useFormContext<Submission>();
 
   return (
     <EntryCard>
+      <FishFromTank groupId={groupId} />
+
       <FieldGrid>
-        <Field
-          label="Select existing fish"
-          hint="i.e. the transgene and/or mutant line name, if applicable"
-        >
-          {(id) => <TextInput
-              id={id}
-              placeholder="Fish name or ZFIN ID"
-              {...register("fish.existing")}
-            />}
-        </Field>
-
-        <Field label="Strain / line" required>
-          {(id) => <TextInput id={id} placeholder="e.g. AB/TL" {...register("fish.strain")} />}
-        </Field>
-
         <Field label="Additional condition">
           {(id) => <TextInput id={id} {...register("fish.additionalCondition")} />}
         </Field>
-
-        {/* After the short fields, so its height strands nothing beside it. */}
-        <Field label="Line description">
-          {(id) => (
-            <TextArea
-              id={id}
-              rows={1}
-              placeholder="For a transgenic or mutant line, or a wild type not listed"
-              {...register("fish.lineDescription")}
-            />
-          )}
-        </Field>
       </FieldGrid>
-
-      <OptionalNotes name="fish.notes" />
     </EntryCard>
   );
 };

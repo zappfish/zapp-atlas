@@ -111,13 +111,26 @@ def test_two_groups_may_give_a_study_the_same_nickname(session, group):
     session.commit()
 
 
-def test_tank_grain_is_unique_per_group_and_fish(session, group):
-    session.add(Fish(zfin_id=AB_LINE, name="AB"))
-    session.commit()
+def test_tank_nickname_is_unique_per_group(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: FishTankEntry(research_group=group.id, fish_zfin_id=AB_LINE),
+        lambda: FishTankEntry(
+            research_group=group.id,
+            nickname="our AB",
+            fish=Fish(background_zfin_id=AB_LINE, background_name="AB"),
+        ),
     )
+
+
+def test_tank_entries_without_a_nickname_do_not_collide(session, group):
+    for _ in range(2):
+        session.add(
+            FishTankEntry(
+                research_group=group.id,
+                fish=Fish(background_zfin_id=AB_LINE, background_name="AB"),
+            )
+        )
+    session.commit()
 
 
 def test_membership_grain_is_unique_per_group_and_member(session, group):

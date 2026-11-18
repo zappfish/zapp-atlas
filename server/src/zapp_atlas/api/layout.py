@@ -53,6 +53,10 @@ class SlotKind(Enum):
     LEVEL = "level"
     """The next level down: a resource of its own, not part of this body."""
 
+    DERIVED = "derived"
+    """A value the server works out when the row is saved, declared ``readonly``
+    in the schema. Returned, but not part of a body."""
+
 
 @dataclass(frozen=True)
 class Slot:
@@ -85,7 +89,11 @@ class Layout:
         slot = self.view.induced_slot(slot_name, class_name)
         return Slot(
             name=slot_name,
-            kind=self._kind(slot.range, inlined=bool(slot.inlined)),
+            kind=(
+                SlotKind.DERIVED
+                if slot.readonly
+                else self._kind(slot.range, inlined=bool(slot.inlined))
+            ),
             range=slot.range,
             multivalued=bool(slot.multivalued),
         )
@@ -118,8 +126,13 @@ class Layout:
         return levels
 
     def body_slots(self, class_name: str) -> tuple[Slot, ...]:
-        """The slots a request body for this class carries: all but the next level."""
-        return tuple(slot for slot in self.slots(class_name) if slot.kind is not SlotKind.LEVEL)
+        """The slots a request body for this class carries: all but the next level
+        and what the server works out itself."""
+        return tuple(
+            slot
+            for slot in self.slots(class_name)
+            if slot.kind not in (SlotKind.LEVEL, SlotKind.DERIVED)
+        )
 
     def within(self, level_name: str) -> frozenset[str]:
         """The classes a level's body reaches: what it owns and what it refers to."""

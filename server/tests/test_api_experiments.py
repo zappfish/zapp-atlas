@@ -22,10 +22,7 @@ def test_experiment_create_for_study_then_get(client: TestClient, group: int) ->
     exp_payload = {
         "standard_rearing_condition": True,
         "rearing_condition_comment": "",
-        "fish": {
-            "zfin_id": "ZFIN:ZDB-GENO-960809-7",
-            "name": "AB",
-        },
+        "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
         "control": [],
     }
 
@@ -43,10 +40,7 @@ def test_experiment_create_for_study_then_get(client: TestClient, group: int) ->
 def test_experiment_create_missing_study_404(client: TestClient, group: int) -> None:
     exp_payload = {
         "standard_rearing_condition": True,
-        "fish": {
-            "zfin_id": "ZFIN:ZDB-GENO-960809-7",
-            "name": "AB",
-        },
+        "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
         "control": [],
     }
     res = client.post("/api/studies/999999/experiments", json=exp_payload)
@@ -65,7 +59,7 @@ def test_experiment_put_updates_rearing_and_fish(client: TestClient, group: int)
         json={
             "standard_rearing_condition": True,
             "rearing_condition_comment": "",
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-960809-7", "name": "AB"},
+            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
             "control": [],
         },
     ).json()
@@ -75,15 +69,31 @@ def test_experiment_put_updates_rearing_and_fish(client: TestClient, group: int)
         json={
             "standard_rearing_condition": False,
             "rearing_condition_comment": "temperature 24C",
-            "fish": {"zfin_id": "ZFIN:ZDB-GENO-010112-1", "name": "TU"},
+            "fish": {
+                "background_zfin_id": "ZFIN:ZDB-GENO-990623-3",
+                "background_name": "TU",
+                "allele": [
+                    {
+                        "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+                        "allele_symbol": "ti282a",
+                        "alteration_type": "point_mutation",
+                        "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+                        "affected_gene_symbol": "fgf8a",
+                        "zygosity": "homozygous",
+                    }
+                ],
+            },
         },
     )
     assert res.status_code == 200, res.text
     patched = res.json()
     assert patched["standard_rearing_condition"] is False
     assert patched["rearing_condition_comment"] == "temperature 24C"
-    assert patched["fish"]["zfin_id"] == "ZFIN:ZDB-GENO-010112-1"
-    assert patched["fish"]["name"] == "TU"
+    assert patched["fish"]["background_name"] == "TU"
+    assert patched["fish"]["genotype_zfin_id"] is None  # no bundle to match against
+    [allele] = patched["fish"]["allele"]
+    assert (allele["allele_symbol"], allele["zygosity"]) == ("ti282a", "homozygous")
+    assert allele["mother_zygosity"] is None
 
 
 def test_experiment_put_missing_404(client: TestClient, group: int) -> None:

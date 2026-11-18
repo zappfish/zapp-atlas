@@ -14,7 +14,7 @@ const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
       : []),
   ],
   images: () => [],
-  fish: (s) => [s.fish.strain],
+  fish: (s) => [s.fish.entryId],
   experiment: (s) => [
     // Only asked for when the rearing was not standard.
     ...(s.experiment.rearing === "Non-standard"

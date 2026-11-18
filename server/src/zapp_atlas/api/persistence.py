@@ -15,7 +15,7 @@ def conflicts_as_409(
     """Turn a unique-key violation inside the block into a 409 instead of a 500.
 
     The tables enforce their grain with unique indexes (``cabinet_grain``,
-    ``tank_grain``, ``membership_grain``, ``study_nickname_grain``), so a
+    ``tank_nickname_grain``, ``membership_grain``, ``study_nickname_grain``), so a
     duplicate insert raises ``IntegrityError``. Surface that as a clean conflict.
 
     A table with more than one unique key passes ``named``: a detail to use

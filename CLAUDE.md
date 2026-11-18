@@ -153,9 +153,14 @@ signed-in identity as `current_identity` to every page. Pages so far: homepage,
 login, and a research group dashboard whose fish tank / chemical cabinet /
 submissions render from placeholder data (`html/dashboard_placeholder.py`)
 until the group-scoped endpoints are wired in. The data form is not built yet.
-ZFIN's registry of fish lines is served read-only at `/api/zfin` from the
-extdata bundle, for a fish picker that is not built yet either (see
-ARCHITECTURE.md, "Reference data for the fish picker"). Every `/api` write
+`Fish` is a description (background, alleles with zygosity, injected
+reagents); the server sets its ZFIN ids on save by matching the description
+against the registry, and a request cannot send them. ZFIN's
+registry of fish lines is served read-only at `/api/zfin` from the
+extdata bundle. A fish is described in the tank's add dialog and picked
+from the tank on the submission form; the dialog uses existing elements and
+plain controls and has not been designed yet (see ARCHITECTURE.md,
+"Reference data for the fish picker"). Every `/api` write
 requires a signed-in caller, and the study tree can be written only by members
 of the study's research group. The submission form does not save to the server
 yet.
