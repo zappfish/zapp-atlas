@@ -115,6 +115,13 @@ export const useGroup = (groupId: number) =>
     queryFn: ({ signal }) => fetchGroup(groupId, signal),
   });
 
+/** A group's tank on its own, for the form's fish panel. */
+export const useFishTank = (groupId: number) =>
+  useQuery({
+    queryKey: keys.fishTank(groupId),
+    queryFn: ({ signal }) => fetchFishTank(groupId, signal),
+  });
+
 /** A group's cabinet on its own, for anything that needs it without the page. */
 export const useCabinet = (groupId: number) =>
   useQuery({

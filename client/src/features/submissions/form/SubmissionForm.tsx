@@ -32,12 +32,12 @@ import "./form.css";
 /** What a section looks like before anyone has touched it. */
 const UNTOUCHED = emptySubmission();
 
-/** `groupId` reaches the exposure's chemical picker, which offers that
- *  group's cabinet alongside the database search. */
+/** `groupId` reaches the fish panel, which offers that group's tank, and the
+ *  exposure's chemical picker, which offers its cabinet alongside the database search. */
 const SECTION_BODIES: Record<SectionSlug, (groupId: number) => ReactNode> = {
   provenance: () => <ProvenanceSection />,
   images: () => <ImagesSection />,
-  fish: () => <FishSection />,
+  fish: (groupId) => <FishSection groupId={groupId} />,
   experiment: (groupId) => <ExperimentSection groupId={groupId} />,
   control: () => <ControlSection />,
   phenotype: () => <PhenotypeSection />,
