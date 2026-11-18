@@ -14,23 +14,6 @@ import {
   MeasureRow,
   SelectInput,
   ShortSelect,
-  SubstanceAdd,
-  SubstanceBack,
-  SubstanceBody,
-  SubstanceCard,
-  SubstanceChange,
-  SubstanceChoices,
-  SubstanceChosen,
-  SubstanceHead,
-  SubstanceIcon,
-  SubstanceId,
-  SubstanceLead,
-  SubstanceName,
-  SubstanceNames,
-  SubstanceOr,
-  SubstanceSaved,
-  SubstanceSearch,
-  SubstanceTitle,
   TextArea,
   TextInput,
 } from "@/styles/elements";
@@ -62,6 +45,14 @@ import {
   useRefreshCabinet,
 } from "@/api/hooks";
 import { FlaskIcon, SearchIcon } from "@/components/icons";
+import {
+  StockAdd,
+  StockChoices,
+  StockChosen,
+  StockSaved,
+  StockSearch,
+  StockSearchButton,
+} from "@/components/StockPanel";
 
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
 
@@ -94,7 +85,6 @@ const Substance = ({
   const [isAdding, setIsAdding] = useState(false);
   const { setValue, watch } = useFormContext<Submission>();
   const { data: cabinet = [] } = useCabinet(groupId);
-  const hasCabinet = cabinet.length > 0;
   // An entry stores only the identifier, so names are looked up.
   const names = useChemicalNames(cabinet.map((row) => row.chemical_id));
 
@@ -120,22 +110,18 @@ const Substance = ({
   // What was chosen, in place of the two ways of choosing it.
   if (identifier) {
     return (
-      <SubstanceCard>
-        <SubstanceChosen>
-          <SubstanceIcon aria-hidden="true">
-            <FlaskIcon />
-          </SubstanceIcon>
-          <SubstanceNames>
-            <SubstanceName>{substance}</SubstanceName>
-            {/* A chemical with no name stands under its own identifier. */}
-            {substance !== identifier && <SubstanceId>{identifier}</SubstanceId>}
-          </SubstanceNames>
-          {/* Found in the database but not on the group's shelf: offered here
-              so the next submission can pick it from the cabinet. */}
-          {isInCabinet ? (
-            addChemical.isSuccess && <SubstanceSaved>Saved for reuse</SubstanceSaved>
+      <StockChosen
+        icon={<FlaskIcon />}
+        name={substance}
+        // A chemical with no name stands under its own identifier.
+        detail={substance !== identifier ? identifier : undefined}
+        actions={
+          // Found in the database but not on the group's shelf: offered here
+          // so the next submission can pick it from the cabinet.
+          isInCabinet ? (
+            addChemical.isSuccess && <StockSaved>Saved for reuse</StockSaved>
           ) : (
-            <SubstanceAdd
+            <StockAdd
               type="button"
               onClick={() =>
                 addChemical.mutate(
@@ -146,98 +132,62 @@ const Substance = ({
               disabled={addChemical.isPending}
             >
               {addChemical.isPending ? "Adding…" : "Add to cabinet"}
-            </SubstanceAdd>
-          )}
-          <SubstanceChange
-            type="button"
-            onClick={clear}
-            disabled={addChemical.isPending}
-          >
-            Change
-          </SubstanceChange>
-        </SubstanceChosen>
-      </SubstanceCard>
+            </StockAdd>
+          )
+        }
+        onChange={clear}
+        isDisabled={addChemical.isPending}
+      />
     );
   }
 
   if (isSearching) {
     return (
-      <SubstanceCard>
-        <SubstanceHead>
-          <div>
-            <SubstanceTitle>Search ChEBI</SubstanceTitle>
-            <SubstanceLead>
-              Search the database when the chemical is not in your cabinet.
-            </SubstanceLead>
-          </div>
-          <SubstanceBack type="button" onClick={() => setIsSearching(false)}>
-            Use cabinet
-          </SubstanceBack>
-        </SubstanceHead>
-        <SubstanceBody>
-          <ChemicalPicker
-            onPick={(chemical: Staged) =>
-              take(chemical.chebiId, chemical.name)
-            }
-          />
-        </SubstanceBody>
-      </SubstanceCard>
+      <StockSearch
+        title="Search ChEBI"
+        lead="Search the database when the chemical is not in your cabinet."
+        backLabel="Use cabinet"
+        onBack={() => setIsSearching(false)}
+      >
+        <ChemicalPicker
+          onPick={(chemical: Staged) => take(chemical.chebiId, chemical.name)}
+        />
+      </StockSearch>
     );
   }
 
   return (
-    <SubstanceCard>
-      <SubstanceBody>
-        <SubstanceTitle>
-          From your cabinet ({cabinet.length} chemical
-          {cabinet.length === 1 ? "" : "s"})
-        </SubstanceTitle>
-        <SubstanceChoices>
-          {hasCabinet ? (
-            <SelectInput
-              defaultValue=""
-              aria-label="Select a chemical from your cabinet"
-              onChange={(e) => {
-                const chemicalId = e.target.value;
-                if (chemicalId) take(chemicalId, names.get(chemicalId) ?? "");
-              }}
-            >
-              <option value="" disabled>
-                Select a chemical
-              </option>
-              {cabinet.map((row) => {
-                const name = names.get(row.chemical_id) ?? row.chemical_id;
-                return (
-                  <option key={row.id} value={row.chemical_id}>
-                    {row.nickname ? `${row.nickname} — ${name}` : name}
-                  </option>
-                );
-              })}
-            </SelectInput>
-          ) : (
-            <>
-              <SubstanceLead>Your cabinet is empty.</SubstanceLead>
-              <SubstanceAdd type="button" onClick={() => setIsAdding(true)}>
-                + Add chemical
-              </SubstanceAdd>
-            </>
-          )}
-
-          <SubstanceOr>OR</SubstanceOr>
-
-          <SubstanceSearch type="button" onClick={() => setIsSearching(true)}>
-            <SearchIcon />
-            Search ChEBI
-          </SubstanceSearch>
-        </SubstanceChoices>
-      </SubstanceBody>
-
+    <StockChoices
+      title={`From your cabinet (${cabinet.length} chemical${cabinet.length === 1 ? "" : "s"})`}
+      selectLabel="Select a chemical from your cabinet"
+      placeholder="Select a chemical"
+      options={cabinet.map((row) => {
+        const name = names.get(row.chemical_id) ?? row.chemical_id;
+        return {
+          value: row.chemical_id,
+          label: row.nickname ? `${row.nickname} — ${name}` : name,
+        };
+      })}
+      onPick={(chemicalId) => take(chemicalId, names.get(chemicalId) ?? "")}
+      emptyText="Your cabinet is empty."
+      whenEmpty={
+        <StockAdd type="button" onClick={() => setIsAdding(true)}>
+          + Add chemical
+        </StockAdd>
+      }
+      alternatives={
+        <StockSearchButton type="button" onClick={() => setIsSearching(true)}>
+          <SearchIcon />
+          Search ChEBI
+        </StockSearchButton>
+      }
+    >
       <AddChemicalForm
         groupId={groupId}
         open={isAdding}
         onClose={() => setIsAdding(false)}
       />
-    </SubstanceCard>
+    </StockChoices>
   );
 };
 

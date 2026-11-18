@@ -2,26 +2,10 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { useFishTank } from "@/api/hooks";
 import type { FishTankEntry } from "@/api/types";
+import { StockAdd, StockChoices, StockChosen } from "@/components/StockPanel";
 import AddFishForm from "@/features/groups/AddFishForm";
 import { describeFish, zfinStatus } from "@/fish";
-import {
-  EntryCard,
-  FieldGrid,
-  SelectInput,
-  SubstanceAdd,
-  SubstanceBody,
-  SubstanceCard,
-  SubstanceChange,
-  SubstanceChoices,
-  SubstanceChosen,
-  SubstanceId,
-  SubstanceLead,
-  SubstanceName,
-  SubstanceNames,
-  SubstanceOr,
-  SubstanceTitle,
-  TextInput,
-} from "@/styles/elements";
+import { EntryCard, FieldGrid, TextInput } from "@/styles/elements";
 import Field from "../Field";
 import type { Submission } from "../submission";
 
@@ -48,69 +32,47 @@ const FishFromTank = ({ groupId }: { groupId: number }) => {
   };
 
   if (description) {
-    const entry = tank.find((row) => String(row.id) === entryId);
+    const nickname = tank.find((row) => String(row.id) === entryId)?.nickname;
     return (
-      <SubstanceCard>
-        <SubstanceChosen>
-          <SubstanceNames>
-            <SubstanceName>{entry?.nickname ?? describeFish(description)}</SubstanceName>
-            <SubstanceId>
-              {entry?.nickname ? `${describeFish(description)} · ` : ""}
-              {zfinStatus(description)}
-            </SubstanceId>
-          </SubstanceNames>
-          <SubstanceChange type="button" onClick={clear}>
-            Change
-          </SubstanceChange>
-        </SubstanceChosen>
-      </SubstanceCard>
+      <StockChosen
+        name={nickname ?? describeFish(description)}
+        detail={[nickname && describeFish(description), zfinStatus(description)]
+          .filter(Boolean)
+          .join(" · ")}
+        onChange={clear}
+      />
     );
   }
 
+  const add = (
+    <StockAdd type="button" onClick={() => setIsAdding(true)}>
+      + Add a fish line to the tank
+    </StockAdd>
+  );
+
   return (
-    <SubstanceCard>
-      <SubstanceBody>
-        <SubstanceTitle>
-          From your tank ({tank.length} fish line{tank.length === 1 ? "" : "s"})
-        </SubstanceTitle>
-        <SubstanceChoices>
-          {tank.length > 0 ? (
-            <SelectInput
-              defaultValue=""
-              aria-label="Select a fish line from your tank"
-              onChange={(e) => {
-                const entry = tank.find((row) => String(row.id) === e.target.value);
-                if (entry) take(entry);
-              }}
-            >
-              <option value="" disabled>
-                Select a fish line
-              </option>
-              {tank.map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.nickname ? `${row.nickname} — ${describeFish(row.fish)}` : describeFish(row.fish)}
-                </option>
-              ))}
-            </SelectInput>
-          ) : (
-            <SubstanceLead>Your tank is empty.</SubstanceLead>
-          )}
-
-          <SubstanceOr>OR</SubstanceOr>
-
-          <SubstanceAdd type="button" onClick={() => setIsAdding(true)}>
-            + Add a fish line to the tank
-          </SubstanceAdd>
-        </SubstanceChoices>
-      </SubstanceBody>
-
+    <StockChoices
+      title={`From your tank (${tank.length} fish line${tank.length === 1 ? "" : "s"})`}
+      selectLabel="Select a fish line from your tank"
+      placeholder="Select a fish line"
+      options={tank.map((row) => ({
+        value: String(row.id),
+        label: row.nickname ? `${row.nickname} — ${describeFish(row.fish)}` : describeFish(row.fish),
+      }))}
+      onPick={(value) => {
+        const entry = tank.find((row) => String(row.id) === value);
+        if (entry) take(entry);
+      }}
+      emptyText="Your tank is empty."
+      alternatives={add}
+    >
       <AddFishForm
         groupId={groupId}
         open={isAdding}
         onClose={() => setIsAdding(false)}
         onAdded={take}
       />
-    </SubstanceCard>
+    </StockChoices>
   );
 };
 
