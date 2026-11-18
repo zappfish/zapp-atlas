@@ -28,6 +28,7 @@ export type FishBody = Schemas["FishInput"];
 
 export type AlleleBody = Schemas["AlleleInput"];
 export type Zygosity = Schemas["ZygosityEnum"];
+export type ParentZygosity = Schemas["ParentZygosityEnum"];
 
 /** One of ZFIN's wild-type lines. */
 export type Wildtype = Schemas["ZfinWildtypeOut"];

@@ -224,7 +224,18 @@ export enum ZygosityEnum {
     homozygous = "homozygous",
     /** Several alleles of one gene in a combination ZFIN calls complex. */
     complex = "complex",
-    /** The parent does not carry the allele. Only a parent's zygosity can be this. */
+};
+/**
+* An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus wild type: a parent, unlike the fish being described, may not carry the allele at all.
+*/
+export enum ParentZygosityEnum {
+    
+    unknown = "unknown",
+    heterozygous = "heterozygous",
+    homozygous = "homozygous",
+    /** Several alleles of one gene in a combination ZFIN calls complex. */
+    complex = "complex",
+    /** The parent does not carry the allele. */
     wild_type = "wild_type",
 };
 /**
@@ -540,9 +551,9 @@ export interface Allele extends ZappEntity {
     construct_name?: string,
     /** The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
     zygosity: string,
-    /** The allele's zygosity in the mother, when known. */
+    /** The allele's zygosity in the mother. Absent when not recorded. */
     mother_zygosity?: string,
-    /** The allele's zygosity in the father, when known. */
+    /** The allele's zygosity in the father. Absent when not recorded. */
     father_zygosity?: string,
 }
 

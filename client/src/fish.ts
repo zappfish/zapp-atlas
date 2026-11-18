@@ -4,6 +4,7 @@ import type {
   FishBody,
   FishDescription,
   FishResolution,
+  ParentZygosity,
   ZfinAllele,
   Zygosity,
 } from "@/api/types";
@@ -80,7 +81,7 @@ export const ZYGOSITIES: { value: Zygosity; label: string }[] = [
 ];
 
 /** A parent's zygosity can also be wild type: not carrying the allele at all. */
-export const PARENT_ZYGOSITIES: { value: Zygosity; label: string }[] = [
+export const PARENT_ZYGOSITIES: { value: ParentZygosity; label: string }[] = [
   { value: "unknown", label: "unknown" },
   { value: "wild_type", label: "wild type" },
   { value: "heterozygous", label: "heterozygous" },
@@ -95,8 +96,8 @@ export const PARENT_ZYGOSITIES: { value: Zygosity; label: string }[] = [
 export interface AlleleChoice {
   allele: ZfinAllele;
   zygosity: Zygosity | "";
-  motherZygosity: Zygosity;
-  fatherZygosity: Zygosity;
+  motherZygosity: ParentZygosity;
+  fatherZygosity: ParentZygosity;
 }
 
 export const isAnswered = (choice: AlleleChoice): boolean => choice.zygosity !== "";

@@ -945,10 +945,10 @@ export interface components {
              * @description ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele.
              */
             construct_zfin_id?: string | null;
-            /** @description The allele's zygosity in the father, when known. */
-            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the mother, when known. */
-            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /** @description The allele's zygosity in the father. Absent when not recorded. */
+            father_zygosity?: components["schemas"]["ParentZygosityEnum"] | null;
+            /** @description The allele's zygosity in the mother. Absent when not recorded. */
+            mother_zygosity?: components["schemas"]["ParentZygosityEnum"] | null;
             /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
             zygosity: components["schemas"]["ZygosityEnum"];
         };
@@ -989,15 +989,15 @@ export interface components {
              * @description ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele.
              */
             construct_zfin_id?: string | null;
-            /** @description The allele's zygosity in the father, when known. */
-            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /** @description The allele's zygosity in the father. Absent when not recorded. */
+            father_zygosity?: components["schemas"]["ParentZygosityEnum"] | null;
             /**
              * Id
              * @description Auto-generated integer identifier.
              */
             id: number;
-            /** @description The allele's zygosity in the mother, when known. */
-            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /** @description The allele's zygosity in the mother. Absent when not recorded. */
+            mother_zygosity?: components["schemas"]["ParentZygosityEnum"] | null;
             /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
             zygosity: components["schemas"]["ZygosityEnum"];
         };
@@ -1662,6 +1662,12 @@ export interface components {
              */
             source: "nodenorm" | "local_cache";
         };
+        /**
+         * ParentZygosityEnum
+         * @description An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus wild type: a parent, unlike the fish being described, may not carry the allele at all.
+         * @enum {string}
+         */
+        ParentZygosityEnum: "unknown" | "heterozygous" | "homozygous" | "complex" | "wild_type";
         /**
          * PhenotypeInput
          * @description What the API accepts for Phenotype.
@@ -2565,7 +2571,7 @@ export interface components {
          * @description An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with unknown zygosity, so unknown is a value here too, and a description saying unknown matches only those genotypes.
          * @enum {string}
          */
-        ZygosityEnum: "unknown" | "heterozygous" | "homozygous" | "complex" | "wild_type";
+        ZygosityEnum: "unknown" | "heterozygous" | "homozygous" | "complex";
     };
     responses: never;
     parameters: never;
@@ -2607,6 +2613,7 @@ export type MemberPatch = components['schemas']['MemberPatch'];
 export type NormResult = components['schemas']['NormResult'];
 export type NormalizeRequest = components['schemas']['NormalizeRequest'];
 export type NormalizeResponse = components['schemas']['NormalizeResponse'];
+export type ParentZygosityEnum = components['schemas']['ParentZygosityEnum'];
 export type PhenotypeInput = components['schemas']['PhenotypeInput'];
 export type PhenotypeObservationSetInput = components['schemas']['PhenotypeObservationSetInput'];
 export type PhenotypeObservationSetRead = components['schemas']['PhenotypeObservationSetRead'];

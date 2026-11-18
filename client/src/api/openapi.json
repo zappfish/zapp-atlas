@@ -152,13 +152,13 @@
           "father_zygosity": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ZygosityEnum"
+                "$ref": "#/components/schemas/ParentZygosityEnum"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The allele's zygosity in the father, when known.",
+            "description": "The allele's zygosity in the father. Absent when not recorded.",
             "linkml_meta": {
               "domain_of": [
                 "Allele"
@@ -168,13 +168,13 @@
           "mother_zygosity": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ZygosityEnum"
+                "$ref": "#/components/schemas/ParentZygosityEnum"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The allele's zygosity in the mother, when known.",
+            "description": "The allele's zygosity in the mother. Absent when not recorded.",
             "linkml_meta": {
               "domain_of": [
                 "Allele"
@@ -347,13 +347,13 @@
           "father_zygosity": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ZygosityEnum"
+                "$ref": "#/components/schemas/ParentZygosityEnum"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The allele's zygosity in the father, when known.",
+            "description": "The allele's zygosity in the father. Absent when not recorded.",
             "linkml_meta": {
               "domain_of": [
                 "Allele"
@@ -373,13 +373,13 @@
           "mother_zygosity": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ZygosityEnum"
+                "$ref": "#/components/schemas/ParentZygosityEnum"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The allele's zygosity in the mother, when known.",
+            "description": "The allele's zygosity in the mother. Absent when not recorded.",
             "linkml_meta": {
               "domain_of": [
                 "Allele"
@@ -2601,6 +2601,18 @@
         ],
         "title": "NormalizeResponse",
         "type": "object"
+      },
+      "ParentZygosityEnum": {
+        "description": "An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus wild type: a parent, unlike the fish being described, may not carry the allele at all.",
+        "enum": [
+          "unknown",
+          "heterozygous",
+          "homozygous",
+          "complex",
+          "wild_type"
+        ],
+        "title": "ParentZygosityEnum",
+        "type": "string"
       },
       "PhenotypeInput": {
         "additionalProperties": false,
@@ -5530,8 +5542,7 @@
           "unknown",
           "heterozygous",
           "homozygous",
-          "complex",
-          "wild_type"
+          "complex"
         ],
         "title": "ZygosityEnum",
         "type": "string"

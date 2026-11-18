@@ -456,9 +456,22 @@ class ZygosityEnum(str, Enum):
     """
     Several alleles of one gene in a combination ZFIN calls complex.
     """
+
+
+class ParentZygosityEnum(str, Enum):
+    """
+    An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus wild type: a parent, unlike the fish being described, may not carry the allele at all.
+    """
+    unknown = "unknown"
+    heterozygous = "heterozygous"
+    homozygous = "homozygous"
+    complex = "complex"
+    """
+    Several alleles of one gene in a combination ZFIN calls complex.
+    """
     wild_type = "wild_type"
     """
-    The parent does not carry the allele. Only a parent's zygosity can be this.
+    The parent does not carry the allele.
     """
 
 
@@ -1523,8 +1536,8 @@ class Allele(ZappEntity):
          'examples': [{'value': 'ZFIN:ZDB-TGCONSTRCT-130130-3'}]} })
     construct_name: Optional[str] = Field(default=None, description="""The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele'], 'examples': [{'value': 'Tg(mpeg1:YFP)'}]} })
     zygosity: ZygosityEnum = Field(default=..., description="""The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother, when known.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father, when known.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
+    mother_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
+    father_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('allele_zfin_id')
@@ -1581,8 +1594,8 @@ class AlleleInput(ConfiguredBaseModel):
          'examples': [{'value': 'ZFIN:ZDB-TGCONSTRCT-130130-3'}]} })
     construct_name: Optional[str] = Field(default=None, description="""The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele'], 'examples': [{'value': 'Tg(mpeg1:YFP)'}]} })
     zygosity: ZygosityEnum = Field(default=..., description="""The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother, when known.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father, when known.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
+    mother_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
+    father_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
 
     @field_validator('allele_zfin_id')
     def pattern_allele_zfin_id(cls, v):
@@ -1638,8 +1651,8 @@ class AlleleRead(ReadBaseModel):
          'examples': [{'value': 'ZFIN:ZDB-TGCONSTRCT-130130-3'}]} })
     construct_name: Optional[str] = Field(default=None, description="""The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele'], 'examples': [{'value': 'Tg(mpeg1:YFP)'}]} })
     zygosity: ZygosityEnum = Field(default=..., description="""The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    mother_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother, when known.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    father_zygosity: Optional[ZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father, when known.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
+    mother_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
+    father_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
     @field_validator('allele_zfin_id')

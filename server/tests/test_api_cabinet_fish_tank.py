@@ -669,9 +669,23 @@ def test_tank_rejects_malformed_ids_and_zygosity(client: TestClient) -> None:
         {"fish": {**AB, "fish_zfin_id": AB_LINE}},  # a genotype id where a fish id goes
         {"fish": {**AB, "allele": [{**TI282A, "zygosity": "hemizygous"}]}},
         {"fish": {**AB, "allele": [{**TI282A, "allele_symbol": None}]}},
+        # Only a parent can be wild type for an allele the fish carries.
+        {"fish": {**AB, "allele": [{**TI282A, "zygosity": "wild_type"}]}},
     ]
     for payload in bad:
         assert client.post(url, json=payload).status_code == 422, payload
+
+
+def test_tank_takes_a_wild_type_parent(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    created = client.post(
+        f"/api/research-groups/{group_id}/fish-tank",
+        json={"fish": {**AB, "allele": [{**TI282A, "mother_zygosity": "wild_type"}]}},
+    )
+    assert created.status_code == 201, created.text
+    [allele] = created.json()["fish"]["allele"]
+    assert allele["mother_zygosity"] == "wild_type"
 
 
 def test_tank_delete_takes_the_fish_with_it(client: TestClient) -> None:

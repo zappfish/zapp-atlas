@@ -1,4 +1,4 @@
-import type { Zygosity } from "@/api/types";
+import type { ParentZygosity, Zygosity } from "@/api/types";
 import {
   PARENT_ZYGOSITIES,
   ZYGOSITIES,
@@ -82,7 +82,7 @@ const AlleleCard = ({
             <ModalLabel>Mother</ModalLabel>
             <ModalSelect
               value={choice.motherZygosity}
-              onChange={(e) => onChange({ ...choice, motherZygosity: e.target.value as Zygosity })}
+              onChange={(e) => onChange({ ...choice, motherZygosity: e.target.value as ParentZygosity })}
               disabled={isDisabled}
             >
               {PARENT_ZYGOSITIES.map((z) => (
@@ -96,7 +96,7 @@ const AlleleCard = ({
             <ModalLabel>Father</ModalLabel>
             <ModalSelect
               value={choice.fatherZygosity}
-              onChange={(e) => onChange({ ...choice, fatherZygosity: e.target.value as Zygosity })}
+              onChange={(e) => onChange({ ...choice, fatherZygosity: e.target.value as ParentZygosity })}
               disabled={isDisabled}
             >
               {PARENT_ZYGOSITIES.map((z) => (

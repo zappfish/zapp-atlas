@@ -646,11 +646,11 @@ slots:
     description: The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.
     range: ZygosityEnum
   mother_zygosity:
-    description: The allele's zygosity in the mother, when known.
-    range: ZygosityEnum
+    description: The allele's zygosity in the mother. Absent when not recorded.
+    range: ParentZygosityEnum
   father_zygosity:
-    description: The allele's zygosity in the father, when known.
-    range: ZygosityEnum
+    description: The allele's zygosity in the father. Absent when not recorded.
+    range: ParentZygosityEnum
   reagent_zfin_id:
     description: ZFIN's id for the reagent (ZDB-MRPHLNO-, ZDB-CRISPR- or ZDB-TALEN-…).
     range: uriorcurie
@@ -959,8 +959,23 @@ enums:
         meaning: GENO:0000136
       complex:
         description: Several alleles of one gene in a combination ZFIN calls complex.
+
+  ParentZygosityEnum:
+    description: >-
+      An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus
+      wild type: a parent, unlike the fish being described, may not carry the
+      allele at all.
+    permissible_values:
+      unknown:
+        meaning: GENO:0000137
+      heterozygous:
+        meaning: GENO:0000135
+      homozygous:
+        meaning: GENO:0000136
+      complex:
+        description: Several alleles of one gene in a combination ZFIN calls complex.
       wild_type:
-        description: The parent does not carry the allele. Only a parent's zygosity can be this.
+        description: The parent does not carry the allele.
 
   ReagentTypeEnum:
     description: The kinds of transient, sequence-targeting reagent ZFIN registers.

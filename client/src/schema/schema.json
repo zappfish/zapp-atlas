@@ -52,16 +52,16 @@
           ]
         },
         "father_zygosity": {
-          "$ref": "#/$defs/ZygosityEnum",
-          "description": "The allele's zygosity in the father, when known."
+          "$ref": "#/$defs/ParentZygosityEnum",
+          "description": "The allele's zygosity in the father. Absent when not recorded."
         },
         "id": {
           "description": "Auto-generated integer identifier.",
           "type": "integer"
         },
         "mother_zygosity": {
-          "$ref": "#/$defs/ZygosityEnum",
-          "description": "The allele's zygosity in the mother, when known."
+          "$ref": "#/$defs/ParentZygosityEnum",
+          "description": "The allele's zygosity in the mother. Absent when not recorded."
         },
         "zygosity": {
           "$ref": "#/$defs/ZygosityEnum",
@@ -656,6 +656,18 @@
       "description": "Entities representing ontology terms with URI identifiers.",
       "title": "OntologyEntity",
       "type": "object"
+    },
+    "ParentZygosityEnum": {
+      "description": "An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus wild type: a parent, unlike the fish being described, may not carry the allele at all.",
+      "enum": [
+        "unknown",
+        "heterozygous",
+        "homozygous",
+        "complex",
+        "wild_type"
+      ],
+      "title": "ParentZygosityEnum",
+      "type": "string"
     },
     "Phenotype": {
       "additionalProperties": false,
@@ -1399,8 +1411,7 @@
         "unknown",
         "heterozygous",
         "homozygous",
-        "complex",
-        "wild_type"
+        "complex"
       ],
       "title": "ZygosityEnum",
       "type": "string"

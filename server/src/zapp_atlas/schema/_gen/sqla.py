@@ -491,9 +491,9 @@ class Allele(ZappEntity):
     affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
     construct_zfin_id: Mapped[str | None] = mapped_column(Text())
     construct_name: Mapped[str | None] = mapped_column(Text())
-    zygosity: Mapped[str] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
-    mother_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
-    father_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
+    zygosity: Mapped[str] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', name='ZygosityEnum'))
+    mother_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ParentZygosityEnum'))
+    father_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ParentZygosityEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
 
