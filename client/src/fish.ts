@@ -89,13 +89,19 @@ export const PARENT_ZYGOSITIES: { value: Zygosity; label: string }[] = [
   { value: "homozygous", label: "homozygous" },
 ];
 
-/** An allele chosen from ZFIN, as a card in the fish's description. */
+/**
+ * An allele chosen from ZFIN, as a card in the fish's description. Zygosity
+ * starts unset so that it is chosen rather than defaulted: it is part of a
+ * genotype's identity in ZFIN.
+ */
 export interface AlleleChoice {
   allele: ZfinAllele;
-  zygosity: Zygosity;
+  zygosity: Zygosity | "";
   motherZygosity: Zygosity;
   fatherZygosity: Zygosity;
 }
+
+export const isAnswered = (choice: AlleleChoice): boolean => choice.zygosity !== "";
 
 /**
  * The allele as the data model stores it. The model's scalar gene and
@@ -110,14 +116,15 @@ const alleleBody = ({ allele, zygosity, motherZygosity, fatherZygosity }: Allele
     alteration_type: allele.alteration_type,
     affected_gene_zfin_id: gene?.gene_id ?? null,
     affected_gene_symbol: gene?.symbol ?? null,
-    zygosity,
+    zygosity: zygosity as Zygosity,
     mother_zygosity: motherZygosity,
     father_zygosity: fatherZygosity,
   };
   return base;
 };
 
-/** A fish body from what the builder collected, before ZFIN's ids attach. */
+/** A fish body from what the builder collected, before ZFIN's ids attach.
+ *  Every allele must have its zygosity answered (see ``isAnswered``). */
 export const toFishBody = (
   alleles: AlleleChoice[],
   background: { genotype_id: string; abbreviation: string } | null,

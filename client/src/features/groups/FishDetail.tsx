@@ -47,6 +47,21 @@ const FishDetail = ({
                 { label: "Nickname", value: data.nickname ?? "—" },
                 { label: "Line", value: describeFish(data.fish) },
                 { label: "Background", value: data.fish.background_name ?? "—" },
+                ...[
+                  ...(data.fish.mutant_allele ?? []),
+                  ...(data.fish.transgenic_allele ?? []),
+                ].map((allele, i) => ({
+                  label: `Allele ${i + 1}`,
+                  value: [
+                    allele.allele_symbol,
+                    allele.zygosity,
+                    allele.alteration_type?.replace(/_/g, " "),
+                    allele.affected_gene_symbol && `in ${allele.affected_gene_symbol}`,
+                    allele.allele_zfin_id,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                })),
                 { label: "ZFIN genotype", value: zfinStatus(data.fish), mono: true },
                 { label: "ZFIN fish", value: data.fish.fish_zfin_id ?? "—", mono: true },
                 { label: "Notes", value: data.fish.line_description ?? "—" },

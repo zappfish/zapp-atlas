@@ -1,115 +1,109 @@
-import { useState, type FormEvent } from "react";
-import { useAddFish, useWildtypes } from "@/api/hooks";
+import { useCallback, useState } from "react";
+import { useAddFish } from "@/api/hooks";
+import type { FishBody, FishTankEntry } from "@/api/types";
 import Modal from "@/components/Modal";
+import FishBuilder from "@/features/fish/FishBuilder";
 import {
-  ModalActions,
+  ModalBanded,
+  ModalBody,
   ModalField,
-  ModalForm,
+  ModalFoot,
+  ModalHead,
   ModalInput,
   ModalLabel,
-  ModalSelect,
   ModalText,
   ModalTitle,
 } from "@/styles/elements";
 
 /**
- * A fish line is described, not named: its wild-type background, and later
- * the alleles it carries. The form takes the background for now; alleles
- * come with the fish picker. A nickname is what the group will pick it by.
+ * Adds a line to the group's tank: background, alleles with zygosity, notes,
+ * and an optional nickname the group picks it by. The ZFIN ids come from the
+ * resolve result.
  */
 const AddFishForm = ({
   groupId,
   open,
   onClose,
+  onAdded,
 }: {
   groupId: number;
   open: boolean;
   onClose: () => void;
+  /** The saved entry, for a caller that wants to pick it straight away. */
+  onAdded?: (entry: FishTankEntry) => void;
 }) => {
-  const [background, setBackground] = useState("");
+  const [fish, setFish] = useState<FishBody | null>(null);
   const [nickname, setNickname] = useState("");
-  const wildtypes = useWildtypes();
   const addFish = useAddFish(groupId);
+  const onChange = useCallback((next: FishBody | null) => setFish(next), []);
 
   const close = () => {
     addFish.reset();
-    setBackground("");
+    setFish(null);
     setNickname("");
     onClose();
   };
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const line = wildtypes.data?.find((w) => w.genotype_id === background);
-    if (!line) return;
+  const save = () => {
+    if (!fish) return;
     addFish.mutate(
+      { fish, nickname: nickname.trim() || null },
       {
-        fish: {
-          background_zfin_id: line.genotype_id,
-          background_name: line.abbreviation,
+        onSuccess: (entry) => {
+          if (entry) onAdded?.(entry);
+          close();
         },
-        nickname: nickname.trim() || null,
       },
-      { onSuccess: close },
     );
   };
 
   return (
-    <Modal open={open} title="Add fish line" onClose={close}>
-      <ModalForm onSubmit={submit}>
-        <ModalTitle>Add fish line</ModalTitle>
+    <Modal open={open} title="Add fish line" onClose={close} isWide>
+      <ModalBanded>
+        <ModalHead>
+          <ModalTitle>Add fish line</ModalTitle>
+          <ModalText>
+            Choose the background and add the alleles the line carries. If ZFIN has a
+            registered fish with this description, its ids are stored with the entry.
+          </ModalText>
+        </ModalHead>
 
-        <ModalField>
-          <ModalLabel>Wild-type background</ModalLabel>
-          <ModalSelect
-            value={background}
-            onChange={(e) => setBackground(e.target.value)}
-            required
-            autoFocus
-            disabled={!wildtypes.data}
+        <ModalBody>
+          <FishBuilder isDisabled={addFish.isPending} onChange={onChange} />
+
+          <ModalField>
+            <ModalLabel>Nickname (optional)</ModalLabel>
+            <ModalInput
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={200}
+              placeholder="What this group calls the line"
+              disabled={addFish.isPending}
+            />
+          </ModalField>
+
+          {addFish.error && <ModalText role="alert">{addFish.error.message}</ModalText>}
+        </ModalBody>
+
+        <ModalFoot>
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={close}
+            disabled={addFish.isPending}
           >
-            <option value="" disabled>
-              {wildtypes.error
-                ? "ZFIN's wild-type lines are not available"
-                : wildtypes.data
-                  ? "Choose a line"
-                  : "Loading…"}
-            </option>
-            {wildtypes.data?.map((w) => (
-              <option key={w.genotype_id} value={w.genotype_id}>
-                {w.name}
-              </option>
-            ))}
-          </ModalSelect>
-        </ModalField>
-
-        <ModalField>
-          <ModalLabel>Nickname (optional)</ModalLabel>
-          <ModalInput
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            maxLength={200}
-            placeholder="What this group calls the line"
-          />
-        </ModalField>
-
-        {addFish.error && (
-          <ModalText role="alert">{addFish.error.message}</ModalText>
-        )}
-
-        <ModalActions>
-          <button className="btn btn--neutral" type="button" onClick={close}>
             Cancel
           </button>
           <button
             className="btn btn--primary"
-            type="submit"
-            disabled={addFish.isPending || !wildtypes.data}
+            type="button"
+            onClick={save}
+            disabled={!fish || addFish.isPending}
           >
-            {addFish.isPending ? "Adding…" : "Add"}
+            {addFish.isPending ? "Adding…" : "Add to tank"}
           </button>
-        </ModalActions>
-      </ModalForm>
+        </ModalFoot>
+      </ModalBanded>
     </Modal>
   );
 };
