@@ -149,6 +149,23 @@ export const toFishBody = (
   genotype_zfin_id: null,
 });
 
+const withoutId = <T extends { id: unknown }>(row: T): Omit<T, "id"> => {
+  const copy: Partial<T> = { ...row };
+  delete copy.id;
+  return copy as Omit<T, "id">;
+};
+
+/**
+ * A saved fish as a body to save again, for an experiment taking its own
+ * copy of a tank entry's. The rows' ids are left behind: they name the
+ * tank's rows, and a body does not take any.
+ */
+export const copyOf = (fish: Fish): FishBody => ({
+  ...withoutId(fish),
+  allele: (fish.allele ?? []).map(withoutId),
+  transient_reagent: (fish.transient_reagent ?? []).map(withoutId),
+});
+
 /** The resolve request for a fish body. */
 export const toDescription = (fish: FishBody): FishDescription => ({
   background_id: fish.background_zfin_id ?? null,

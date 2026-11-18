@@ -4,7 +4,7 @@ import { useFishTank } from "@/api/hooks";
 import type { FishTankEntry } from "@/api/types";
 import { StockAdd, StockChoices, StockChosen } from "@/components/StockPanel";
 import AddFishForm from "@/features/groups/AddFishForm";
-import { describeFish, zfinStatus } from "@/fish";
+import { copyOf, describeFish, zfinStatus } from "@/fish";
 import { EntryCard, FieldGrid, TextInput } from "@/styles/elements";
 import Field from "../Field";
 import type { Submission } from "../submission";
@@ -23,7 +23,7 @@ const FishFromTank = ({ groupId }: { groupId: number }) => {
     setValue("fish.entryId", String(entry.id));
     // The experiment stores its own copy, so the tank entry can change later
     // without rewriting what this submission said.
-    setValue("fish.description", { ...entry.fish });
+    setValue("fish.description", copyOf(entry.fish));
   };
 
   const clear = () => {
