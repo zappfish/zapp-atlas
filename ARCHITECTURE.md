@@ -334,7 +334,9 @@ just dev-api-hmr                       # uvicorn, pointed at Vite
 #   → open http://localhost:8000/edit/  (NOT :5173)
 
 just test          # pytest
-just e2e           # browser tests (Playwright) against a real server
+just e2e           # browser tests (Playwright) against a real server, with a
+                   # zfin.db built from server/tests/zfin_fixture in place of
+                   # the bundle, so they run where no bundle is installed
 just seed          # reseed the dev database
 just build-client  # emit client/dist for production-style serving
 just extdata       # build the ontology bundle into extdata/dist (docker)
@@ -359,8 +361,19 @@ not entered by hand; a fish without them is one ZFIN has not registered.
 Each experiment and tank entry owns its own `Fish` row, built by the generic
 save path like any other owned part. The alteration and zygosity enums carry
 SO and GENO terms as meanings, which is how a ZFIN record's SO id maps to an
-enum value. Until the picker is built, the tank's add form takes a wild-type
-background and a nickname.
+enum value.
+
+A line is described in the fish tank and picked from it on the submission
+form, the way a chemical is added to the cabinet and picked from it. The
+tank's add dialog (`features/groups/AddFishForm.tsx`, around
+`features/fish/FishBuilder.tsx`) takes a wild-type background, alleles found
+by symbol, gene or construct fragment (`AlleleSearch`), and a zygosity for
+each (`AlleleCard`); as the description changes it calls `resolve` and shows
+the result as a line of text. The form's fish section
+(`sections/FishSection.tsx`) picks a tank entry or opens the same dialog.
+Helpers for building the body and wording the cards are in
+`client/src/fish.ts`. The dialog uses existing elements and plain controls
+and has not been designed yet.
 
 The fish form is meant to work by description: the curator picks a wild-type
 background, adds alleles by typing a symbol or gene and setting zygosity

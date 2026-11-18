@@ -156,8 +156,9 @@ until the group-scoped endpoints are wired in. The data form is not built yet.
 `Fish` is a description (background, alleles with zygosity, injected
 reagents) with optional ZFIN ids filled from `/api/zfin/resolve`. ZFIN's
 registry of fish lines is served read-only at `/api/zfin` from the
-extdata bundle, for a fish picker that is not built yet either; the tank's
-add form takes only a background until then (see ARCHITECTURE.md,
+extdata bundle. A fish is described in the tank's add dialog and picked
+from the tank on the submission form; the dialog uses existing elements and
+plain controls and has not been designed yet (see ARCHITECTURE.md,
 "Reference data for the fish picker"). Every `/api` write
 requires a signed-in caller, and the study tree can be written only by members
 of the study's research group. The submission form does not save to the server
