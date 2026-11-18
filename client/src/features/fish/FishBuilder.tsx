@@ -6,7 +6,6 @@ import {
   resolutionText,
   toDescription,
   toFishBody,
-  withResolution,
   type AlleleChoice,
 } from "@/fish";
 import { ModalField, ModalLabel, ModalSelect, ModalText, ModalTextArea } from "@/styles/elements";
@@ -16,7 +15,8 @@ import AlleleSearch from "./AlleleSearch";
 /**
  * Builds a fish description: a wild-type background, alleles with their
  * zygosity, free text for the rest. As it changes, /api/zfin/resolve is
- * called and the ids from the result are set on the body handed back.
+ * called to show what ZFIN has registered for it; the server does the same
+ * match on save and stores the ids.
  *
  * `onChange` gets the body when every allele has a zygosity, else null.
  */
@@ -42,13 +42,7 @@ const FishBuilder = ({
   );
   const description = useMemo(() => (body ? toDescription(body) : null), [body]);
   const resolution = useResolveFish(description);
-
-  // The body the caller stores: the description plus whatever ZFIN attached.
-  const resolved = useMemo(
-    () => (body ? withResolution(body, resolution.data) : null),
-    [body, resolution.data],
-  );
-  useEffect(() => onChange(resolved), [resolved, onChange]);
+  useEffect(() => onChange(body), [body, onChange]);
 
   const add = (allele: ZfinAllele) =>
     setAlleles((was) => [

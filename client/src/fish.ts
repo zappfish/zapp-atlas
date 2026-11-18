@@ -36,7 +36,7 @@ export const describeFish = (fish: Fish | FishBody): string => {
 };
 
 /** What ZFIN knows the fish as, or that it is not registered. */
-export const zfinStatus = (fish: Fish | FishBody): string =>
+export const zfinStatus = (fish: Fish): string =>
   fish.genotype_zfin_id ?? "Not registered with ZFIN";
 
 /**
@@ -133,8 +133,8 @@ const alleleBody = ({
   };
 };
 
-/** A fish body from what the builder collected, before ZFIN's ids attach.
- *  Every allele must have its zygosity answered (see ``isAnswered``). */
+/** A fish body from what the builder collected. Every allele must have its
+ *  zygosity answered (see ``isAnswered``). The server adds ZFIN's ids. */
 export const toFishBody = (
   alleles: AlleleChoice[],
   background: { genotype_id: string; abbreviation: string } | null,
@@ -145,8 +145,6 @@ export const toFishBody = (
   allele: alleles.map(alleleBody),
   transient_reagent: [],
   line_description: lineDescription.trim() || null,
-  fish_zfin_id: null,
-  genotype_zfin_id: null,
 });
 
 const withoutId = <T extends { id: unknown }>(row: T): Omit<T, "id"> => {
@@ -157,14 +155,21 @@ const withoutId = <T extends { id: unknown }>(row: T): Omit<T, "id"> => {
 
 /**
  * A saved fish as a body to save again, for an experiment taking its own
- * copy of a tank entry's. The rows' ids are left behind: they name the
- * tank's rows, and a body does not take any.
+ * copy of a tank entry's. Left behind are what a body does not take: the
+ * rows' ids, which name the tank's rows, and the ZFIN ids, which the server
+ * sets.
  */
-export const copyOf = (fish: Fish): FishBody => ({
-  ...withoutId(fish),
-  allele: (fish.allele ?? []).map(withoutId),
-  transient_reagent: (fish.transient_reagent ?? []).map(withoutId),
-});
+export const copyOf = (fish: Fish): FishBody => {
+  const body: Partial<Fish> = { ...fish };
+  delete body.id;
+  delete body.fish_zfin_id;
+  delete body.genotype_zfin_id;
+  return {
+    ...body,
+    allele: (fish.allele ?? []).map(withoutId),
+    transient_reagent: (fish.transient_reagent ?? []).map(withoutId),
+  };
+};
 
 /** The resolve request for a fish body. */
 export const toDescription = (fish: FishBody): FishDescription => ({
@@ -178,13 +183,6 @@ export const toDescription = (fish: FishBody): FishDescription => ({
   reagents: (fish.transient_reagent ?? [])
     .map((r) => r.reagent_zfin_id)
     .filter((id): id is string => !!id),
-});
-
-/** The fish with the ids from ZFIN's answer, set when it names one genotype and fish. */
-export const withResolution = (fish: FishBody, found: FishResolution | undefined): FishBody => ({
-  ...fish,
-  genotype_zfin_id: found?.genotype?.genotype_id ?? null,
-  fish_zfin_id: found?.fish?.fish_id ?? null,
 });
 
 /** The resolve result as a sentence. */

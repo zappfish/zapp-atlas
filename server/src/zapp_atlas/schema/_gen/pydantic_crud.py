@@ -1360,12 +1360,16 @@ class ExposureTypeRead(ReadBaseModel):
 
 class Fish(ZappEntity):
     """
-    A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The ZFIN ids are filled by matching the description against ZFIN's registered records (POST /api/zfin/resolve) and are absent when ZFIN has no such record.
+    A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The server sets fish_zfin_id and genotype_zfin_id when the fish is saved, by matching the description against ZFIN's registered records; they are absent when ZFIN has no such record.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-FISH-150901-27842'}]} })
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}]} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'],
+         'examples': [{'value': 'ZFIN:ZDB-FISH-150901-27842'}],
+         'readonly': "Set by the server from ZFIN's registry when the fish is saved."} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'],
+         'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}],
+         'readonly': "Set by the server from ZFIN's registry when the fish is saved."} })
     background_zfin_id: Optional[str] = Field(default=None, description="""The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}]} })
     background_name: Optional[str] = Field(default=None, description="""The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'AB'}]} })
     allele: Optional[list[Allele]] = Field(default=None, description="""The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
@@ -1417,39 +1421,11 @@ class FishInput(ConfiguredBaseModel):
     """
     What the API accepts for Fish.
     """
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-FISH-150901-27842'}]} })
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}]} })
     background_zfin_id: Optional[str] = Field(default=None, description="""The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}]} })
     background_name: Optional[str] = Field(default=None, description="""The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'AB'}]} })
     allele: Optional[list[AlleleInput]] = Field(default=None, description="""The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     transient_reagent: Optional[list[TransientReagentInput]] = Field(default=None, description="""The reagents injected into the embryos.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     line_description: Optional[str] = Field(default=None, description="""Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-
-    @field_validator('fish_zfin_id')
-    def pattern_fish_zfin_id(cls, v):
-        pattern=re.compile(r"^ZFIN:ZDB-FISH-\d{6}-\d+$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid fish_zfin_id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid fish_zfin_id format: {v}"
-            raise ValueError(err_msg)
-        return v
-
-    @field_validator('genotype_zfin_id')
-    def pattern_genotype_zfin_id(cls, v):
-        pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid genotype_zfin_id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid genotype_zfin_id format: {v}"
-            raise ValueError(err_msg)
-        return v
 
     @field_validator('background_zfin_id')
     def pattern_background_zfin_id(cls, v):
@@ -1469,8 +1445,12 @@ class FishRead(ReadBaseModel):
     """
     What the API returns for Fish, with everything beneath it.
     """
-    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-FISH-150901-27842'}]} })
-    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}]} })
+    fish_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'],
+         'examples': [{'value': 'ZFIN:ZDB-FISH-150901-27842'}],
+         'readonly': "Set by the server from ZFIN's registry when the fish is saved."} })
+    genotype_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'],
+         'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}],
+         'readonly': "Set by the server from ZFIN's registry when the fish is saved."} })
     background_zfin_id: Optional[str] = Field(default=None, description="""The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'ZFIN:ZDB-GENO-960809-7'}]} })
     background_name: Optional[str] = Field(default=None, description="""The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish'], 'examples': [{'value': 'AB'}]} })
     allele: Optional[list[AlleleRead]] = Field(default=None, description="""The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })

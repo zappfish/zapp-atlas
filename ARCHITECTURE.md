@@ -356,8 +356,11 @@ ZFIN's registered alleles, genotypes, fish and wild-type lines, read through
 wild-type background (`background_zfin_id`, `background_name`), mutant and
 transgenic alleles with their zygosity, injected reagents (in the model, not
 yet in the form), and `line_description` for anything else. `fish_zfin_id`
-and `genotype_zfin_id` are optional and are filled from `/api/zfin/resolve`,
-not entered by hand; a fish without them is one ZFIN has not registered.
+and `genotype_zfin_id` are set by the server each time a fish is saved, by
+matching the description against ZFIN's registry (`api/fish.py`); a fish
+without them is one ZFIN has not registered, or one with an allele ZFIN does
+not have. The schema marks the two slots `readonly`, which keeps them out of
+request bodies: the layout sorts such a slot as `DERIVED`.
 Each experiment and tank entry owns its own `Fish` row, built by the generic
 save path like any other owned part. The alteration and zygosity enums carry
 SO and GENO terms as meanings, which is how a ZFIN record's SO id maps to an

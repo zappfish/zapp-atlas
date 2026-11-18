@@ -459,7 +459,7 @@
     },
     "Fish": {
       "additionalProperties": false,
-      "description": "A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The ZFIN ids are filled by matching the description against ZFIN's registered records (POST /api/zfin/resolve) and are absent when ZFIN has no such record.",
+      "description": "A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The server sets fish_zfin_id and genotype_zfin_id when the fish is saved, by matching the description against ZFIN's registered records; they are absent when ZFIN has no such record.",
       "properties": {
         "allele": {
           "description": "The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.",

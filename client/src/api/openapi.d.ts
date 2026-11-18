@@ -1429,16 +1429,6 @@ export interface components {
              */
             background_zfin_id?: string | null;
             /**
-             * Fish Zfin Id
-             * @description ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.
-             */
-            fish_zfin_id?: string | null;
-            /**
-             * Genotype Zfin Id
-             * @description ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.
-             */
-            genotype_zfin_id?: string | null;
-            /**
              * Line Description
              * @description Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched.
              */

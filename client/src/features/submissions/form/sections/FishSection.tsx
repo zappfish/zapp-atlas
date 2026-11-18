@@ -32,11 +32,13 @@ const FishFromTank = ({ groupId }: { groupId: number }) => {
   };
 
   if (description) {
-    const nickname = tank.find((row) => String(row.id) === entryId)?.nickname;
+    // The copy has no ZFIN ids until it is saved; the entry it came from does.
+    const entry = tank.find((row) => String(row.id) === entryId);
+    const nickname = entry?.nickname;
     return (
       <StockChosen
         name={nickname ?? describeFish(description)}
-        detail={[nickname && describeFish(description), zfinStatus(description)]
+        detail={[nickname && describeFish(description), entry && zfinStatus(entry.fish)]
           .filter(Boolean)
           .join(" · ")}
         onChange={clear}

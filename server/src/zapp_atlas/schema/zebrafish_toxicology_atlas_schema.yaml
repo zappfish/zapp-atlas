@@ -298,9 +298,9 @@ classes:
     description: >-
       A zebrafish line as the curator describes it: alleles on a wild-type
       background, plus any transient reagents injected into the embryos. The
-      ZFIN ids are filled by matching the description against ZFIN's
-      registered records (POST /api/zfin/resolve) and are absent when ZFIN
-      has no such record.
+      server sets fish_zfin_id and genotype_zfin_id when the fish is saved,
+      by matching the description against ZFIN's registered records; they
+      are absent when ZFIN has no such record.
     slots:
       - fish_zfin_id
       - genotype_zfin_id
@@ -559,6 +559,7 @@ slots:
       ZFIN's id for the registered fish this description matches (ZDB-FISH-…),
       when it matches one.
     range: uriorcurie
+    readonly: Set by the server from ZFIN's registry when the fish is saved.
     pattern: "^ZFIN:ZDB-FISH-\\d{6}-\\d+$"
     examples:
       - value: ZFIN:ZDB-FISH-150901-27842
@@ -567,6 +568,7 @@ slots:
       ZFIN's id for the registered genotype this description matches
       (ZDB-GENO-…), when it matches one.
     range: uriorcurie
+    readonly: Set by the server from ZFIN's registry when the fish is saved.
     pattern: "^ZFIN:ZDB-GENO-\\d{6}-\\d+$"
     examples:
       - value: ZFIN:ZDB-GENO-960809-7

@@ -17,8 +17,8 @@ import {
 
 /**
  * Adds a line to the group's tank: background, alleles with zygosity, notes,
- * and an optional nickname the group picks it by. The ZFIN ids come from the
- * resolve result.
+ * and an optional nickname the group picks it by. The server sets the ZFIN
+ * ids when it saves the entry.
  */
 const AddFishForm = ({
   groupId,

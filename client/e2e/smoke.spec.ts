@@ -154,7 +154,7 @@ test("a fish described in the tank dialog gets its ZFIN ids, and the form offers
   await expect(tank.getByText("fh111 carriers")).toBeVisible();
   await expect(tank.getByText("ZFIN:ZDB-GENO-160602-1")).toBeVisible();
 
-  // Stored as described, with the ids from the resolve result.
+  // Stored as described, with the ids the server matched.
   const groups = await (await page.request.get("/api/research-groups")).json();
   const entries = await (
     await page.request.get(`/api/research-groups/${groups[0].id}/fish-tank`)

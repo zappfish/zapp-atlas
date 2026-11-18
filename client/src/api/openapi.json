@@ -1825,50 +1825,6 @@
             },
             "title": "Background Zfin Id"
           },
-          "fish_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the registered fish this description matches (ZDB-FISH-\u2026), when it matches one.",
-            "linkml_meta": {
-              "domain_of": [
-                "Fish"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-FISH-150901-27842"
-                }
-              ]
-            },
-            "title": "Fish Zfin Id"
-          },
-          "genotype_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the registered genotype this description matches (ZDB-GENO-\u2026), when it matches one.",
-            "linkml_meta": {
-              "domain_of": [
-                "Fish"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-GENO-960809-7"
-                }
-              ]
-            },
-            "title": "Genotype Zfin Id"
-          },
           "line_description": {
             "anyOf": [
               {
@@ -1995,7 +1951,8 @@
                 {
                   "value": "ZFIN:ZDB-FISH-150901-27842"
                 }
-              ]
+              ],
+              "readonly": "Set by the server from ZFIN's registry when the fish is saved."
             },
             "title": "Fish Zfin Id"
           },
@@ -2017,7 +1974,8 @@
                 {
                   "value": "ZFIN:ZDB-GENO-960809-7"
                 }
-              ]
+              ],
+              "readonly": "Set by the server from ZFIN's registry when the fish is saved."
             },
             "title": "Genotype Zfin Id"
           },

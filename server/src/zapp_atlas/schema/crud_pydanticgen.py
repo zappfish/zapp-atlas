@@ -4,9 +4,9 @@ Extends LinkML's PydanticGenerator to emit, beside each class, the variants the
 API speaks in:
 
 * ``Input`` -- what the API accepts for a class: no server-generated ``id``,
-  nested entities as their own Input variants, and -- for a class the API layout
-  names as a level -- no slot holding the next level down, which is a resource
-  of its own.
+  no slot the schema marks ``readonly``, nested entities as their own Input
+  variants, and -- for a class the API layout names as a level -- no slot
+  holding the next level down, which is a resource of its own.
 * ``Read`` -- what the API returns: every field, nested classes as their Read
   variants, built straight from ORM rows (``from_attributes=True``).
 * ``Summary`` -- a Read that stops where the Input does, for listing a level
@@ -97,6 +97,7 @@ class CrudPydanticGenerator(PydanticGenerator):
         for name, cls in template.classes.items():
             classes[name] = cls
             next_level = {s.name for s in layout.slots(name) if s.kind is SlotKind.LEVEL}
+            derived = {s.name for s in layout.slots(name) if s.kind is SlotKind.DERIVED}
 
             if name in entities:
                 classes[f"{name}Input"] = _variant(
@@ -104,7 +105,7 @@ class CrudPydanticGenerator(PydanticGenerator):
                     "Input",
                     base="ConfiguredBaseModel",
                     description=f"What the API accepts for {name}.",
-                    without=next_level | {"id"},
+                    without=next_level | derived | {"id"},
                     nested=entities,
                     nested_suffix="Input",
                 )

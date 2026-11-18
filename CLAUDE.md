@@ -154,7 +154,8 @@ login, and a research group dashboard whose fish tank / chemical cabinet /
 submissions render from placeholder data (`html/dashboard_placeholder.py`)
 until the group-scoped endpoints are wired in. The data form is not built yet.
 `Fish` is a description (background, alleles with zygosity, injected
-reagents) with optional ZFIN ids filled from `/api/zfin/resolve`. ZFIN's
+reagents); the server sets its ZFIN ids on save by matching the description
+against the registry, and a request cannot send them. ZFIN's
 registry of fish lines is served read-only at `/api/zfin` from the
 extdata bundle. A fish is described in the tank's add dialog and picked
 from the tank on the submission form; the dialog uses existing elements and

@@ -2,7 +2,9 @@
 
 Nothing here names a slot. ``assign`` walks the slots the layout says a class's
 request body carries and stores each according to its kind, so a slot added to
-the schema is persisted without a matching edit here.
+the schema is persisted without a matching edit here. What a body does not
+carry because the server works it out (``SlotKind.DERIVED``) is set by the
+class's entry in ``_DERIVE``.
 """
 
 from collections.abc import Callable, Iterator
@@ -14,9 +16,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.errors import SchemaRuleViolation
+from zapp_atlas.api.fish import set_zfin_ids
 from zapp_atlas.api.layout import Slot, SlotKind, layout
 from zapp_atlas.schema import sqla
 from zapp_atlas.schema.sqla import Base
+
+# Sets a class's derived slots on a row, once the body has been stored on it.
+_DERIVE: dict[str, Callable[[Session, Base], None]] = {"Fish": set_zfin_ids}
 
 
 def build(session: Session, class_name: str, body: BaseModel) -> Base:
@@ -36,6 +42,8 @@ def assign(session: Session, class_name: str, row: Base, body: BaseModel) -> Non
     for slot in layout().body_slots(class_name):
         setattr(row, slot.name, _stored(session, slot, getattr(body, slot.name)))
     _check_rules(class_name, row)
+    if class_name in _DERIVE:
+        _DERIVE[class_name](session, row)
 
 
 def _stored(session: Session, slot: Slot, value: object) -> object:

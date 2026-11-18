@@ -90,7 +90,7 @@ def test_experiment_put_updates_rearing_and_fish(client: TestClient, group: int)
     assert patched["standard_rearing_condition"] is False
     assert patched["rearing_condition_comment"] == "temperature 24C"
     assert patched["fish"]["background_name"] == "TU"
-    assert patched["fish"]["genotype_zfin_id"] is None  # not resolved: nothing was sent
+    assert patched["fish"]["genotype_zfin_id"] is None  # no bundle to match against
     [allele] = patched["fish"]["allele"]
     assert (allele["allele_symbol"], allele["zygosity"]) == ("ti282a", "homozygous")
     assert allele["mother_zygosity"] is None

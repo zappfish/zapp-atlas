@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from zapp_atlas.main import create_app
 from zapp_atlas.settings import AppSettings
+from zapp_atlas.zfin import Zfin
 
 
 @pytest.fixture(autouse=True)
@@ -88,6 +89,8 @@ def session() -> Iterator[Session]:
     engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
     init_db(engine)
     with Session(engine) as session:
+        # As the app's sessions carry it; with no bundle, no fish is matched.
+        session.info["zfin"] = Zfin(Path("no-bundle") / "zfin.db")
         yield session
 
 

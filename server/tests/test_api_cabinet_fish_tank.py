@@ -666,7 +666,7 @@ def test_tank_rejects_malformed_ids_and_zygosity(client: TestClient) -> None:
     url = f"/api/research-groups/{group_id}/fish-tank"
     bad = [
         {"fish": {**AB, "background_zfin_id": "not-a-zfin"}},
-        {"fish": {**AB, "fish_zfin_id": AB_LINE}},  # a genotype id where a fish id goes
+        {"fish": {**AB, "genotype_zfin_id": AB_LINE}},  # the server's to set
         {"fish": {**AB, "allele": [{**TI282A, "zygosity": "hemizygous"}]}},
         {"fish": {**AB, "allele": [{**TI282A, "allele_symbol": None}]}},
         # Only a parent can be wild type for an allele the fish carries.

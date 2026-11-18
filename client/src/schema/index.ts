@@ -511,7 +511,7 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The ZFIN ids are filled by matching the description against ZFIN's registered records (POST /api/zfin/resolve) and are absent when ZFIN has no such record.
+ * A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The server sets fish_zfin_id and genotype_zfin_id when the fish is saved, by matching the description against ZFIN's registered records; they are absent when ZFIN has no such record.
  */
 export interface Fish extends ZappEntity {
     /** ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one. */
