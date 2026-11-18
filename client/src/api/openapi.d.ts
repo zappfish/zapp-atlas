@@ -908,6 +908,99 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AlleleInput
+         * @description What the API accepts for Allele.
+         */
+        AlleleInput: {
+            /**
+             * Affected Gene Symbol
+             * @description The symbol of the gene the allele affects, e.g. fgf8a.
+             */
+            affected_gene_symbol?: string | null;
+            /**
+             * Affected Gene Zfin Id
+             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.
+             */
+            affected_gene_zfin_id?: string | null;
+            /**
+             * Allele Symbol
+             * @description The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
+             */
+            allele_symbol: string;
+            /**
+             * Allele Zfin Id
+             * @description ZFIN's id for the allele (ZDB-ALT-…).
+             */
+            allele_zfin_id?: string | null;
+            /** @description The kind of sequence alteration the allele is. */
+            alteration_type?: components["schemas"]["SequenceAlterationTypeEnum"] | null;
+            /**
+             * Construct Name
+             * @description The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).
+             */
+            construct_name?: string | null;
+            /**
+             * Construct Zfin Id
+             * @description ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele.
+             */
+            construct_zfin_id?: string | null;
+            /** @description The allele's zygosity in the father, when known. */
+            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /** @description The allele's zygosity in the mother, when known. */
+            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
+            zygosity: components["schemas"]["ZygosityEnum"];
+        };
+        /**
+         * AlleleRead
+         * @description What the API returns for Allele, with everything beneath it.
+         */
+        AlleleRead: {
+            /**
+             * Affected Gene Symbol
+             * @description The symbol of the gene the allele affects, e.g. fgf8a.
+             */
+            affected_gene_symbol?: string | null;
+            /**
+             * Affected Gene Zfin Id
+             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.
+             */
+            affected_gene_zfin_id?: string | null;
+            /**
+             * Allele Symbol
+             * @description The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
+             */
+            allele_symbol: string;
+            /**
+             * Allele Zfin Id
+             * @description ZFIN's id for the allele (ZDB-ALT-…).
+             */
+            allele_zfin_id?: string | null;
+            /** @description The kind of sequence alteration the allele is. */
+            alteration_type?: components["schemas"]["SequenceAlterationTypeEnum"] | null;
+            /**
+             * Construct Name
+             * @description The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).
+             */
+            construct_name?: string | null;
+            /**
+             * Construct Zfin Id
+             * @description ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele.
+             */
+            construct_zfin_id?: string | null;
+            /** @description The allele's zygosity in the father, when known. */
+            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /**
+             * Id
+             * @description Auto-generated integer identifier.
+             */
+            id: number;
+            /** @description The allele's zygosity in the mother, when known. */
+            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
+            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
+            zygosity: components["schemas"]["ZygosityEnum"];
+        };
         /** Body_dev_login_auth_dev_login_post */
         Body_dev_login_auth_dev_login_post: {
             /**
@@ -1321,6 +1414,11 @@ export interface components {
          */
         FishInput: {
             /**
+             * Allele
+             * @description The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.
+             */
+            allele?: components["schemas"]["AlleleInput"][] | null;
+            /**
              * Background Name
              * @description The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.
              */
@@ -1346,16 +1444,6 @@ export interface components {
              */
             line_description?: string | null;
             /**
-             * Mutant Allele
-             * @description The mutant alleles the fish carries.
-             */
-            mutant_allele?: components["schemas"]["MutantAlleleInput"][] | null;
-            /**
-             * Transgenic Allele
-             * @description The transgenic insertions the fish carries.
-             */
-            transgenic_allele?: components["schemas"]["TransgenicAlleleInput"][] | null;
-            /**
              * Transient Reagent
              * @description The reagents injected into the embryos.
              */
@@ -1366,6 +1454,11 @@ export interface components {
          * @description What the API returns for Fish, with everything beneath it.
          */
         FishRead: {
+            /**
+             * Allele
+             * @description The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.
+             */
+            allele?: components["schemas"]["AlleleRead"][] | null;
             /**
              * Background Name
              * @description The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.
@@ -1396,16 +1489,6 @@ export interface components {
              * @description Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched.
              */
             line_description?: string | null;
-            /**
-             * Mutant Allele
-             * @description The mutant alleles the fish carries.
-             */
-            mutant_allele?: components["schemas"]["MutantAlleleRead"][] | null;
-            /**
-             * Transgenic Allele
-             * @description The transgenic insertions the fish carries.
-             */
-            transgenic_allele?: components["schemas"]["TransgenicAlleleRead"][] | null;
             /**
              * Transient Reagent
              * @description The reagents injected into the embryos.
@@ -1534,79 +1617,6 @@ export interface components {
          */
         MemberPatch: {
             role: components["schemas"]["ResearchGroupRoleEnum"];
-        };
-        /**
-         * MutantAlleleInput
-         * @description What the API accepts for MutantAllele.
-         */
-        MutantAlleleInput: {
-            /**
-             * Affected Gene Symbol
-             * @description The symbol of the gene the allele affects, e.g. fgf8a.
-             */
-            affected_gene_symbol?: string | null;
-            /**
-             * Affected Gene Zfin Id
-             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…).
-             */
-            affected_gene_zfin_id?: string | null;
-            /**
-             * Allele Symbol
-             * @description The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
-             */
-            allele_symbol: string;
-            /**
-             * Allele Zfin Id
-             * @description ZFIN's id for the allele (ZDB-ALT-…).
-             */
-            allele_zfin_id?: string | null;
-            /** @description The kind of sequence alteration the allele is. */
-            alteration_type?: components["schemas"]["SequenceAlterationTypeEnum"] | null;
-            /** @description The allele's zygosity in the father, when known. */
-            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the mother, when known. */
-            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
-            zygosity: components["schemas"]["ZygosityEnum"];
-        };
-        /**
-         * MutantAlleleRead
-         * @description What the API returns for MutantAllele, with everything beneath it.
-         */
-        MutantAlleleRead: {
-            /**
-             * Affected Gene Symbol
-             * @description The symbol of the gene the allele affects, e.g. fgf8a.
-             */
-            affected_gene_symbol?: string | null;
-            /**
-             * Affected Gene Zfin Id
-             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…).
-             */
-            affected_gene_zfin_id?: string | null;
-            /**
-             * Allele Symbol
-             * @description The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
-             */
-            allele_symbol: string;
-            /**
-             * Allele Zfin Id
-             * @description ZFIN's id for the allele (ZDB-ALT-…).
-             */
-            allele_zfin_id?: string | null;
-            /** @description The kind of sequence alteration the allele is. */
-            alteration_type?: components["schemas"]["SequenceAlterationTypeEnum"] | null;
-            /** @description The allele's zygosity in the father, when known. */
-            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /**
-             * Id
-             * @description Auto-generated integer identifier.
-             */
-            id: number;
-            /** @description The allele's zygosity in the mother, when known. */
-            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
-            zygosity: components["schemas"]["ZygosityEnum"];
         };
         /** NormResult */
         NormResult: {
@@ -2179,99 +2189,6 @@ export interface components {
             updated_at: string | null;
         };
         /**
-         * TransgenicAlleleInput
-         * @description What the API accepts for TransgenicAllele.
-         */
-        TransgenicAlleleInput: {
-            /**
-             * Affected Gene Symbol
-             * @description The driver or reporter gene's symbol, e.g. fli1a.
-             */
-            affected_gene_symbol?: string | null;
-            /**
-             * Affected Gene Zfin Id
-             * @description ZFIN's id for the construct's driver or reporter gene, when recorded.
-             */
-            affected_gene_zfin_id?: string | null;
-            /**
-             * Allele Symbol
-             * @description The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
-             */
-            allele_symbol: string;
-            /**
-             * Allele Zfin Id
-             * @description ZFIN's id for the allele (ZDB-ALT-…).
-             */
-            allele_zfin_id?: string | null;
-            /** @description The kind of alteration; a transgenic insertion unless ZFIN says otherwise. */
-            alteration_type?: components["schemas"]["SequenceAlterationTypeEnum"] | null;
-            /**
-             * Construct Name
-             * @description The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).
-             */
-            construct_name?: string | null;
-            /**
-             * Construct Zfin Id
-             * @description ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…).
-             */
-            construct_zfin_id?: string | null;
-            /** @description The allele's zygosity in the father, when known. */
-            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the mother, when known. */
-            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
-            zygosity: components["schemas"]["ZygosityEnum"];
-        };
-        /**
-         * TransgenicAlleleRead
-         * @description What the API returns for TransgenicAllele, with everything beneath it.
-         */
-        TransgenicAlleleRead: {
-            /**
-             * Affected Gene Symbol
-             * @description The driver or reporter gene's symbol, e.g. fli1a.
-             */
-            affected_gene_symbol?: string | null;
-            /**
-             * Affected Gene Zfin Id
-             * @description ZFIN's id for the construct's driver or reporter gene, when recorded.
-             */
-            affected_gene_zfin_id?: string | null;
-            /**
-             * Allele Symbol
-             * @description The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.
-             */
-            allele_symbol: string;
-            /**
-             * Allele Zfin Id
-             * @description ZFIN's id for the allele (ZDB-ALT-…).
-             */
-            allele_zfin_id?: string | null;
-            /** @description The kind of alteration; a transgenic insertion unless ZFIN says otherwise. */
-            alteration_type?: components["schemas"]["SequenceAlterationTypeEnum"] | null;
-            /**
-             * Construct Name
-             * @description The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).
-             */
-            construct_name?: string | null;
-            /**
-             * Construct Zfin Id
-             * @description ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…).
-             */
-            construct_zfin_id?: string | null;
-            /** @description The allele's zygosity in the father, when known. */
-            father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /**
-             * Id
-             * @description Auto-generated integer identifier.
-             */
-            id: number;
-            /** @description The allele's zygosity in the mother, when known. */
-            mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
-            zygosity: components["schemas"]["ZygosityEnum"];
-        };
-        /**
          * TransientReagentInput
          * @description What the API accepts for TransientReagent.
          */
@@ -2283,7 +2200,7 @@ export interface components {
             affected_gene_symbol?: string | null;
             /**
              * Affected Gene Zfin Id
-             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…).
+             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.
              */
             affected_gene_zfin_id?: string | null;
             /**
@@ -2311,7 +2228,7 @@ export interface components {
             affected_gene_symbol?: string | null;
             /**
              * Affected Gene Zfin Id
-             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…).
+             * @description ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.
              */
             affected_gene_zfin_id?: string | null;
             /**
@@ -2656,6 +2573,8 @@ export interface components {
     headers: never;
     pathItems: never;
 }
+export type AlleleInput = components['schemas']['AlleleInput'];
+export type AlleleRead = components['schemas']['AlleleRead'];
 export type BodyDevLoginAuthDevLoginPost = components['schemas']['Body_dev_login_auth_dev_login_post'];
 export type CabinetEntryIn = components['schemas']['CabinetEntryIn'];
 export type CabinetEntryOut = components['schemas']['CabinetEntryOut'];
@@ -2685,8 +2604,6 @@ export type ManufacturerEnum = components['schemas']['ManufacturerEnum'];
 export type MemberIn = components['schemas']['MemberIn'];
 export type MemberOut = components['schemas']['MemberOut'];
 export type MemberPatch = components['schemas']['MemberPatch'];
-export type MutantAlleleInput = components['schemas']['MutantAlleleInput'];
-export type MutantAlleleRead = components['schemas']['MutantAlleleRead'];
 export type NormResult = components['schemas']['NormResult'];
 export type NormalizeRequest = components['schemas']['NormalizeRequest'];
 export type NormalizeResponse = components['schemas']['NormalizeResponse'];
@@ -2717,8 +2634,6 @@ export type StudySummary = components['schemas']['StudySummary'];
 export type Suggestion = components['schemas']['Suggestion'];
 export type TankEntryIn = components['schemas']['TankEntryIn'];
 export type TankEntryOut = components['schemas']['TankEntryOut'];
-export type TransgenicAlleleInput = components['schemas']['TransgenicAlleleInput'];
-export type TransgenicAlleleRead = components['schemas']['TransgenicAlleleRead'];
 export type TransientReagentInput = components['schemas']['TransientReagentInput'];
 export type TransientReagentRead = components['schemas']['TransientReagentRead'];
 export type ValidationError = components['schemas']['ValidationError'];

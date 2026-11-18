@@ -306,56 +306,30 @@ classes:
       - genotype_zfin_id
       - background_zfin_id
       - background_name
-      - mutant_allele
-      - transgenic_allele
+      - allele
       - transient_reagent
       - line_description
 
-  MutantAllele:
+  Allele:
     is_a: ZappEntity
     description: >-
-      A mutant allele the fish carries: which gene it alters, and its zygosity
-      in the fish and, when known, the parents.
+      An allele the fish carries, mutant or transgenic: the gene it alters or
+      the construct it holds, and its zygosity in the fish and, when known,
+      the parents. ``alteration_type`` says which kind it is.
     slots:
       - allele_zfin_id
       - allele_symbol
       - alteration_type
       - affected_gene_zfin_id
       - affected_gene_symbol
-      - zygosity
-      - mother_zygosity
-      - father_zygosity
-    slot_usage:
-      allele_symbol:
-        required: true
-      zygosity:
-        required: true
-
-  TransgenicAllele:
-    is_a: ZappEntity
-    description: >-
-      A transgenic insertion the fish carries: the construct it holds, and its
-      zygosity in the fish and, when known, the parents.
-    slots:
-      - allele_zfin_id
-      - allele_symbol
-      - alteration_type
       - construct_zfin_id
       - construct_name
-      - affected_gene_zfin_id
-      - affected_gene_symbol
       - zygosity
       - mother_zygosity
       - father_zygosity
     slot_usage:
       allele_symbol:
         required: true
-      alteration_type:
-        description: The kind of alteration; a transgenic insertion unless ZFIN says otherwise.
-      affected_gene_zfin_id:
-        description: ZFIN's id for the construct's driver or reporter gene, when recorded.
-      affected_gene_symbol:
-        description: The driver or reporter gene's symbol, e.g. fli1a.
       zygosity:
         required: true
 
@@ -609,15 +583,11 @@ slots:
     range: string
     examples:
       - value: AB
-  mutant_allele:
-    description: The mutant alleles the fish carries.
-    range: MutantAllele
-    multivalued: true
-    inlined: true
-    inlined_as_list: true
-  transgenic_allele:
-    description: The transgenic insertions the fish carries.
-    range: TransgenicAllele
+  allele:
+    description: >-
+      The alleles the fish carries, mutant and transgenic alike, in the order
+      the curator gave them.
+    range: Allele
     multivalued: true
     inlined: true
     inlined_as_list: true
@@ -647,7 +617,9 @@ slots:
     description: The kind of sequence alteration the allele is.
     range: SequenceAlterationTypeEnum
   affected_gene_zfin_id:
-    description: ZFIN's id for the gene the allele affects (ZDB-GENE-…).
+    description: >-
+      ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic
+      insertion, the construct's driver or reporter gene when ZFIN records one.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-GENE-\\d{6}-\\d+$"
     examples:
@@ -658,7 +630,9 @@ slots:
     examples:
       - value: fgf8a
   construct_zfin_id:
-    description: ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…).
+    description: >-
+      ZFIN's id for the construct a transgenic insertion holds
+      (ZDB-TGCONSTRCT-…). Absent for a mutant allele.
     range: uriorcurie
     pattern: "^ZFIN:ZDB-TGCONSTRCT-\\d{6}-\\d+$"
     examples:

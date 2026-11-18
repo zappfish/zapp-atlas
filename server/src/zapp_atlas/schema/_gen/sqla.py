@@ -465,11 +465,8 @@ class Fish(ZappEntity):
     line_description: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
-    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='mutant_allele', mapping_type=None, target_class='MutantAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
-    mutant_allele: Mapped[list[MutantAllele]] = relationship(foreign_keys="[MutantAllele.Fish_id]")
-
-    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transgenic_allele', mapping_type=None, target_class='TransgenicAllele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
-    transgenic_allele: Mapped[list[TransgenicAllele]] = relationship(foreign_keys="[TransgenicAllele.Fish_id]")
+    # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='allele', mapping_type=None, target_class='Allele', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
+    allele: Mapped[list[Allele]] = relationship(foreign_keys="[Allele.Fish_id]")
 
     # One-To-Many: OneToAnyMapping(source_class='Fish', source_slot='transient_reagent', mapping_type=None, target_class='TransientReagent', target_slot='Fish_id', join_class=None, uses_join_table=None, multivalued=False)
     transient_reagent: Mapped[list[TransientReagent]] = relationship(foreign_keys="[TransientReagent.Fish_id]")
@@ -480,44 +477,20 @@ class Fish(ZappEntity):
     __mapper_args__ = {"concrete": True}
 
 
-class MutantAllele(ZappEntity):
+class Allele(ZappEntity):
     """
-    A mutant allele the fish carries: which gene it alters, and its zygosity in the fish and, when known, the parents.
+    An allele the fish carries, mutant or transgenic: the gene it alters or the construct it holds, and its zygosity in the fish and, when known, the parents. ``alteration_type`` says which kind it is.
     """
 
-    __tablename__ = "MutantAllele"
+    __tablename__ = "Allele"
 
     allele_zfin_id: Mapped[str | None] = mapped_column(Text())
     allele_symbol: Mapped[str] = mapped_column(Text())
     alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'mnv', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'deficiency', 'translocation', 'multiple_variants', 'unknown', name='SequenceAlterationTypeEnum'))
     affected_gene_zfin_id: Mapped[str | None] = mapped_column(Text())
     affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
-    zygosity: Mapped[str] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
-    mother_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
-    father_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
-    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
-
-    def __repr__(self):
-        return f"MutantAllele(allele_zfin_id={self.allele_zfin_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},affected_gene_zfin_id={self.affected_gene_zfin_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
-
-    __mapper_args__ = {"concrete": True}
-
-
-class TransgenicAllele(ZappEntity):
-    """
-    A transgenic insertion the fish carries: the construct it holds, and its zygosity in the fish and, when known, the parents.
-    """
-
-    __tablename__ = "TransgenicAllele"
-
-    allele_zfin_id: Mapped[str | None] = mapped_column(Text())
-    allele_symbol: Mapped[str] = mapped_column(Text())
-    alteration_type: Mapped[str | None] = mapped_column(Enum('point_mutation', 'substitution', 'deletion', 'insertion', 'indel', 'mnv', 'inversion', 'duplication', 'transgenic_insertion', 'complex_substitution', 'deficiency', 'translocation', 'multiple_variants', 'unknown', name='SequenceAlterationTypeEnum'))
     construct_zfin_id: Mapped[str | None] = mapped_column(Text())
     construct_name: Mapped[str | None] = mapped_column(Text())
-    affected_gene_zfin_id: Mapped[str | None] = mapped_column(Text())
-    affected_gene_symbol: Mapped[str | None] = mapped_column(Text())
     zygosity: Mapped[str] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
     mother_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
     father_zygosity: Mapped[str | None] = mapped_column(Enum('unknown', 'heterozygous', 'homozygous', 'complex', 'wild_type', name='ZygosityEnum'))
@@ -525,7 +498,7 @@ class TransgenicAllele(ZappEntity):
     Fish_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Fish.id"))
 
     def __repr__(self):
-        return f"TransgenicAllele(allele_zfin_id={self.allele_zfin_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},construct_zfin_id={self.construct_zfin_id},construct_name={self.construct_name},affected_gene_zfin_id={self.affected_gene_zfin_id},affected_gene_symbol={self.affected_gene_symbol},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
+        return f"Allele(allele_zfin_id={self.allele_zfin_id},allele_symbol={self.allele_symbol},alteration_type={self.alteration_type},affected_gene_zfin_id={self.affected_gene_zfin_id},affected_gene_symbol={self.affected_gene_symbol},construct_zfin_id={self.construct_zfin_id},construct_name={self.construct_name},zygosity={self.zygosity},mother_zygosity={self.mother_zygosity},father_zygosity={self.father_zygosity},id={self.id},Fish_id={self.Fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

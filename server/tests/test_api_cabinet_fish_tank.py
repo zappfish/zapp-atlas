@@ -635,14 +635,14 @@ def test_tank_add_stores_the_described_fish(client: TestClient) -> None:
     signin(client, ADMIN)
     created = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {**AB, "mutant_allele": [TI282A]}, "nickname": "fgf8a carriers"},
+        json={"fish": {**AB, "allele": [TI282A]}, "nickname": "fgf8a carriers"},
     )
     assert created.status_code == 201, created.text
     body = created.json()
     assert body["nickname"] == "fgf8a carriers"
     assert body["fish"]["background_name"] == "AB"
     assert body["fish"]["fish_zfin_id"] is None
-    [allele] = body["fish"]["mutant_allele"]
+    [allele] = body["fish"]["allele"]
     assert allele["allele_symbol"] == "ti282a"
     assert allele["father_zygosity"] is None
     assert body["created_at"] is not None
@@ -667,8 +667,8 @@ def test_tank_rejects_malformed_ids_and_zygosity(client: TestClient) -> None:
     bad = [
         {"fish": {**AB, "background_zfin_id": "not-a-zfin"}},
         {"fish": {**AB, "fish_zfin_id": AB_LINE}},  # a genotype id where a fish id goes
-        {"fish": {**AB, "mutant_allele": [{**TI282A, "zygosity": "hemizygous"}]}},
-        {"fish": {**AB, "mutant_allele": [{**TI282A, "allele_symbol": None}]}},
+        {"fish": {**AB, "allele": [{**TI282A, "zygosity": "hemizygous"}]}},
+        {"fish": {**AB, "allele": [{**TI282A, "allele_symbol": None}]}},
     ]
     for payload in bad:
         assert client.post(url, json=payload).status_code == 422, payload
@@ -678,7 +678,7 @@ def test_tank_delete_takes_the_fish_with_it(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     url = f"/api/research-groups/{group_id}/fish-tank"
-    entry = client.post(url, json={"fish": {**AB, "mutant_allele": [TI282A]}}).json()
+    entry = client.post(url, json={"fish": {**AB, "allele": [TI282A]}}).json()
     assert client.delete(f"{url}/{entry['id']}").status_code == 204
     assert client.get(f"{url}/{entry['id']}").status_code == 404
 

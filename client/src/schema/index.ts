@@ -18,8 +18,7 @@ export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishId = number;
-export type MutantAlleleId = number;
-export type TransgenicAlleleId = number;
+export type AlleleId = number;
 export type TransientReagentId = number;
 export type ResearchGroupId = number;
 export type ResearchGroupMemberId = number;
@@ -512,10 +511,8 @@ export interface Fish extends ZappEntity {
     background_zfin_id?: string,
     /** The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL. */
     background_name?: string,
-    /** The mutant alleles the fish carries. */
-    mutant_allele?: MutantAllele[],
-    /** The transgenic insertions the fish carries. */
-    transgenic_allele?: TransgenicAllele[],
+    /** The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them. */
+    allele?: Allele[],
     /** The reagents injected into the embryos. */
     transient_reagent?: TransientReagent[],
     /** Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched. */
@@ -524,46 +521,23 @@ export interface Fish extends ZappEntity {
 
 
 /**
- * A mutant allele the fish carries: which gene it alters, and its zygosity in the fish and, when known, the parents.
+ * An allele the fish carries, mutant or transgenic: the gene it alters or the construct it holds, and its zygosity in the fish and, when known, the parents. ``alteration_type`` says which kind it is.
  */
-export interface MutantAllele extends ZappEntity {
+export interface Allele extends ZappEntity {
     /** ZFIN's id for the allele (ZDB-ALT-…). */
     allele_zfin_id?: string,
     /** The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg. */
     allele_symbol: string,
     /** The kind of sequence alteration the allele is. */
     alteration_type?: string,
-    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…). */
+    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one. */
     affected_gene_zfin_id?: string,
     /** The symbol of the gene the allele affects, e.g. fgf8a. */
     affected_gene_symbol?: string,
-    /** The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
-    zygosity: string,
-    /** The allele's zygosity in the mother, when known. */
-    mother_zygosity?: string,
-    /** The allele's zygosity in the father, when known. */
-    father_zygosity?: string,
-}
-
-
-/**
- * A transgenic insertion the fish carries: the construct it holds, and its zygosity in the fish and, when known, the parents.
- */
-export interface TransgenicAllele extends ZappEntity {
-    /** ZFIN's id for the allele (ZDB-ALT-…). */
-    allele_zfin_id?: string,
-    /** The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg. */
-    allele_symbol: string,
-    /** The kind of alteration; a transgenic insertion unless ZFIN says otherwise. */
-    alteration_type?: string,
-    /** ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-…). */
+    /** ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele. */
     construct_zfin_id?: string,
     /** The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP). */
     construct_name?: string,
-    /** ZFIN's id for the construct's driver or reporter gene, when recorded. */
-    affected_gene_zfin_id?: string,
-    /** The driver or reporter gene's symbol, e.g. fli1a. */
-    affected_gene_symbol?: string,
     /** The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
     zygosity: string,
     /** The allele's zygosity in the mother, when known. */
@@ -583,7 +557,7 @@ export interface TransientReagent extends ZappEntity {
     reagent_symbol: string,
     /** What kind of reagent it is. */
     reagent_type?: string,
-    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…). */
+    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one. */
     affected_gene_zfin_id?: string,
     /** The symbol of the gene the allele affects, e.g. fgf8a. */
     affected_gene_symbol?: string,

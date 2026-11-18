@@ -72,7 +72,7 @@ def test_experiment_put_updates_rearing_and_fish(client: TestClient, group: int)
             "fish": {
                 "background_zfin_id": "ZFIN:ZDB-GENO-990623-3",
                 "background_name": "TU",
-                "mutant_allele": [
+                "allele": [
                     {
                         "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
                         "allele_symbol": "ti282a",
@@ -91,7 +91,7 @@ def test_experiment_put_updates_rearing_and_fish(client: TestClient, group: int)
     assert patched["rearing_condition_comment"] == "temperature 24C"
     assert patched["fish"]["background_name"] == "TU"
     assert patched["fish"]["genotype_zfin_id"] is None  # not resolved: nothing was sent
-    [allele] = patched["fish"]["mutant_allele"]
+    [allele] = patched["fish"]["allele"]
     assert (allele["allele_symbol"], allele["zygosity"]) == ("ti282a", "homozygous")
     assert allele["mother_zygosity"] is None
 

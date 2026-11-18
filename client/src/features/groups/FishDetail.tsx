@@ -47,10 +47,7 @@ const FishDetail = ({
                 { label: "Nickname", value: data.nickname ?? "—" },
                 { label: "Line", value: describeFish(data.fish) },
                 { label: "Background", value: data.fish.background_name ?? "—" },
-                ...[
-                  ...(data.fish.mutant_allele ?? []),
-                  ...(data.fish.transgenic_allele ?? []),
-                ].map((allele, i) => ({
+                ...(data.fish.allele ?? []).map((allele, i) => ({
                   label: `Allele ${i + 1}`,
                   value: [
                     allele.allele_symbol,

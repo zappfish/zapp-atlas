@@ -1,10 +1,9 @@
 import type {
+  AlleleBody,
   Fish,
   FishBody,
   FishDescription,
   FishResolution,
-  MutantAlleleBody,
-  TransgenicAlleleBody,
   ZfinAllele,
   Zygosity,
 } from "@/api/types";
@@ -27,8 +26,7 @@ const alleleLabel = (symbol: string, zygosity: string) => {
  */
 export const describeFish = (fish: Fish | FishBody): string => {
   const parts = [
-    ...(fish.mutant_allele ?? []).map((a) => alleleLabel(a.allele_symbol, a.zygosity)),
-    ...(fish.transgenic_allele ?? []).map((a) => alleleLabel(a.allele_symbol, a.zygosity)),
+    ...(fish.allele ?? []).map((a) => alleleLabel(a.allele_symbol, a.zygosity)),
     ...(fish.transient_reagent ?? []).map((r) => r.reagent_symbol),
   ];
   if (parts.length === 0) return fish.background_name ?? "Fish";
@@ -108,19 +106,26 @@ export const isAnswered = (choice: AlleleChoice): boolean => choice.zygosity !==
  * construct slots take the first of each; a co-injected line's other
  * constructs stay visible on the card but are not stored.
  */
-const alleleBody = ({ allele, zygosity, motherZygosity, fatherZygosity }: AlleleChoice) => {
+const alleleBody = ({
+  allele,
+  zygosity,
+  motherZygosity,
+  fatherZygosity,
+}: AlleleChoice): AlleleBody => {
   const gene = allele.genes[0];
-  const base: MutantAlleleBody = {
+  const construct = allele.constructs[0];
+  return {
     allele_zfin_id: allele.allele_id,
     allele_symbol: allele.symbol,
     alteration_type: allele.alteration_type,
     affected_gene_zfin_id: gene?.gene_id ?? null,
     affected_gene_symbol: gene?.symbol ?? null,
+    construct_zfin_id: construct?.construct_id ?? null,
+    construct_name: construct?.name ?? null,
     zygosity: zygosity as Zygosity,
     mother_zygosity: motherZygosity,
     father_zygosity: fatherZygosity,
   };
-  return base;
 };
 
 /** A fish body from what the builder collected, before ZFIN's ids attach.
@@ -129,37 +134,20 @@ export const toFishBody = (
   alleles: AlleleChoice[],
   background: { genotype_id: string; abbreviation: string } | null,
   lineDescription: string,
-): FishBody => {
-  const mutant: MutantAlleleBody[] = [];
-  const transgenic: TransgenicAlleleBody[] = [];
-  for (const choice of alleles) {
-    if (choice.allele.is_transgenic) {
-      const construct = choice.allele.constructs[0];
-      transgenic.push({
-        ...alleleBody(choice),
-        construct_zfin_id: construct?.construct_id ?? null,
-        construct_name: construct?.name ?? null,
-      });
-    } else {
-      mutant.push(alleleBody(choice));
-    }
-  }
-  return {
-    background_zfin_id: background?.genotype_id ?? null,
-    background_name: background?.abbreviation ?? null,
-    mutant_allele: mutant,
-    transgenic_allele: transgenic,
-    transient_reagent: [],
-    line_description: lineDescription.trim() || null,
-    fish_zfin_id: null,
-    genotype_zfin_id: null,
-  };
-};
+): FishBody => ({
+  background_zfin_id: background?.genotype_id ?? null,
+  background_name: background?.abbreviation ?? null,
+  allele: alleles.map(alleleBody),
+  transient_reagent: [],
+  line_description: lineDescription.trim() || null,
+  fish_zfin_id: null,
+  genotype_zfin_id: null,
+});
 
 /** The resolve request for a fish body. */
 export const toDescription = (fish: FishBody): FishDescription => ({
   background_id: fish.background_zfin_id ?? null,
-  alleles: [...(fish.mutant_allele ?? []), ...(fish.transgenic_allele ?? [])]
+  alleles: (fish.allele ?? [])
     .filter((a) => a.allele_zfin_id)
     .map((a) => ({
       allele_id: a.allele_zfin_id as string,

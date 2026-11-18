@@ -2,6 +2,408 @@
   "x-generated": "GENERATED FILE. DO NOT EDIT. Regenerate with `just api-types`.",
   "components": {
     "schemas": {
+      "AlleleInput": {
+        "additionalProperties": false,
+        "description": "What the API accepts for Allele.",
+        "properties": {
+          "affected_gene_symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele",
+                "TransientReagent"
+              ],
+              "examples": [
+                {
+                  "value": "fgf8a"
+                }
+              ]
+            },
+            "title": "Affected Gene Symbol"
+          },
+          "affected_gene_zfin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele",
+                "TransientReagent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFIN:ZDB-GENE-990415-72"
+                }
+              ]
+            },
+            "title": "Affected Gene Zfin Id"
+          },
+          "allele_symbol": {
+            "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "ti282a"
+                }
+              ]
+            },
+            "title": "Allele Symbol",
+            "type": "string"
+          },
+          "allele_zfin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ZFIN's id for the allele (ZDB-ALT-\u2026).",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "ZFIN:ZDB-ALT-980203-1091"
+                }
+              ]
+            },
+            "title": "Allele Zfin Id"
+          },
+          "alteration_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The kind of sequence alteration the allele is.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          },
+          "construct_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "Tg(mpeg1:YFP)"
+                }
+              ]
+            },
+            "title": "Construct Name"
+          },
+          "construct_zfin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-\u2026). Absent for a mutant allele.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "ZFIN:ZDB-TGCONSTRCT-130130-3"
+                }
+              ]
+            },
+            "title": "Construct Zfin Id"
+          },
+          "father_zygosity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZygosityEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The allele's zygosity in the father, when known.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          },
+          "mother_zygosity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZygosityEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The allele's zygosity in the mother, when known.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          },
+          "zygosity": {
+            "$ref": "#/components/schemas/ZygosityEnum",
+            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          }
+        },
+        "required": [
+          "allele_symbol",
+          "zygosity"
+        ],
+        "title": "AlleleInput",
+        "type": "object"
+      },
+      "AlleleRead": {
+        "description": "What the API returns for Allele, with everything beneath it.",
+        "properties": {
+          "affected_gene_symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele",
+                "TransientReagent"
+              ],
+              "examples": [
+                {
+                  "value": "fgf8a"
+                }
+              ]
+            },
+            "title": "Affected Gene Symbol"
+          },
+          "affected_gene_zfin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele",
+                "TransientReagent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFIN:ZDB-GENE-990415-72"
+                }
+              ]
+            },
+            "title": "Affected Gene Zfin Id"
+          },
+          "allele_symbol": {
+            "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "ti282a"
+                }
+              ]
+            },
+            "title": "Allele Symbol",
+            "type": "string"
+          },
+          "allele_zfin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ZFIN's id for the allele (ZDB-ALT-\u2026).",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "ZFIN:ZDB-ALT-980203-1091"
+                }
+              ]
+            },
+            "title": "Allele Zfin Id"
+          },
+          "alteration_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The kind of sequence alteration the allele is.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          },
+          "construct_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "Tg(mpeg1:YFP)"
+                }
+              ]
+            },
+            "title": "Construct Name"
+          },
+          "construct_zfin_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-\u2026). Absent for a mutant allele.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ],
+              "examples": [
+                {
+                  "value": "ZFIN:ZDB-TGCONSTRCT-130130-3"
+                }
+              ]
+            },
+            "title": "Construct Zfin Id"
+          },
+          "father_zygosity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZygosityEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The allele's zygosity in the father, when known.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          },
+          "id": {
+            "description": "Auto-generated integer identifier.",
+            "linkml_meta": {
+              "domain_of": [
+                "ZappEntity"
+              ]
+            },
+            "title": "Id",
+            "type": "integer"
+          },
+          "mother_zygosity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZygosityEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The allele's zygosity in the mother, when known.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          },
+          "zygosity": {
+            "$ref": "#/components/schemas/ZygosityEnum",
+            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
+            "linkml_meta": {
+              "domain_of": [
+                "Allele"
+              ]
+            }
+          }
+        },
+        "required": [
+          "allele_symbol",
+          "zygosity",
+          "id"
+        ],
+        "title": "AlleleRead",
+        "type": "object"
+      },
       "Body_dev_login_auth_dev_login_post": {
         "properties": {
           "name": {
@@ -1359,6 +1761,26 @@
         "additionalProperties": false,
         "description": "What the API accepts for Fish.",
         "properties": {
+          "allele": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AlleleInput"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.",
+            "linkml_meta": {
+              "domain_of": [
+                "Fish"
+              ]
+            },
+            "title": "Allele"
+          },
           "background_name": {
             "anyOf": [
               {
@@ -1464,46 +1886,6 @@
             },
             "title": "Line Description"
           },
-          "mutant_allele": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/MutantAlleleInput"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The mutant alleles the fish carries.",
-            "linkml_meta": {
-              "domain_of": [
-                "Fish"
-              ]
-            },
-            "title": "Mutant Allele"
-          },
-          "transgenic_allele": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TransgenicAlleleInput"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The transgenic insertions the fish carries.",
-            "linkml_meta": {
-              "domain_of": [
-                "Fish"
-              ]
-            },
-            "title": "Transgenic Allele"
-          },
           "transient_reagent": {
             "anyOf": [
               {
@@ -1531,6 +1913,26 @@
       "FishRead": {
         "description": "What the API returns for Fish, with everything beneath it.",
         "properties": {
+          "allele": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AlleleRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.",
+            "linkml_meta": {
+              "domain_of": [
+                "Fish"
+              ]
+            },
+            "title": "Allele"
+          },
           "background_name": {
             "anyOf": [
               {
@@ -1645,46 +2047,6 @@
               ]
             },
             "title": "Line Description"
-          },
-          "mutant_allele": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/MutantAlleleRead"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The mutant alleles the fish carries.",
-            "linkml_meta": {
-              "domain_of": [
-                "Fish"
-              ]
-            },
-            "title": "Mutant Allele"
-          },
-          "transgenic_allele": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TransgenicAlleleRead"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The transgenic insertions the fish carries.",
-            "linkml_meta": {
-              "domain_of": [
-                "Fish"
-              ]
-            },
-            "title": "Transgenic Allele"
           },
           "transient_reagent": {
             "anyOf": [
@@ -2116,336 +2478,6 @@
           "role"
         ],
         "title": "MemberPatch",
-        "type": "object"
-      },
-      "MutantAlleleInput": {
-        "additionalProperties": false,
-        "description": "What the API accepts for MutantAllele.",
-        "properties": {
-          "affected_gene_symbol": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "fgf8a"
-                }
-              ]
-            },
-            "title": "Affected Gene Symbol"
-          },
-          "affected_gene_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-GENE-990415-72"
-                }
-              ]
-            },
-            "title": "Affected Gene Zfin Id"
-          },
-          "allele_symbol": {
-            "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ti282a"
-                }
-              ]
-            },
-            "title": "Allele Symbol",
-            "type": "string"
-          },
-          "allele_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the allele (ZDB-ALT-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-ALT-980203-1091"
-                }
-              ]
-            },
-            "title": "Allele Zfin Id"
-          },
-          "alteration_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The kind of sequence alteration the allele is.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "father_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the father, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "mother_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the mother, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "zygosity": {
-            "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          }
-        },
-        "required": [
-          "allele_symbol",
-          "zygosity"
-        ],
-        "title": "MutantAlleleInput",
-        "type": "object"
-      },
-      "MutantAlleleRead": {
-        "description": "What the API returns for MutantAllele, with everything beneath it.",
-        "properties": {
-          "affected_gene_symbol": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "fgf8a"
-                }
-              ]
-            },
-            "title": "Affected Gene Symbol"
-          },
-          "affected_gene_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-GENE-990415-72"
-                }
-              ]
-            },
-            "title": "Affected Gene Zfin Id"
-          },
-          "allele_symbol": {
-            "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ti282a"
-                }
-              ]
-            },
-            "title": "Allele Symbol",
-            "type": "string"
-          },
-          "allele_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the allele (ZDB-ALT-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-ALT-980203-1091"
-                }
-              ]
-            },
-            "title": "Allele Zfin Id"
-          },
-          "alteration_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The kind of sequence alteration the allele is.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "father_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the father, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "id": {
-            "description": "Auto-generated integer identifier.",
-            "linkml_meta": {
-              "domain_of": [
-                "ZappEntity"
-              ]
-            },
-            "title": "Id",
-            "type": "integer"
-          },
-          "mother_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the mother, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "zygosity": {
-            "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          }
-        },
-        "required": [
-          "allele_symbol",
-          "zygosity",
-          "id"
-        ],
-        "title": "MutantAlleleRead",
         "type": "object"
       },
       "NormResult": {
@@ -4263,424 +4295,6 @@
         "title": "TankEntryOut",
         "type": "object"
       },
-      "TransgenicAlleleInput": {
-        "additionalProperties": false,
-        "description": "What the API accepts for TransgenicAllele.",
-        "properties": {
-          "affected_gene_symbol": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The driver or reporter gene's symbol, e.g. fli1a.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "fgf8a"
-                }
-              ]
-            },
-            "title": "Affected Gene Symbol"
-          },
-          "affected_gene_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the construct's driver or reporter gene, when recorded.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-GENE-990415-72"
-                }
-              ]
-            },
-            "title": "Affected Gene Zfin Id"
-          },
-          "allele_symbol": {
-            "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ti282a"
-                }
-              ]
-            },
-            "title": "Allele Symbol",
-            "type": "string"
-          },
-          "allele_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the allele (ZDB-ALT-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-ALT-980203-1091"
-                }
-              ]
-            },
-            "title": "Allele Zfin Id"
-          },
-          "alteration_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The kind of alteration; a transgenic insertion unless ZFIN says otherwise.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "construct_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).",
-            "linkml_meta": {
-              "domain_of": [
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "Tg(mpeg1:YFP)"
-                }
-              ]
-            },
-            "title": "Construct Name"
-          },
-          "construct_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-TGCONSTRCT-130130-3"
-                }
-              ]
-            },
-            "title": "Construct Zfin Id"
-          },
-          "father_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the father, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "mother_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the mother, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "zygosity": {
-            "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          }
-        },
-        "required": [
-          "allele_symbol",
-          "zygosity"
-        ],
-        "title": "TransgenicAlleleInput",
-        "type": "object"
-      },
-      "TransgenicAlleleRead": {
-        "description": "What the API returns for TransgenicAllele, with everything beneath it.",
-        "properties": {
-          "affected_gene_symbol": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The driver or reporter gene's symbol, e.g. fli1a.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "fgf8a"
-                }
-              ]
-            },
-            "title": "Affected Gene Symbol"
-          },
-          "affected_gene_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the construct's driver or reporter gene, when recorded.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
-                "TransientReagent"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-GENE-990415-72"
-                }
-              ]
-            },
-            "title": "Affected Gene Zfin Id"
-          },
-          "allele_symbol": {
-            "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ti282a"
-                }
-              ]
-            },
-            "title": "Allele Symbol",
-            "type": "string"
-          },
-          "allele_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the allele (ZDB-ALT-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-ALT-980203-1091"
-                }
-              ]
-            },
-            "title": "Allele Zfin Id"
-          },
-          "alteration_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The kind of alteration; a transgenic insertion unless ZFIN says otherwise.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "construct_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).",
-            "linkml_meta": {
-              "domain_of": [
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "Tg(mpeg1:YFP)"
-                }
-              ]
-            },
-            "title": "Construct Name"
-          },
-          "construct_zfin_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ZFIN's id for the transgenic construct (ZDB-TGCONSTRCT-\u2026).",
-            "linkml_meta": {
-              "domain_of": [
-                "TransgenicAllele"
-              ],
-              "examples": [
-                {
-                  "value": "ZFIN:ZDB-TGCONSTRCT-130130-3"
-                }
-              ]
-            },
-            "title": "Construct Zfin Id"
-          },
-          "father_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the father, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "id": {
-            "description": "Auto-generated integer identifier.",
-            "linkml_meta": {
-              "domain_of": [
-                "ZappEntity"
-              ]
-            },
-            "title": "Id",
-            "type": "integer"
-          },
-          "mother_zygosity": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ZygosityEnum"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The allele's zygosity in the mother, when known.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          },
-          "zygosity": {
-            "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
-            "linkml_meta": {
-              "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele"
-              ]
-            }
-          }
-        },
-        "required": [
-          "allele_symbol",
-          "zygosity",
-          "id"
-        ],
-        "title": "TransgenicAlleleRead",
-        "type": "object"
-      },
       "TransientReagentInput": {
         "additionalProperties": false,
         "description": "What the API accepts for TransientReagent.",
@@ -4697,8 +4311,7 @@
             "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
             "linkml_meta": {
               "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
+                "Allele",
                 "TransientReagent"
               ],
               "examples": [
@@ -4718,11 +4331,10 @@
                 "type": "null"
               }
             ],
-            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026).",
+            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.",
             "linkml_meta": {
               "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
+                "Allele",
                 "TransientReagent"
               ],
               "examples": [
@@ -4808,8 +4420,7 @@
             "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
             "linkml_meta": {
               "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
+                "Allele",
                 "TransientReagent"
               ],
               "examples": [
@@ -4829,11 +4440,10 @@
                 "type": "null"
               }
             ],
-            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026).",
+            "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-\u2026); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.",
             "linkml_meta": {
               "domain_of": [
-                "MutantAllele",
-                "TransgenicAllele",
+                "Allele",
                 "TransientReagent"
               ],
               "examples": [

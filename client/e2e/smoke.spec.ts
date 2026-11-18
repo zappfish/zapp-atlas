@@ -165,7 +165,7 @@ test("a fish described in the tank dialog gets its ZFIN ids, and the form offers
     background_name: "AB",
     genotype_zfin_id: "ZFIN:ZDB-GENO-160602-1",
     fish_zfin_id: "ZFIN:ZDB-FISH-160602-1",
-    mutant_allele: [
+    allele: [
       {
         allele_zfin_id: "ZFIN:ZDB-ALT-160602-14",
         allele_symbol: "fh111",

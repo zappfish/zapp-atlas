@@ -26,8 +26,7 @@ export type FishTankEntryBody = Schemas["TankEntryIn"];
 /** A fish as `POST` accepts it, inside a tank entry or an experiment. */
 export type FishBody = Schemas["FishInput"];
 
-export type MutantAlleleBody = Schemas["MutantAlleleInput"];
-export type TransgenicAlleleBody = Schemas["TransgenicAlleleInput"];
+export type AlleleBody = Schemas["AlleleInput"];
 export type Zygosity = Schemas["ZygosityEnum"];
 
 /** One of ZFIN's wild-type lines. */
