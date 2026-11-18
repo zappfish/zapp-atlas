@@ -80,8 +80,12 @@ export const ZYGOSITIES: { value: Zygosity; label: string }[] = [
   { value: "complex", label: "complex" },
 ];
 
-/** A parent's zygosity can also be wild type: not carrying the allele at all. */
-export const PARENT_ZYGOSITIES: { value: ParentZygosity; label: string }[] = [
+/**
+ * A parent's zygosity can also be wild type: not carrying the allele at all.
+ * Leaving it unset stores nothing, which is not the same as saying unknown.
+ */
+export const PARENT_ZYGOSITIES: { value: ParentZygosity | ""; label: string }[] = [
+  { value: "", label: "not recorded" },
   { value: "unknown", label: "unknown" },
   { value: "wild_type", label: "wild type" },
   { value: "heterozygous", label: "heterozygous" },
@@ -96,8 +100,8 @@ export const PARENT_ZYGOSITIES: { value: ParentZygosity; label: string }[] = [
 export interface AlleleChoice {
   allele: ZfinAllele;
   zygosity: Zygosity | "";
-  motherZygosity: ParentZygosity;
-  fatherZygosity: ParentZygosity;
+  motherZygosity: ParentZygosity | "";
+  fatherZygosity: ParentZygosity | "";
 }
 
 export const isAnswered = (choice: AlleleChoice): boolean => choice.zygosity !== "";
@@ -124,8 +128,8 @@ const alleleBody = ({
     construct_zfin_id: construct?.construct_id ?? null,
     construct_name: construct?.name ?? null,
     zygosity: zygosity as Zygosity,
-    mother_zygosity: motherZygosity,
-    father_zygosity: fatherZygosity,
+    mother_zygosity: motherZygosity || null,
+    father_zygosity: fatherZygosity || null,
   };
 };
 

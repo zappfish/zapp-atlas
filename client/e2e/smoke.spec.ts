@@ -172,6 +172,9 @@ test("a fish described in the tank dialog gets its ZFIN ids, and the form offers
         alteration_type: "point_mutation",
         affected_gene_symbol: "snapc1b",
         zygosity: "heterozygous",
+        // Left alone in the dialog, so not recorded.
+        mother_zygosity: null,
+        father_zygosity: null,
       },
     ],
   });

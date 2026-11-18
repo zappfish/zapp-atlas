@@ -76,13 +76,13 @@ const AlleleCard = ({
           </ModalSelect>
         </ModalField>
 
-        <details open={choice.motherZygosity !== "unknown" || choice.fatherZygosity !== "unknown"}>
+        <details open={choice.motherZygosity !== "" || choice.fatherZygosity !== ""}>
           <summary>Parents' zygosity, if known</summary>
           <ModalField>
             <ModalLabel>Mother</ModalLabel>
             <ModalSelect
               value={choice.motherZygosity}
-              onChange={(e) => onChange({ ...choice, motherZygosity: e.target.value as ParentZygosity })}
+              onChange={(e) => onChange({ ...choice, motherZygosity: e.target.value as ParentZygosity | "" })}
               disabled={isDisabled}
             >
               {PARENT_ZYGOSITIES.map((z) => (
@@ -96,7 +96,7 @@ const AlleleCard = ({
             <ModalLabel>Father</ModalLabel>
             <ModalSelect
               value={choice.fatherZygosity}
-              onChange={(e) => onChange({ ...choice, fatherZygosity: e.target.value as ParentZygosity })}
+              onChange={(e) => onChange({ ...choice, fatherZygosity: e.target.value as ParentZygosity | "" })}
               disabled={isDisabled}
             >
               {PARENT_ZYGOSITIES.map((z) => (

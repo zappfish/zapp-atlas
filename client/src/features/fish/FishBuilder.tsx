@@ -53,7 +53,7 @@ const FishBuilder = ({
   const add = (allele: ZfinAllele) =>
     setAlleles((was) => [
       ...was,
-      { allele, zygosity: "", motherZygosity: "unknown", fatherZygosity: "unknown" },
+      { allele, zygosity: "", motherZygosity: "", fatherZygosity: "" },
     ]);
   const replace = (i: number, choice: AlleleChoice) =>
     setAlleles((was) => was.map((each, j) => (j === i ? choice : each)));
