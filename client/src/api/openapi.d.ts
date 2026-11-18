@@ -1566,7 +1566,7 @@ export interface components {
             father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
             /** @description The allele's zygosity in the mother, when known. */
             mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. Unknown is an answer in its own right. */
+            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
             zygosity: components["schemas"]["ZygosityEnum"];
         };
         /**
@@ -1605,7 +1605,7 @@ export interface components {
             id: number;
             /** @description The allele's zygosity in the mother, when known. */
             mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. Unknown is an answer in its own right. */
+            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
             zygosity: components["schemas"]["ZygosityEnum"];
         };
         /** NormResult */
@@ -2219,7 +2219,7 @@ export interface components {
             father_zygosity?: components["schemas"]["ZygosityEnum"] | null;
             /** @description The allele's zygosity in the mother, when known. */
             mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. Unknown is an answer in its own right. */
+            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
             zygosity: components["schemas"]["ZygosityEnum"];
         };
         /**
@@ -2268,7 +2268,7 @@ export interface components {
             id: number;
             /** @description The allele's zygosity in the mother, when known. */
             mother_zygosity?: components["schemas"]["ZygosityEnum"] | null;
-            /** @description The allele's zygosity in the fish. Unknown is an answer in its own right. */
+            /** @description The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
             zygosity: components["schemas"]["ZygosityEnum"];
         };
         /**
@@ -2450,6 +2450,11 @@ export interface components {
         ZfinAlleleOut: {
             /** Allele Id */
             allele_id: string;
+            /**
+             * @description The schema's value for ``so_id``, for an allele card to store; None
+             *     when ZFIN gave no SO term or one the schema does not list.
+             */
+            readonly alteration_type: components["schemas"]["SequenceAlterationTypeEnum"] | null;
             /** Constructs */
             constructs: components["schemas"]["ZfinConstructOut"][];
             /** Genes */
@@ -2640,7 +2645,7 @@ export interface components {
         };
         /**
          * ZygosityEnum
-         * @description An allele's zygosity, in ZFIN's terms. Unknown is a value, not a gap: ZFIN registers genotypes with unknown zygosity, and a description saying unknown matches only those.
+         * @description An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with unknown zygosity, so unknown is a value here too, and a description saying unknown matches only those genotypes.
          * @enum {string}
          */
         ZygosityEnum: "unknown" | "heterozygous" | "homozygous" | "complex" | "wild_type";

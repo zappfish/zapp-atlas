@@ -25,6 +25,7 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     StringConstraints,
+    computed_field,
     field_validator,
 )
 
@@ -33,8 +34,10 @@ from zapp_atlas.schema.pydantic_crud import (
     FishRead,
     ManufacturerEnum,
     ResearchGroupRoleEnum,
+    SequenceAlterationTypeEnum,
     VehicleEnum,
 )
+from zapp_atlas.schema.view import value_for_meaning
 
 # Accepts a bare ORCID or an ``ORCID:`` CURIE; the service normalizes to CURIE.
 _ORCID_RE = re.compile(r"^(ORCID:)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
@@ -150,8 +153,8 @@ class TankEntryOut(_FromAttributes):
 #
 # Read models over ``zapp_atlas.zfin``'s dataclasses. Ids are CURIEs
 # (``ZFIN:ZDB-ALT-...``). Vocabulary is ZFIN's own -- ``so_id`` for the kind
-# of alteration, its zygosity words, reagent kinds by id prefix -- so the
-# lookup surface stays put while the fish data model is reworked.
+# of alteration, its zygosity words, reagent kinds by id prefix -- with the
+# schema's value alongside where a form card needs it (``alteration_type``).
 
 
 class ZfinGeneOut(_FromAttributes):
@@ -186,6 +189,14 @@ class ZfinAlleleOut(_FromAttributes):
     is_transgenic: bool
     genes: list[ZfinGeneOut]  # usually one; none for most transgenics
     constructs: list[ZfinConstructOut]  # usually one; more for co-injected lines
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def alteration_type(self) -> SequenceAlterationTypeEnum | None:
+        """The schema's value for ``so_id``, for an allele card to store; None
+        when ZFIN gave no SO term or one the schema does not list."""
+        value = value_for_meaning("SequenceAlterationTypeEnum", self.so_id)
+        return SequenceAlterationTypeEnum(value) if value else None
 
 
 class ZfinAlleleSearchOut(BaseModel):

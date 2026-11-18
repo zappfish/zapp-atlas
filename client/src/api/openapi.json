@@ -2262,7 +2262,7 @@
           },
           "zygosity": {
             "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. Unknown is an answer in its own right.",
+            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
             "linkml_meta": {
               "domain_of": [
                 "MutantAllele",
@@ -2431,7 +2431,7 @@
           },
           "zygosity": {
             "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. Unknown is an answer in its own right.",
+            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
             "linkml_meta": {
               "domain_of": [
                 "MutantAllele",
@@ -4451,7 +4451,7 @@
           },
           "zygosity": {
             "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. Unknown is an answer in its own right.",
+            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
             "linkml_meta": {
               "domain_of": [
                 "MutantAllele",
@@ -4664,7 +4664,7 @@
           },
           "zygosity": {
             "$ref": "#/components/schemas/ZygosityEnum",
-            "description": "The allele's zygosity in the fish. Unknown is an answer in its own right.",
+            "description": "The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.",
             "linkml_meta": {
               "domain_of": [
                 "MutantAllele",
@@ -5362,6 +5362,18 @@
             "title": "Allele Id",
             "type": "string"
           },
+          "alteration_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SequenceAlterationTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The schema's value for ``so_id``, for an allele card to store; None\nwhen ZFIN gave no SO term or one the schema does not list.",
+            "readOnly": true
+          },
           "constructs": {
             "items": {
               "$ref": "#/components/schemas/ZfinConstructOut"
@@ -5424,7 +5436,8 @@
           "mutagen",
           "is_transgenic",
           "genes",
-          "constructs"
+          "constructs",
+          "alteration_type"
         ],
         "title": "ZfinAlleleOut",
         "type": "object"
@@ -5902,7 +5915,7 @@
         "type": "object"
       },
       "ZygosityEnum": {
-        "description": "An allele's zygosity, in ZFIN's terms. Unknown is a value, not a gap: ZFIN registers genotypes with unknown zygosity, and a description saying unknown matches only those.",
+        "description": "An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with unknown zygosity, so unknown is a value here too, and a description saying unknown matches only those genotypes.",
         "enum": [
           "unknown",
           "heterozygous",
