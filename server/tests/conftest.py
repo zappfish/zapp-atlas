@@ -7,7 +7,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from zapp_atlas.api.deps import get_session
 from zapp_atlas.main import create_app
 from zapp_atlas.settings import AppSettings
 
@@ -25,7 +24,14 @@ def _no_orcid_public_api(monkeypatch) -> None:
 
 
 @pytest.fixture
-def client(tmp_path) -> TestClient:
+def extdata_dir(tmp_path) -> Path:
+    """Where the app looks for its reference bundle. Nowhere that has one,
+    whatever the developer has built, unless a module overrides this."""
+    return tmp_path / "extdata"
+
+
+@pytest.fixture
+def client(tmp_path, extdata_dir) -> TestClient:
     from zapp_atlas.db import init_db
 
     engine = create_engine(
@@ -41,20 +47,11 @@ def client(tmp_path) -> TestClient:
     # In particular ZAPP_DEV_AUTH (which CLAUDE.md tells you to enable for UI work)
     # must not leak in, or test_dev_login_is_absent_by_default fails on your machine
     # while passing on CI.
-    settings = AppSettings(skip_seed=True, upload_dir=tmp_path, _env_file=None)
+    settings = AppSettings(
+        skip_seed=True, upload_dir=tmp_path, extdata_dir=extdata_dir, _env_file=None
+    )
     app = create_app(settings)
-
-    def _override_get_session():
-        session = SessionLocal()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    app.dependency_overrides[get_session] = _override_get_session
-    # open_session (used outside routes, e.g. the templating context processor)
-    # resolves through app.state.session_factory rather than get_session, so
-    # point it at the same test database.
+    # Every session the app opens, in a route or outside one, comes from here.
     app.state.session_factory = SessionLocal
     return TestClient(app)
 
