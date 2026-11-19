@@ -1,0 +1,1698 @@
+[
+  {
+    "name": "Study: every slot",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": true
+  },
+  {
+    "name": "Study: required slots only",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "nickname": "a working name"
+    },
+    "accepted": true
+  },
+  {
+    "name": "Study: an unknown field",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1",
+      "colour": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "Study: an id",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1",
+      "id": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "Study: the level beneath it",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1",
+      "experiment": []
+    },
+    "accepted": false
+  },
+  {
+    "name": "Experiment: every slot",
+    "level": "Experiment",
+    "body": {
+      "standard_rearing_condition": true,
+      "rearing_condition_comment": "some text",
+      "fish": {
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "background_name": "AB",
+        "allele": [
+          {
+            "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+            "allele_symbol": "ti282a",
+            "alteration_type": "point_mutation",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a",
+            "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+            "construct_name": "Tg(mpeg1:YFP)",
+            "zygosity": "unknown",
+            "mother_zygosity": "unknown",
+            "father_zygosity": "unknown"
+          }
+        ],
+        "transient_reagent": [
+          {
+            "reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-040101-1",
+            "reagent_symbol": "MO1-fgf8a",
+            "reagent_type": "morpholino",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a"
+          }
+        ],
+        "line_description": "some text"
+      },
+      "control": [
+        {
+          "control_type": "some text",
+          "vehicle_if_treated": {
+            "vehicle_type": "acetone",
+            "chemical_id": "EXAMPLE:1",
+            "cas_id": "some text",
+            "unrecognized_chemical_name": "some text",
+            "synonym": [
+              "some text"
+            ],
+            "manufacturer": "sigma_aldrich",
+            "unrecognized_manufacturer_name": "some text",
+            "concentration": {
+              "unit": "some text",
+              "numeric_value": 1.5
+            },
+            "comment": "some text"
+          },
+          "comment": "some text",
+          "control_image": [
+            {
+              "phenotype_id": "some text",
+              "magnification": "some text",
+              "resolution": "some text",
+              "scale_bar": "some text",
+              "phenotype_comments": "some text"
+            }
+          ]
+        }
+      ]
+    },
+    "accepted": true
+  },
+  {
+    "name": "Experiment: required slots only",
+    "level": "Experiment",
+    "body": {},
+    "accepted": true
+  },
+  {
+    "name": "Experiment: an unknown field",
+    "level": "Experiment",
+    "body": {
+      "standard_rearing_condition": true,
+      "rearing_condition_comment": "some text",
+      "fish": {
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "background_name": "AB",
+        "allele": [
+          {
+            "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+            "allele_symbol": "ti282a",
+            "alteration_type": "point_mutation",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a",
+            "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+            "construct_name": "Tg(mpeg1:YFP)",
+            "zygosity": "unknown",
+            "mother_zygosity": "unknown",
+            "father_zygosity": "unknown"
+          }
+        ],
+        "transient_reagent": [
+          {
+            "reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-040101-1",
+            "reagent_symbol": "MO1-fgf8a",
+            "reagent_type": "morpholino",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a"
+          }
+        ],
+        "line_description": "some text"
+      },
+      "control": [
+        {
+          "control_type": "some text",
+          "vehicle_if_treated": {
+            "vehicle_type": "acetone",
+            "chemical_id": "EXAMPLE:1",
+            "cas_id": "some text",
+            "unrecognized_chemical_name": "some text",
+            "synonym": [
+              "some text"
+            ],
+            "manufacturer": "sigma_aldrich",
+            "unrecognized_manufacturer_name": "some text",
+            "concentration": {
+              "unit": "some text",
+              "numeric_value": 1.5
+            },
+            "comment": "some text"
+          },
+          "comment": "some text",
+          "control_image": [
+            {
+              "phenotype_id": "some text",
+              "magnification": "some text",
+              "resolution": "some text",
+              "scale_bar": "some text",
+              "phenotype_comments": "some text"
+            }
+          ]
+        }
+      ],
+      "colour": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "Experiment: an id",
+    "level": "Experiment",
+    "body": {
+      "standard_rearing_condition": true,
+      "rearing_condition_comment": "some text",
+      "fish": {
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "background_name": "AB",
+        "allele": [
+          {
+            "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+            "allele_symbol": "ti282a",
+            "alteration_type": "point_mutation",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a",
+            "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+            "construct_name": "Tg(mpeg1:YFP)",
+            "zygosity": "unknown",
+            "mother_zygosity": "unknown",
+            "father_zygosity": "unknown"
+          }
+        ],
+        "transient_reagent": [
+          {
+            "reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-040101-1",
+            "reagent_symbol": "MO1-fgf8a",
+            "reagent_type": "morpholino",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a"
+          }
+        ],
+        "line_description": "some text"
+      },
+      "control": [
+        {
+          "control_type": "some text",
+          "vehicle_if_treated": {
+            "vehicle_type": "acetone",
+            "chemical_id": "EXAMPLE:1",
+            "cas_id": "some text",
+            "unrecognized_chemical_name": "some text",
+            "synonym": [
+              "some text"
+            ],
+            "manufacturer": "sigma_aldrich",
+            "unrecognized_manufacturer_name": "some text",
+            "concentration": {
+              "unit": "some text",
+              "numeric_value": 1.5
+            },
+            "comment": "some text"
+          },
+          "comment": "some text",
+          "control_image": [
+            {
+              "phenotype_id": "some text",
+              "magnification": "some text",
+              "resolution": "some text",
+              "scale_bar": "some text",
+              "phenotype_comments": "some text"
+            }
+          ]
+        }
+      ],
+      "id": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "Experiment: the level beneath it",
+    "level": "Experiment",
+    "body": {
+      "standard_rearing_condition": true,
+      "rearing_condition_comment": "some text",
+      "fish": {
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "background_name": "AB",
+        "allele": [
+          {
+            "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+            "allele_symbol": "ti282a",
+            "alteration_type": "point_mutation",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a",
+            "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+            "construct_name": "Tg(mpeg1:YFP)",
+            "zygosity": "unknown",
+            "mother_zygosity": "unknown",
+            "father_zygosity": "unknown"
+          }
+        ],
+        "transient_reagent": [
+          {
+            "reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-040101-1",
+            "reagent_symbol": "MO1-fgf8a",
+            "reagent_type": "morpholino",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a"
+          }
+        ],
+        "line_description": "some text"
+      },
+      "control": [
+        {
+          "control_type": "some text",
+          "vehicle_if_treated": {
+            "vehicle_type": "acetone",
+            "chemical_id": "EXAMPLE:1",
+            "cas_id": "some text",
+            "unrecognized_chemical_name": "some text",
+            "synonym": [
+              "some text"
+            ],
+            "manufacturer": "sigma_aldrich",
+            "unrecognized_manufacturer_name": "some text",
+            "concentration": {
+              "unit": "some text",
+              "numeric_value": 1.5
+            },
+            "comment": "some text"
+          },
+          "comment": "some text",
+          "control_image": [
+            {
+              "phenotype_id": "some text",
+              "magnification": "some text",
+              "resolution": "some text",
+              "scale_bar": "some text",
+              "phenotype_comments": "some text"
+            }
+          ]
+        }
+      ],
+      "exposure_event": []
+    },
+    "accepted": false
+  },
+  {
+    "name": "ExposureEvent: every slot",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": true
+  },
+  {
+    "name": "ExposureEvent: required slots only",
+    "level": "ExposureEvent",
+    "body": {},
+    "accepted": true
+  },
+  {
+    "name": "ExposureEvent: an unknown field",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text",
+      "colour": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "ExposureEvent: an id",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text",
+      "id": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "ExposureEvent: the level beneath it",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text",
+      "phenotype_observation": []
+    },
+    "accepted": false
+  },
+  {
+    "name": "PhenotypeObservationSet: every slot",
+    "level": "PhenotypeObservationSet",
+    "body": {
+      "phenotype": [
+        {
+          "stage": "EXAMPLE:1",
+          "prevalence": 1.5,
+          "severity": "mild",
+          "phenotype_term_id": {
+            "term_uri": "EXAMPLE:1",
+            "term_label": "some text"
+          }
+        }
+      ],
+      "control_image": [
+        {
+          "phenotype_id": "some text",
+          "magnification": "some text",
+          "resolution": "some text",
+          "scale_bar": "some text",
+          "phenotype_comments": "some text"
+        }
+      ]
+    },
+    "accepted": true
+  },
+  {
+    "name": "PhenotypeObservationSet: required slots only",
+    "level": "PhenotypeObservationSet",
+    "body": {},
+    "accepted": true
+  },
+  {
+    "name": "PhenotypeObservationSet: an unknown field",
+    "level": "PhenotypeObservationSet",
+    "body": {
+      "phenotype": [
+        {
+          "stage": "EXAMPLE:1",
+          "prevalence": 1.5,
+          "severity": "mild",
+          "phenotype_term_id": {
+            "term_uri": "EXAMPLE:1",
+            "term_label": "some text"
+          }
+        }
+      ],
+      "control_image": [
+        {
+          "phenotype_id": "some text",
+          "magnification": "some text",
+          "resolution": "some text",
+          "scale_bar": "some text",
+          "phenotype_comments": "some text"
+        }
+      ],
+      "colour": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "PhenotypeObservationSet: an id",
+    "level": "PhenotypeObservationSet",
+    "body": {
+      "phenotype": [
+        {
+          "stage": "EXAMPLE:1",
+          "prevalence": 1.5,
+          "severity": "mild",
+          "phenotype_term_id": {
+            "term_uri": "EXAMPLE:1",
+            "term_label": "some text"
+          }
+        }
+      ],
+      "control_image": [
+        {
+          "phenotype_id": "some text",
+          "magnification": "some text",
+          "resolution": "some text",
+          "scale_bar": "some text",
+          "phenotype_comments": "some text"
+        }
+      ],
+      "id": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "PhenotypeObservationSet: the level beneath it",
+    "level": "PhenotypeObservationSet",
+    "body": {
+      "phenotype": [
+        {
+          "stage": "EXAMPLE:1",
+          "prevalence": 1.5,
+          "severity": "mild",
+          "phenotype_term_id": {
+            "term_uri": "EXAMPLE:1",
+            "term_label": "some text"
+          }
+        }
+      ],
+      "control_image": [
+        {
+          "phenotype_id": "some text",
+          "magnification": "some text",
+          "resolution": "some text",
+          "scale_bar": "some text",
+          "phenotype_comments": "some text"
+        }
+      ],
+      "image": []
+    },
+    "accepted": false
+  },
+  {
+    "name": "Image: every slot",
+    "level": "Image",
+    "body": {
+      "magnification": "some text",
+      "resolution": "some text",
+      "scale_bar": "some text",
+      "image_scope": "whole_organism"
+    },
+    "accepted": true
+  },
+  {
+    "name": "Image: required slots only",
+    "level": "Image",
+    "body": {},
+    "accepted": true
+  },
+  {
+    "name": "Image: an unknown field",
+    "level": "Image",
+    "body": {
+      "magnification": "some text",
+      "resolution": "some text",
+      "scale_bar": "some text",
+      "image_scope": "whole_organism",
+      "colour": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "Image: an id",
+    "level": "Image",
+    "body": {
+      "magnification": "some text",
+      "resolution": "some text",
+      "scale_bar": "some text",
+      "image_scope": "whole_organism",
+      "id": 1
+    },
+    "accepted": false
+  },
+  {
+    "name": "an unpublished study with no nickname",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": false
+  },
+  {
+    "name": "an unpublished study with a blank nickname",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": null,
+      "nickname": "  ",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a published study with no nickname",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": true
+  },
+  {
+    "name": "a stressor with no identity",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "cas_id": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a stressor known only by name",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": true
+  },
+  {
+    "name": "an unnamed other manufacturer",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "other_not_listed",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": false
+  },
+  {
+    "name": "an unnamed other vehicle",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "other_not_listed",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a nickname that is too long",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "nickname": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a status that does not exist",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "finished",
+      "publication": "PMID:22194820",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a publication that is neither kind",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "soon",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a route that does not exist",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "osmosis",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a concentration below zero",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": -1
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a severity that does not exist",
+    "level": "PhenotypeObservationSet",
+    "body": {
+      "phenotype": [
+        {
+          "stage": "EXAMPLE:1",
+          "prevalence": 1.5,
+          "severity": "awful",
+          "phenotype_term_id": {
+            "term_uri": "EXAMPLE:1",
+            "term_label": "some text"
+          }
+        }
+      ],
+      "control_image": [
+        {
+          "phenotype_id": "some text",
+          "magnification": "some text",
+          "resolution": "some text",
+          "scale_bar": "some text",
+          "phenotype_comments": "some text"
+        }
+      ]
+    },
+    "accepted": false
+  },
+  {
+    "name": "a prevalence over a hundred",
+    "level": "PhenotypeObservationSet",
+    "body": {
+      "phenotype": [
+        {
+          "stage": "EXAMPLE:1",
+          "prevalence": 120,
+          "severity": "mild",
+          "phenotype_term_id": {
+            "term_uri": "EXAMPLE:1",
+            "term_label": "some text"
+          }
+        }
+      ],
+      "control_image": [
+        {
+          "phenotype_id": "some text",
+          "magnification": "some text",
+          "resolution": "some text",
+          "scale_bar": "some text",
+          "phenotype_comments": "some text"
+        }
+      ]
+    },
+    "accepted": false
+  },
+  {
+    "name": "text where a flag belongs",
+    "level": "Experiment",
+    "body": {
+      "standard_rearing_condition": "maybe",
+      "rearing_condition_comment": "some text",
+      "fish": {
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "background_name": "AB",
+        "allele": [
+          {
+            "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+            "allele_symbol": "ti282a",
+            "alteration_type": "point_mutation",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a",
+            "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+            "construct_name": "Tg(mpeg1:YFP)",
+            "zygosity": "unknown",
+            "mother_zygosity": "unknown",
+            "father_zygosity": "unknown"
+          }
+        ],
+        "transient_reagent": [
+          {
+            "reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-040101-1",
+            "reagent_symbol": "MO1-fgf8a",
+            "reagent_type": "morpholino",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a"
+          }
+        ],
+        "line_description": "some text"
+      },
+      "control": [
+        {
+          "control_type": "some text",
+          "vehicle_if_treated": {
+            "vehicle_type": "acetone",
+            "chemical_id": "EXAMPLE:1",
+            "cas_id": "some text",
+            "unrecognized_chemical_name": "some text",
+            "synonym": [
+              "some text"
+            ],
+            "manufacturer": "sigma_aldrich",
+            "unrecognized_manufacturer_name": "some text",
+            "concentration": {
+              "unit": "some text",
+              "numeric_value": 1.5
+            },
+            "comment": "some text"
+          },
+          "comment": "some text",
+          "control_image": [
+            {
+              "phenotype_id": "some text",
+              "magnification": "some text",
+              "resolution": "some text",
+              "scale_bar": "some text",
+              "phenotype_comments": "some text"
+            }
+          ]
+        }
+      ]
+    },
+    "accepted": false
+  },
+  {
+    "name": "a study that names its annotator",
+    "level": "Study",
+    "body": {
+      "research_group": 1,
+      "status": "published",
+      "publication": "PMID:22194820",
+      "nickname": "some text",
+      "description": "some text",
+      "lab": "ZFIN:ZDB-LAB-970408-1",
+      "annotator": [
+        "ORCID:0000-0002-1825-0097"
+      ]
+    },
+    "accepted": false
+  },
+  {
+    "name": "an id on an owned part",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text",
+          "id": 7
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": false
+  },
+  {
+    "name": "a null optional enum",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": null,
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": true
+  },
+  {
+    "name": "a null optional object",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": [
+        {
+          "vehicle_type": "acetone",
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "route": "aquatic_environment",
+      "regimen": null,
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": true
+  },
+  {
+    "name": "a null optional list",
+    "level": "ExposureEvent",
+    "body": {
+      "stressor": [
+        {
+          "chemical_id": "EXAMPLE:1",
+          "cas_id": "some text",
+          "unrecognized_chemical_name": "some text",
+          "synonym": [
+            "some text"
+          ],
+          "manufacturer": "sigma_aldrich",
+          "unrecognized_manufacturer_name": "some text",
+          "concentration": {
+            "unit": "some text",
+            "numeric_value": 1.5
+          },
+          "comment": "some text"
+        }
+      ],
+      "vehicle": null,
+      "route": "aquatic_environment",
+      "regimen": {
+        "exposure_regimen_type": "single",
+        "interval_between_individual_exposures": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "total_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "individual_exposure_duration": {
+          "unit": "some text",
+          "numeric_value": 1.5
+        },
+        "number_of_individual_exposure": 1
+      },
+      "exposure_start_stage": "EXAMPLE:1",
+      "exposure_end_stage": "EXAMPLE:1",
+      "comment": "some text",
+      "exposure_type": {
+        "term_uri": "EXAMPLE:1",
+        "term_label": "some text"
+      },
+      "additional_exposure_condition": "some text"
+    },
+    "accepted": true
+  },
+  {
+    "name": "a null optional text",
+    "level": "Experiment",
+    "body": {
+      "standard_rearing_condition": true,
+      "rearing_condition_comment": null,
+      "fish": {
+        "background_zfin_id": "ZFIN:ZDB-GENO-960809-7",
+        "background_name": "AB",
+        "allele": [
+          {
+            "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+            "allele_symbol": "ti282a",
+            "alteration_type": "point_mutation",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a",
+            "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+            "construct_name": "Tg(mpeg1:YFP)",
+            "zygosity": "unknown",
+            "mother_zygosity": "unknown",
+            "father_zygosity": "unknown"
+          }
+        ],
+        "transient_reagent": [
+          {
+            "reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-040101-1",
+            "reagent_symbol": "MO1-fgf8a",
+            "reagent_type": "morpholino",
+            "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+            "affected_gene_symbol": "fgf8a"
+          }
+        ],
+        "line_description": "some text"
+      },
+      "control": [
+        {
+          "control_type": "some text",
+          "vehicle_if_treated": {
+            "vehicle_type": "acetone",
+            "chemical_id": "EXAMPLE:1",
+            "cas_id": "some text",
+            "unrecognized_chemical_name": "some text",
+            "synonym": [
+              "some text"
+            ],
+            "manufacturer": "sigma_aldrich",
+            "unrecognized_manufacturer_name": "some text",
+            "concentration": {
+              "unit": "some text",
+              "numeric_value": 1.5
+            },
+            "comment": "some text"
+          },
+          "comment": "some text",
+          "control_image": [
+            {
+              "phenotype_id": "some text",
+              "magnification": "some text",
+              "resolution": "some text",
+              "scale_bar": "some text",
+              "phenotype_comments": "some text"
+            }
+          ]
+        }
+      ]
+    },
+    "accepted": true
+  }
+]

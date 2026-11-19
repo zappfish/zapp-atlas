@@ -3,16 +3,15 @@
  * Schema (`./schema.json`) via Ajv.
  *
  * The same compiled validator serves both boundaries:
- *   - outgoing: validate a create/update payload before POST/PATCH (`allErrors`
+ *   - outgoing: validate a request body before sending it (`allErrors`
  *     gives every field problem at once, for inline form feedback);
  *   - incoming: validate a server response — an Ajv validator is a TypeScript
  *     type guard (`data is T`), so a successful check narrows `unknown → T`
  *     with a runtime guarantee (no unchecked `as` cast).
  *
- * We ship ONE reference validator here (Study, a top-level container). Because
- * JSON Schema resolves `$ref`s, validating a Study validates its whole nested
- * tree. Add more entities the same way, as components need them — see
- * `client/src/schema/README.md`.
+ * A validator for a class as it is read is compiled here (`validateStudy`,
+ * whose `$ref`s take in the whole tree). Validators for request bodies are in
+ * `./bodies`.
  */
 
 import Ajv2019 from "ajv/dist/2019";
@@ -20,14 +19,14 @@ import type { ErrorObject, ValidateFunction } from "ajv";
 
 import { schemaDocument } from "./document";
 import type { Study } from "./index";
-import type { Create } from "./types";
-import { toInputSchema, type JSONSchemaDocument } from "./variants";
+import type { JSONSchemaDocument } from "./variants";
 
 // strict:false — the LinkML output carries annotation keywords ($comment, title,
 // version, metamodel_version) and multi-type ("array"|"null") slots that Ajv's
 // strict mode would reject. allErrors:true so one validate() call reports every
-// field problem.
-const ajv = new Ajv2019({ allErrors: true, strict: false });
+// field problem. verbose:true so an error carries the schema it failed, whose
+// `examples` say what a pattern is asking for.
+const ajv = new Ajv2019({ allErrors: true, strict: false, verbose: true });
 
 /**
  * Compile a validator for a single entity within the bundled schema document.
@@ -60,15 +59,10 @@ export function parseAs<T>(validate: ValidateFunction<T>, data: unknown): T {
   return data;
 }
 
-// --- Reference validators: Study --------------------------------------------
+// --- Reference validator: Study ----------------------------------------------
 
 /** Validate a Study read from the API (`id` present); narrows `unknown → Study`. */
 export const validateStudy: ValidateFunction<Study> = compile<Study>(
   schemaDocument,
   "Study",
 );
-
-/** Validate a Study create payload (`id`s omitted) before POSTing. */
-export const validateStudyInput: ValidateFunction<Create<Study>> = compile<
-  Create<Study>
->(toInputSchema(schemaDocument), "Study");

@@ -20,5 +20,5 @@
     "verbatimModuleSyntax": true,
     "types": ["react", "react-dom", "vite/client"]
   },
-  "include": ["src", "e2e"]
+  "include": ["src", "e2e", "tests"]
 }

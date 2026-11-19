@@ -23,5 +23,9 @@ export const createStudy = (
   return send<Study>("POST", "/studies", body);
 };
 
+/** What is sent is what the study becomes; its experiments are left alone. */
+export const replaceStudy = (studyId: number, body: StudyBody) =>
+  send<Study>("PUT", `/studies/${studyId}`, body);
+
 export const deleteStudy = (studyId: number) =>
   send<null>("DELETE", `/studies/${studyId}`);
