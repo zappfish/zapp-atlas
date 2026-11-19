@@ -212,7 +212,7 @@ def draft(client: TestClient, group: int) -> dict[str, dict]:
     made = make_tree(client, group, status="draft")
     upload = client.post(
         f"/api/observations/{made['PhenotypeObservationSet']['id']}/images",
-        files={"file": ("fish.png", b"a picture", "image/png")},
+        files={"file": ("fish.png", b"\x89PNG\r\n\x1a\n a picture", "image/png")},
     )
     assert upload.status_code == 201, upload.text
     return made | {"Image": upload.json()}

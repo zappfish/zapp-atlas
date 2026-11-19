@@ -54,7 +54,7 @@ def test_deleting_a_level_is_a_revision_without_it(client: TestClient, tree: dic
 def test_uploading_an_image_is_a_revision(client: TestClient, tree: dict) -> None:
     client.post(
         f"/api/observations/{tree['PhenotypeObservationSet']['id']}/images",
-        files={"file": ("fish.png", b"a picture", "image/png")},
+        files={"file": ("fish.png", b"\x89PNG\r\n\x1a\n a picture", "image/png")},
     )
     assert len(_revisions(client, tree["Study"]["id"])) == 5
 
