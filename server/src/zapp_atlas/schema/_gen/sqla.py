@@ -117,13 +117,14 @@ class Study(ZappEntity):
 
     __tablename__ = "Study"
 
-    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     status: Mapped[str] = mapped_column(Enum('draft', 'published', name='StudyStatusEnum'))
     publication: Mapped[str | None] = mapped_column(Text())
     nickname: Mapped[str | None] = mapped_column(Text())
     description: Mapped[str | None] = mapped_column(Text())
     lab: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    research_group_id: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    research_group: Mapped[ResearchGroup | None] = relationship(foreign_keys=[research_group_id])
 
     # One-To-Many: OneToAnyMapping(source_class='Study', source_slot='experiment', mapping_type=None, target_class='Experiment', target_slot='Study_id', join_class=None, uses_join_table=None, multivalued=False)
     experiment: Mapped[list[Experiment]] = relationship(foreign_keys="[Experiment.Study_id]")
@@ -136,7 +137,7 @@ class Study(ZappEntity):
     )
 
     def __repr__(self):
-        return f"Study(research_group={self.research_group},status={self.status},publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},)"
+        return f"Study(status={self.status},publication={self.publication},nickname={self.nickname},description={self.description},lab={self.lab},id={self.id},research_group_id={self.research_group_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -205,7 +206,7 @@ class Phenotype(ZappEntity):
     PhenotypeObservationSet_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("PhenotypeObservationSet.id"))
     prevalence_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("QuantityValue.id"))
     prevalence: Mapped[QuantityValue | None] = relationship(foreign_keys=[prevalence_id])
-    phenotype_term_id_term_uri: Mapped[int | None] = mapped_column(Integer(), ForeignKey("PhenotypeTerm.term_uri"))
+    phenotype_term_id_term_uri: Mapped[str | None] = mapped_column(Text(), ForeignKey("PhenotypeTerm.term_uri"))
     phenotype_term_id: Mapped[PhenotypeTerm | None] = relationship(foreign_keys=[phenotype_term_id_term_uri])
 
     def __repr__(self):
@@ -250,11 +251,11 @@ class ExposureEvent(ZappEntity):
     additional_exposure_condition: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     Experiment_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Experiment.id"))
-    route_term_uri: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ExposureRoute.term_uri"))
+    route_term_uri: Mapped[str | None] = mapped_column(Text(), ForeignKey("ExposureRoute.term_uri"))
     route: Mapped[ExposureRoute | None] = relationship(foreign_keys=[route_term_uri])
     regimen_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Regimen.id"))
     regimen: Mapped[Regimen | None] = relationship(foreign_keys=[regimen_id])
-    exposure_type_term_uri: Mapped[int | None] = mapped_column(Integer(), ForeignKey("ExposureType.term_uri"))
+    exposure_type_term_uri: Mapped[str | None] = mapped_column(Text(), ForeignKey("ExposureType.term_uri"))
     exposure_type: Mapped[ExposureType | None] = relationship(foreign_keys=[exposure_type_term_uri])
 
     # One-To-Many: OneToAnyMapping(source_class='ExposureEvent', source_slot='stressor', mapping_type=None, target_class='StressorChemical', target_slot='ExposureEvent_id', join_class=None, uses_join_table=None, multivalued=False)
@@ -547,13 +548,14 @@ class ResearchGroupMember(ZappEntity):
 
     __tablename__ = "ResearchGroupMember"
 
-    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     member: Mapped[str] = mapped_column(Text())
     role: Mapped[str] = mapped_column(Enum('admin', 'member', name='ResearchGroupRoleEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    research_group_id: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    research_group: Mapped[ResearchGroup | None] = relationship(foreign_keys=[research_group_id])
 
     def __repr__(self):
-        return f"ResearchGroupMember(research_group={self.research_group},member={self.member},role={self.role},id={self.id},)"
+        return f"ResearchGroupMember(member={self.member},role={self.role},id={self.id},research_group_id={self.research_group_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -565,16 +567,17 @@ class ChemicalCabinetEntry(ZappEntity):
 
     __tablename__ = "ChemicalCabinetEntry"
 
-    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     chemical_id: Mapped[str] = mapped_column(Text())
     nickname: Mapped[str | None] = mapped_column(Text())
     manufacturer: Mapped[str | None] = mapped_column(Enum('sigma_aldrich', 'merck_kgaa', 'millipore_sigma', 'thermo_fisher_scientific', 'fisher_scientific', 'avantor', 'vwr', 'new_england_biolabs', 'bio_rad_laboratories', 'promega_corporation', 'corning_life_sciences', 'lonza_group', 'tocris_bioscience', 'cayman_chemical_company', 'selleck_chemicals', 'medchemexpress', 'enzo_life_sciences', 'aquaneering_inc', 'pentair_aquatic_eco_systems', 'tecniplast', 'zebrafish_international_resource_center', 'tokyo_chemical_industry', 'alfa_aesar', 'acros_organics', 'honeywell', 'abcam', 'cell_signaling_technology', 'genscript', 'addgene', 'thomas_scientific', 'cole_parmer', 'other_not_listed', name='ManufacturerEnum'))
     unrecognized_manufacturer_name: Mapped[str | None] = mapped_column(Text())
     vehicle_type: Mapped[str | None] = mapped_column(Enum('acetone', 'acetonitrile', 'bsa', 'butanone_mek', 'cyclodextrin_hpbcd', 'dimethyl_formamide', 'dmso', 'embryonic_media', 'ethanol', 'glycerol', 'isopropanol', 'methanol', 'methylcellulose', 'pbs', 'polyethylene_glycol', 'propylene_glycol', 'solketal', 'water', 'other_not_listed', name='VehicleEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    research_group_id: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    research_group: Mapped[ResearchGroup | None] = relationship(foreign_keys=[research_group_id])
 
     def __repr__(self):
-        return f"ChemicalCabinetEntry(research_group={self.research_group},chemical_id={self.chemical_id},nickname={self.nickname},manufacturer={self.manufacturer},unrecognized_manufacturer_name={self.unrecognized_manufacturer_name},vehicle_type={self.vehicle_type},id={self.id},)"
+        return f"ChemicalCabinetEntry(chemical_id={self.chemical_id},nickname={self.nickname},manufacturer={self.manufacturer},unrecognized_manufacturer_name={self.unrecognized_manufacturer_name},vehicle_type={self.vehicle_type},id={self.id},research_group_id={self.research_group_id},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -586,14 +589,15 @@ class FishTankEntry(ZappEntity):
 
     __tablename__ = "FishTankEntry"
 
-    research_group: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
     nickname: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    research_group_id: Mapped[int] = mapped_column(Integer(), ForeignKey("ResearchGroup.id"))
+    research_group: Mapped[ResearchGroup | None] = relationship(foreign_keys=[research_group_id])
     fish_id: Mapped[int] = mapped_column(Integer(), ForeignKey("Fish.id"))
     fish: Mapped[Fish | None] = relationship(foreign_keys=[fish_id])
 
     def __repr__(self):
-        return f"FishTankEntry(research_group={self.research_group},nickname={self.nickname},id={self.id},fish_id={self.fish_id},)"
+        return f"FishTankEntry(nickname={self.nickname},id={self.id},research_group_id={self.research_group_id},fish_id={self.fish_id},)"
 
     __mapper_args__ = {"concrete": True}
 

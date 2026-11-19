@@ -33,7 +33,7 @@ def list_entries(
 ) -> list[ChemicalCabinetEntry]:
     return (
         session.query(ChemicalCabinetEntry)
-        .filter(ChemicalCabinetEntry.research_group == group_id)
+        .filter(ChemicalCabinetEntry.research_group_id == group_id)
         .order_by(ChemicalCabinetEntry.id)
         .offset(offset)
         .limit(limit)
@@ -47,7 +47,7 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> ChemicalCabinet
         session.query(ChemicalCabinetEntry)
         .filter(
             ChemicalCabinetEntry.id == entry_id,
-            ChemicalCabinetEntry.research_group == group_id,
+            ChemicalCabinetEntry.research_group_id == group_id,
         )
         .one_or_none()
     )
@@ -59,7 +59,7 @@ def _check_nickname_is_free(
     if nickname is None:
         return
     query = session.query(ChemicalCabinetEntry).filter(
-        ChemicalCabinetEntry.research_group == group_id,
+        ChemicalCabinetEntry.research_group_id == group_id,
         ChemicalCabinetEntry.nickname == nickname,
     )
     if entry_id is not None:
@@ -80,7 +80,7 @@ def _check_stock_is_free(
     if manufacturer is not None:
         return  # a named supplier is covered by the unique index
     query = session.query(ChemicalCabinetEntry).filter(
-        ChemicalCabinetEntry.research_group == group_id,
+        ChemicalCabinetEntry.research_group_id == group_id,
         ChemicalCabinetEntry.chemical_id == chemical_id,
         ChemicalCabinetEntry.manufacturer.is_(None),
     )
@@ -119,7 +119,7 @@ def add_entry(
     _check_nickname_is_free(session, group_id, nickname)
     _check_stock_is_free(session, group_id, chemical_id, manufacturer)
     entry = ChemicalCabinetEntry(
-        research_group=group_id,
+        research_group_id=group_id,
         chemical_id=chemical_id,
         nickname=nickname,
         manufacturer=manufacturer,

@@ -18,7 +18,7 @@ from functools import cache, cached_property
 
 from linkml_runtime import SchemaView
 
-from zapp_atlas.schema.view import is_reference, schema_view
+from zapp_atlas.schema.view import column_name, is_reference, schema_view
 
 # Outermost first. Each is nested in the one before through a single slot.
 LEVELS = (
@@ -64,6 +64,10 @@ class Slot:
     kind: SlotKind
     range: str
     multivalued: bool
+    attribute: str
+    """Where a row keeps the slot's value. An inlined object is the row's
+    relationship of the slot's name; anything else is in the slot's column,
+    which for the id of a row elsewhere is not named for the slot."""
 
 
 @dataclass(frozen=True)
@@ -96,6 +100,9 @@ class Layout:
             ),
             range=slot.range,
             multivalued=bool(slot.multivalued),
+            attribute=(
+                slot_name if slot.inlined else column_name(self.view, class_name, slot_name)
+            ),
         )
 
     def _kind(self, range_name: str, *, inlined: bool) -> SlotKind:

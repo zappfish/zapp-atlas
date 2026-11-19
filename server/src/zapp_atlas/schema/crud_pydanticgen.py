@@ -8,7 +8,10 @@ API speaks in:
   variants, and -- for a class the API layout names as a level -- no slot
   holding the next level down, which is a resource of its own.
 * ``Read`` -- what the API returns: every field, nested classes as their Read
-  variants, built straight from ORM rows (``from_attributes=True``).
+  variants, built straight from ORM rows (``from_attributes=True``). A field
+  holding the id of a row elsewhere is read from where the row keeps that id
+  (``Slot.attribute``), since the row's attribute of the slot's own name is
+  the other row itself.
 * ``Summary`` -- a Read that stops where the Input does, for listing a level
   without everything beneath it.
 """
@@ -19,6 +22,8 @@ from dataclasses import dataclass
 import click
 from linkml.generators.pydanticgen.pydanticgen import PydanticGenerator
 from linkml.generators.pydanticgen.template import (
+    Import,
+    ObjectImport,
     PydanticAttribute,
     PydanticClass,
     PydanticModule,
@@ -54,19 +59,33 @@ def _variant(
     without: set[str],
     nested: set[str],
     nested_suffix: str,
+    read_from: dict[str, str] | None = None,
 ) -> PydanticClass:
-    """A copy of ``cls`` minus some attributes, its nested classes swapped for theirs."""
+    """A copy of ``cls`` minus some attributes, its nested classes swapped for theirs.
+
+    ``read_from`` names, for a variant built from ORM rows, the row attribute
+    behind each field that is not kept under the field's own name.
+    """
     return PydanticClass(
         name=f"{cls.name}{suffix}",
         bases=base,
         description=description,
         attributes={
-            name: _with_nested_variants(attr, nested, nested_suffix)
+            name: _read_from(
+                _with_nested_variants(attr, nested, nested_suffix), (read_from or {}).get(name)
+            )
             for name, attr in (cls.attributes or {}).items()
             if name not in without
         }
         or None,
     )
+
+
+def _read_from(attr: PydanticAttribute, row_attribute: str | None) -> PydanticAttribute:
+    if row_attribute is None:
+        return attr
+    annotated = f'Annotated[{attr.range}, Field(validation_alias="{row_attribute}")]'
+    return attr.model_copy(update={"range": annotated})
 
 
 def _with_nested_variants(
@@ -98,6 +117,9 @@ class CrudPydanticGenerator(PydanticGenerator):
             classes[name] = cls
             next_level = {s.name for s in layout.slots(name) if s.kind is SlotKind.LEVEL}
             derived = {s.name for s in layout.slots(name) if s.kind is SlotKind.DERIVED}
+            kept_elsewhere = {
+                s.name: s.attribute for s in layout.slots(name) if s.attribute != s.name
+            }
 
             if name in entities:
                 classes[f"{name}Input"] = _variant(
@@ -118,6 +140,7 @@ class CrudPydanticGenerator(PydanticGenerator):
                     without=set(),
                     nested=readable,
                     nested_suffix="Read",
+                    read_from=kept_elsewhere,
                 )
             if next_level:
                 classes[f"{name}Summary"] = _variant(
@@ -128,9 +151,11 @@ class CrudPydanticGenerator(PydanticGenerator):
                     without=next_level,
                     nested=readable,
                     nested_suffix="Read",
+                    read_from=kept_elsewhere,
                 )
 
         template.injected_classes = [*(template.injected_classes or []), READBASEMODEL_SRC]
+        template.python_imports += Import(module="typing", objects=[ObjectImport(name="Annotated")])
         template.classes = classes
         return template
 

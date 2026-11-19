@@ -18,6 +18,19 @@ def schema_view() -> SchemaView:
 REFERENCE_BASES = ("OntologyEntity",)
 
 
+def column_name(view: SchemaView, class_name: str, slot_name: str) -> str:
+    """The column ``gen-sqla`` keeps a slot in.
+
+    A slot whose range is another class is kept as that class's identifier, in
+    ``<slot>_<identifier>`` (``research_group`` -> ``research_group_id``), and
+    the slot's own name goes to a relationship. Any other slot keeps its name.
+    """
+    range_name = view.induced_slot(slot_name, class_name).range
+    if range_name not in view.all_classes():
+        return slot_name
+    return f"{slot_name}_{view.get_identifier_slot(range_name).name}"
+
+
 def is_reference(view: SchemaView, class_name: str) -> bool:
     """Is this a class of shared rows, as opposed to rows their parent owns?"""
     return any(base in view.class_ancestors(class_name) for base in REFERENCE_BASES)
