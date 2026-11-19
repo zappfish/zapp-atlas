@@ -86,7 +86,7 @@ def test_put_observation_replaces_phenotype(client: TestClient, group: int) -> N
                     "stage": "ZFS:0000035",
                     "severity": "mild",
                     "phenotype_term_id": {
-                        "term_uri": "ZP:1",
+                        "term_uri": "ZP:0105827",
                         "term_label": "x",
                     },
                 }
@@ -103,7 +103,7 @@ def test_put_observation_replaces_phenotype(client: TestClient, group: int) -> N
                     "stage": "ZFS:0000036",
                     "severity": "severe",
                     "phenotype_term_id": {
-                        "term_uri": "ZP:2",
+                        "term_uri": "ZP:0001609",
                         "term_label": "y",
                     },
                 }

@@ -263,10 +263,21 @@ classes:
   # Ontology entities (string URI identifiers)
   PhenotypeTerm:
     is_a: OntologyEntity
-    description: A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+    description: >-
+      A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+      Named by its id; the server takes its label from the ontology.
+    id_prefixes:
+      - ZP
     slots:
       - term_uri
       - term_label
+    slot_usage:
+      term_uri:
+        examples:
+          - value: ZP:0105827
+      term_label:
+        examples:
+          - value: edematous pericardial region
     exact_mappings:
       - biolink:PhenotypicFeature
 
@@ -274,10 +285,15 @@ classes:
     is_a: OntologyEntity
     description: |
       An exposure-type term from ECTO.
+    id_prefixes:
+      - ECTO
     slots:
       - term_uri
       - term_label
     slot_usage:
+      term_uri:
+        examples:
+          - value: ECTO:9000057
       term_label:
         required: true
 
@@ -784,8 +800,12 @@ slots:
     description: Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list.
     range: string
   chemical_id:
-    description: Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+    description: The chemical's ChEBI identifier.
     range: uriorcurie
+    id_prefixes:
+      - CHEBI
+    examples:
+      - value: CHEBI:16236
   manufacturer:
     description: The manufacturer or supplier of the chemical.
     range: ManufacturerEnum

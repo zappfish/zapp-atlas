@@ -162,6 +162,11 @@ editing pages". The things that are easy to get wrong:
   experiment; each exposure event, observation and image beneath it is a card
   that saves on its own. Nothing sends two levels in one request, and a card
   for the level beneath appears once its parent is saved.
+- **A term is sent by its id.** The server checks it against the reference
+  bundle and supplies its label (`api/terms.py`); a slot says which ontology
+  it draws from with `id_prefixes` in the schema. Tests name only the terms
+  in `server/tests/labels_fixture/labels.tsv`, which is also the browser
+  tests' bundle: add a term there before a test saves it.
 - **Use the schema's names on the page.** It is an "exposure event", as the
   schema and the original form have it.
 - **After a route or model changes**, `just api-types` also rewrites the

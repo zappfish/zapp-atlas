@@ -12,9 +12,12 @@ import { defineConfig, devices } from '@playwright/test';
 // records straight away.
 //
 // The server's reference data comes from a bundle it may not have on a CI
-// machine, so the run gets its own: a zfin.db built from the same miniature
-// ZFIN files the server tests use (server/tests/zfin_fixture). The fish tests
-// know those lines; the ontology files are left out, as no test reads them.
+// machine, so the run gets its own, built from the fixtures the server tests
+// use: a zfin.db from the miniature ZFIN files (server/tests/zfin_fixture),
+// whose lines the fish tests know, and a labels.db of the few terms the tests
+// name (server/tests/labels_fixture), without which the server stores no
+// term. The ontology files the phenotype picker reads are left out, as no
+// test opens it.
 //
 // Run `npm run e2e`, which builds the client first: the server serves
 // client/dist, not the source.
@@ -28,22 +31,36 @@ const dataDir = (process.env.ZAPP_E2E_DATA ??= mkdtempSync(
   path.join(tmpdir(), 'zapp-e2e-'),
 ));
 
-const extdataDir = path.join(dataDir, 'extdata');
-if (!existsSync(path.join(extdataDir, 'zfin.db'))) {
-  mkdirSync(extdataDir, { recursive: true });
+/** Run one of the bundle's own builders, as the real bundle is built. */
+const build = (script: string, output: string, ...rest: string[]) =>
   execFileSync(
     'uv',
     [
       'run',
       '--quiet',
       '--script',
-      path.join(repo, 'extdata', 'scripts', 'zfin_db.py'),
-      path.join(extdataDir, 'zfin.db'),
-      path.join(repo, 'server', 'tests', 'zfin_fixture'),
-      '--zfin-date',
-      'fixture',
+      path.join(repo, 'extdata', 'scripts', script),
+      output,
+      ...rest,
     ],
     { stdio: 'inherit' },
+  );
+
+const extdataDir = path.join(dataDir, 'extdata');
+const fixtures = path.join(repo, 'server', 'tests');
+if (!existsSync(path.join(extdataDir, 'zfin.db'))) {
+  mkdirSync(extdataDir, { recursive: true });
+  build(
+    'zfin_db.py',
+    path.join(extdataDir, 'zfin.db'),
+    path.join(fixtures, 'zfin_fixture'),
+    '--zfin-date',
+    'fixture',
+  );
+  build(
+    'labels_db.py',
+    path.join(extdataDir, 'labels.db'),
+    path.join(fixtures, 'labels_fixture', 'labels.tsv'),
   );
 }
 

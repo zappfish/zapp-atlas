@@ -64,6 +64,9 @@ class Slot:
     kind: SlotKind
     range: str
     multivalued: bool
+    prefixes: tuple[str, ...]
+    """The ontologies a CURIE in this slot may come from, by prefix, where the
+    schema says (``id_prefixes``). Empty for a slot that holds no term."""
     attribute: str
     """Where a row keeps the slot's value. An inlined object is the row's
     relationship of the slot's name; anything else is in the slot's column,
@@ -100,6 +103,7 @@ class Layout:
             ),
             range=slot.range,
             multivalued=bool(slot.multivalued),
+            prefixes=tuple(slot.id_prefixes),
             attribute=(
                 slot_name if slot.inlined else column_name(self.view, class_name, slot_name)
             ),

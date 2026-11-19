@@ -1653,6 +1653,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ECTO:9000057"
+                }
               ]
             },
             "title": "Term Uri",
@@ -1686,6 +1691,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ECTO:9000057"
+                }
               ]
             },
             "title": "Term Uri",
@@ -2814,7 +2824,7 @@
       },
       "PhenotypeTerm": {
         "additionalProperties": false,
-        "description": "A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).",
+        "description": "A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.",
         "properties": {
           "term_label": {
             "anyOf": [
@@ -2830,6 +2840,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "edematous pericardial region"
+                }
               ]
             },
             "title": "Term Label"
@@ -2840,6 +2855,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ZP:0105827"
+                }
               ]
             },
             "title": "Term Uri",
@@ -2869,6 +2889,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "edematous pericardial region"
+                }
               ]
             },
             "title": "Term Label"
@@ -2879,6 +2904,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ZP:0105827"
+                }
               ]
             },
             "title": "Term Uri",
@@ -3351,12 +3381,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -3508,12 +3546,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -4557,12 +4603,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -4727,12 +4781,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"

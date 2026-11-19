@@ -1737,7 +1737,7 @@ export interface components {
         };
         /**
          * PhenotypeTerm
-         * @description A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+         * @description A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.
          */
         PhenotypeTerm: {
             /**
@@ -1942,7 +1942,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -1982,7 +1982,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2273,7 +2273,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2315,7 +2315,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**

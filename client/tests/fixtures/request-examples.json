@@ -103,7 +103,7 @@
           "control_type": "some text",
           "vehicle_if_treated": {
             "vehicle_type": "acetone",
-            "chemical_id": "EXAMPLE:1",
+            "chemical_id": "CHEBI:16236",
             "cas_id": "some text",
             "unrecognized_chemical_name": "some text",
             "synonym": [
@@ -177,7 +177,7 @@
           "control_type": "some text",
           "vehicle_if_treated": {
             "vehicle_type": "acetone",
-            "chemical_id": "EXAMPLE:1",
+            "chemical_id": "CHEBI:16236",
             "cas_id": "some text",
             "unrecognized_chemical_name": "some text",
             "synonym": [
@@ -246,7 +246,7 @@
           "control_type": "some text",
           "vehicle_if_treated": {
             "vehicle_type": "acetone",
-            "chemical_id": "EXAMPLE:1",
+            "chemical_id": "CHEBI:16236",
             "cas_id": "some text",
             "unrecognized_chemical_name": "some text",
             "synonym": [
@@ -315,7 +315,7 @@
           "control_type": "some text",
           "vehicle_if_treated": {
             "vehicle_type": "acetone",
-            "chemical_id": "EXAMPLE:1",
+            "chemical_id": "CHEBI:16236",
             "cas_id": "some text",
             "unrecognized_chemical_name": "some text",
             "synonym": [
@@ -351,7 +351,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -369,7 +369,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -405,7 +405,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -424,7 +424,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -442,7 +442,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -478,7 +478,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text",
@@ -492,7 +492,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -510,7 +510,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -546,7 +546,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text",
@@ -560,7 +560,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -578,7 +578,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -614,7 +614,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text",
@@ -632,8 +632,8 @@
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
-            "term_uri": "EXAMPLE:1",
-            "term_label": "some text"
+            "term_uri": "ZP:0105827",
+            "term_label": "edematous pericardial region"
           }
         }
       ],
@@ -665,8 +665,8 @@
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
-            "term_uri": "EXAMPLE:1",
-            "term_label": "some text"
+            "term_uri": "ZP:0105827",
+            "term_label": "edematous pericardial region"
           }
         }
       ],
@@ -693,8 +693,8 @@
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
-            "term_uri": "EXAMPLE:1",
-            "term_label": "some text"
+            "term_uri": "ZP:0105827",
+            "term_label": "edematous pericardial region"
           }
         }
       ],
@@ -721,8 +721,8 @@
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
-            "term_uri": "EXAMPLE:1",
-            "term_label": "some text"
+            "term_uri": "ZP:0105827",
+            "term_label": "edematous pericardial region"
           }
         }
       ],
@@ -838,7 +838,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -874,7 +874,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -904,7 +904,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -940,7 +940,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -953,7 +953,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -970,7 +970,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1006,7 +1006,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1019,7 +1019,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1037,7 +1037,7 @@
       "vehicle": [
         {
           "vehicle_type": "other_not_listed",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "synonym": [
             "some text"
@@ -1072,7 +1072,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1124,7 +1124,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1142,7 +1142,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1178,7 +1178,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1191,7 +1191,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1209,7 +1209,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1245,7 +1245,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1262,8 +1262,8 @@
           "prevalence": 1.5,
           "severity": "awful",
           "phenotype_term_id": {
-            "term_uri": "EXAMPLE:1",
-            "term_label": "some text"
+            "term_uri": "ZP:0105827",
+            "term_label": "edematous pericardial region"
           }
         }
       ],
@@ -1289,8 +1289,8 @@
           "prevalence": 120,
           "severity": "mild",
           "phenotype_term_id": {
-            "term_uri": "EXAMPLE:1",
-            "term_label": "some text"
+            "term_uri": "ZP:0105827",
+            "term_label": "edematous pericardial region"
           }
         }
       ],
@@ -1345,7 +1345,7 @@
           "control_type": "some text",
           "vehicle_if_treated": {
             "vehicle_type": "acetone",
-            "chemical_id": "EXAMPLE:1",
+            "chemical_id": "CHEBI:16236",
             "cas_id": "some text",
             "unrecognized_chemical_name": "some text",
             "synonym": [
@@ -1396,7 +1396,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1415,7 +1415,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1451,7 +1451,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1464,7 +1464,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1482,7 +1482,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1518,7 +1518,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1531,7 +1531,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1549,7 +1549,7 @@
       "vehicle": [
         {
           "vehicle_type": "acetone",
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1570,7 +1570,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1583,7 +1583,7 @@
     "body": {
       "stressor": [
         {
-          "chemical_id": "EXAMPLE:1",
+          "chemical_id": "CHEBI:16236",
           "cas_id": "some text",
           "unrecognized_chemical_name": "some text",
           "synonym": [
@@ -1620,7 +1620,7 @@
       "exposure_end_stage": "EXAMPLE:1",
       "comment": "some text",
       "exposure_type": {
-        "term_uri": "EXAMPLE:1",
+        "term_uri": "ECTO:9000057",
         "term_label": "some text"
       },
       "additional_exposure_condition": "some text"
@@ -1666,7 +1666,7 @@
           "control_type": "some text",
           "vehicle_if_treated": {
             "vehicle_type": "acetone",
-            "chemical_id": "EXAMPLE:1",
+            "chemical_id": "CHEBI:16236",
             "cas_id": "some text",
             "unrecognized_chemical_name": "some text",
             "synonym": [

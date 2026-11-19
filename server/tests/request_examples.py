@@ -18,6 +18,7 @@ pass every example the server accepts.
 import copy
 import json
 import sys
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 
@@ -25,12 +26,13 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
-from support import body
+from support import LABELS_FIXTURE, body, built
 
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.layout import LEVELS, SlotKind, layout
 from zapp_atlas.api.tree import build
 from zapp_atlas.db import init_db
+from zapp_atlas.labels import Labels
 from zapp_atlas.schema import pydantic_crud as models
 from zapp_atlas.zfin import Zfin
 
@@ -153,9 +155,12 @@ def request_examples() -> list[dict[str, object]]:
     """Every body tried, with the level it is for and whether the server accepts it."""
     engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
     init_db(engine)
-    with Session(engine) as session:
-        # As the app's sessions carry it. With no bundle, no fish is matched.
+    with tempfile.TemporaryDirectory() as bundle, Session(engine) as session:
+        # As the app's sessions carry them: no ZFIN data, so no fish is
+        # matched, and the labels of the terms the tests name.
         session.info["zfin"] = Zfin(Path("no-bundle") / "zfin.db")
+        labels = built("labels_db.py", Path(bundle) / "labels.db", str(LABELS_FIXTURE))
+        session.info["labels"] = Labels(labels)
         return [
             {
                 "name": name,

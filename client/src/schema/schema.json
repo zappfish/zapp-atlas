@@ -131,7 +131,10 @@
       },
       "properties": {
         "chemical_id": {
-          "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+          "description": "The chemical's ChEBI identifier.",
+          "examples": [
+            "CHEBI:16236"
+          ],
           "type": "string"
         },
         "id": {
@@ -498,6 +501,9 @@
         },
         "term_uri": {
           "description": "The URI of the phenotype ontology term.",
+          "examples": [
+            "ECTO:9000057"
+          ],
           "type": "string"
         }
       },
@@ -846,10 +852,13 @@
     },
     "PhenotypeTerm": {
       "additionalProperties": false,
-      "description": "A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).",
+      "description": "A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.",
       "properties": {
         "term_label": {
           "description": "The human-readable label for the phenotype ontology term.",
+          "examples": [
+            "edematous pericardial region"
+          ],
           "type": [
             "string",
             "null"
@@ -857,6 +866,9 @@
         },
         "term_uri": {
           "description": "The URI of the phenotype ontology term.",
+          "examples": [
+            "ZP:0105827"
+          ],
           "type": "string"
         }
       },
@@ -1117,7 +1129,10 @@
           ]
         },
         "chemical_id": {
-          "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+          "description": "The chemical's ChEBI identifier.",
+          "examples": [
+            "CHEBI:16236"
+          ],
           "type": [
             "string",
             "null"
@@ -1458,7 +1473,10 @@
           ]
         },
         "chemical_id": {
-          "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+          "description": "The chemical's ChEBI identifier.",
+          "examples": [
+            "CHEBI:16236"
+          ],
           "type": [
             "string",
             "null"

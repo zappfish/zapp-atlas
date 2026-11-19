@@ -402,8 +402,23 @@ runtime: ZP and ZFA as OBO JSON for the client, `labels.db`, a CURIE ->
 label table the server reads through `zapp_atlas/labels.py`, and `zfin.db`,
 ZFIN's registered alleles, genotypes, fish and wild-type lines, read through
 `zapp_atlas/zfin.py`. Without it the app still runs, but `/extdata` answers
-404, label lookups fall back to the CURIE, and `/api/zfin` answers 503. See
-[extdata/README.md](extdata/README.md).
+404, label lookups fall back to the CURIE, `/api/zfin` answers 503, and so
+does any save that names an ontology term, since there is nothing to check
+the term against. See [extdata/README.md](extdata/README.md).
+
+### Terms a request names
+
+A request says which ontology term it means by the term's CURIE, and the
+server checks it (`api/terms.py`). The schema declares which ontology a slot
+draws from, as `id_prefixes`: on a slot that holds a CURIE (`chemical_id` is
+a ChEBI term), or on a class of shared term rows (`PhenotypeTerm` is a ZP
+term). A CURIE with another prefix is refused, and so is one `labels.db` does
+not have. A term's label is the bundle's: what a body sends for it is not
+used, and a stored term's label is brought up to date when it is next named.
+
+The bundle does not carry every ontology the schema names. A term from one it
+lacks, which today is an exposure type from ECTO, is held to its prefix alone
+and keeps the label it was sent with.
 
 ### Reference data for the fish picker
 

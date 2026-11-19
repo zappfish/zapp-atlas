@@ -401,7 +401,7 @@ class ControlImage(ZappEntity):
 
 class PhenotypeTerm(OntologyEntity):
     """
-    A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+    A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.
     """
 
     __tablename__ = "PhenotypeTerm"

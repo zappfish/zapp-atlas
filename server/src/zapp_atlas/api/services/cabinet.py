@@ -19,8 +19,10 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.errors import SchemaRuleViolation
+from zapp_atlas.api.layout import layout
 from zapp_atlas.api.persistence import commit_or_conflict
 from zapp_atlas.api.rules import OTHER_NOT_LISTED, check_escape_hatch
+from zapp_atlas.api.terms import checked
 from zapp_atlas.schema.pydantic_crud import ManufacturerEnum, VehicleEnum
 from zapp_atlas.schema.sqla import ChemicalCabinetEntry
 
@@ -101,6 +103,14 @@ def _check_vehicle_is_nameable(vehicle_type: object) -> None:
         )
 
 
+def _check_chemical(session: Session, chemical_id: str) -> None:
+    """A cabinet holds chemicals the reference data has, as the schema's
+    ``chemical_id`` slot says: the routes here store it outside the generic
+    save path, which makes this check for the study tree."""
+    [slot] = [s for s in layout().slots("ChemicalCabinetEntry") if s.name == "chemical_id"]
+    checked(session.info["labels"], slot.prefixes, chemical_id)
+
+
 def _commit(session: Session) -> None:
     commit_or_conflict(session, _CHEMICAL_TAKEN, named={"nickname": _NICKNAME_TAKEN})
 
@@ -115,6 +125,7 @@ def add_entry(
     unrecognized_manufacturer_name: str | None = None,
     vehicle_type: VehicleEnum | None = None,
 ) -> ChemicalCabinetEntry:
+    _check_chemical(session, chemical_id)
     _check_vehicle_is_nameable(vehicle_type)
     _check_nickname_is_free(session, group_id, nickname)
     _check_stock_is_free(session, group_id, chemical_id, manufacturer)
@@ -159,6 +170,7 @@ def update_entry(
         entry_id=entry.id,
     )
     if chemical_id is not None:
+        _check_chemical(session, chemical_id)
         entry.chemical_id = chemical_id
     if nickname is not None:
         entry.nickname = nickname
