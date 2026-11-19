@@ -13,9 +13,11 @@ just dev-api       # everything on :8000 (HTML, /api, /edit) — Python and
 just dev-client    # Vite module server on :5173, for React work
 just dev-api-hmr   # run alongside dev-client, then open :8000/edit/ — NOT :5173
 just test          # pytest
+just test-client   # the client's unit tests (vitest)
 just e2e           # browser tests (Playwright): builds the client, starts the
                    # real server on a throwaway database, and drives it
-just api-types     # regenerate the client's API types after a route or model changes
+just api-types     # regenerate the client's API types, and the request examples its
+                   # tests are held to, after a route or model changes
 just lint          # ruff check + ruff format --check (no changes written)
 just fix           # ruff check --fix + ruff format (applies changes)
 just build-client  # emit client/dist

@@ -37,6 +37,10 @@ build-client:
 test:
     cd server && uv run pytest
 
+# Run the client's unit tests
+test-client:
+    cd client && npm test
+
 # Check linting and formatting (no changes written)
 lint:
     cd server && uv run ruff check
@@ -55,6 +59,7 @@ e2e:
 # Regenerate the client's API types from the server's OpenAPI document
 api-types:
     cd server && uv run python -m zapp_atlas.api.openapi ../client/src/api/openapi.json
+    cd server && uv run python tests/request_examples.py ../client/tests/fixtures/request-examples.json
     cd client && npm run api-types
 
 # Seed the dev database

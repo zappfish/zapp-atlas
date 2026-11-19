@@ -164,6 +164,7 @@ These tests keep the hand-written parts consistent with the schema:
 | The save code drops a slot, or leaves rows behind | `tests/test_api_tree.py` (bodies built from the schema) |
 | A write route does not require sign-in | `tests/test_api_routes.py` |
 | The client's API types are out of date | `tests/test_api_openapi.py`, and a CI check on the generated types |
+| The client rejects a body the server accepts | `client/tests/request-examples.test.ts`, against examples the server writes (`tests/test_request_examples.py` keeps them current) |
 
 ### Who may read and write
 
@@ -249,9 +250,10 @@ by hand:
 | File | What it provides |
 |------|------------------|
 | `document.ts` | `schemaDocument` — `schema.json`, typed once |
-| `types.ts` | `Create<T>`, `Update<T>`, `Draft<T>` |
-| `variants.ts` | `toInputSchema`, `toDraftSchema`, `normalizeNullableRefs` |
-| `validation.ts` | `compile`, `parseAs`, and reference validators |
+| `types.ts` | `Draft<T>` |
+| `variants.ts` | `toInputSchema`, `toDraftSchema` |
+| `validation.ts` | `compile`, `parseAs`, and a reference validator |
+| `bodies.ts` | `Body<Class>`, `validateBody`, `toBody`, `sameBody`: what the API accepts for a class |
 | `empty.ts` | `makeEmpty` (blank instances), `updateAt` (deep update) |
 
 `client/src/schema/README.md` is the guide for building the form against these,
@@ -334,6 +336,7 @@ just dev-api-hmr                       # uvicorn, pointed at Vite
 #   → open http://localhost:8000/edit/  (NOT :5173)
 
 just test          # pytest
+just test-client   # the client's unit tests (vitest)
 just e2e           # browser tests (Playwright) against a real server, with a
                    # zfin.db built from server/tests/zfin_fixture in place of
                    # the bundle, so they run where no bundle is installed

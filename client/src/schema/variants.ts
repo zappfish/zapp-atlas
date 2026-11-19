@@ -7,7 +7,7 @@
  * place that entity is used.
  *
  *   - read   → the generated schema as-is (server responses; `id` present).
- *   - input  → `id` dropped from every `required` (POST/PATCH payloads).
+ *   - input  → `id` dropped from every `required` (request bodies).
  *   - draft  → all `required` dropped (in-progress entries; deferred use).
  */
 
@@ -50,7 +50,7 @@ function transformRequired(
   return { ...schema, $defs: nextDefs };
 }
 
-/** POST/PATCH payloads: `id` is server-generated, so drop it from `required`. */
+/** Request bodies: `id` is server-generated, so drop it from `required`. */
 export function toInputSchema(schema: JSONSchemaDocument): JSONSchemaDocument {
   return transformRequired(schema, (field) => field !== "id");
 }

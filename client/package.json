@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
     "e2e": "npm run build && playwright test",
     "api-types": "openapi-typescript src/api/openapi.json -o src/api/openapi.d.ts --root-types --root-types-no-schema-prefix"
   },
@@ -33,7 +34,8 @@
     "openapi-typescript": "7.13.0",
     "typescript": "~5.7.0",
     "typescript-eslint": "^8.0.0",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "vitest": "^5.1.1"
   },
   "overrides": {
     "frogpot": {
