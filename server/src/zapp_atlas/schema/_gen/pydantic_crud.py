@@ -11,6 +11,7 @@ from datetime import (
 from decimal import Decimal
 from enum import Enum
 from typing import (
+    Annotated,
     Any,
     ClassVar,
     Literal,
@@ -30,7 +31,7 @@ from pydantic import (
 )
 
 
-metamodel_version = "1.7.0"
+metamodel_version = "1.12.0"
 version = "None"
 
 
@@ -89,8 +90,8 @@ linkml_meta = LinkMLMeta({'default_prefix': 'zebrafish_toxicology_atlas_schema',
                             'prefix_reference': 'http://purl.obolibrary.org/obo/CHEBI_'},
                   'ECTO': {'prefix_prefix': 'ECTO',
                            'prefix_reference': 'http://purl.obolibrary.org/obo/ECTO_'},
-                  'EXO': {'prefix_prefix': 'EXO',
-                          'prefix_reference': 'http://purl.obolibrary.org/obo/EXO_'},
+                  'ExO': {'prefix_prefix': 'ExO',
+                          'prefix_reference': 'http://purl.obolibrary.org/obo/ExO_'},
                   'GENO': {'prefix_prefix': 'GENO',
                            'prefix_reference': 'http://purl.obolibrary.org/obo/GENO_'},
                   'ORCID': {'prefix_prefix': 'ORCID',
@@ -107,6 +108,8 @@ linkml_meta = LinkMLMeta({'default_prefix': 'zebrafish_toxicology_atlas_schema',
                            'prefix_reference': 'https://fdasis.nlm.nih.gov/srs/unii/'},
                   'ZFIN': {'prefix_prefix': 'ZFIN',
                            'prefix_reference': 'https://zfin.org/'},
+                  'ZFS': {'prefix_prefix': 'ZFS',
+                          'prefix_reference': 'http://purl.obolibrary.org/obo/ZFS_'},
                   'ZP': {'prefix_prefix': 'ZP',
                          'prefix_reference': 'http://purl.obolibrary.org/obo/ZP_'},
                   'biolink': {'prefix_prefix': 'biolink',
@@ -399,17 +402,40 @@ class SeverityEnum(str, Enum):
     """
 
 
+class ExposureRouteEnum(str, Enum):
+    """
+    The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).
+    """
+    aquatic_environment = "aquatic_environment"
+    """
+    Through the water the fish is kept in.
+    """
+    ingestion = "ingestion"
+    """
+    Through the diet.
+    """
+    gavage = "gavage"
+    """
+    Administered directly into the gastrointestinal tract.
+    """
+    injection = "injection"
+
+
 class ExposureRegimenTypeEnum(str, Enum):
     """
-    An enumeration of exposure regimen types.
+    An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.
+    """
+    single = "single"
+    """
+    One exposure, given once. EXO has no term for it.
     """
     continuous = "continuous"
     """
-    Continuous exposure
+    Continuous exposure, uninterrupted over a period of time.
     """
     repeated = "repeated"
     """
-    Repeated exposure
+    Repeated exposure, more than once at intervals.
     """
 
 
@@ -498,7 +524,8 @@ class ZappEntity(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True,
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class OntologyEntity(ConfiguredBaseModel):
@@ -550,22 +577,38 @@ class Study(ZappEntity):
                        'FishTankEntry']} })
     status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     experiment: Optional[list[Experiment]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'PMID:22194820'}]} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
+    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'],
+         'examples': [{'value': 'ORCID:0000-0002-1825-0097'}],
+         'readonly': 'Set by the server from whoever is signed in when a save is made.'} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
+
+    @field_validator('publication')
+    def pattern_publication(cls, v):
+        pattern=re.compile(r"^(\s*|PMID:[0-9]+|DOI:10\.[0-9]{4,9}/\S+)$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.search(element):
+                    err_msg = f"Invalid publication format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.search(v):
+            err_msg = f"Invalid publication format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -575,10 +618,10 @@ class Study(ZappEntity):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -588,10 +631,10 @@ class Study(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -606,35 +649,34 @@ class StudyInput(ConfiguredBaseModel):
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
     status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'PMID:22194820'}]} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
+
+    @field_validator('publication')
+    def pattern_publication(cls, v):
+        pattern=re.compile(r"^(\s*|PMID:[0-9]+|DOI:10\.[0-9]{4,9}/\S+)$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.search(element):
+                    err_msg = f"Invalid publication format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.search(v):
+            err_msg = f"Invalid publication format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
-            raise ValueError(err_msg)
-        return v
-
-    @field_validator('annotator')
-    def pattern_annotator(cls, v):
-        pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid annotator format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -643,10 +685,10 @@ class StudyInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -656,28 +698,44 @@ class StudyRead(ReadBaseModel):
     """
     What the API returns for Study, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
     status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     experiment: Optional[list[ExperimentRead]] = Field(default=None, description="""The experiment in a study.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'PMID:22194820'}]} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
+    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'],
+         'examples': [{'value': 'ORCID:0000-0002-1825-0097'}],
+         'readonly': 'Set by the server from whoever is signed in when a save is made.'} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
+
+    @field_validator('publication')
+    def pattern_publication(cls, v):
+        pattern=re.compile(r"^(\s*|PMID:[0-9]+|DOI:10\.[0-9]{4,9}/\S+)$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.search(element):
+                    err_msg = f"Invalid publication format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.search(v):
+            err_msg = f"Invalid publication format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -687,10 +745,10 @@ class StudyRead(ReadBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -700,10 +758,10 @@ class StudyRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -713,27 +771,43 @@ class StudySummary(ReadBaseModel):
     """
     What the API returns for Study alone, without the next level.
     """
-    research_group: int = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
     status: StudyStatusEnum = Field(default=..., description="""Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
+    publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'PMID:22194820'}]} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
+    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'],
+         'examples': [{'value': 'ORCID:0000-0002-1825-0097'}],
+         'readonly': 'Set by the server from whoever is signed in when a save is made.'} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
+
+    @field_validator('publication')
+    def pattern_publication(cls, v):
+        pattern=re.compile(r"^(\s*|PMID:[0-9]+|DOI:10\.[0-9]{4,9}/\S+)$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.search(element):
+                    err_msg = f"Invalid publication format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.search(v):
+            err_msg = f"Invalid publication format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -743,10 +817,10 @@ class StudySummary(ReadBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -756,10 +830,10 @@ class StudySummary(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -776,7 +850,8 @@ class Experiment(ZappEntity):
     fish: Optional[Fish] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[Control]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     exposure_event: Optional[list[ExposureEvent]] = Field(default=None, description="""The exposure event in an experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ExperimentInput(ConfiguredBaseModel):
@@ -798,7 +873,8 @@ class ExperimentRead(ReadBaseModel):
     fish: Optional[FishRead] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[ControlRead]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     exposure_event: Optional[list[ExposureEventRead]] = Field(default=None, description="""The exposure event in an experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ExperimentSummary(ReadBaseModel):
@@ -809,7 +885,8 @@ class ExperimentSummary(ReadBaseModel):
     rearing_condition_comment: Optional[str] = Field(default=None, description="""Comments on rearing conditions, for example, about how conditions deviated from standard parameters.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
     fish: Optional[FishRead] = Field(default=None, description="""The fish subject of the experiment.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     control: Optional[list[ControlRead]] = Field(default=None, description="""An observation that serves as the reference for assessing phenotypic outcome.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class PhenotypeObservationSet(ZappEntity):
@@ -821,7 +898,8 @@ class PhenotypeObservationSet(ZappEntity):
     image: Optional[list[Image]] = Field(default=None, description="""Images associated with this observation.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet']} })
     phenotype: Optional[list[Phenotype]] = Field(default=None, description="""The phenotype observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet']} })
     control_image: Optional[list[ControlImage]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class PhenotypeObservationSetInput(ConfiguredBaseModel):
@@ -839,7 +917,8 @@ class PhenotypeObservationSetRead(ReadBaseModel):
     image: Optional[list[ImageRead]] = Field(default=None, description="""Images associated with this observation.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet']} })
     phenotype: Optional[list[PhenotypeRead]] = Field(default=None, description="""The phenotype observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet']} })
     control_image: Optional[list[ControlImageRead]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class PhenotypeObservationSetSummary(ReadBaseModel):
@@ -848,7 +927,8 @@ class PhenotypeObservationSetSummary(ReadBaseModel):
     """
     phenotype: Optional[list[PhenotypeRead]] = Field(default=None, description="""The phenotype observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet']} })
     control_image: Optional[list[ControlImageRead]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class Phenotype(ZappEntity):
@@ -857,19 +937,24 @@ class Phenotype(ZappEntity):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
-    prevalence: Optional[QuantityValue] = Field(default=None, description="""The percentage of subject exhibiting this phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
+    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype'],
+         'examples': [{'value': 'ZFS:0000035'}],
+         'id_prefixes': ['ZFS']} })
+    prevalence: Optional[float] = Field(default=None, description="""The percentage of subjects exhibiting this phenotype, from 0 to 100.""", ge=0, le=100, json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     severity: Optional[SeverityEnum] = Field(default=None, description="""The intensity of the observed phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     phenotype_term_id: Optional[PhenotypeTerm] = Field(default=None, description="""The phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class PhenotypeInput(ConfiguredBaseModel):
     """
     What the API accepts for Phenotype.
     """
-    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
-    prevalence: Optional[QuantityValue] = Field(default=None, description="""The percentage of subject exhibiting this phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
+    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype'],
+         'examples': [{'value': 'ZFS:0000035'}],
+         'id_prefixes': ['ZFS']} })
+    prevalence: Optional[float] = Field(default=None, description="""The percentage of subjects exhibiting this phenotype, from 0 to 100.""", ge=0, le=100, json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     severity: Optional[SeverityEnum] = Field(default=None, description="""The intensity of the observed phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     phenotype_term_id: Optional[PhenotypeTerm] = Field(default=None, description="""The phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
 
@@ -878,11 +963,14 @@ class PhenotypeRead(ReadBaseModel):
     """
     What the API returns for Phenotype, with everything beneath it.
     """
-    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
-    prevalence: Optional[QuantityValueRead] = Field(default=None, description="""The percentage of subject exhibiting this phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
+    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype'],
+         'examples': [{'value': 'ZFS:0000035'}],
+         'id_prefixes': ['ZFS']} })
+    prevalence: Optional[float] = Field(default=None, description="""The percentage of subjects exhibiting this phenotype, from 0 to 100.""", ge=0, le=100, json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     severity: Optional[SeverityEnum] = Field(default=None, description="""The intensity of the observed phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     phenotype_term_id: Optional[PhenotypeTermRead] = Field(default=None, description="""The phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class Control(ZappEntity):
@@ -898,7 +986,8 @@ class Control(ZappEntity):
                        'StressorChemical',
                        'VehicleOfTransmission']} })
     control_image: Optional[list[ControlImage]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ControlInput(ConfiguredBaseModel):
@@ -925,7 +1014,8 @@ class ControlRead(ReadBaseModel):
                        'StressorChemical',
                        'VehicleOfTransmission']} })
     control_image: Optional[list[ControlImageRead]] = Field(default=None, description="""Image associated with this control.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeObservationSet', 'Control']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ExposureEvent(ZappEntity):
@@ -937,10 +1027,14 @@ class ExposureEvent(ZappEntity):
 
     stressor: Optional[list[StressorChemical]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmission]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRoute] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[Regimen] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
@@ -948,7 +1042,8 @@ class ExposureEvent(ZappEntity):
     exposure_type: Optional[ExposureType] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     phenotype_observation: Optional[list[PhenotypeObservationSet]] = Field(default=None, description="""The phenotype observation resulting from an exposure event.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ExposureEventInput(ConfiguredBaseModel):
@@ -957,10 +1052,14 @@ class ExposureEventInput(ConfiguredBaseModel):
     """
     stressor: Optional[list[StressorChemicalInput]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmissionInput]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRoute] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenInput] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
@@ -975,10 +1074,14 @@ class ExposureEventRead(ReadBaseModel):
     """
     stressor: Optional[list[StressorChemicalRead]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmissionRead]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRouteRead] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenRead] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
@@ -986,7 +1089,8 @@ class ExposureEventRead(ReadBaseModel):
     exposure_type: Optional[ExposureTypeRead] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     phenotype_observation: Optional[list[PhenotypeObservationSetRead]] = Field(default=None, description="""The phenotype observation resulting from an exposure event.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ExposureEventSummary(ReadBaseModel):
@@ -995,17 +1099,22 @@ class ExposureEventSummary(ReadBaseModel):
     """
     stressor: Optional[list[StressorChemicalRead]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmissionRead]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRouteRead] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenRead] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
                        'VehicleOfTransmission']} })
     exposure_type: Optional[ExposureTypeRead] = Field(default=None, description="""An instance of exposure specifying the type of stressor a subject was exposed to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     additional_exposure_condition: Optional[str] = Field(default=None, description="""Additional information about the conditions under which exposure event occurred.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class Regimen(ZappEntity):
@@ -1018,8 +1127,9 @@ class Regimen(ZappEntity):
     interval_between_individual_exposures: Optional[QuantityValue] = Field(default=None, description="""Interval between individual exposures.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
     total_exposure_duration: Optional[QuantityValue] = Field(default=None, description="""Time between first and last individual exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
     individual_exposure_duration: Optional[QuantityValue] = Field(default=None, description="""Individual exposure duration.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
-    number_of_individual_exposure: Optional[int] = Field(default=None, description="""Total number of individual exposures.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    number_of_individual_exposure: Optional[int] = Field(default=None, description="""Total number of individual exposures.""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class RegimenInput(ConfiguredBaseModel):
@@ -1030,7 +1140,7 @@ class RegimenInput(ConfiguredBaseModel):
     interval_between_individual_exposures: Optional[QuantityValue] = Field(default=None, description="""Interval between individual exposures.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
     total_exposure_duration: Optional[QuantityValue] = Field(default=None, description="""Time between first and last individual exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
     individual_exposure_duration: Optional[QuantityValue] = Field(default=None, description="""Individual exposure duration.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
-    number_of_individual_exposure: Optional[int] = Field(default=None, description="""Total number of individual exposures.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
+    number_of_individual_exposure: Optional[int] = Field(default=None, description="""Total number of individual exposures.""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
 
 
 class RegimenRead(ReadBaseModel):
@@ -1041,8 +1151,9 @@ class RegimenRead(ReadBaseModel):
     interval_between_individual_exposures: Optional[QuantityValueRead] = Field(default=None, description="""Interval between individual exposures.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
     total_exposure_duration: Optional[QuantityValueRead] = Field(default=None, description="""Time between first and last individual exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
     individual_exposure_duration: Optional[QuantityValueRead] = Field(default=None, description="""Individual exposure duration.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
-    number_of_individual_exposure: Optional[int] = Field(default=None, description="""Total number of individual exposures.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    number_of_individual_exposure: Optional[int] = Field(default=None, description="""Total number of individual exposures.""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Regimen']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class StressorChemical(ZappEntity):
@@ -1068,9 +1179,11 @@ class StressorChemical(ZappEntity):
                     'preconditions': {'slot_conditions': {'manufacturer': {'equals_string': 'other_not_listed',
                                                                            'name': 'manufacturer'}}}}]})
 
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: Optional[str] = Field(default=None, description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     unrecognized_chemical_name: Optional[str] = Field(default=None, description="""Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
@@ -1085,16 +1198,19 @@ class StressorChemical(ZappEntity):
                        'ExposureEvent',
                        'StressorChemical',
                        'VehicleOfTransmission']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class StressorChemicalInput(ConfiguredBaseModel):
     """
     What the API accepts for StressorChemical.
     """
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: Optional[str] = Field(default=None, description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     unrecognized_chemical_name: Optional[str] = Field(default=None, description="""Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
@@ -1115,9 +1231,11 @@ class StressorChemicalRead(ReadBaseModel):
     """
     What the API returns for StressorChemical, with everything beneath it.
     """
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: Optional[str] = Field(default=None, description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     unrecognized_chemical_name: Optional[str] = Field(default=None, description="""Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
@@ -1132,7 +1250,8 @@ class StressorChemicalRead(ReadBaseModel):
                        'ExposureEvent',
                        'StressorChemical',
                        'VehicleOfTransmission']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class VehicleOfTransmission(ZappEntity):
@@ -1158,9 +1277,11 @@ class VehicleOfTransmission(ZappEntity):
                                                                            'name': 'manufacturer'}}}}]})
 
     vehicle_type: VehicleEnum = Field(default=..., description="""The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary.""", json_schema_extra = { "linkml_meta": {'domain_of': ['VehicleOfTransmission', 'ChemicalCabinetEntry']} })
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: Optional[str] = Field(default=None, description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     unrecognized_chemical_name: Optional[str] = Field(default=None, description="""Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
@@ -1175,7 +1296,8 @@ class VehicleOfTransmission(ZappEntity):
                        'ExposureEvent',
                        'StressorChemical',
                        'VehicleOfTransmission']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class VehicleOfTransmissionInput(ConfiguredBaseModel):
@@ -1183,9 +1305,11 @@ class VehicleOfTransmissionInput(ConfiguredBaseModel):
     What the API accepts for VehicleOfTransmission.
     """
     vehicle_type: VehicleEnum = Field(default=..., description="""The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary.""", json_schema_extra = { "linkml_meta": {'domain_of': ['VehicleOfTransmission', 'ChemicalCabinetEntry']} })
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: Optional[str] = Field(default=None, description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     unrecognized_chemical_name: Optional[str] = Field(default=None, description="""Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
@@ -1207,9 +1331,11 @@ class VehicleOfTransmissionRead(ReadBaseModel):
     What the API returns for VehicleOfTransmission, with everything beneath it.
     """
     vehicle_type: VehicleEnum = Field(default=..., description="""The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary.""", json_schema_extra = { "linkml_meta": {'domain_of': ['VehicleOfTransmission', 'ChemicalCabinetEntry']} })
-    chemical_id: Optional[str] = Field(default=None, description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: Optional[str] = Field(default=None, description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     cas_id: Optional[str] = Field(default=None, description="""CAS identifier for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     unrecognized_chemical_name: Optional[str] = Field(default=None, description="""Free-text name for a chemical or vehicle that could not be resolved to a standardized identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
     synonym: Optional[list[str]] = Field(default=None, description="""Human-readable name(s) for the chemical (non-CURIE), used for display and search. The canonical identity is chemical_id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical', 'VehicleOfTransmission']} })
@@ -1224,7 +1350,8 @@ class VehicleOfTransmissionRead(ReadBaseModel):
                        'ExposureEvent',
                        'StressorChemical',
                        'VehicleOfTransmission']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class Image(ZappEntity):
@@ -1237,7 +1364,8 @@ class Image(ZappEntity):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ImageInput(ConfiguredBaseModel):
@@ -1258,7 +1386,8 @@ class ImageRead(ReadBaseModel):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     image_scope: Optional[ImageScopeEnum] = Field(default=None, description="""Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ControlImage(ZappEntity):
@@ -1272,7 +1401,8 @@ class ControlImage(ZappEntity):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     phenotype_comments: Optional[str] = Field(default=None, description="""Comments about the phenotype in the control image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ControlImage']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ControlImageInput(ConfiguredBaseModel):
@@ -1295,47 +1425,37 @@ class ControlImageRead(ReadBaseModel):
     resolution: Optional[str] = Field(default=None, description="""The level of detail in the image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     scale_bar: Optional[str] = Field(default=None, description="""Scale bar information, including the physical length it represents and the unit of measurement.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Image', 'ControlImage']} })
     phenotype_comments: Optional[str] = Field(default=None, description="""Comments about the phenotype in the control image.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ControlImage']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class PhenotypeTerm(OntologyEntity):
     """
-    A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+    A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['biolink:PhenotypicFeature'],
-         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
+         'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'id_prefixes': ['ZP'],
+         'slot_usage': {'term_label': {'examples': [{'value': 'edematous pericardial '
+                                                              'region'}],
+                                       'name': 'term_label'},
+                        'term_uri': {'examples': [{'value': 'ZP:0105827'}],
+                                     'name': 'term_uri'}}})
 
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType'],
+         'examples': [{'value': 'ZP:0105827'}]} })
+    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType'],
+         'examples': [{'value': 'edematous pericardial region'}]} })
 
 
 class PhenotypeTermRead(ReadBaseModel):
     """
     What the API returns for PhenotypeTerm, with everything beneath it.
     """
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-
-
-class ExposureRoute(OntologyEntity):
-    """
-    A route-of-exposure term. Term URIs are expected to be reachable from
-    EXO:0000154 (route of exposure) in the EXO ontology.
-
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'term_label': {'name': 'term_label', 'required': True}}})
-
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-
-
-class ExposureRouteRead(ReadBaseModel):
-    """
-    What the API returns for ExposureRoute, with everything beneath it.
-    """
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType'],
+         'examples': [{'value': 'ZP:0105827'}]} })
+    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType'],
+         'examples': [{'value': 'edematous pericardial region'}]} })
 
 
 class ExposureType(OntologyEntity):
@@ -1344,18 +1464,23 @@ class ExposureType(OntologyEntity):
 
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'term_label': {'name': 'term_label', 'required': True}}})
+         'id_prefixes': ['ECTO'],
+         'slot_usage': {'term_label': {'name': 'term_label', 'required': True},
+                        'term_uri': {'examples': [{'value': 'ECTO:9000057'}],
+                                     'name': 'term_uri'}}})
 
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType'],
+         'examples': [{'value': 'ECTO:9000057'}]} })
+    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
 
 
 class ExposureTypeRead(ReadBaseModel):
     """
     What the API returns for ExposureType, with everything beneath it.
     """
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType'],
+         'examples': [{'value': 'ECTO:9000057'}]} })
+    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
 
 
 class Fish(ZappEntity):
@@ -1375,17 +1500,18 @@ class Fish(ZappEntity):
     allele: Optional[list[Allele]] = Field(default=None, description="""The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     transient_reagent: Optional[list[TransientReagent]] = Field(default=None, description="""The reagents injected into the embryos.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     line_description: Optional[str] = Field(default=None, description="""Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('fish_zfin_id')
     def pattern_fish_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-FISH-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid fish_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1395,10 +1521,10 @@ class Fish(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid genotype_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid genotype_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1408,10 +1534,10 @@ class Fish(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1432,10 +1558,10 @@ class FishInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1456,17 +1582,18 @@ class FishRead(ReadBaseModel):
     allele: Optional[list[AlleleRead]] = Field(default=None, description="""The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     transient_reagent: Optional[list[TransientReagentRead]] = Field(default=None, description="""The reagents injected into the embryos.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
     line_description: Optional[str] = Field(default=None, description="""Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Fish']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('fish_zfin_id')
     def pattern_fish_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-FISH-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid fish_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1476,10 +1603,10 @@ class FishRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid genotype_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid genotype_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1489,10 +1616,10 @@ class FishRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1518,17 +1645,18 @@ class Allele(ZappEntity):
     zygosity: ZygosityEnum = Field(default=..., description="""The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
     mother_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
     father_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('allele_zfin_id')
     def pattern_allele_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-ALT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid allele_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid allele_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1538,10 +1666,10 @@ class Allele(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1551,10 +1679,10 @@ class Allele(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid construct_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid construct_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1582,10 +1710,10 @@ class AlleleInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-ALT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid allele_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid allele_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1595,10 +1723,10 @@ class AlleleInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1608,10 +1736,10 @@ class AlleleInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid construct_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid construct_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1633,17 +1761,18 @@ class AlleleRead(ReadBaseModel):
     zygosity: ZygosityEnum = Field(default=..., description="""The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
     mother_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the mother. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
     father_zygosity: Optional[ParentZygosityEnum] = Field(default=None, description="""The allele's zygosity in the father. Absent when not recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('allele_zfin_id')
     def pattern_allele_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-ALT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid allele_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid allele_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1653,10 +1782,10 @@ class AlleleRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1666,10 +1795,10 @@ class AlleleRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid construct_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid construct_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1689,17 +1818,18 @@ class TransientReagent(ZappEntity):
     affected_gene_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele', 'TransientReagent'],
          'examples': [{'value': 'ZFIN:ZDB-GENE-990415-72'}]} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""The symbol of the gene the allele affects, e.g. fgf8a.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele', 'TransientReagent'], 'examples': [{'value': 'fgf8a'}]} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('reagent_zfin_id')
     def pattern_reagent_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid reagent_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid reagent_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1709,10 +1839,10 @@ class TransientReagent(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1735,10 +1865,10 @@ class TransientReagentInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid reagent_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid reagent_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1748,10 +1878,10 @@ class TransientReagentInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1768,17 +1898,18 @@ class TransientReagentRead(ReadBaseModel):
     affected_gene_zfin_id: Optional[str] = Field(default=None, description="""ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele', 'TransientReagent'],
          'examples': [{'value': 'ZFIN:ZDB-GENE-990415-72'}]} })
     affected_gene_symbol: Optional[str] = Field(default=None, description="""The symbol of the gene the allele affects, e.g. fgf8a.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Allele', 'TransientReagent'], 'examples': [{'value': 'fgf8a'}]} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('reagent_zfin_id')
     def pattern_reagent_zfin_id(cls, v):
         pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid reagent_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid reagent_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1788,10 +1919,10 @@ class TransientReagentRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1805,7 +1936,8 @@ class ResearchGroup(ZappEntity):
          'slot_usage': {'name': {'name': 'name', 'required': True}}})
 
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ResearchGroupInput(ConfiguredBaseModel):
@@ -1820,7 +1952,8 @@ class ResearchGroupRead(ReadBaseModel):
     What the API returns for ResearchGroup, with everything beneath it.
     """
     name: str = Field(default=..., description="""Name or label of an entity.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroup']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
 
 class ResearchGroupMember(ZappEntity):
@@ -1840,17 +1973,18 @@ class ResearchGroupMember(ZappEntity):
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember'],
          'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('member')
     def pattern_member(cls, v):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid member format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid member format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1873,10 +2007,10 @@ class ResearchGroupMemberInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid member format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid member format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1886,24 +2020,25 @@ class ResearchGroupMemberRead(ReadBaseModel):
     """
     What the API returns for ResearchGroupMember, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
     member: str = Field(default=..., description="""ORCID identifier of a research group member.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember'],
          'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
     role: ResearchGroupRoleEnum = Field(default=..., description="""A member's permission level within a research group.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ResearchGroupMember']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('member')
     def pattern_member(cls, v):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid member format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid member format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1975,9 +2110,11 @@ class ChemicalCabinetEntry(ZappEntity):
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
-    chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: str = Field(default=..., description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     manufacturer: Optional[ManufacturerEnum] = Field(default=None, description="""The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
@@ -1986,17 +2123,18 @@ class ChemicalCabinetEntry(ZappEntity):
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
     vehicle_type: Optional[VehicleEnum] = Field(default=None, description="""The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with.""", json_schema_extra = { "linkml_meta": {'domain_of': ['VehicleOfTransmission', 'ChemicalCabinetEntry']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2010,9 +2148,11 @@ class ChemicalCabinetEntryInput(ConfiguredBaseModel):
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
-    chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: str = Field(default=..., description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     manufacturer: Optional[ManufacturerEnum] = Field(default=None, description="""The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
@@ -2027,10 +2167,10 @@ class ChemicalCabinetEntryInput(ConfiguredBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2040,13 +2180,15 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
     """
     What the API returns for ChemicalCabinetEntry, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
-    chemical_id: str = Field(default=..., description="""Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
+    chemical_id: str = Field(default=..., description="""The chemical's ChEBI identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
-                       'ChemicalCabinetEntry']} })
+                       'ChemicalCabinetEntry'],
+         'examples': [{'value': 'CHEBI:16236'}],
+         'id_prefixes': ['CHEBI']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this chemical, e.g. \"BPA stock\". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     manufacturer: Optional[ManufacturerEnum] = Field(default=None, description="""The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['StressorChemical',
                        'VehicleOfTransmission',
@@ -2055,17 +2197,18 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
                        'VehicleOfTransmission',
                        'ChemicalCabinetEntry']} })
     vehicle_type: Optional[VehicleEnum] = Field(default=None, description="""The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with.""", json_schema_extra = { "linkml_meta": {'domain_of': ['VehicleOfTransmission', 'ChemicalCabinetEntry']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2098,17 +2241,18 @@ class FishTankEntry(ZappEntity):
                        'FishTankEntry']} })
     fish: Fish = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our fli1 reporter\". Optional; when given it is what the line is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2130,10 +2274,10 @@ class FishTankEntryInput(ConfiguredBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2143,23 +2287,24 @@ class FishTankEntryRead(ReadBaseModel):
     """
     What the API returns for FishTankEntry, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
     fish: FishRead = Field(default=..., description="""The fish line the group maintains.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Experiment', 'FishTankEntry']} })
     nickname: Optional[str] = Field(default=None, description="""What the group calls this line, e.g. \"our fli1 reporter\". Optional; when given it is what the line is listed under when pre-filling a submission, and no two entries in the group may share it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
-    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
+    id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity'],
+         'readonly': 'Assigned by the server when the row is first stored.'} })
 
     @field_validator('nickname')
     def pattern_nickname(cls, v):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2169,10 +2314,11 @@ class QuantityValue(ConfiguredBaseModel):
     """
     A value of an attribute that is quantitative and measurable, expressed as a combination of a unit and a numeric value
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
+         'slot_usage': {'numeric_value': {'name': 'numeric_value', 'required': True}}})
 
     unit: Optional[str] = Field(default=None, description="""The unit of the quantity value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['QuantityValue']} })
-    numeric_value: Optional[str] = Field(default=None, description="""The numeric value of the quantity value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['QuantityValue']} })
+    numeric_value: float = Field(default=..., description="""The numeric value of the quantity value.""", ge=0, json_schema_extra = { "linkml_meta": {'domain_of': ['QuantityValue']} })
 
 
 class QuantityValueRead(ReadBaseModel):
@@ -2180,7 +2326,7 @@ class QuantityValueRead(ReadBaseModel):
     What the API returns for QuantityValue, with everything beneath it.
     """
     unit: Optional[str] = Field(default=None, description="""The unit of the quantity value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['QuantityValue']} })
-    numeric_value: Optional[str] = Field(default=None, description="""The numeric value of the quantity value.""", json_schema_extra = { "linkml_meta": {'domain_of': ['QuantityValue']} })
+    numeric_value: float = Field(default=..., description="""The numeric value of the quantity value.""", ge=0, json_schema_extra = { "linkml_meta": {'domain_of': ['QuantityValue']} })
 
 
 # Model rebuild
@@ -2226,8 +2372,6 @@ ControlImageInput.model_rebuild()
 ControlImageRead.model_rebuild()
 PhenotypeTerm.model_rebuild()
 PhenotypeTermRead.model_rebuild()
-ExposureRoute.model_rebuild()
-ExposureRouteRead.model_rebuild()
 ExposureType.model_rebuild()
 ExposureTypeRead.model_rebuild()
 Fish.model_rebuild()

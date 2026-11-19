@@ -16,16 +16,6 @@ from zapp_atlas.api.tree import build
 from zapp_atlas.schema.pydantic_crud import StressorChemicalInput, VehicleOfTransmissionInput
 
 
-@pytest.fixture
-def session() -> Session:
-    """Neither class refers to a shared row, so an unusable session is enough.
-
-    Passing a real one would suggest the guard depends on it; passing None
-    would lie about the parameter's type.
-    """
-    return Session()
-
-
 def test_stressor_must_have_chemical_id_or_unrecognized_name(session: Session) -> None:
     with pytest.raises(SchemaRuleViolation):
         build(session, "StressorChemical", StressorChemicalInput())
@@ -44,14 +34,14 @@ def test_other_not_listed_manufacturer_needs_a_name(session: Session) -> None:
         build(
             session,
             "StressorChemical",
-            StressorChemicalInput(chemical_id="CHEBI:1", manufacturer="other_not_listed"),
+            StressorChemicalInput(chemical_id="CHEBI:16236", manufacturer="other_not_listed"),
         )
 
     stressor = build(
         session,
         "StressorChemical",
         StressorChemicalInput(
-            chemical_id="CHEBI:1",
+            chemical_id="CHEBI:16236",
             manufacturer="other_not_listed",
             unrecognized_manufacturer_name="Acme Reagents",
         ),
@@ -83,7 +73,6 @@ def _experiment(client: TestClient, group: int) -> int:
         json={
             "publication": "PMID:1",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()
@@ -91,7 +80,7 @@ def _experiment(client: TestClient, group: int) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-990101-1", "background_name": "AB"},
+            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
             "control": [],
         },
     ).json()
@@ -103,12 +92,12 @@ def _experiment(client: TestClient, group: int) -> int:
     [
         pytest.param({"cas_id": "80-05-7"}, None, id="no-identity"),
         pytest.param(
-            {"chemical_id": "CHEBI:1", "manufacturer": "other_not_listed"},
+            {"chemical_id": "CHEBI:16236", "manufacturer": "other_not_listed"},
             None,
             id="unnamed-manufacturer",
         ),
         pytest.param(
-            {"chemical_id": "CHEBI:1"},
+            {"chemical_id": "CHEBI:16236"},
             {"vehicle_type": "other_not_listed"},
             id="unnamed-vehicle",
         ),
@@ -135,7 +124,7 @@ def test_a_fully_named_escape_hatch_entry_is_accepted(client: TestClient, group:
             ],
             "stressor": [
                 {
-                    "chemical_id": "CHEBI:1",
+                    "chemical_id": "CHEBI:16236",
                     "manufacturer": "other_not_listed",
                     "unrecognized_manufacturer_name": "Acme Reagents",
                 }

@@ -27,12 +27,14 @@ def _get_session_factory(request: Request):
 def open_session(request: Request) -> Iterator[Session]:
     """Provide a self-closing database session to code that runs outside a route.
 
-    The session carries the app's ZFIN registry, which saving a fish reads
-    (``api.fish``).
+    The session carries the app's reference data: the ZFIN registry, which
+    saving a fish reads (``api.fish``), and the term labels, which saving a
+    term does (``api.terms``).
     """
 
     session: Session = _get_session_factory(request)()
     session.info["zfin"] = request.app.state.zfin
+    session.info["labels"] = request.app.state.labels
     try:
         yield session
     finally:

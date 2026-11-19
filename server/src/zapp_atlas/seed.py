@@ -22,7 +22,6 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     ChemicalCabinetEntry,
     Experiment,
     ExposureEvent,
-    ExposureRoute,
     ExposureType,
     Fish,
     FishTankEntry,
@@ -79,30 +78,12 @@ def _upsert_phenotype_term(session: Session, *, term_uri: str, term_label: str) 
     return term
 
 
-def _upsert_exposure_route(session: Session, *, term_uri: str, term_label: str) -> ExposureRoute:
-    term = session.query(ExposureRoute).filter_by(term_uri=term_uri).one_or_none()
-    if term is None:
-        term = ExposureRoute(term_uri=term_uri, term_label=term_label)
-        session.add(term)
-    return term
-
-
 def _upsert_exposure_type(session: Session, *, term_uri: str, term_label: str) -> ExposureType:
     term = session.query(ExposureType).filter_by(term_uri=term_uri).one_or_none()
     if term is None:
         term = ExposureType(term_uri=term_uri, term_label=term_label)
         session.add(term)
     return term
-
-
-# Shared route / type terms. Both seeded studies use standard water-immersion
-# exposure of developing embryos.
-def _aquatic_route(session: Session) -> ExposureRoute:
-    return _upsert_exposure_route(
-        session,
-        term_uri="ExO:0000161",
-        term_label="ambient acquatic environment route",
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +116,6 @@ def _build_bpa_study(session: Session) -> Study:
         annotator=["ORCID:0000-0001-0101-0101"],
     )
 
-    route = _aquatic_route(session)
     exposure_type = _upsert_exposure_type(
         session,
         term_uri="ECTO:9000057",
@@ -146,7 +126,7 @@ def _build_bpa_study(session: Session) -> Study:
     study.experiment.append(experiment)
 
     exposure = ExposureEvent(
-        route=route,
+        route="aquatic_environment",
         exposure_start_stage="ZFS:0000011",
         exposure_end_stage="ZFS:0000039",
         exposure_type=exposure_type,
@@ -156,7 +136,7 @@ def _build_bpa_study(session: Session) -> Study:
     exposure.stressor.append(
         StressorChemical(
             **bpa,
-            concentration=QuantityValue(unit="µg/L", numeric_value="100"),
+            concentration=QuantityValue(unit="µg/L", numeric_value=100),
             manufacturer="sigma_aldrich",
         )
     )
@@ -168,7 +148,7 @@ def _build_bpa_study(session: Session) -> Study:
             stage="ZFS:0000035",
             severity="moderate",
             phenotype_term_id=pericardial_edema,
-            prevalence=QuantityValue(unit="%", numeric_value="60"),
+            prevalence=60,
         )
     )
 
@@ -207,7 +187,6 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
         annotator=["ORCID:0000-0003-0303-0303"],
     )
 
-    route = _aquatic_route(session)
     exposure_type = _upsert_exposure_type(
         session,
         term_uri="ECTO:9000057",
@@ -218,9 +197,9 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     study.experiment.append(experiment)
 
     exposure = ExposureEvent(
-        route=route,
+        route="aquatic_environment",
         exposure_start_stage="ZFS:0000013",
-        exposure_end_stage="ZFS:0000050",
+        exposure_end_stage="ZFS:0000035",
         exposure_type=exposure_type,
         comment="BPA + retinoic acid co-exposure; RA potentiation observed.",
     )
@@ -229,13 +208,13 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     exposure.stressor.append(
         StressorChemical(
             **bpa,
-            concentration=QuantityValue(unit="µM", numeric_value="10"),
+            concentration=QuantityValue(unit="µM", numeric_value=10),
         )
     )
     exposure.stressor.append(
         StressorChemical(
             **retinoic_acid,
-            concentration=QuantityValue(unit="µM", numeric_value="0.1"),
+            concentration=QuantityValue(unit="µM", numeric_value=0.1),
         )
     )
 
@@ -246,7 +225,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
             stage="ZFS:0000044",
             severity="moderate",
             phenotype_term_id=head_abnormal,
-            prevalence=QuantityValue(unit="%", numeric_value="48"),
+            prevalence=48,
         )
     )
 
@@ -285,7 +264,6 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
         annotator=["ORCID:0000-0004-0404-0404"],
     )
 
-    route = _aquatic_route(session)
     exposure_type = _upsert_exposure_type(
         session,
         term_uri="ECTO:9001150",
@@ -296,9 +274,9 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     study.experiment.append(experiment)
 
     exposure = ExposureEvent(
-        route=route,
+        route="aquatic_environment",
         exposure_start_stage="ZFS:0000016",
-        exposure_end_stage="ZFS:0000050",
+        exposure_end_stage="ZFS:0000035",
         exposure_type=exposure_type,
         comment=(
             "Trichlorfon + guanitoxin co-exposure potentiated pericardial "
@@ -310,13 +288,13 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     exposure.stressor.append(
         StressorChemical(
             **malathion,
-            concentration=QuantityValue(unit="µM", numeric_value="5"),
+            concentration=QuantityValue(unit="µM", numeric_value=5),
         )
     )
     exposure.stressor.append(
         StressorChemical(
             **trichlorfon,
-            concentration=QuantityValue(unit="µM", numeric_value="1"),
+            concentration=QuantityValue(unit="µM", numeric_value=1),
         )
     )
 
@@ -324,10 +302,10 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     exposure.phenotype_observation.append(obs)
     obs.phenotype.append(
         Phenotype(
-            stage="ZFS:0000050",
+            stage="ZFS:0000035",
             severity="severe",
             phenotype_term_id=pericardial_edema,
-            prevalence=QuantityValue(unit="%", numeric_value="100"),
+            prevalence=100,
         )
     )
 
@@ -353,28 +331,32 @@ def _build_dev_group(session: Session) -> ResearchGroup:
 
     membership = (
         session.query(ResearchGroupMember)
-        .filter_by(research_group=group.id, member=DEV_MEMBER)
+        .filter_by(research_group_id=group.id, member=DEV_MEMBER)
         .one_or_none()
     )
     if membership is None:
-        session.add(ResearchGroupMember(research_group=group.id, member=DEV_MEMBER, role="admin"))
+        session.add(
+            ResearchGroupMember(research_group_id=group.id, member=DEV_MEMBER, role="admin")
+        )
 
     # The line the seeded studies use, under the nickname the group would pick it by.
     entry = (
-        session.query(FishTankEntry).filter_by(research_group=group.id, nickname="AB").one_or_none()
+        session.query(FishTankEntry)
+        .filter_by(research_group_id=group.id, nickname="AB")
+        .one_or_none()
     )
     if entry is None:
-        session.add(FishTankEntry(research_group=group.id, nickname="AB", fish=_ab_fish()))
+        session.add(FishTankEntry(research_group_id=group.id, nickname="AB", fish=_ab_fish()))
 
     # The chemicals the seeded studies use, so the cabinet is not empty.
     for chemical_id in ("CHEBI:33216", "CHEBI:15367", "CHEBI:6651", "CHEBI:9747"):
         entry = (
             session.query(ChemicalCabinetEntry)
-            .filter_by(research_group=group.id, chemical_id=chemical_id)
+            .filter_by(research_group_id=group.id, chemical_id=chemical_id)
             .one_or_none()
         )
         if entry is None:
-            session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=chemical_id))
+            session.add(ChemicalCabinetEntry(research_group_id=group.id, chemical_id=chemical_id))
 
     return group
 
@@ -400,7 +382,7 @@ def seed(session: Session) -> None:
         if pub in existing:
             continue
         study = builder(session)
-        study.research_group = group.id
+        study.research_group_id = group.id
         study.status = "published"
         session.add(study)
 

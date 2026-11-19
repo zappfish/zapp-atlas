@@ -40,6 +40,9 @@
   gap: var(--s3);
 }
 
+/* A form inside the page: its sections sit in the page's column. */
+.form-main__part { display: contents; }
+
 .form-intro { display: flex; flex-direction: column; gap: var(--s3); }
 /* The breadcrumb's own margin would double the column gap. */
 .form-main .crumbs { margin-bottom: 0; }
@@ -542,6 +545,59 @@ select.field__input {
 .form-entry__head .form-entry__summary { margin: 0; }
 
 .form-entry__footer { padding-top: var(--s3); }
+
+/* What hangs beneath a card: set in from it, with a rule down the side. */
+.form-entry__nested {
+  margin: var(--s3) 0 var(--s3) var(--s3);
+  padding-left: var(--s3);
+  border-left: 2px solid var(--entry-rule);
+}
+
+/* A nested list's name, and its add button on the same line: a button under
+   each list would end the page in a staircase of them. */
+.form-entry__list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+.form-entry__list-add {
+  padding: var(--s1) var(--s2);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--white);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--teal);
+  cursor: pointer;
+}
+.form-entry__list-add:hover { border-color: var(--teal); background: var(--teal-tint); }
+.form-entry__nested .dash-empty__text { margin: 0; }
+
+/* A list inside a card, above the card's own fields. */
+.form-entry__list {
+  margin-bottom: var(--s3);
+  padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--entry-rule);
+}
+
+/* A card's own save, under its fields. */
+.form-entry__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  padding-top: var(--s3);
+}
+.form-entry__status {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-subtext);
+  color: var(--muted);
+}
 
 /* ---- An image and its metadata ------------------------------------------ */
 

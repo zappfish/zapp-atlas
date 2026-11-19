@@ -4,6 +4,7 @@ Local-filesystem backend only; S3/Tigris path is env-gated and not
 exercised here.
 """
 
+import pytest
 from fastapi.testclient import TestClient
 from support import study_fields
 
@@ -19,9 +20,8 @@ def _create_observation(client: TestClient, group: int) -> int:
     study = client.post(
         "/api/studies",
         json={
-            "publication": "PMID:img-1",
+            "publication": "PMID:1003",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()
@@ -29,7 +29,7 @@ def _create_observation(client: TestClient, group: int) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-990101-4", "background_name": "AB"},
+            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
             "control": [],
         },
     ).json()
@@ -75,13 +75,36 @@ def test_uploaded_image_appears_in_observation_read(client: TestClient, group: i
     assert got["image"][0]["id"] == upload["id"]
 
 
-def test_upload_rejects_non_image_content_type(client: TestClient, group: int) -> None:
+def test_upload_rejects_a_file_that_is_not_an_image(client: TestClient, group: int) -> None:
     obs_id = _create_observation(client, group)
     res = client.post(
         f"/api/observations/{obs_id}/images",
-        files={"file": ("notes.txt", b"hello", "text/plain")},
+        files={"file": ("fish.png", b"hello", "image/png")},
     )
     assert res.status_code == 415
+
+
+@pytest.mark.parametrize(
+    ("start", "served_as"),
+    [
+        (b"\xff\xd8\xff\xe0", "image/jpeg"),
+        (b"II*\x00", "image/tiff"),
+        (b"MM\x00*", "image/tiff"),
+    ],
+)
+def test_upload_is_typed_by_its_bytes_not_its_header(
+    client: TestClient, group: int, start: bytes, served_as: str
+) -> None:
+    """Some systems send a .tif with no type at all."""
+    obs_id = _create_observation(client, group)
+    upload = client.post(
+        f"/api/observations/{obs_id}/images",
+        files={"file": ("fish", start + b"...", "application/octet-stream")},
+    )
+    assert upload.status_code == 201, upload.text
+
+    fetch = client.get(f"/api/images/{upload.json()['id']}")
+    assert fetch.headers["content-type"] == served_as
 
 
 def test_upload_rejects_oversized(client: TestClient, group: int) -> None:

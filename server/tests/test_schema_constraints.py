@@ -59,7 +59,7 @@ def test_cabinet_grain_is_unique_per_group_chemical_and_supplier(session, group)
     assert_second_insert_rejected(
         session,
         lambda: ChemicalCabinetEntry(
-            research_group=group.id, chemical_id=ETHANOL, manufacturer="sigma_aldrich"
+            research_group_id=group.id, chemical_id=ETHANOL, manufacturer="sigma_aldrich"
         ),
     )
 
@@ -68,7 +68,7 @@ def test_cabinet_may_stock_a_chemical_from_two_suppliers(session, group):
     for supplier in ("sigma_aldrich", "fisher_scientific", None):
         session.add(
             ChemicalCabinetEntry(
-                research_group=group.id, chemical_id=ETHANOL, manufacturer=supplier
+                research_group_id=group.id, chemical_id=ETHANOL, manufacturer=supplier
             )
         )
     session.commit()
@@ -84,21 +84,21 @@ def test_cabinet_nickname_is_unique_per_group(session, group):
     assert_second_insert_rejected(
         session,
         lambda: ChemicalCabinetEntry(
-            research_group=group.id, chemical_id=next(chemicals), nickname="stock"
+            research_group_id=group.id, chemical_id=next(chemicals), nickname="stock"
         ),
     )
 
 
 def test_cabinet_entries_without_a_nickname_do_not_collide(session, group):
-    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL))
-    session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id="CHEBI:33216"))
+    session.add(ChemicalCabinetEntry(research_group_id=group.id, chemical_id=ETHANOL))
+    session.add(ChemicalCabinetEntry(research_group_id=group.id, chemical_id="CHEBI:33216"))
     session.commit()
 
 
 def test_study_nickname_is_unique_per_group(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: Study(status="draft", research_group=group.id, nickname="BPA pilot"),
+        lambda: Study(status="draft", research_group_id=group.id, nickname="BPA pilot"),
     )
 
 
@@ -106,8 +106,8 @@ def test_two_groups_may_give_a_study_the_same_nickname(session, group):
     other = ResearchGroup(name="Other Lab")
     session.add(other)
     session.commit()
-    session.add(Study(status="draft", research_group=group.id, nickname="BPA pilot"))
-    session.add(Study(status="draft", research_group=other.id, nickname="BPA pilot"))
+    session.add(Study(status="draft", research_group_id=group.id, nickname="BPA pilot"))
+    session.add(Study(status="draft", research_group_id=other.id, nickname="BPA pilot"))
     session.commit()
 
 
@@ -115,7 +115,7 @@ def test_tank_nickname_is_unique_per_group(session, group):
     assert_second_insert_rejected(
         session,
         lambda: FishTankEntry(
-            research_group=group.id,
+            research_group_id=group.id,
             nickname="our AB",
             fish=Fish(background_zfin_id=AB_LINE, background_name="AB"),
         ),
@@ -126,7 +126,7 @@ def test_tank_entries_without_a_nickname_do_not_collide(session, group):
     for _ in range(2):
         session.add(
             FishTankEntry(
-                research_group=group.id,
+                research_group_id=group.id,
                 fish=Fish(background_zfin_id=AB_LINE, background_name="AB"),
             )
         )
@@ -136,7 +136,7 @@ def test_tank_entries_without_a_nickname_do_not_collide(session, group):
 def test_membership_grain_is_unique_per_group_and_member(session, group):
     assert_second_insert_rejected(
         session,
-        lambda: ResearchGroupMember(research_group=group.id, member=ORCID, role="admin"),
+        lambda: ResearchGroupMember(research_group_id=group.id, member=ORCID, role="admin"),
     )
 
 
@@ -145,14 +145,16 @@ def test_two_groups_may_stock_the_same_chemical(session):
     session.add_all(groups)
     session.commit()
 
-    session.add_all(ChemicalCabinetEntry(research_group=g.id, chemical_id=ETHANOL) for g in groups)
+    session.add_all(
+        ChemicalCabinetEntry(research_group_id=g.id, chemical_id=ETHANOL) for g in groups
+    )
     session.commit()
 
     assert session.query(ChemicalCabinetEntry).count() == 2
 
 
 def test_annotated_classes_get_audit_timestamps(session, group):
-    entry = ChemicalCabinetEntry(research_group=group.id, chemical_id=ETHANOL)
+    entry = ChemicalCabinetEntry(research_group_id=group.id, chemical_id=ETHANOL)
     session.add(entry)
     session.commit()
 
@@ -162,7 +164,7 @@ def test_annotated_classes_get_audit_timestamps(session, group):
 
 def test_study_records_submission_date(session, group):
     # created_at is the submission date (#140, #118).
-    study = Study(status="draft", research_group=group.id, publication="not published")
+    study = Study(status="draft", research_group_id=group.id, publication="not published")
     session.add(study)
     session.commit()
 

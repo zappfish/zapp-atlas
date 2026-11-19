@@ -13,9 +13,11 @@ just dev-api       # everything on :8000 (HTML, /api, /edit) — Python and
 just dev-client    # Vite module server on :5173, for React work
 just dev-api-hmr   # run alongside dev-client, then open :8000/edit/ — NOT :5173
 just test          # pytest
+just test-client   # the client's unit tests (vitest)
 just e2e           # browser tests (Playwright): builds the client, starts the
                    # real server on a throwaway database, and drives it
-just api-types     # regenerate the client's API types after a route or model changes
+just api-types     # regenerate the client's API types, and the request examples its
+                   # tests are held to, after a route or model changes
 just lint          # ruff check + ruff format --check (no changes written)
 just fix           # ruff check --fix + ruff format (applies changes)
 just build-client  # emit client/dist
@@ -44,8 +46,11 @@ Two things about that codegen are easy to get wrong:
   renders neither, so `schema/constraints.py` reads them back out of the YAML at
   import and attaches them to the generated tables. Declare them in the schema as
   usual; nothing needs restating in Python. Note that a slot does not always
-  become a column of the same name — an inlined slot whose range has an
-  identifier becomes `<slot>_<identifier>` (`fish` → `fish_zfin_id`).
+  become a column of the same name — a slot whose range is a class with an
+  identifier becomes `<slot>_<identifier>` (`research_group` →
+  `research_group_id`, `fish` → `fish_id`), and the slot's own name is a
+  relationship to the other row. `column_name` in `schema/view.py` is the one
+  statement of that rule.
 - **Class-level `rules` reach neither generated validators nor, unaided, the
   client.** `pydanticgen` does not turn a `rule` into a validator, so anything
   declared that way needs a guard in the service too — raise
@@ -138,12 +143,35 @@ canonical sample record, not an invention. Leave it be.
 Pages that need to know who is signed in should depend on `get_current_identity`
 (`auth/deps.py`) rather than reading the cookie directly.
 
-## Building the editing form
+## Building the editing forms
 
-Start from `client/src/schema/README.md`. It explains how the generated types
-and JSON Schema combine into validation, blank instances, and deep updates —
-`makeEmpty`, `updateAt`, `Create<T>`/`Draft<T>`, and the Ajv helpers. No
-per-entity form code is written by hand.
+Start from `client/src/schema/README.md`, and read ARCHITECTURE.md, "The
+editing pages". The things that are easy to get wrong:
+
+- **A form's values are the request body.** Fields are registered under the
+  schema's slot names (`stressor.0.chemical_id`), so `toBody` makes the body,
+  `bodyResolver` checks it against the schema, and a refusal from the server
+  lands on the field it names. Do not give a form a shape of its own and
+  translate it.
+- **A control that holds more than the schema stores keeps the rest to
+  itself.** A stage is typed as a time and stored as a ZFS stage; a quantity
+  is a number and a unit. `StageField` and `useQuantity` hold what was typed
+  in component state and give the form only the schema's value. `toBody`
+  throws on a key the schema does not have.
+- **A card saves what its level owns.** An experiment's page saves the
+  experiment; each exposure event, observation and image beneath it is a card
+  that saves on its own. Nothing sends two levels in one request, and a card
+  for the level beneath appears once its parent is saved.
+- **A term is sent by its id.** The server checks it against the reference
+  bundle and supplies its label (`api/terms.py`); a slot says which ontology
+  it draws from with `id_prefixes` in the schema. Tests name only the terms
+  in `server/tests/labels_fixture/labels.tsv`, which is also the browser
+  tests' bundle: add a term there before a test saves it.
+- **Use the schema's names on the page.** It is an "exposure event", as the
+  schema and the original form have it.
+- **After a route or model changes**, `just api-types` also rewrites the
+  request examples the client's tests are held to
+  (`client/tests/fixtures/request-examples.json`).
 
 ## Current state
 
@@ -152,15 +180,21 @@ signed-in header chip). A shared template context processor exposes the
 signed-in identity as `current_identity` to every page. Pages so far: homepage,
 login, and a research group dashboard whose fish tank / chemical cabinet /
 submissions render from placeholder data (`html/dashboard_placeholder.py`)
-until the group-scoped endpoints are wired in. The data form is not built yet.
+until the group-scoped endpoints are wired in.
 `Fish` is a description (background, alleles with zygosity, injected
 reagents); the server sets its ZFIN ids on save by matching the description
-against the registry, and a request cannot send them. ZFIN's
+against the registry, and a request cannot send them. The names beside the
+ids in a description (a background's, an allele's, a gene's) are the
+registry's too, whatever a request sends. ZFIN's
 registry of fish lines is served read-only at `/api/zfin` from the
 extdata bundle. A fish is described in the tank's add dialog and picked
-from the tank on the submission form; the dialog uses existing elements and
+from the tank on an experiment's page; the dialog uses existing elements and
 plain controls and has not been designed yet (see ARCHITECTURE.md,
 "Reference data for the fish picker"). Every `/api` write
 requires a signed-in caller, and the study tree can be written only by members
-of the study's research group. The submission form does not save to the server
-yet.
+of the study's research group. In the client, a study's page edits its own
+fields and lists its experiments, and an experiment's page saves the fish,
+rearing and controls. Beneath those, each exposure event, each observation of
+it and each image of an observation saves on its own. A study starts private
+(`status: draft`, visible to its research group only) and is made public, or
+private again, from its page.

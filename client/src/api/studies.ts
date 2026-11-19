@@ -11,9 +11,10 @@ export const fetchStudy = (studyId: number, signal?: AbortSignal) =>
 /**
  * A study with a publication carries `publication`; one without, a nickname.
  *
- * Every new study starts as a draft, which only its research group can see.
- * That `status` is about who may read the study, and is separate from whether
- * it has a publication.
+ * Every new study starts private (`status: draft`): only its research group
+ * can see it, until someone makes it public on its page. That `status` is
+ * about who may read the study, and is separate from whether it has a
+ * publication.
  */
 export const createStudy = (
   groupId: number,
@@ -22,6 +23,10 @@ export const createStudy = (
   const body: StudyBody = { research_group: groupId, status: "draft", ...study };
   return send<Study>("POST", "/studies", body);
 };
+
+/** What is sent is what the study becomes; its experiments are left alone. */
+export const replaceStudy = (studyId: number, body: StudyBody) =>
+  send<Study>("PUT", `/studies/${studyId}`, body);
 
 export const deleteStudy = (studyId: number) =>
   send<null>("DELETE", `/studies/${studyId}`);

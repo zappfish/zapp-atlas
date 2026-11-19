@@ -46,7 +46,7 @@ def readable(level_name: str) -> params.Depends:
         row = find(session, row_id)
         study = study_of(session, level_name, row)
         if study.status != StudyStatusEnum.published.value and not is_member(
-            session, study.research_group, identity
+            session, study.research_group_id, identity
         ):
             raise _not_found(level_name)
         return row
@@ -61,10 +61,10 @@ def writable(level_name: str) -> params.Depends:
     def load(identity: SignedIn, session: SessionDep, row_id: _row_id(level_name)) -> Base:
         row = find(session, row_id)
         study = study_of(session, level_name, row)
-        if not is_member(session, study.research_group, identity):
+        if not is_member(session, study.research_group_id, identity):
             if study.status != StudyStatusEnum.published.value:
                 raise _not_found(level_name)
-            require_membership(session, study.research_group, identity)
+            require_membership(session, study.research_group_id, identity)
         return row
 
     return Depends(load)

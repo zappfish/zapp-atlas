@@ -522,6 +522,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/zfin/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stages Endpoint */
+        get: operations["stages_endpoint_api_zfin_stages_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/zfin/status": {
         parameters: {
             query?: never;
@@ -870,15 +887,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/research-groups/{group_id}/submissions/new": {
+    "/research-groups/{group_id}/studies/{study_id}/experiments/new": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** New Group Submission Page */
-        get: operations["new_group_submission_page_research_groups__group_id__submissions_new_get"];
+        /** New Experiment Page */
+        get: operations["new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/research-groups/{group_id}/studies/{study_id}/experiments/{experiment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Experiment Page */
+        get: operations["experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1260,12 +1294,12 @@ export interface components {
             comment?: string | null;
             /**
              * Exposure End Stage
-             * @description The developmental stage of fish when exposure ended.
+             * @description The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.
              */
             exposure_end_stage?: string | null;
             /**
              * Exposure Start Stage
-             * @description The developmental stage of fish when exposure started.
+             * @description The developmental stage of fish when exposure started, as one of ZFIN's stages.
              */
             exposure_start_stage?: string | null;
             /** @description An instance of exposure specifying the type of stressor a subject was exposed to. */
@@ -1273,7 +1307,7 @@ export interface components {
             /** @description The regimen for the exposure. */
             regimen?: components["schemas"]["RegimenInput"] | null;
             /** @description The route of exposure. */
-            route?: components["schemas"]["ExposureRoute"] | null;
+            route?: components["schemas"]["ExposureRouteEnum"] | null;
             /**
              * Stressor
              * @description Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.
@@ -1302,12 +1336,12 @@ export interface components {
             comment?: string | null;
             /**
              * Exposure End Stage
-             * @description The developmental stage of fish when exposure ended.
+             * @description The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.
              */
             exposure_end_stage?: string | null;
             /**
              * Exposure Start Stage
-             * @description The developmental stage of fish when exposure started.
+             * @description The developmental stage of fish when exposure started, as one of ZFIN's stages.
              */
             exposure_start_stage?: string | null;
             /** @description An instance of exposure specifying the type of stressor a subject was exposed to. */
@@ -1325,7 +1359,7 @@ export interface components {
             /** @description The regimen for the exposure. */
             regimen?: components["schemas"]["RegimenRead"] | null;
             /** @description The route of exposure. */
-            route?: components["schemas"]["ExposureRouteRead"] | null;
+            route?: components["schemas"]["ExposureRouteEnum"] | null;
             /**
              * Stressor
              * @description Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.
@@ -1339,43 +1373,16 @@ export interface components {
         };
         /**
          * ExposureRegimenTypeEnum
-         * @description An enumeration of exposure regimen types.
+         * @description An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.
          * @enum {string}
          */
-        ExposureRegimenTypeEnum: "continuous" | "repeated";
+        ExposureRegimenTypeEnum: "single" | "continuous" | "repeated";
         /**
-         * ExposureRoute
-         * @description A route-of-exposure term. Term URIs are expected to be reachable from
-         *     EXO:0000154 (route of exposure) in the EXO ontology.
+         * ExposureRouteEnum
+         * @description The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).
+         * @enum {string}
          */
-        ExposureRoute: {
-            /**
-             * Term Label
-             * @description The human-readable label for the phenotype ontology term.
-             */
-            term_label: string;
-            /**
-             * Term Uri
-             * @description The URI of the phenotype ontology term.
-             */
-            term_uri: string;
-        };
-        /**
-         * ExposureRouteRead
-         * @description What the API returns for ExposureRoute, with everything beneath it.
-         */
-        ExposureRouteRead: {
-            /**
-             * Term Label
-             * @description The human-readable label for the phenotype ontology term.
-             */
-            term_label: string;
-            /**
-             * Term Uri
-             * @description The URI of the phenotype ontology term.
-             */
-            term_uri: string;
-        };
+        ExposureRouteEnum: "aquatic_environment" | "ingestion" | "gavage" | "injection";
         /**
          * ExposureType
          * @description An exposure-type term from ECTO.
@@ -1665,13 +1672,16 @@ export interface components {
         PhenotypeInput: {
             /** @description The phenotype ontology term. */
             phenotype_term_id?: components["schemas"]["PhenotypeTerm"] | null;
-            /** @description The percentage of subject exhibiting this phenotype. */
-            prevalence?: components["schemas"]["QuantityValue"] | null;
+            /**
+             * Prevalence
+             * @description The percentage of subjects exhibiting this phenotype, from 0 to 100.
+             */
+            prevalence?: number | null;
             /** @description The intensity of the observed phenotype. */
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
              * Stage
-             * @description The developmental stage of fish when the phenotype was observed.
+             * @description The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.
              */
             stage?: string | null;
         };
@@ -1729,19 +1739,22 @@ export interface components {
             id: number;
             /** @description The phenotype ontology term. */
             phenotype_term_id?: components["schemas"]["PhenotypeTermRead"] | null;
-            /** @description The percentage of subject exhibiting this phenotype. */
-            prevalence?: components["schemas"]["QuantityValueRead"] | null;
+            /**
+             * Prevalence
+             * @description The percentage of subjects exhibiting this phenotype, from 0 to 100.
+             */
+            prevalence?: number | null;
             /** @description The intensity of the observed phenotype. */
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
              * Stage
-             * @description The developmental stage of fish when the phenotype was observed.
+             * @description The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.
              */
             stage?: string | null;
         };
         /**
          * PhenotypeTerm
-         * @description A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+         * @description A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.
          */
         PhenotypeTerm: {
             /**
@@ -1780,7 +1793,7 @@ export interface components {
              * Numeric Value
              * @description The numeric value of the quantity value.
              */
-            numeric_value?: string | null;
+            numeric_value: number;
             /**
              * Unit
              * @description The unit of the quantity value.
@@ -1796,7 +1809,7 @@ export interface components {
              * Numeric Value
              * @description The numeric value of the quantity value.
              */
-            numeric_value?: string | null;
+            numeric_value: number;
             /**
              * Unit
              * @description The unit of the quantity value.
@@ -1946,7 +1959,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -1986,7 +1999,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2025,11 +2038,6 @@ export interface components {
          */
         StudyInput: {
             /**
-             * Annotator
-             * @description ORCID identifier of the indidvidual submitting the study data.
-             */
-            annotator?: string[] | null;
-            /**
              * Description
              * @description A free-text summary of what the study set out to do.
              */
@@ -2046,7 +2054,7 @@ export interface components {
             nickname?: string | null;
             /**
              * Publication
-             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.
+             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.
              */
             publication?: string | null;
             /**
@@ -2064,7 +2072,7 @@ export interface components {
         StudyRead: {
             /**
              * Annotator
-             * @description ORCID identifier of the indidvidual submitting the study data.
+             * @description ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.
              */
             annotator?: string[] | null;
             /**
@@ -2094,7 +2102,7 @@ export interface components {
             nickname?: string | null;
             /**
              * Publication
-             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.
+             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.
              */
             publication?: string | null;
             /**
@@ -2118,7 +2126,7 @@ export interface components {
         StudySummary: {
             /**
              * Annotator
-             * @description ORCID identifier of the indidvidual submitting the study data.
+             * @description ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.
              */
             annotator?: string[] | null;
             /**
@@ -2143,7 +2151,7 @@ export interface components {
             nickname?: string | null;
             /**
              * Publication
-             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.
+             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.
              */
             publication?: string | null;
             /**
@@ -2282,7 +2290,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2324,7 +2332,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2536,6 +2544,21 @@ export interface components {
             fish: components["schemas"]["ZfinFishRefOut"] | null;
             genotype: components["schemas"]["ZfinGenotypeRefOut"] | null;
         };
+        /**
+         * ZfinStageOut
+         * @description A developmental stage, and the hours post fertilization it covers:
+         *     from ``start_hours`` up to, but not including, ``end_hours``.
+         */
+        ZfinStageOut: {
+            /** End Hours */
+            end_hours: number;
+            /** Name */
+            name: string;
+            /** Stage Id */
+            stage_id: string;
+            /** Start Hours */
+            start_hours: number;
+        };
         /** ZfinStatusOut */
         ZfinStatusOut: {
             /** Counts */
@@ -2585,8 +2608,7 @@ export type ExperimentRead = components['schemas']['ExperimentRead'];
 export type ExposureEventInput = components['schemas']['ExposureEventInput'];
 export type ExposureEventRead = components['schemas']['ExposureEventRead'];
 export type ExposureRegimenTypeEnum = components['schemas']['ExposureRegimenTypeEnum'];
-export type ExposureRoute = components['schemas']['ExposureRoute'];
-export type ExposureRouteRead = components['schemas']['ExposureRouteRead'];
+export type ExposureRouteEnum = components['schemas']['ExposureRouteEnum'];
 export type ExposureType = components['schemas']['ExposureType'];
 export type ExposureTypeRead = components['schemas']['ExposureTypeRead'];
 export type FishInput = components['schemas']['FishInput'];
@@ -2653,6 +2675,7 @@ export type ZfinReagentOut = components['schemas']['ZfinReagentOut'];
 export type ZfinResolveCandidateOut = components['schemas']['ZfinResolveCandidateOut'];
 export type ZfinResolveIn = components['schemas']['ZfinResolveIn'];
 export type ZfinResolveOut = components['schemas']['ZfinResolveOut'];
+export type ZfinStageOut = components['schemas']['ZfinStageOut'];
 export type ZfinStatusOut = components['schemas']['ZfinStatusOut'];
 export type ZfinWildtypeOut = components['schemas']['ZfinWildtypeOut'];
 export type ZygosityEnum = components['schemas']['ZygosityEnum'];
@@ -4277,6 +4300,26 @@ export interface operations {
             };
         };
     };
+    stages_endpoint_api_zfin_stages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZfinStageOut"][];
+                };
+            };
+        };
+    };
     status_endpoint_api_zfin_status_get: {
         parameters: {
             query?: never;
@@ -4808,12 +4851,48 @@ export interface operations {
             };
         };
     };
-    new_group_submission_page_research_groups__group_id__submissions_new_get: {
+    new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 group_id: number;
+                study_id: number;
+            };
+            cookie?: {
+                zapp_orcid_auth?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: number;
+                study_id: number;
+                experiment_id: number;
             };
             cookie?: {
                 zapp_orcid_auth?: string | null;

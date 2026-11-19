@@ -10,7 +10,6 @@ def _create_exposure(client: TestClient, group: int) -> int:
         json={
             "publication": "PMID:222",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()
@@ -18,7 +17,7 @@ def _create_exposure(client: TestClient, group: int) -> int:
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-990101-2", "background_name": "AB"},
+            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
             "control": [],
         },
     ).json()
@@ -87,7 +86,7 @@ def test_put_observation_replaces_phenotype(client: TestClient, group: int) -> N
                     "stage": "ZFS:0000035",
                     "severity": "mild",
                     "phenotype_term_id": {
-                        "term_uri": "ZP:1",
+                        "term_uri": "ZP:0105827",
                         "term_label": "x",
                     },
                 }
@@ -104,7 +103,7 @@ def test_put_observation_replaces_phenotype(client: TestClient, group: int) -> N
                     "stage": "ZFS:0000036",
                     "severity": "severe",
                     "phenotype_term_id": {
-                        "term_uri": "ZP:2",
+                        "term_uri": "ZP:0001609",
                         "term_label": "y",
                     },
                 }

@@ -1,64 +1,30 @@
+import type { Body } from "@/schema/bodies";
 import type { SectionSlug, SectionStatus } from "./sections";
-import type { Submission } from "./submission";
-import { isPublicationType } from "@/publication";
+
+const filled = (text: string | null | undefined) =>
+  text != null && text.trim() !== "";
 
 /**
- * What each section must have before it counts as finished. Images and
- * Control ask for nothing yet, so any value in them finishes them.
+ * Where each section of the experiment page stands, from what the setup form
+ * holds and how many exposure events have been saved.
  */
-const REQUIRED: Record<SectionSlug, (s: Submission) => string[]> = {
-  provenance: (s) => [
-    s.provenance.sourceType,
-    ...(isPublicationType(s.provenance.sourceType)
-      ? [s.provenance.sourceValue]
-      : []),
-  ],
-  images: () => [],
-  fish: (s) => [s.fish.entryId],
-  experiment: (s) => [
-    // Only asked for when the rearing was not standard.
-    ...(s.experiment.rearing === "Non-standard"
-      ? [s.experiment.rearingComment]
-      : []),
-    ...s.exposures.flatMap((e) => [e.substance, e.route]),
-  ],
-  control: () => [],
-  phenotype: (s) => s.observations.map((o) => o.stage),
-};
-
-/** Everything a section holds, to tell an untouched one from a started one. */
-const VALUES: Record<SectionSlug, (s: Submission) => unknown[]> = {
-  provenance: (s) => Object.values(s.provenance),
-  images: (s) => s.images.flatMap((i) => Object.values(i)),
-  fish: (s) => Object.values(s.fish),
-  experiment: (s) => [
-    ...Object.values(s.experiment),
-    ...s.exposures.flatMap((e) => Object.values(e)),
-  ],
-  control: (s) => s.controls.flatMap((c) => Object.values(c)),
-  phenotype: (s) => s.observations.flatMap((o) => Object.values(o)),
-};
-
-const filled = (value: unknown): boolean =>
-  Array.isArray(value)
-    ? value.length > 0
-    : value instanceof FileList
-      ? value.length > 0
-      : typeof value === "string"
-        ? value.trim() !== ""
-        : value != null;
-
-export const sectionStatus = (
-  slug: SectionSlug,
-  submission: Submission,
-  /** The defaults a section starts with, which are not answers. */
-  untouched: Submission,
-): SectionStatus => {
-  const defaults = new Set(VALUES[slug](untouched).filter(filled));
-  const answered = VALUES[slug](submission).filter(
-    (value) => filled(value) && !defaults.has(value),
-  );
-
-  if (answered.length === 0) return "not-started";
-  return REQUIRED[slug](submission).every(filled) ? "complete" : "in-progress";
-};
+export const sectionStatuses = (
+  experiment: Body<"Experiment">,
+  exposureEvents: number,
+): Record<SectionSlug, SectionStatus> => ({
+  fish: experiment.fish ? "complete" : "not-started",
+  experiment:
+    experiment.standard_rearing_condition == null
+      ? "not-started"
+      : // Only asked for when the rearing was not standard.
+        experiment.standard_rearing_condition ||
+          filled(experiment.rearing_condition_comment)
+        ? "complete"
+        : "in-progress",
+  control: (experiment.control ?? []).some((control) =>
+    filled(control.control_type),
+  )
+    ? "complete"
+    : "not-started",
+  exposures: exposureEvents > 0 ? "complete" : "not-started",
+});

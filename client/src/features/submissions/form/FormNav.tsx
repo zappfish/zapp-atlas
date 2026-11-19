@@ -73,7 +73,7 @@ const FormNav = ({
 
   return (
     <Nav>
-      <NavHeading>Submission progress</NavHeading>
+      <NavHeading>Experiment progress</NavHeading>
 
       <NavProgress>
         <NavProgressHead>

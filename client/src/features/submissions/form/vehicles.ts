@@ -23,3 +23,6 @@ export const VEHICLE_LABELS: Record<VehicleEnum, string> = {
   [VehicleEnum.water]: "Water",
   [VehicleEnum.other_not_listed]: "Other (not listed)",
 };
+
+/** A vehicle is mostly given as a share of the medium. */
+export const VEHICLE_UNITS = ["%", "µM", "mg/L"];

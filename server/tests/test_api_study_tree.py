@@ -203,6 +203,32 @@ def test_moving_a_study_takes_membership_of_both_groups(
     assert client.put(url, json=body("Study", mine)).status_code == 200
 
 
+# -- annotators ------------------------------------------------------------
+
+
+def test_a_study_names_whoever_has_saved_to_it(client: TestClient, group: int, tree: dict) -> None:
+    url = item_url("Study", tree["Study"]["id"])
+    assert client.get(url).json()["annotator"] == [f"ORCID:{CURATOR}"]
+
+    added = client.post(
+        f"/api/research-groups/{group}/members",
+        json={"member": f"ORCID:{OUTSIDER}", "role": "member"},
+    )
+    assert added.status_code == 201, added.text
+    signin(client, OUTSIDER)
+    # A save at any level counts, and saving twice adds a person once.
+    experiment = item_url("Experiment", tree["Experiment"]["id"])
+    for _ in range(2):
+        assert client.put(experiment, json=body("Experiment", group)).status_code == 200
+
+    assert set(client.get(url).json()["annotator"]) == {f"ORCID:{CURATOR}", f"ORCID:{OUTSIDER}"}
+
+
+def test_a_request_cannot_say_who_annotated(client: TestClient, group: int) -> None:
+    claimed = body("Study", group) | {"annotator": ["ORCID:0000-0000-0000-0000"]}
+    assert client.post("/api/studies", json=claimed).status_code == 422
+
+
 # -- drafts ----------------------------------------------------------------
 
 
@@ -212,7 +238,7 @@ def draft(client: TestClient, group: int) -> dict[str, dict]:
     made = make_tree(client, group, status="draft")
     upload = client.post(
         f"/api/observations/{made['PhenotypeObservationSet']['id']}/images",
-        files={"file": ("fish.png", b"a picture", "image/png")},
+        files={"file": ("fish.png", b"\x89PNG\r\n\x1a\n a picture", "image/png")},
     )
     assert upload.status_code == 201, upload.text
     return made | {"Image": upload.json()}

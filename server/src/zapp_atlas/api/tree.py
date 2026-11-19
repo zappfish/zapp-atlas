@@ -16,13 +16,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.errors import SchemaRuleViolation
-from zapp_atlas.api.fish import set_zfin_ids
+from zapp_atlas.api.fish import describe_from_zfin
 from zapp_atlas.api.layout import Slot, SlotKind, layout
+from zapp_atlas.api.stages import check_stage_order
+from zapp_atlas.api.terms import checked, term_values
 from zapp_atlas.schema import sqla
 from zapp_atlas.schema.sqla import Base
 
-# Sets a class's derived slots on a row, once the body has been stored on it.
-_DERIVE: dict[str, Callable[[Session, Base], None]] = {"Fish": set_zfin_ids}
+# What is done to a class's row once the body has been stored on it: its
+# derived slots are set, or a rule the schema cannot state is checked.
+_DERIVE: dict[str, Callable[[Session, Base], None]] = {
+    "Fish": describe_from_zfin,
+    "ExposureEvent": check_stage_order,
+}
 
 
 def build(session: Session, class_name: str, body: BaseModel) -> Base:
@@ -40,7 +46,7 @@ def assign(session: Session, class_name: str, row: Base, body: BaseModel) -> Non
     not part of a body and is left alone.
     """
     for slot in layout().body_slots(class_name):
-        setattr(row, slot.name, _stored(session, slot, getattr(body, slot.name)))
+        setattr(row, slot.attribute, _stored(session, slot, getattr(body, slot.name)))
     _check_rules(class_name, row)
     if class_name in _DERIVE:
         _DERIVE[class_name](session, row)
@@ -50,7 +56,7 @@ def _stored(session: Session, slot: Slot, value: object) -> object:
     convert: Callable[[object], object]
     match slot.kind:
         case SlotKind.VALUE:
-            convert = _text
+            convert = partial(_value, session, slot)
         case SlotKind.OWNED:
             convert = partial(build, session, slot.range)
         case SlotKind.REFERENCE:
@@ -60,23 +66,30 @@ def _stored(session: Session, slot: Slot, value: object) -> object:
     return None if value is None else convert(value)
 
 
-def _text(value: object) -> object:
-    """Blank text is no text at all."""
-    if isinstance(value, str):
-        return value.strip() or None
-    return value
+def _value(session: Session, slot: Slot, value: object) -> object:
+    """Blank text is no text at all, and a term is one its slot may hold."""
+    if not isinstance(value, str):
+        return value
+    text = value.strip() or None
+    if text is not None and slot.prefixes:
+        checked(session.info["labels"], slot.prefixes, text)
+    return text
 
 
 def _shared(session: Session, class_name: str, body: BaseModel) -> Base:
     """The shared row ``body`` identifies, created from it if this is the first use."""
     model = getattr(sqla, class_name)
     identifier = layout().view.get_identifier_slot(class_name).name
+    values = term_values(session, class_name, body)
     existing = session.scalars(
-        select(model).where(getattr(model, identifier) == getattr(body, identifier))
+        select(model).where(getattr(model, identifier) == values[identifier])
     ).first()
     if existing is not None:
+        # The row says what the bundle says now, whoever first named the term.
+        for name, value in values.items():
+            setattr(existing, name, value)
         return existing
-    row = model(**body.model_dump())
+    row = model(**values)
     # Added straight away so a second use in the same request finds this one.
     session.add(row)
     return row

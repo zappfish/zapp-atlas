@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from zapp_atlas.labels import Labels
 from zapp_atlas.main import create_app
 from zapp_atlas.settings import AppSettings
 from zapp_atlas.zfin import Zfin
@@ -24,11 +25,31 @@ def _no_orcid_public_api(monkeypatch) -> None:
     )
 
 
+@pytest.fixture(scope="session")
+def labels_db(tmp_path_factory) -> Path:
+    """labels.db built from tests/labels_fixture: the few terms the tests
+    name, and ZFIN's stages."""
+    from support import LABELS_FIXTURES, built
+
+    return built(
+        "labels_db.py",
+        tmp_path_factory.mktemp("labels") / "labels.db",
+        *map(str, LABELS_FIXTURES),
+    )
+
+
 @pytest.fixture
-def extdata_dir(tmp_path) -> Path:
-    """Where the app looks for its reference bundle. Nowhere that has one,
-    whatever the developer has built, unless a module overrides this."""
-    return tmp_path / "extdata"
+def extdata_dir(tmp_path_factory, labels_db, zfin_db) -> Path:
+    """Where the app looks for its reference bundle: a directory holding the
+    tests' own term labels and ZFIN records and nothing else, whatever the
+    developer has built. A module overrides this to have no bundle."""
+    import shutil
+
+    # Apart from the test's own directory, which is where uploads are kept.
+    bundle = tmp_path_factory.mktemp("extdata")
+    shutil.copy(labels_db, bundle / "labels.db")
+    shutil.copy(zfin_db, bundle / "zfin.db")
+    return bundle
 
 
 @pytest.fixture
@@ -60,37 +81,28 @@ def client(tmp_path, extdata_dir) -> TestClient:
 @pytest.fixture(scope="session")
 def zfin_db(tmp_path_factory) -> Path:
     """zfin.db built from tests/zfin_fixture by the real extdata builder."""
-    import subprocess
+    from support import ZFIN_FIXTURE, built
 
-    repo = Path(__file__).resolve().parents[2]
-    output = tmp_path_factory.mktemp("zfin") / "zfin.db"
-    subprocess.run(
-        [
-            "uv",
-            "run",
-            "--quiet",
-            "--script",
-            str(repo / "extdata" / "scripts" / "zfin_db.py"),
-            str(output),
-            str(Path(__file__).parent / "zfin_fixture"),
-            "--zfin-date",
-            "2026.11.01",
-        ],
-        check=True,
+    return built(
+        "zfin_db.py",
+        tmp_path_factory.mktemp("zfin") / "zfin.db",
+        str(ZFIN_FIXTURE),
+        "--zfin-date",
+        "2026.11.01",
     )
-    return output
 
 
 @pytest.fixture
-def session() -> Iterator[Session]:
+def session(labels_db, zfin_db) -> Iterator[Session]:
     """A session on an empty in-memory database, for tests below the HTTP layer."""
     from zapp_atlas.db import init_db
 
     engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
     init_db(engine)
     with Session(engine) as session:
-        # As the app's sessions carry it; with no bundle, no fish is matched.
-        session.info["zfin"] = Zfin(Path("no-bundle") / "zfin.db")
+        # As the app's sessions carry them.
+        session.info["zfin"] = Zfin(zfin_db)
+        session.info["labels"] = Labels(labels_db)
         yield session
 
 

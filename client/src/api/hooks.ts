@@ -9,6 +9,7 @@ import {
   addMember,
   createGroup,
   fetchGroup,
+  fetchGroups,
   fetchMembers,
   removeMember,
 } from "./groups";
@@ -18,7 +19,7 @@ import type {
   ResearchGroupRole,
 } from "./types";
 import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
-import { fetchWildtypes, resolveFish, searchAlleles } from "./zfin";
+import { fetchStages, fetchWildtypes, resolveFish, searchAlleles } from "./zfin";
 import {
   addChemical,
   deleteChemical,
@@ -32,7 +33,22 @@ import {
   deleteStudy,
   fetchGroupStudies,
   fetchStudy,
+  replaceStudy,
 } from "./studies";
+import type { StudyBody } from "./types";
+import {
+  createExperiment,
+  deleteExperiment,
+  replaceExperiment,
+} from "./experiments";
+import { createExposure, deleteExposure, replaceExposure } from "./exposures";
+import {
+  createObservation,
+  deleteObservation,
+  replaceObservation,
+} from "./observations";
+import { deleteImage, replaceImage, uploadImage } from "./images";
+import type { Body } from "@/schema/bodies";
 import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
@@ -53,6 +69,7 @@ export const keys = {
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
   wildtypes: ["zfin", "wildtypes"] as const,
+  stages: ["zfin", "stages"] as const,
   alleleSearch: (q: string) => ["zfin", "alleles", q] as const,
   resolveFish: (description: FishDescription) =>
     ["zfin", "resolve", description] as const,
@@ -128,6 +145,17 @@ export const useCabinet = (groupId: number) =>
     queryKey: keys.cabinet(groupId),
     queryFn: ({ signal }) => fetchCabinet(groupId, signal),
   });
+
+/**
+ * ZFIN's developmental stages, earliest first; none until they arrive. They
+ * are the server's reference data, which does not change while the app runs.
+ */
+export const useStages = () =>
+  useQuery({
+    queryKey: keys.stages,
+    queryFn: ({ signal }) => fetchStages(signal),
+    staleTime: Infinity,
+  }).data ?? [];
 
 /** ZFIN's wild-type lines. Reference data from the bundle: it does not move. */
 export const useWildtypes = () =>
@@ -340,6 +368,30 @@ export const useGroupStudies = (groupId: number) =>
     queryFn: ({ signal }) => fetchGroupStudies(groupId, signal),
   });
 
+/**
+ * The studies of every group the caller belongs to, each with its group.
+ * Asked for a group at a time, so a group's page and this share what is held.
+ */
+export const useMyStudies = () => {
+  const groups = useQuery({
+    queryKey: keys.groups,
+    queryFn: ({ signal }) => fetchGroups(signal),
+  });
+  return useQueries({
+    queries: (groups.data ?? []).map((group) => ({
+      queryKey: keys.groupStudies(group.id),
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        fetchGroupStudies(group.id, signal),
+    })),
+    combine: (results) => ({
+      isPending: groups.isPending || results.some((each) => each.isPending),
+      studies: results.flatMap((each, i) =>
+        (each.data ?? []).map((study) => ({ study, group: groups.data![i]! })),
+      ),
+    }),
+  });
+};
+
 /** One study, for its page. */
 export const useStudy = (studyId: number) =>
   useQuery({
@@ -360,6 +412,18 @@ export const useCreateStudy = (groupId: number) => {
   });
 };
 
+/** The answer is the study as it now stands, so its page needs no refetch. */
+export const useReplaceStudy = (groupId: number, studyId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: StudyBody) => replaceStudy(studyId, body),
+    onSuccess: (study) => {
+      if (study) client.setQueryData(keys.study(studyId), study);
+      client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
+    },
+  });
+};
+
 export const useDeleteStudy = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
@@ -370,3 +434,76 @@ export const useDeleteStudy = (groupId: number) => {
     },
   });
 };
+
+/**
+ * Saving beneath a study. Its page and its experiments' pages all read the
+ * one study, which the API returns whole, so every save refreshes that.
+ */
+const useStudyMutation = <Sent, Answer>(
+  studyId: number,
+  mutationFn: (sent: Sent) => Promise<Answer>,
+) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.study(studyId) }),
+  });
+};
+
+/** Creates the experiment when it has no id yet, and replaces it otherwise. */
+export const useSaveExperiment = (studyId: number, experimentId: number | null) =>
+  useStudyMutation(studyId, (body: Body<"Experiment">) =>
+    experimentId === null
+      ? createExperiment(studyId, body)
+      : replaceExperiment(experimentId, body),
+  );
+
+export const useDeleteExperiment = (studyId: number) =>
+  useStudyMutation(studyId, deleteExperiment);
+
+/** Creates the exposure event when it has no id yet, and replaces it otherwise. */
+export const useSaveExposure = (
+  studyId: number,
+  experimentId: number,
+  exposureId: number | null,
+) =>
+  useStudyMutation(studyId, (body: Body<"ExposureEvent">) =>
+    exposureId === null
+      ? createExposure(experimentId, body)
+      : replaceExposure(exposureId, body),
+  );
+
+export const useDeleteExposure = (studyId: number) =>
+  useStudyMutation(studyId, deleteExposure);
+
+/** Creates the observation when it has no id yet, and replaces it otherwise. */
+export const useSaveObservation = (
+  studyId: number,
+  exposureId: number,
+  observationId: number | null,
+) =>
+  useStudyMutation(studyId, (body: Body<"PhenotypeObservationSet">) =>
+    observationId === null
+      ? createObservation(exposureId, body)
+      : replaceObservation(observationId, body),
+  );
+
+export const useDeleteObservation = (studyId: number) =>
+  useStudyMutation(studyId, deleteObservation);
+
+/** A new image: its file, uploaded once, with what is said about it. */
+export const useUploadImage = (studyId: number, observationId: number) =>
+  useStudyMutation(
+    studyId,
+    ({ file, description }: { file: File; description: Body<"Image"> }) =>
+      uploadImage(observationId, file, description),
+  );
+
+/** What is said about an image. Its file stays as uploaded. */
+export const useReplaceImage = (studyId: number, imageId: number) =>
+  useStudyMutation(studyId, (description: Body<"Image">) =>
+    replaceImage(imageId, description),
+  );
+
+export const useDeleteImage = (studyId: number) =>
+  useStudyMutation(studyId, deleteImage);

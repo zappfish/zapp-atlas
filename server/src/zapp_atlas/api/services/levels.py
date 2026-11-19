@@ -2,7 +2,7 @@
 
 Every change is recorded: after it, the whole study is snapshotted as a new
 revision, so a study's history can be read back however many separate saves
-went into it.
+went into it. Whoever made the change becomes one of the study's annotators.
 """
 
 from contextlib import AbstractContextManager
@@ -91,7 +91,10 @@ def _conflicts(session: Session) -> AbstractContextManager[None]:
 
 
 def _record(session: Session, study: Study, by: OrcidIdentity) -> None:
-    """Snapshot a study, as it now stands, as its next revision."""
+    """Name who changed a study, and snapshot it as its next revision."""
+    saved_by = orcid_curie(by.orcid_id)
+    if saved_by not in study.annotator:
+        study.annotator.append(saved_by)
     latest = session.scalar(
         select(func.max(StudyRevision.version)).where(StudyRevision.study_id == study.id)
     )
@@ -100,6 +103,6 @@ def _record(session: Session, study: Study, by: OrcidIdentity) -> None:
             study_id=study.id,
             version=(latest or 0) + 1,
             document=StudyRead.model_validate(study).model_dump(mode="json"),
-            saved_by=orcid_curie(by.orcid_id),
+            saved_by=saved_by,
         )
     )

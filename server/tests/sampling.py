@@ -10,6 +10,7 @@ from zapp_atlas.api.layout import Slot, SlotKind, layout
 _SCALARS = {
     "string": "some text",
     "integer": 1,
+    "float": 1.5,
     "boolean": True,
     "uriorcurie": "EXAMPLE:1",
 }
@@ -21,15 +22,16 @@ def sample(class_name: str, *, full: bool) -> dict[str, object]:
     induced = {slot.name: slot for slot in lay.view.class_induced_slots(class_name)}
     carried = lay.slots(class_name) if lay.is_shared(class_name) else lay.body_slots(class_name)
     return {
-        slot.name: [_value(slot)] if slot.multivalued else _value(slot)
+        slot.name: [_value(class_name, slot)] if slot.multivalued else _value(class_name, slot)
         for slot in carried
         if full or induced[slot.name].required
     }
 
 
-def _value(slot: Slot) -> object:
+def _value(class_name: str, slot: Slot) -> object:
     view = layout().view
-    induced = view.get_slot(slot.name)
+    # As the class has it: a slot's example may be the class's own.
+    induced = view.induced_slot(slot.name, class_name)
     if slot.kind is not SlotKind.VALUE:
         return sample(slot.range, full=True)
     if induced.examples:

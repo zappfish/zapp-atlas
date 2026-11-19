@@ -3,6 +3,7 @@
 These tests are intended to validate the FastAPI wiring + basic CRUD semantics.
 """
 
+import pytest
 from fastapi.testclient import TestClient
 from support import make_group, study_fields
 
@@ -11,7 +12,6 @@ def test_study_create_then_get_round_trip_minimal(client: TestClient, group: int
     payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
-        "annotator": ["ORCID:0000-0000-0000-0000"],
         **study_fields(group),
     }
     create_res = client.post("/api/studies", json=payload)
@@ -34,7 +34,6 @@ def test_study_put_updates_top_level_fields(client: TestClient, group: int) -> N
     create_payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
-        "annotator": ["ORCID:0000-0000-0000-0000"],
         **study_fields(group),
     }
     created = client.post("/api/studies", json=create_payload).json()
@@ -102,6 +101,23 @@ def test_a_blank_publication_is_stored_as_none(client: TestClient, group: int) -
     )
     assert res.status_code == 201, res.text
     assert res.json()["publication"] is None
+
+
+@pytest.mark.parametrize(
+    ("publication", "status"),
+    [
+        ("PMID:22194820", 201),
+        ("DOI:10.1000/xyz123", 201),
+        ("22194820", 422),
+        ("PMID:abc", 422),
+        ("https://doi.org/10.1000/xyz123", 422),
+    ],
+)
+def test_a_publication_is_a_pmid_or_a_doi(
+    client: TestClient, group: int, publication: str, status: int
+) -> None:
+    res = client.post("/api/studies", json={"publication": publication, **study_fields(group)})
+    assert res.status_code == status, res.text
 
 
 def test_a_study_nickname_has_the_same_length_limit_as_the_others(

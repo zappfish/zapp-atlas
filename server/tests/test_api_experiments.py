@@ -8,7 +8,6 @@ def _create_study(client: TestClient, group: int) -> int:
     payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
-        "annotator": ["ORCID:0000-0000-0000-0000"],
         **study_fields(group),
     }
     res = client.post("/api/studies", json=payload)
@@ -90,7 +89,8 @@ def test_experiment_put_updates_rearing_and_fish(client: TestClient, group: int)
     assert patched["standard_rearing_condition"] is False
     assert patched["rearing_condition_comment"] == "temperature 24C"
     assert patched["fish"]["background_name"] == "TU"
-    assert patched["fish"]["genotype_zfin_id"] is None  # no bundle to match against
+    # ti282a homozygous on TU is a genotype the tests' ZFIN records have.
+    assert patched["fish"]["genotype_zfin_id"] == "ZFIN:ZDB-GENO-180101-1"
     [allele] = patched["fish"]["allele"]
     assert (allele["allele_symbol"], allele["zygosity"]) == ("ti282a", "homozygous")
     assert allele["mother_zygosity"] is None

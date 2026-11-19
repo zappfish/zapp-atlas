@@ -1,6 +1,6 @@
 /**
- * An image and the metadata that describes it, shared by the Images section and
- * by a control's optional images.
+ * The controls of an image's card: the file's upload box, and the measures
+ * that describe it.
  */
 
 import {
@@ -35,65 +35,103 @@ import {
   UploadLimits,
   UploadPane,
 } from "@/styles/elements";
-import {
-  get,
-  useFormContext,
-  useFormState,
-  type FieldPath,
-} from "react-hook-form";
+import { useController } from "react-hook-form";
 import Field from "./Field";
 import InfoTip from "./InfoTip";
-import type { Submission } from "./submission";
 import UploadIcon from "./UploadIcon";
 
+/** What was saved, as the number and the unit it was entered as. */
+const apart = (
+  saved: string,
+  units: readonly string[] | undefined,
+  suffix: string | undefined,
+) => {
+  if (suffix && saved.endsWith(suffix)) {
+    return { number: saved.slice(0, -suffix.length), unit: "", other: "" };
+  }
+  const gap = saved.indexOf(" ");
+  if (!units || gap < 0) return { number: saved, unit: "", other: "" };
+  const unit = saved.slice(gap + 1);
+  return units.includes(unit)
+    ? { number: saved.slice(0, gap), unit, other: "" }
+    : { number: saved.slice(0, gap), unit: "Other", other: unit };
+};
+
+/**
+ * A number with its unit, for a slot that holds the two as one text ("100 µm",
+ * "40X"). What is typed and chosen is held here, and the form is given the
+ * text once there is a number.
+ */
 export const Measure = ({
   label,
   placeholder,
   units,
   suffix,
   name,
-  unitName,
 }: {
   label: string;
   placeholder: string;
   units?: readonly string[];
   suffix?: string;
-  name: FieldPath<Submission>;
-  /** Where the chosen unit goes; absent for a fixed suffix. */
-  unitName?: FieldPath<Submission>;
+  /** The slot the text is stored in. */
+  name: string;
 }) => {
-  const { register, watch } = useFormContext<Submission>();
-  const unit = unitName ? watch(unitName) : undefined;
+  const { field } = useController({ name });
+  const [entered, setEntered] = useState(() =>
+    apart((field.value as string | null | undefined) ?? "", units, suffix),
+  );
+
+  const hold = (next: typeof entered) => {
+    setEntered(next);
+    const unit = next.unit === "Other" ? next.other.trim() : next.unit;
+    const number = next.number.trim();
+    field.onChange(
+      number === ""
+        ? null
+        : suffix
+          ? `${number}${suffix}`
+          : unit
+            ? `${number} ${unit}`
+            : number,
+    );
+  };
 
   return (
-    <Field label={label}>
+    <Field label={label} name={name}>
       {(id) => (
         <MeasureRow>
           <MeasureInput>
-            <TextInput id={id} placeholder={placeholder} {...register(name)} />
+            <TextInput
+              id={id}
+              placeholder={placeholder}
+              value={entered.number}
+              onChange={(event) => hold({ ...entered, number: event.target.value })}
+              onBlur={field.onBlur}
+            />
             {suffix && <MeasureSuffix>{suffix}</MeasureSuffix>}
           </MeasureInput>
 
-          {units && unitName && (
-            <RadioGroup
-              role="radiogroup"
-              aria-label={`${label} unit`}
-            >
+          {units && (
+            <RadioGroup role="radiogroup" aria-label={`${label} unit`}>
               {units.map((option) => (
                 <RadioLabel key={option}>
-                  <input type="radio" value={option} {...register(unitName)} />
+                  <input
+                    type="radio"
+                    checked={entered.unit === option}
+                    onChange={() => hold({ ...entered, unit: option })}
+                  />
                   {option}
                 </RadioLabel>
               ))}
               {/* Rendered either way, so the row does not resize when it is
-                  chosen. Registered apart from the radios, which hold
-                  "Other" itself. */}
+                  chosen. */}
               <TextInput
                 aria-label={`${label} unit`}
                 placeholder="Unit"
                 size={6}
-                hidden={unit !== "Other"}
-                {...register(`${unitName}Other` as FieldPath<Submission>)}
+                hidden={entered.unit !== "Other"}
+                value={entered.other}
+                onChange={(event) => hold({ ...entered, other: event.target.value })}
               />
             </RadioGroup>
           )}
@@ -117,26 +155,24 @@ const isTiff = (file: File) =>
 
 const megabytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
+/**
+ * The box a new image's file is dropped on or browsed into. The file is not
+ * one of the image's fields: it is uploaded beside them, so it is handed to
+ * the caller and not held in the form.
+ */
 export const ImageUpload = ({
-  name,
-  required = true,
+  onChoose,
+  error,
   info,
 }: {
-  name: FieldPath<Submission>;
-  required?: boolean;
+  onChoose: (file: File | null) => void;
+  /** Why the image cannot be uploaded as it stands. */
+  error?: string;
   /** Rendered in an InfoTip beside the label. */
   info?: ReactNode;
 }) => {
-  const { register } = useFormContext<Submission>();
-  const { errors } = useFormState<Submission>({ name });
-  const message: string | undefined = get(errors, name)?.message;
+  const message = error;
   const errorId = useId();
-  const registration = register(name, {
-    validate: (files) =>
-      !required ||
-      (files instanceof FileList && files.length > 0) ||
-      "Choose an image.",
-  });
   const input = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -158,8 +194,12 @@ export const ImageUpload = ({
   }, []);
 
   const choose = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => show(event.target.files?.[0]),
-    [show],
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      show(file);
+      onChoose(file ?? null);
+    },
+    [show, onChoose],
   );
 
   // preventDefault is what marks the box as a drop target; without it the
@@ -178,7 +218,7 @@ export const ImageUpload = ({
       const file = event.dataTransfer.files?.[0];
       if (!input.current || !file) return;
       if (!file.type.startsWith("image/") && !isTiff(file)) return;
-      // Routed through the input so RHF registers it like a browsed file.
+      // Routed through the input, so a dropped file is chosen like a browsed one.
       const one = new DataTransfer();
       one.items.add(file);
       input.current.files = one.files;
@@ -189,7 +229,7 @@ export const ImageUpload = ({
 
   const browse = useCallback(() => input.current?.click(), []);
 
-  // Through a change event, like a drop, so RHF drops the file too.
+  // Through a change event, like a drop, so the caller is told it is gone.
   const remove = useCallback(() => {
     if (!input.current) return;
     input.current.value = "";
@@ -201,7 +241,7 @@ export const ImageUpload = ({
       <FieldLabelRow>
         <FieldLabel>
           Upload image
-          {required && <RequiredMark> *</RequiredMark>}
+          <RequiredMark> *</RequiredMark>
         </FieldLabel>
         {info && <InfoTip label="Upload image">{info}</InfoTip>}
       </FieldLabelRow>
@@ -240,15 +280,8 @@ export const ImageUpload = ({
         accept=".jpeg,.jpg,.png,.tif,.tiff"
         aria-invalid={message ? true : undefined}
         aria-describedby={message ? errorId : undefined}
-        {...registration}
-        ref={(node) => {
-          registration.ref(node);
-          input.current = node;
-        }}
-        onChange={(event) => {
-          void registration.onChange(event);
-          choose(event);
-        }}
+        ref={input}
+        onChange={choose}
       />
 
       {message && <FieldError id={errorId}>{message}</FieldError>}

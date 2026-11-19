@@ -16,11 +16,6 @@ FH111 = {
 }
 
 
-@pytest.fixture
-def extdata_dir(zfin_db):
-    return zfin_db.parent
-
-
 def _tank_fish(client: TestClient, group: int, fish: dict) -> dict:
     res = client.post(f"/api/research-groups/{group}/fish-tank", json={"fish": fish})
     assert res.status_code == 201, res.text
@@ -73,3 +68,93 @@ def test_an_experiment_fish_is_matched_and_rematched(client: TestClient, group: 
 
     replaced = client.put(f"/api/experiments/{experiment['id']}", json={"fish": AB}).json()
     assert replaced["fish"]["fish_zfin_id"] == "ZFIN:ZDB-FISH-150901-27842"
+
+
+# -- the names beside the ids ------------------------------------------------
+
+
+def test_a_part_named_by_id_takes_zfins_name_for_it(client: TestClient, group: int) -> None:
+    described = {
+        "background_zfin_id": AB["background_zfin_id"],
+        "background_name": "Tuebingen",
+        "allele": [
+            {
+                "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+                "allele_symbol": "something else",
+                "alteration_type": "deletion",
+                "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+                "affected_gene_symbol": "wrong",
+                "zygosity": "homozygous",
+            },
+            {
+                "allele_zfin_id": "ZFIN:ZDB-ALT-130130-3",
+                "allele_symbol": "w200Tg",
+                "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-130130-3",
+                "zygosity": "unknown",
+            },
+        ],
+    }
+    fish = _tank_fish(client, group, described)
+
+    assert fish["background_name"] == "AB"
+    mutant, transgenic = fish["allele"]
+    assert mutant["allele_symbol"] == "ti282a"
+    assert mutant["alteration_type"] == "point_mutation"
+    assert mutant["affected_gene_symbol"] == "fgf8a"
+    assert transgenic["alteration_type"] == "transgenic_insertion"
+    # Sent with no name at all, and given one.
+    assert transgenic["construct_name"]
+
+
+@pytest.mark.parametrize(
+    "fish",
+    [
+        {"background_zfin_id": "ZFIN:ZDB-GENO-000000-0"},
+        # A genotype ZFIN has, which is not one of its wild-type lines.
+        {"background_zfin_id": "ZFIN:ZDB-GENO-160602-1"},
+        {"allele": [{**FH111, "allele_zfin_id": "ZFIN:ZDB-ALT-000000-0"}]},
+        {"allele": [{**FH111, "affected_gene_zfin_id": "ZFIN:ZDB-GENE-000000-0"}]},
+        {"allele": [{**FH111, "construct_zfin_id": "ZFIN:ZDB-TGCONSTRCT-000000-0"}]},
+        {
+            "transient_reagent": [
+                {"reagent_zfin_id": "ZFIN:ZDB-MRPHLNO-000000-0", "reagent_symbol": "MO1-none"}
+            ]
+        },
+    ],
+)
+def test_an_id_zfin_does_not_have_is_refused(client: TestClient, group: int, fish: dict) -> None:
+    res = client.post(f"/api/research-groups/{group}/fish-tank", json={"fish": fish})
+    assert res.status_code == 422, res.text
+    assert "ZFIN has" in res.text
+
+
+def test_a_part_described_without_an_id_keeps_its_name(client: TestClient, group: int) -> None:
+    novel = {
+        "allele_symbol": "unc101",
+        "affected_gene_symbol": "a gene of our own",
+        "zygosity": "homozygous",
+    }
+    [allele] = _tank_fish(client, group, {"allele": [novel]})["allele"]
+    assert (allele["allele_symbol"], allele["affected_gene_symbol"]) == (
+        "unc101",
+        "a gene of our own",
+    )
+
+
+class TestWithNoBundle:
+    @pytest.fixture
+    def extdata_dir(self, tmp_path_factory):
+        return tmp_path_factory.mktemp("no-bundle")
+
+    def test_a_fish_named_by_ids_is_not_stored_unchecked(
+        self, client: TestClient, group: int
+    ) -> None:
+        res = client.post(f"/api/research-groups/{group}/fish-tank", json={"fish": AB})
+        assert res.status_code == 503, res.text
+
+    def test_a_fish_described_in_words_needs_no_registry(
+        self, client: TestClient, group: int
+    ) -> None:
+        described = {"line_description": "an outbred line from the pet shop"}
+        res = client.post(f"/api/research-groups/{group}/fish-tank", json={"fish": described})
+        assert res.status_code == 201, res.text

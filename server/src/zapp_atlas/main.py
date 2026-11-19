@@ -26,6 +26,7 @@ from zapp_atlas.api.routers.research_groups import router as research_groups_rou
 from zapp_atlas.api.routers.studies import router as studies_router
 from zapp_atlas.api.routers.zfin import router as zfin_router
 from zapp_atlas.api.routers.zfin import zfin_unavailable_handler
+from zapp_atlas.api.terms import ReferenceDataMissing
 from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.extdata import make_extdata_router
@@ -81,6 +82,14 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
         )
 
     app.add_exception_handler(ZfinUnavailable, zfin_unavailable_handler)
+
+    @app.exception_handler(ReferenceDataMissing)
+    def _reference_data_missing(request: Request, exc: ReferenceDataMissing) -> JSONResponse:
+        # Not the caller's mistake: the server has nothing to check a term
+        # against, and will not store one unchecked.
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content={"detail": str(exc)}
+        )
 
     @app.get("/health")
     def health() -> dict[str, str]:

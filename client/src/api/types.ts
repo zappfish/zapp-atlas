@@ -30,6 +30,9 @@ export type AlleleBody = Schemas["AlleleInput"];
 export type Zygosity = Schemas["ZygosityEnum"];
 export type ParentZygosity = Schemas["ParentZygosityEnum"];
 
+/** One of ZFIN's developmental stages, with the hours post fertilization it covers. */
+export type Stage = Schemas["ZfinStageOut"];
+
 /** One of ZFIN's wild-type lines. */
 export type Wildtype = Schemas["ZfinWildtypeOut"];
 
@@ -51,3 +54,12 @@ export type StudySummary = Schemas["StudySummary"];
 
 /** What `POST` and `PUT` accept for a study: its own fields, no experiments. */
 export type StudyBody = Schemas["StudyInput"];
+
+/**
+ * The levels beneath a study, each as the API returns it with everything
+ * beneath it. What the API accepts for one is `Body<Class>` in `@/schema/bodies`.
+ */
+export type Experiment = Schemas["ExperimentRead"];
+export type ExposureEvent = Schemas["ExposureEventRead"];
+export type Observation = Schemas["PhenotypeObservationSetRead"];
+export type Image = Schemas["ImageRead"];
