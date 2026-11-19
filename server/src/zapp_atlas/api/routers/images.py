@@ -4,6 +4,7 @@ An image is a file plus a row describing it. The file is uploaded once, beneath
 an observation, and never replaced; the description can be.
 """
 
+from enum import StrEnum
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Response, UploadFile, status
@@ -21,6 +22,29 @@ router = APIRouter(tags=["images"])
 Readable = Annotated[Image, readable("Image")]
 Writable = Annotated[Image, writable("Image")]
 WritableParent = Annotated[PhenotypeObservationSet, writable("PhenotypeObservationSet")]
+
+
+class ImageType(StrEnum):
+    PNG = "image/png"
+    JPEG = "image/jpeg"
+    TIFF = "image/tiff"
+
+
+# What a file of each type begins with. TIFF has a form for each byte order,
+# and BigTIFF another pair.
+_SIGNATURES = {
+    b"\x89PNG\r\n\x1a\n": ImageType.PNG,
+    b"\xff\xd8\xff": ImageType.JPEG,
+    b"II*\x00": ImageType.TIFF,
+    b"MM\x00*": ImageType.TIFF,
+    b"II+\x00": ImageType.TIFF,
+    b"MM\x00+": ImageType.TIFF,
+}
+
+
+def image_type(data: bytes) -> ImageType | None:
+    """The kind of image a file is, going by how it begins."""
+    return next((kind for start, kind in _SIGNATURES.items() if data.startswith(start)), None)
 
 
 class ImageUpload(ImageInput):
@@ -42,21 +66,22 @@ async def upload_image(
     settings: SettingsDep,
     storage: StorageDep,
 ) -> Image:
-    content_type = upload.file.content_type or ""
-    if not content_type.startswith("image/"):
-        raise HTTPException(
-            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Unsupported content type: {content_type}"
-        )
     data = await upload.file.read()
     if len(data) > settings.max_upload_bytes:
         raise HTTPException(
             status.HTTP_413_CONTENT_TOO_LARGE,
             f"The file is larger than {settings.max_upload_bytes} bytes",
         )
+    # The request's own Content-Type is whatever the sender says it is.
+    kind = image_type(data)
+    if kind is None:
+        raise HTTPException(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "The file is not a PNG, JPEG or TIFF image"
+        )
 
     body = ImageInput.model_validate(upload.model_dump(exclude={"file"}))
     image = levels.create(session, "Image", body, parent=parent, by=identity)
-    storage.put(levels.image_key(image.id), data, content_type)
+    storage.put(levels.image_key(image.id), data, kind)
     return image
 
 
