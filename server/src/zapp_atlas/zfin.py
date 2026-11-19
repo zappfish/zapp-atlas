@@ -50,6 +50,16 @@ class Construct:
 
 
 @dataclass(frozen=True)
+class Stage:
+    stage_id: str
+    name: str
+    """ZFIN's name for it: "Period:Stage", or the period alone."""
+    start_hours: float
+    end_hours: float
+    """Hours post fertilization, from ``start_hours`` up to but not including this."""
+
+
+@dataclass(frozen=True)
 class Wildtype:
     fish_id: str
     genotype_id: str
@@ -222,6 +232,24 @@ class Zfin:
 
     def meta(self) -> dict[str, str]:
         return {row["key"]: row["value"] for row in self.db.execute("SELECT key, value FROM meta")}
+
+    # -- stages ---------------------------------------------------------------
+
+    def stages(self) -> list[Stage]:
+        """The developmental stages, earliest first."""
+        return [
+            Stage(**row)
+            for row in self.db.execute(
+                "SELECT stage_id, name, start_hours, end_hours FROM stage ORDER BY start_hours"
+            )
+        ]
+
+    def stage(self, stage_id: str) -> Stage | None:
+        row = self.db.execute(
+            "SELECT stage_id, name, start_hours, end_hours FROM stage WHERE stage_id = ?",
+            (stage_id,),
+        ).fetchone()
+        return Stage(**row) if row else None
 
     # -- wild types -----------------------------------------------------------
 

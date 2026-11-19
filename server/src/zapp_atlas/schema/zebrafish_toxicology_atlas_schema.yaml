@@ -23,6 +23,7 @@ prefixes:
   ZP: http://purl.obolibrary.org/obo/ZP_
   ORCID: https://orcid.org/
   ZFIN: https://zfin.org/
+  ZFS: http://purl.obolibrary.org/obo/ZFS_
   SO: http://purl.obolibrary.org/obo/SO_
   GENO: http://purl.obolibrary.org/obo/GENO_
   UMLS: https://uts.nlm.nih.gov/uts/umls/concept/
@@ -697,8 +698,14 @@ slots:
     inlined: true
     multivalued: true
   stage:
-    description: The developmental stage of fish when the phenotype was observed.
+    description: >-
+      The developmental stage of fish when the phenotype was observed, as one
+      of ZFIN's stages.
     range: uriorcurie
+    id_prefixes:
+      - ZFS
+    examples:
+      - value: ZFS:0000035
   prevalence:
     description: The percentage of subjects exhibiting this phenotype, from 0 to 100.
     range: float
@@ -777,13 +784,25 @@ slots:
     inlined_as_list: true
     inlined: true
   exposure_start_stage:
-    description: The developmental stage of fish when exposure started.
+    description: >-
+      The developmental stage of fish when exposure started, as one of ZFIN's
+      stages.
     range: uriorcurie
     multivalued: false
+    id_prefixes:
+      - ZFS
+    examples:
+      - value: ZFS:0000019
   exposure_end_stage:
-    description: The developmental stage of fish when exposure ended.
+    description: >-
+      The developmental stage of fish when exposure ended, as one of ZFIN's
+      stages. Not one that comes before the stage it started at.
     range: uriorcurie
     multivalued: false
+    id_prefixes:
+      - ZFS
+    examples:
+      - value: ZFS:0000037
   comment:
     description: Additional comments.
     range: string

@@ -167,6 +167,16 @@ class ZfinConstructOut(_FromAttributes):
     name: str
 
 
+class ZfinStageOut(_FromAttributes):
+    """A developmental stage, and the hours post fertilization it covers:
+    from ``start_hours`` up to, but not including, ``end_hours``."""
+
+    stage_id: str
+    name: str
+    start_hours: float
+    end_hours: float
+
+
 class ZfinWildtypeOut(_FromAttributes):
     fish_id: str
     genotype_id: str

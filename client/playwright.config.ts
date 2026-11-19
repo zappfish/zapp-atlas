@@ -14,9 +14,9 @@ import { defineConfig, devices } from '@playwright/test';
 // The server's reference data comes from a bundle it may not have on a CI
 // machine, so the run gets its own, built from the fixtures the server tests
 // use: a zfin.db from the miniature ZFIN files (server/tests/zfin_fixture),
-// whose lines the fish tests know, and a labels.db of the few terms the tests
-// name (server/tests/labels_fixture), without which the server stores no
-// term. The ontology files the phenotype picker reads are left out, as no
+// whose lines the fish tests know and whose stages are ZFIN's own, and a
+// labels.db of the few terms the tests name and those stages
+// (server/tests/labels_fixture), without which the server stores no term. The ontology files the phenotype picker reads are left out, as no
 // test opens it.
 //
 // Run `npm run e2e`, which builds the client first: the server serves
@@ -61,6 +61,7 @@ if (!existsSync(path.join(extdataDir, 'zfin.db'))) {
     'labels_db.py',
     path.join(extdataDir, 'labels.db'),
     path.join(fixtures, 'labels_fixture', 'labels.tsv'),
+    path.join(fixtures, 'labels_fixture', 'zfs.tsv'),
   );
 }
 

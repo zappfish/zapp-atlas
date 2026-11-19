@@ -35,4 +35,5 @@ ZFIN_FILES := \
 	features-affected-genes.txt \
 	wildtypes_fish.txt \
 	genotype_features.txt \
-	fish_components_fish.txt
+	fish_components_fish.txt \
+	stage_ontology.txt

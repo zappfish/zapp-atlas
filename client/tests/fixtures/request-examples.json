@@ -401,8 +401,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -474,8 +474,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -542,8 +542,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -610,8 +610,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -628,7 +628,7 @@
     "body": {
       "phenotype": [
         {
-          "stage": "EXAMPLE:1",
+          "stage": "ZFS:0000035",
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
@@ -661,7 +661,7 @@
     "body": {
       "phenotype": [
         {
-          "stage": "EXAMPLE:1",
+          "stage": "ZFS:0000035",
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
@@ -689,7 +689,7 @@
     "body": {
       "phenotype": [
         {
-          "stage": "EXAMPLE:1",
+          "stage": "ZFS:0000035",
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
@@ -717,7 +717,7 @@
     "body": {
       "phenotype": [
         {
-          "stage": "EXAMPLE:1",
+          "stage": "ZFS:0000035",
           "prevalence": 1.5,
           "severity": "mild",
           "phenotype_term_id": {
@@ -870,8 +870,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -936,8 +936,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1002,8 +1002,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1068,8 +1068,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1174,8 +1174,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1241,8 +1241,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1258,7 +1258,7 @@
     "body": {
       "phenotype": [
         {
-          "stage": "EXAMPLE:1",
+          "stage": "ZFS:0000035",
           "prevalence": 1.5,
           "severity": "awful",
           "phenotype_term_id": {
@@ -1285,7 +1285,7 @@
     "body": {
       "phenotype": [
         {
-          "stage": "EXAMPLE:1",
+          "stage": "ZFS:0000035",
           "prevalence": 120,
           "severity": "mild",
           "phenotype_term_id": {
@@ -1447,8 +1447,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1514,8 +1514,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1566,8 +1566,8 @@
       ],
       "route": "aquatic_environment",
       "regimen": null,
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",
@@ -1616,8 +1616,8 @@
         },
         "number_of_individual_exposure": 1
       },
-      "exposure_start_stage": "EXAMPLE:1",
-      "exposure_end_stage": "EXAMPLE:1",
+      "exposure_start_stage": "ZFS:0000019",
+      "exposure_end_stage": "ZFS:0000037",
       "comment": "some text",
       "exposure_type": {
         "term_uri": "ECTO:9000057",

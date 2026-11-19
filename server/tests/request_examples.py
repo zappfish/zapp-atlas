@@ -26,7 +26,7 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
-from support import LABELS_FIXTURE, ZFIN_FIXTURE, body, built
+from support import LABELS_FIXTURES, ZFIN_FIXTURE, body, built
 
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.layout import LEVELS, SlotKind, layout
@@ -162,7 +162,7 @@ def request_examples() -> list[dict[str, object]]:
             "zfin_db.py", Path(bundle) / "zfin.db", str(ZFIN_FIXTURE), "--zfin-date", "fixture"
         )
         session.info["zfin"] = Zfin(zfin)
-        labels = built("labels_db.py", Path(bundle) / "labels.db", str(LABELS_FIXTURE))
+        labels = built("labels_db.py", Path(bundle) / "labels.db", *map(str, LABELS_FIXTURES))
         session.info["labels"] = Labels(labels)
         return [
             {

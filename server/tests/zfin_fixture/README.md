@@ -1,7 +1,8 @@
 # ZFIN fixture
 
-Miniature copies of the five ZFIN bulk downloads `extdata/scripts/zfin_db.py`
-reads, laid out row for row like the real files (tab-separated, no header;
+Miniature copies of five of the six ZFIN bulk downloads
+`extdata/scripts/zfin_db.py` reads, and the sixth, `stage_ontology.txt`, whole
+(it is 45 rows). The five are laid out row for row like the real files (tab-separated, no header;
 column layouts in that script's docstring). The `zfin_db` fixture in
 `conftest.py` runs the builder on them, so the tests exercise the same
 parsing the bundle gets. Cases covered: a co-injected line (one allele, two

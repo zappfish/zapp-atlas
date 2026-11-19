@@ -1294,10 +1294,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure ended.",
+            "description": "The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000037"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure End Stage"
@@ -1311,10 +1319,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure started.",
+            "description": "The developmental stage of fish when exposure started, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000019"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure Start Stage"
@@ -1460,10 +1476,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure ended.",
+            "description": "The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000037"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure End Stage"
@@ -1477,10 +1501,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure started.",
+            "description": "The developmental stage of fish when exposure started, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000019"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure Start Stage"
@@ -2590,10 +2622,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when the phenotype was observed.",
+            "description": "The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000035"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Stage"
@@ -2807,10 +2847,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when the phenotype was observed.",
+            "description": "The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000035"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Stage"
@@ -5448,6 +5496,35 @@
           "candidates"
         ],
         "title": "ZfinResolveOut",
+        "type": "object"
+      },
+      "ZfinStageOut": {
+        "description": "A developmental stage, and the hours post fertilization it covers:\nfrom ``start_hours`` up to, but not including, ``end_hours``.",
+        "properties": {
+          "end_hours": {
+            "title": "End Hours",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "stage_id": {
+            "title": "Stage Id",
+            "type": "string"
+          },
+          "start_hours": {
+            "title": "Start Hours",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stage_id",
+          "name",
+          "start_hours",
+          "end_hours"
+        ],
+        "title": "ZfinStageOut",
         "type": "object"
       },
       "ZfinStatusOut": {
@@ -8364,6 +8441,31 @@
           }
         },
         "summary": "Resolve Endpoint",
+        "tags": [
+          "zfin"
+        ]
+      }
+    },
+    "/api/zfin/stages": {
+      "get": {
+        "operationId": "stages_endpoint_api_zfin_stages_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ZfinStageOut"
+                  },
+                  "title": "Response Stages Endpoint Api Zfin Stages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Stages Endpoint",
         "tags": [
           "zfin"
         ]

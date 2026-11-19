@@ -82,6 +82,37 @@ def test_a_term_the_bundle_has_no_ontology_for_keeps_the_label_it_was_sent(
     assert client.put(url, json={"exposure_type": wrong}).status_code == 422
 
 
+@pytest.mark.parametrize(
+    "stage",
+    [
+        "ZFS:9999999",  # no such stage
+        "ZP:0105827",  # a real term that is not a stage
+        "72 hpf",  # a time, which the form turns into a stage
+    ],
+)
+def test_a_stage_is_one_of_zfins(client: TestClient, tree: dict, stage: str) -> None:
+    exposure = item_url("ExposureEvent", tree["ExposureEvent"]["id"])
+    assert client.put(exposure, json={"exposure_start_stage": stage}).status_code == 422
+
+    observation = item_url("PhenotypeObservationSet", tree["PhenotypeObservationSet"]["id"])
+    assert client.put(observation, json={"phenotype": [{"stage": stage}]}).status_code == 422
+
+
+def test_an_exposure_does_not_end_before_it_started(client: TestClient, tree: dict) -> None:
+    url = item_url("ExposureEvent", tree["ExposureEvent"]["id"])
+    shield, day_5 = "ZFS:0000019", "ZFS:0000037"
+
+    forward = {"exposure_start_stage": shield, "exposure_end_stage": day_5}
+    assert client.put(url, json=forward).status_code == 200
+    # Starting and ending within one stage is an exposure shorter than the stage.
+    within = {"exposure_start_stage": shield, "exposure_end_stage": shield}
+    assert client.put(url, json=within).status_code == 200
+
+    backward = client.put(url, json={"exposure_start_stage": day_5, "exposure_end_stage": shield})
+    assert backward.status_code == 422, backward.text
+    assert "is before" in backward.text
+
+
 class TestWithNoBundle:
     @pytest.fixture
     def extdata_dir(self, tmp_path_factory) -> Path:

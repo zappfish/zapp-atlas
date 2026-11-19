@@ -522,6 +522,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/zfin/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stages Endpoint */
+        get: operations["stages_endpoint_api_zfin_stages_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/zfin/status": {
         parameters: {
             query?: never;
@@ -1277,12 +1294,12 @@ export interface components {
             comment?: string | null;
             /**
              * Exposure End Stage
-             * @description The developmental stage of fish when exposure ended.
+             * @description The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.
              */
             exposure_end_stage?: string | null;
             /**
              * Exposure Start Stage
-             * @description The developmental stage of fish when exposure started.
+             * @description The developmental stage of fish when exposure started, as one of ZFIN's stages.
              */
             exposure_start_stage?: string | null;
             /** @description An instance of exposure specifying the type of stressor a subject was exposed to. */
@@ -1319,12 +1336,12 @@ export interface components {
             comment?: string | null;
             /**
              * Exposure End Stage
-             * @description The developmental stage of fish when exposure ended.
+             * @description The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.
              */
             exposure_end_stage?: string | null;
             /**
              * Exposure Start Stage
-             * @description The developmental stage of fish when exposure started.
+             * @description The developmental stage of fish when exposure started, as one of ZFIN's stages.
              */
             exposure_start_stage?: string | null;
             /** @description An instance of exposure specifying the type of stressor a subject was exposed to. */
@@ -1664,7 +1681,7 @@ export interface components {
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
              * Stage
-             * @description The developmental stage of fish when the phenotype was observed.
+             * @description The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.
              */
             stage?: string | null;
         };
@@ -1731,7 +1748,7 @@ export interface components {
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
              * Stage
-             * @description The developmental stage of fish when the phenotype was observed.
+             * @description The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.
              */
             stage?: string | null;
         };
@@ -2527,6 +2544,21 @@ export interface components {
             fish: components["schemas"]["ZfinFishRefOut"] | null;
             genotype: components["schemas"]["ZfinGenotypeRefOut"] | null;
         };
+        /**
+         * ZfinStageOut
+         * @description A developmental stage, and the hours post fertilization it covers:
+         *     from ``start_hours`` up to, but not including, ``end_hours``.
+         */
+        ZfinStageOut: {
+            /** End Hours */
+            end_hours: number;
+            /** Name */
+            name: string;
+            /** Stage Id */
+            stage_id: string;
+            /** Start Hours */
+            start_hours: number;
+        };
         /** ZfinStatusOut */
         ZfinStatusOut: {
             /** Counts */
@@ -2643,6 +2675,7 @@ export type ZfinReagentOut = components['schemas']['ZfinReagentOut'];
 export type ZfinResolveCandidateOut = components['schemas']['ZfinResolveCandidateOut'];
 export type ZfinResolveIn = components['schemas']['ZfinResolveIn'];
 export type ZfinResolveOut = components['schemas']['ZfinResolveOut'];
+export type ZfinStageOut = components['schemas']['ZfinStageOut'];
 export type ZfinStatusOut = components['schemas']['ZfinStatusOut'];
 export type ZfinWildtypeOut = components['schemas']['ZfinWildtypeOut'];
 export type ZygosityEnum = components['schemas']['ZygosityEnum'];
@@ -4263,6 +4296,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stages_endpoint_api_zfin_stages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZfinStageOut"][];
                 };
             };
         };

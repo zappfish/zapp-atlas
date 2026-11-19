@@ -27,13 +27,14 @@ def _no_orcid_public_api(monkeypatch) -> None:
 
 @pytest.fixture(scope="session")
 def labels_db(tmp_path_factory) -> Path:
-    """labels.db built from tests/labels_fixture: the few terms the tests name."""
-    from support import LABELS_FIXTURE, built
+    """labels.db built from tests/labels_fixture: the few terms the tests
+    name, and ZFIN's stages."""
+    from support import LABELS_FIXTURES, built
 
     return built(
         "labels_db.py",
         tmp_path_factory.mktemp("labels") / "labels.db",
-        str(LABELS_FIXTURE),
+        *map(str, LABELS_FIXTURES),
     )
 
 

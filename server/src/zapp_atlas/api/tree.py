@@ -18,12 +18,17 @@ from sqlalchemy.orm import Session
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.fish import describe_from_zfin
 from zapp_atlas.api.layout import Slot, SlotKind, layout
+from zapp_atlas.api.stages import check_stage_order
 from zapp_atlas.api.terms import checked, term_values
 from zapp_atlas.schema import sqla
 from zapp_atlas.schema.sqla import Base
 
-# Sets a class's derived slots on a row, once the body has been stored on it.
-_DERIVE: dict[str, Callable[[Session, Base], None]] = {"Fish": describe_from_zfin}
+# What is done to a class's row once the body has been stored on it: its
+# derived slots are set, or a rule the schema cannot state is checked.
+_DERIVE: dict[str, Callable[[Session, Base], None]] = {
+    "Fish": describe_from_zfin,
+    "ExposureEvent": check_stage_order,
+}
 
 
 def build(session: Session, class_name: str, body: BaseModel) -> Base:

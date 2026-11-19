@@ -108,6 +108,8 @@ linkml_meta = LinkMLMeta({'default_prefix': 'zebrafish_toxicology_atlas_schema',
                            'prefix_reference': 'https://fdasis.nlm.nih.gov/srs/unii/'},
                   'ZFIN': {'prefix_prefix': 'ZFIN',
                            'prefix_reference': 'https://zfin.org/'},
+                  'ZFS': {'prefix_prefix': 'ZFS',
+                          'prefix_reference': 'http://purl.obolibrary.org/obo/ZFS_'},
                   'ZP': {'prefix_prefix': 'ZP',
                          'prefix_reference': 'http://purl.obolibrary.org/obo/ZP_'},
                   'biolink': {'prefix_prefix': 'biolink',
@@ -935,7 +937,9 @@ class Phenotype(ZappEntity):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
+    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype'],
+         'examples': [{'value': 'ZFS:0000035'}],
+         'id_prefixes': ['ZFS']} })
     prevalence: Optional[float] = Field(default=None, description="""The percentage of subjects exhibiting this phenotype, from 0 to 100.""", ge=0, le=100, json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     severity: Optional[SeverityEnum] = Field(default=None, description="""The intensity of the observed phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     phenotype_term_id: Optional[PhenotypeTerm] = Field(default=None, description="""The phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
@@ -947,7 +951,9 @@ class PhenotypeInput(ConfiguredBaseModel):
     """
     What the API accepts for Phenotype.
     """
-    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
+    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype'],
+         'examples': [{'value': 'ZFS:0000035'}],
+         'id_prefixes': ['ZFS']} })
     prevalence: Optional[float] = Field(default=None, description="""The percentage of subjects exhibiting this phenotype, from 0 to 100.""", ge=0, le=100, json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     severity: Optional[SeverityEnum] = Field(default=None, description="""The intensity of the observed phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     phenotype_term_id: Optional[PhenotypeTerm] = Field(default=None, description="""The phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
@@ -957,7 +963,9 @@ class PhenotypeRead(ReadBaseModel):
     """
     What the API returns for Phenotype, with everything beneath it.
     """
-    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
+    stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype'],
+         'examples': [{'value': 'ZFS:0000035'}],
+         'id_prefixes': ['ZFS']} })
     prevalence: Optional[float] = Field(default=None, description="""The percentage of subjects exhibiting this phenotype, from 0 to 100.""", ge=0, le=100, json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     severity: Optional[SeverityEnum] = Field(default=None, description="""The intensity of the observed phenotype.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
     phenotype_term_id: Optional[PhenotypeTermRead] = Field(default=None, description="""The phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Phenotype']} })
@@ -1021,8 +1029,12 @@ class ExposureEvent(ZappEntity):
     vehicle: Optional[list[VehicleOfTransmission]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[Regimen] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
@@ -1042,8 +1054,12 @@ class ExposureEventInput(ConfiguredBaseModel):
     vehicle: Optional[list[VehicleOfTransmissionInput]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenInput] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
@@ -1060,8 +1076,12 @@ class ExposureEventRead(ReadBaseModel):
     vehicle: Optional[list[VehicleOfTransmissionRead]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenRead] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',
@@ -1081,8 +1101,12 @@ class ExposureEventSummary(ReadBaseModel):
     vehicle: Optional[list[VehicleOfTransmissionRead]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenRead] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started, as one of ZFIN's stages.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000019'}],
+         'id_prefixes': ['ZFS']} })
+    exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent'],
+         'examples': [{'value': 'ZFS:0000037'}],
+         'id_prefixes': ['ZFS']} })
     comment: Optional[str] = Field(default=None, description="""Additional comments.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Control',
                        'ExposureEvent',
                        'StressorChemical',

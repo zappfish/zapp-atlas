@@ -8,8 +8,9 @@ from sampling import sample
 
 from zapp_atlas.api.layout import LEVELS, SlotKind, layout
 
-# The few terms the tests name, as ROBOT exports an ontology's labels.
-LABELS_FIXTURE = Path(__file__).parent / "labels_fixture" / "labels.tsv"
+# The few terms the tests name, as ROBOT exports an ontology's labels, and
+# ZFIN's stages, as the bundle's Makefile takes them from its stage file.
+LABELS_FIXTURES = sorted((Path(__file__).parent / "labels_fixture").glob("*.tsv"))
 # A miniature of ZFIN's bulk downloads (see its README).
 ZFIN_FIXTURE = Path(__file__).parent / "zfin_fixture"
 

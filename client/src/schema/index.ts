@@ -338,7 +338,7 @@ export interface PhenotypeObservationSet extends ZappEntity {
  * Any measurable or visible trait change in the subject as a result of exposure.
  */
 export interface Phenotype extends ZappEntity {
-    /** The developmental stage of fish when the phenotype was observed. */
+    /** The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages. */
     stage?: string,
     /** The percentage of subjects exhibiting this phenotype, from 0 to 100. */
     prevalence?: number,
@@ -376,9 +376,9 @@ export interface ExposureEvent extends ZappEntity {
     route?: string,
     /** The regimen for the exposure. */
     regimen?: Regimen,
-    /** The developmental stage of fish when exposure started. */
+    /** The developmental stage of fish when exposure started, as one of ZFIN's stages. */
     exposure_start_stage?: string,
-    /** The developmental stage of fish when exposure ended. */
+    /** The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at. */
     exposure_end_stage?: string,
     /** Additional comments. */
     comment?: string,
