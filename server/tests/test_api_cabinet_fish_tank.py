@@ -1,8 +1,8 @@
 """API tests for research groups, chemical cabinet, and fish tank.
 
 Covers the authorization matrix (signed-out / outsider / member / admin), the
-unique-grain 409s, cross-group isolation, fish get-or-create, and the
-hand-written boundary shape (path-derived research_group; audit timestamps in
+unique-grain 409s, cross-group isolation, the described fish a tank entry
+owns, and the hand-written boundary shape (path-derived research_group; audit timestamps in
 responses).
 """
 
@@ -129,6 +129,218 @@ def test_only_admin_can_remove_members(client: TestClient) -> None:
     signin(client, MEMBER)  # a plain member may not remove anyone
     res = client.delete(f"/api/research-groups/{group_id}/members/{member_id}")
     assert res.status_code == 403
+
+
+def test_admin_can_change_a_members_role(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}",
+        json={"role": "admin"},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["role"] == "admin"
+    # the promotion is durable, and the row keeps its identity
+    listed = client.get(f"/api/research-groups/{group_id}/members").json()
+    promoted = next(m for m in listed if m["id"] == member_id)
+    assert promoted["role"] == "admin"
+    assert promoted["member"] == f"ORCID:{MEMBER}"
+
+
+def test_promoted_member_can_then_manage_membership(client: TestClient) -> None:
+    """The role change is real, not just a stored string."""
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, MEMBER)
+    assert (
+        client.post(
+            f"/api/research-groups/{group_id}/members",
+            json={"member": OUTSIDER, "role": "member"},
+        ).status_code
+        == 403
+    )
+    signin(client, ADMIN)
+    client.patch(f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "admin"})
+    signin(client, MEMBER)
+    assert (
+        client.post(
+            f"/api/research-groups/{group_id}/members",
+            json={"member": OUTSIDER, "role": "member"},
+        ).status_code
+        == 201
+    )
+
+
+def test_patch_role_touches_updated_at(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    before = next(
+        m
+        for m in client.get(f"/api/research-groups/{group_id}/members").json()
+        if m["id"] == member_id
+    )
+    after = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}",
+        json={"role": "admin"},
+    ).json()
+    assert after["created_at"] == before["created_at"]
+    assert after["updated_at"] > before["updated_at"]
+
+
+def test_only_admin_can_change_roles(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, MEMBER)  # a plain member may not hand themselves admin
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "admin"}
+    )
+    assert res.status_code == 403
+
+
+def test_patch_role_requires_authentication(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signout(client)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "admin"}
+    )
+    assert res.status_code == 401
+
+
+def test_patch_unknown_member_is_404(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    res = client.patch(f"/api/research-groups/{group_id}/members/99999", json={"role": "admin"})
+    assert res.status_code == 404
+
+
+def test_patch_member_from_another_group_is_404(client: TestClient) -> None:
+    """A membership id is only addressable under the group that owns it."""
+    mine = make_group(client, "Mine")
+    theirs = make_group(client, "Theirs")
+    add_member(client, theirs, MEMBER, "member")
+    foreign_id = _member_id(client, theirs, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(f"/api/research-groups/{mine}/members/{foreign_id}", json={"role": "member"})
+    assert res.status_code == 404
+
+
+def test_patch_rejects_unknown_role(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}",
+        json={"role": "superuser"},
+    )
+    assert res.status_code == 422
+
+
+# --------------------------------------------------------------------------- #
+# A group must always keep an admin
+# --------------------------------------------------------------------------- #
+
+
+def test_last_admin_cannot_demote_themselves(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{admin_id}", json={"role": "member"}
+    )
+    assert res.status_code == 409
+    still_admin = next(
+        m
+        for m in client.get(f"/api/research-groups/{group_id}/members").json()
+        if m["id"] == admin_id
+    )
+    assert still_admin["role"] == "admin"
+
+
+def test_last_admin_cannot_be_removed(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    res = client.delete(f"/api/research-groups/{group_id}/members/{admin_id}")
+    assert res.status_code == 409
+    assert any(
+        m["id"] == admin_id for m in client.get(f"/api/research-groups/{group_id}/members").json()
+    )
+
+
+def test_admin_may_step_down_once_another_admin_exists(client: TestClient) -> None:
+    """The intended hand-over: promote a successor first, then demote yourself."""
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    successor_id = _member_id(client, group_id, MEMBER)
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    assert (
+        client.patch(
+            f"/api/research-groups/{group_id}/members/{successor_id}",
+            json={"role": "admin"},
+        ).status_code
+        == 200
+    )
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{admin_id}", json={"role": "member"}
+    )
+    assert res.status_code == 200
+    assert res.json()["role"] == "member"
+
+
+def test_admin_may_leave_once_another_admin_exists(client: TestClient) -> None:
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "admin")
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    assert client.delete(f"/api/research-groups/{group_id}/members/{admin_id}").status_code == 204
+
+
+def test_sole_admin_of_a_one_person_group_is_still_protected(
+    client: TestClient,
+) -> None:
+    """No members to promote is not a licence to orphan the group."""
+    group_id = make_group(client)
+    admin_id = _member_id(client, group_id, ADMIN)
+    signin(client, ADMIN)
+    assert client.delete(f"/api/research-groups/{group_id}/members/{admin_id}").status_code == 409
+
+
+def test_last_admin_guard_is_per_group(client: TestClient) -> None:
+    """Another group's admins don't count toward this group's quorum."""
+    mine = make_group(client, "Mine")
+    make_group(client, "Theirs")  # ADMIN is also an admin over here
+    add_member(client, mine, MEMBER, "member")
+    admin_id = _member_id(client, mine, ADMIN)
+    signin(client, ADMIN)
+    res = client.patch(f"/api/research-groups/{mine}/members/{admin_id}", json={"role": "member"})
+    assert res.status_code == 409
+
+
+def test_demoting_a_plain_member_is_unaffected_by_the_guard(
+    client: TestClient,
+) -> None:
+    """A no-op role write on a non-admin must not trip the admin quorum check."""
+    group_id = make_group(client)
+    add_member(client, group_id, MEMBER, "member")
+    member_id = _member_id(client, group_id, MEMBER)
+    signin(client, ADMIN)
+    res = client.patch(
+        f"/api/research-groups/{group_id}/members/{member_id}", json={"role": "member"}
+    )
+    assert res.status_code == 200
+    assert res.json()["role"] == "member"
 
 
 # --------------------------------------------------------------------------- #
@@ -333,6 +545,66 @@ def test_cabinet_conflict_names_the_key_that_was_broken(client: TestClient, monk
     assert "chemical" in res.json()["detail"]
 
 
+def test_cabinet_grain_includes_the_supplier(client: TestClient) -> None:
+    """One entry per stock on the shelf: the same chemical from two suppliers
+    coexists (a supplier transition), the same stock twice is a conflict —
+    including twice with no supplier, which the unique index cannot see
+    (every NULL is distinct to SQLite) and the service catches instead."""
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    sigma = {"chemical_id": BPA, "manufacturer": "sigma_aldrich"}
+    fisher = {"chemical_id": BPA, "manufacturer": "fisher_scientific"}
+    assert client.post(url, json=sigma).status_code == 201
+    assert client.post(url, json=fisher).status_code == 201
+    assert client.post(url, json=sigma).status_code == 409
+    assert client.post(url, json={"chemical_id": BPA}).status_code == 201
+    assert client.post(url, json={"chemical_id": BPA}).status_code == 409
+
+    # Patching one supplier's entry onto the other is the same conflict.
+    listed = client.get(url).json()
+    fisher_id = next(e["id"] for e in listed if e["manufacturer"] == "fisher_scientific")
+    res = client.patch(f"{url}/{fisher_id}", json={"manufacturer": "sigma_aldrich"})
+    assert res.status_code == 409, res.text
+
+
+def test_cabinet_entry_round_trips_supplier_and_vehicle(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    created = client.post(
+        url,
+        json={
+            "chemical_id": BPA,
+            "manufacturer": "other_not_listed",
+            "unrecognized_manufacturer_name": "Bob's Chemical Shack",
+            "vehicle_type": "dmso",
+        },
+    )
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["manufacturer"] == "other_not_listed"
+    assert body["unrecognized_manufacturer_name"] == "Bob's Chemical Shack"
+    assert body["vehicle_type"] == "dmso"
+
+
+def test_cabinet_rejects_unnameable_escape_hatches(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/chemical-cabinet"
+
+    # An other_not_listed manufacturer with no name records no supplier at all.
+    res = client.post(url, json={"chemical_id": BPA, "manufacturer": "other_not_listed"})
+    assert res.status_code == 422, res.text
+    # The entry has no slot to name an unlisted vehicle with, so the escape
+    # hatch VehicleOfTransmission allows is rejected here outright.
+    res = client.post(url, json={"chemical_id": BPA, "vehicle_type": "other_not_listed"})
+    assert res.status_code == 422, res.text
+    assert client.get(url).json() == []
+
+
 def test_cabinet_delete(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
@@ -347,44 +619,88 @@ def test_cabinet_delete(client: TestClient) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_tank_add_get_or_creates_fish(client: TestClient) -> None:
+AB = {"background_zfin_id": AB_LINE, "background_name": "AB"}
+TI282A = {
+    "allele_zfin_id": "ZFIN:ZDB-ALT-980203-1091",
+    "allele_symbol": "ti282a",
+    "alteration_type": "point_mutation",
+    "affected_gene_zfin_id": "ZFIN:ZDB-GENE-990415-72",
+    "affected_gene_symbol": "fgf8a",
+    "zygosity": "heterozygous",
+}
+
+
+def test_tank_add_stores_the_described_fish(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     created = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": AB_LINE, "name": "AB"}},
+        json={"fish": {**AB, "allele": [TI282A]}, "nickname": "fgf8a carriers"},
     )
     assert created.status_code == 201, created.text
     body = created.json()
-    assert body["fish"] == {"zfin_id": AB_LINE, "name": "AB"}
+    assert body["nickname"] == "fgf8a carriers"
+    assert body["fish"]["background_name"] == "AB"
+    assert body["fish"]["fish_zfin_id"] is None
+    [allele] = body["fish"]["allele"]
+    assert allele["allele_symbol"] == "ti282a"
+    assert allele["father_zygosity"] is None
     assert body["created_at"] is not None
 
 
-def test_tank_grain_conflict(client: TestClient) -> None:
+def test_tank_nickname_is_optional_and_unique(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
     url = f"/api/research-groups/{group_id}/fish-tank"
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
-    assert client.post(url, json=fish).status_code == 201
-    assert client.post(url, json=fish).status_code == 409
+    assert client.post(url, json={"fish": AB}).status_code == 201
+    assert client.post(url, json={"fish": AB}).status_code == 201  # no nickname, no clash
+    assert client.post(url, json={"fish": AB, "nickname": "house AB"}).status_code == 201
+    res = client.post(url, json={"fish": AB, "nickname": "house AB"})
+    assert res.status_code == 409
+    assert "nickname" in res.json()["detail"]
 
 
-def test_tank_rejects_malformed_zfin_id(client: TestClient) -> None:
+def test_tank_rejects_malformed_ids_and_zygosity(client: TestClient) -> None:
     group_id = make_group(client)
     signin(client, ADMIN)
-    res = client.post(
+    url = f"/api/research-groups/{group_id}/fish-tank"
+    bad = [
+        {"fish": {**AB, "background_zfin_id": "not-a-zfin"}},
+        {"fish": {**AB, "genotype_zfin_id": AB_LINE}},  # the server's to set
+        {"fish": {**AB, "allele": [{**TI282A, "zygosity": "hemizygous"}]}},
+        {"fish": {**AB, "allele": [{**TI282A, "allele_symbol": None}]}},
+        # Only a parent can be wild type for an allele the fish carries.
+        {"fish": {**AB, "allele": [{**TI282A, "zygosity": "wild_type"}]}},
+    ]
+    for payload in bad:
+        assert client.post(url, json=payload).status_code == 422, payload
+
+
+def test_tank_takes_a_wild_type_parent(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    created = client.post(
         f"/api/research-groups/{group_id}/fish-tank",
-        json={"fish": {"zfin_id": "not-a-zfin", "name": "Mystery"}},
+        json={"fish": {**AB, "allele": [{**TI282A, "mother_zygosity": "wild_type"}]}},
     )
-    assert res.status_code == 422
+    assert created.status_code == 201, created.text
+    [allele] = created.json()["fish"]["allele"]
+    assert allele["mother_zygosity"] == "wild_type"
+
+
+def test_tank_delete_takes_the_fish_with_it(client: TestClient) -> None:
+    group_id = make_group(client)
+    signin(client, ADMIN)
+    url = f"/api/research-groups/{group_id}/fish-tank"
+    entry = client.post(url, json={"fish": {**AB, "allele": [TI282A]}}).json()
+    assert client.delete(f"{url}/{entry['id']}").status_code == 204
+    assert client.get(f"{url}/{entry['id']}").status_code == 404
 
 
 def test_two_groups_may_tank_the_same_fish(client: TestClient) -> None:
-    # The second entry reuses the existing Fish row rather than re-creating it.
     group_a = make_group(client, "Lab A")
     group_b = make_group(client, "Lab B")
     signin(client, ADMIN)
-    fish = {"fish": {"zfin_id": AB_LINE, "name": "AB"}}
-    a = client.post(f"/api/research-groups/{group_a}/fish-tank", json=fish)
-    b = client.post(f"/api/research-groups/{group_b}/fish-tank", json=fish)
+    a = client.post(f"/api/research-groups/{group_a}/fish-tank", json={"fish": AB})
+    b = client.post(f"/api/research-groups/{group_b}/fish-tank", json={"fish": AB})
     assert a.status_code == 201 and b.status_code == 201

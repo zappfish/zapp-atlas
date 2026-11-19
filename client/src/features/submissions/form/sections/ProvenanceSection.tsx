@@ -12,10 +12,10 @@ import Field from "../Field";
 import type { Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import { signedInUser } from "@/identity";
+import { isPublicationType } from "@/publication";
 import {
   ORCID,
   PUBLICATION,
-  PUBLISHED_SOURCES,
   ZFIN_LAB,
   required,
 } from "../validation";
@@ -125,7 +125,7 @@ const ProvenanceSection = () => {
           )}
         </Field>
 
-            {PUBLISHED_SOURCES.includes(sourceType) && (
+            {isPublicationType(sourceType) && (
           <Field label="Source value" required name="provenance.sourceValue">
             {(id, _labelId, errorProps) => (
               <TextInput
@@ -145,7 +145,7 @@ const ProvenanceSection = () => {
           </Field>
         )}
 
-        {sourceType && !PUBLISHED_SOURCES.includes(sourceType) && (
+        {sourceType && !isPublicationType(sourceType) && (
           <Field label="Source note">
             {(id) => (
               <TextInput

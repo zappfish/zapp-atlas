@@ -133,6 +133,20 @@ def _move_chemical_names_into_synonyms(engine: Engine) -> None:
         log.info("moved %s chemical_name value(s) into StressorChemical_synonym", moved)
 
 
+def _widen_cabinet_grain_to_supplier(engine: Engine) -> None:
+    """Drop the cabinet's pre-#175 unique index, which manufacturer widened.
+
+    The old ``(research_group, chemical_id)`` key allowed one entry per
+    chemical; ``cabinet_supplier_grain`` adds manufacturer so the same
+    chemical from two suppliers can both be stocked. The new index arrives
+    through ``_add_missing_unique_indexes`` (indexes are matched by name,
+    which is why the key was renamed), but nothing else removes the old one,
+    and while it exists a second supplier is still rejected.
+    """
+    with engine.begin() as connection:
+        connection.execute(text('DROP INDEX IF EXISTS "uq_ChemicalCabinetEntry_cabinet_grain"'))
+
+
 def _rename_vehicle_types(engine: Engine) -> None:
     """Rewrite stored vehicle values whose enum member was renamed."""
     if "VehicleOfTransmission" not in inspect(engine).get_table_names():
@@ -153,6 +167,7 @@ def _rename_vehicle_types(engine: Engine) -> None:
 def migrate(engine: Engine) -> None:
     """Apply every outstanding fix. Idempotent; safe on an up-to-date database."""
     _add_missing_columns(engine)
+    _widen_cabinet_grain_to_supplier(engine)
     _add_missing_unique_indexes(engine)
     _move_chemical_names_into_synonyms(engine)
     _rename_vehicle_types(engine)

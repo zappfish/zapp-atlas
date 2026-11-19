@@ -13,6 +13,9 @@ just dev-api       # everything on :8000 (HTML, /api, /edit) — Python and
 just dev-client    # Vite module server on :5173, for React work
 just dev-api-hmr   # run alongside dev-client, then open :8000/edit/ — NOT :5173
 just test          # pytest
+just e2e           # browser tests (Playwright): builds the client, starts the
+                   # real server on a throwaway database, and drives it
+just api-types     # regenerate the client's API types after a route or model changes
 just lint          # ruff check + ruff format --check (no changes written)
 just fix           # ruff check --fix + ruff format (applies changes)
 just build-client  # emit client/dist
@@ -60,6 +63,25 @@ gap: new optional columns are added generically, and anything else (a value
 rename, data moved between columns) needs its own idempotent step there. It is
 deliberately not a migration framework; if these start accumulating, that is
 the signal to adopt Alembic instead of extending it.
+
+**Hand-written API code names generated classes and never lists their
+fields.** The study tree is saved one level at a time (study, experiment,
+exposure event, observation, image). `api/layout.py` names the levels, and
+what each one owns is read from the schema, so a slot added to the YAML is
+accepted, stored and returned with no Python edit. If you find yourself
+copying slot names into a router or service, change the generic code in
+`api/tree.py` instead. A new class has to be placed in `api/layout.py`, or
+`tests/test_api_layout.py` fails.
+
+**Routes take the row they work on from `api/resources.py`.** `readable(...)`
+and `writable(...)` load it and apply the access rules: writes need a member
+of the study's research group, and a draft study is hidden from everyone else.
+A route that fetches its own row skips those checks. Tests fail on a write
+route that does not require sign-in and on a route that bypasses the loader.
+
+**The client's API types are generated from the server.** After changing a
+route or a model, run `just api-types` and commit the result. A test fails
+when `client/src/api/openapi.json` is out of date.
 
 **All HTML lives in Jinja templates.** Every document and fragment the app
 returns — pages, htmx partials, error states, and the React client's host
@@ -131,4 +153,14 @@ signed-in identity as `current_identity` to every page. Pages so far: homepage,
 login, and a research group dashboard whose fish tank / chemical cabinet /
 submissions render from placeholder data (`html/dashboard_placeholder.py`)
 until the group-scoped endpoints are wired in. The data form is not built yet.
-ORCID establishes an identity but does **not** yet gate `/api` writes.
+`Fish` is a description (background, alleles with zygosity, injected
+reagents); the server sets its ZFIN ids on save by matching the description
+against the registry, and a request cannot send them. ZFIN's
+registry of fish lines is served read-only at `/api/zfin` from the
+extdata bundle. A fish is described in the tank's add dialog and picked
+from the tank on the submission form; the dialog uses existing elements and
+plain controls and has not been designed yet (see ARCHITECTURE.md,
+"Reference data for the fish picker"). Every `/api` write
+requires a signed-in caller, and the study tree can be written only by members
+of the study's research group. The submission form does not save to the server
+yet.

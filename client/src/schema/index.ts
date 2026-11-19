@@ -2,27 +2,28 @@
 GENERATED FILE. DO NOT EDIT.
 */
 
-export type ZappEntityId = string;
-export type ZfinEntityZfinId = string;
-export type StudyId = string;
-export type ExperimentId = string;
-export type PhenotypeObservationSetId = string;
-export type PhenotypeId = string;
-export type ControlId = string;
-export type ExposureEventId = string;
-export type RegimenId = string;
-export type StressorChemicalId = string;
-export type VehicleOfTransmissionId = string;
-export type ImageId = string;
-export type ControlImageId = string;
+export type ZappEntityId = number;
+export type StudyId = number;
+export type ExperimentId = number;
+export type PhenotypeObservationSetId = number;
+export type PhenotypeId = number;
+export type ControlId = number;
+export type ExposureEventId = number;
+export type RegimenId = number;
+export type StressorChemicalId = number;
+export type VehicleOfTransmissionId = number;
+export type ImageId = number;
+export type ControlImageId = number;
 export type PhenotypeTermTermUri = string;
 export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
-export type FishZfinId = string;
-export type ResearchGroupId = string;
-export type ResearchGroupMemberId = string;
-export type ChemicalCabinetEntryId = string;
-export type FishTankEntryId = string;
+export type FishId = number;
+export type AlleleId = number;
+export type TransientReagentId = number;
+export type ResearchGroupId = number;
+export type ResearchGroupMemberId = number;
+export type ChemicalCabinetEntryId = number;
+export type FishTankEntryId = number;
 /**
 * An enumeration of vehicles used to deliver stressors in exposure events.
 */
@@ -148,6 +149,16 @@ export enum ImageScopeEnum {
     partial_organism = "partial_organism",
 };
 /**
+* An enumeration of how far along a study is.
+*/
+export enum StudyStatusEnum {
+    
+    /** Still being entered; visible only to its research group. */
+    draft = "draft",
+    /** Ready to be seen; visible to everyone. */
+    published = "published",
+};
+/**
 * An enumeration of permission levels within a research group.
 */
 export enum ResearchGroupRoleEnum {
@@ -179,6 +190,65 @@ export enum ExposureRegimenTypeEnum {
     /** Repeated exposure */
     repeated = "repeated",
 };
+/**
+* The kinds of sequence alteration ZFIN records for its alleles, each with its Sequence Ontology term. The SO id is how a ZFIN record maps onto these values.
+*/
+export enum SequenceAlterationTypeEnum {
+    
+    point_mutation = "point_mutation",
+    substitution = "substitution",
+    deletion = "deletion",
+    insertion = "insertion",
+    indel = "indel",
+    /** A multiple-nucleotide variant. */
+    mnv = "mnv",
+    inversion = "inversion",
+    duplication = "duplication",
+    transgenic_insertion = "transgenic_insertion",
+    complex_substitution = "complex_substitution",
+    /** A chromosomal deletion. */
+    deficiency = "deficiency",
+    translocation = "translocation",
+    /** An allele with several variants. */
+    multiple_variants = "multiple_variants",
+    /** An alteration ZFIN has not characterised. */
+    unknown = "unknown",
+};
+/**
+* An allele's zygosity, in ZFIN's terms. ZFIN registers genotypes with unknown zygosity, so unknown is a value here too, and a description saying unknown matches only those genotypes.
+*/
+export enum ZygosityEnum {
+    
+    unknown = "unknown",
+    heterozygous = "heterozygous",
+    homozygous = "homozygous",
+    /** Several alleles of one gene in a combination ZFIN calls complex. */
+    complex = "complex",
+};
+/**
+* An allele's zygosity in one of the fish's parents. As ZygosityEnum, plus wild type: a parent, unlike the fish being described, may not carry the allele at all.
+*/
+export enum ParentZygosityEnum {
+    
+    unknown = "unknown",
+    heterozygous = "heterozygous",
+    homozygous = "homozygous",
+    /** Several alleles of one gene in a combination ZFIN calls complex. */
+    complex = "complex",
+    /** The parent does not carry the allele. */
+    wild_type = "wild_type",
+};
+/**
+* The kinds of transient, sequence-targeting reagent ZFIN registers.
+*/
+export enum ReagentTypeEnum {
+    
+    morpholino = "morpholino",
+    /** A CRISPR guide. ZFIN's SO term for these describes the binding site rather than the reagent, so none is given. */
+    crispr = "crispr",
+    /** A TALEN. As for CRISPR, no SO term is given. */
+    talen = "talen",
+};
 
 
 /**
@@ -198,20 +268,13 @@ export interface OntologyEntity {
 
 
 /**
- * Entities with ZFIN database identifiers.
- */
-export interface ZfinEntity {
-    /** ZFIN database identifier. */
-    zfin_id: string,
-}
-
-
-/**
  * A toxicological investigation, including the experimental conditions and phenotypic outcomes, with information provenance.
  */
 export interface Study extends ZappEntity {
-    /** The research group the study belongs to. Optional only so that studies recorded before groups existed remain valid. */
-    research_group?: ResearchGroupId,
+    /** The research group the study belongs to, whose members may edit it. */
+    research_group: ResearchGroupId,
+    /** Whether a study is still being worked on or is ready to be seen. A draft is visible only to the members of its research group. */
+    status: string,
     /** The experiment in a study. */
     experiment?: Experiment[],
     /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
@@ -448,11 +511,67 @@ export interface ExposureType extends OntologyEntity {
 
 
 /**
- * Zebrafish used as subject in the study.
+ * A zebrafish line as the curator describes it: alleles on a wild-type background, plus any transient reagents injected into the embryos. The server sets fish_zfin_id and genotype_zfin_id when the fish is saved, by matching the description against ZFIN's registered records; they are absent when ZFIN has no such record.
  */
-export interface Fish extends ZfinEntity {
-    /** Name or label of an entity. */
-    name: string,
+export interface Fish extends ZappEntity {
+    /** ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one. */
+    fish_zfin_id?: string,
+    /** ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one. */
+    genotype_zfin_id?: string,
+    /** The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines. */
+    background_zfin_id?: string,
+    /** The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL. */
+    background_name?: string,
+    /** The alleles the fish carries, mutant and transgenic alike, in the order the curator gave them. */
+    allele?: Allele[],
+    /** The reagents injected into the embryos. */
+    transient_reagent?: TransientReagent[],
+    /** Free text for what the structured description cannot say: a line ZFIN has not registered, or how the fish differs from the record it matched. */
+    line_description?: string,
+}
+
+
+/**
+ * An allele the fish carries, mutant or transgenic: the gene it alters or the construct it holds, and its zygosity in the fish and, when known, the parents. ``alteration_type`` says which kind it is.
+ */
+export interface Allele extends ZappEntity {
+    /** ZFIN's id for the allele (ZDB-ALT-…). */
+    allele_zfin_id?: string,
+    /** The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg. */
+    allele_symbol: string,
+    /** The kind of sequence alteration the allele is. */
+    alteration_type?: string,
+    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one. */
+    affected_gene_zfin_id?: string,
+    /** The symbol of the gene the allele affects, e.g. fgf8a. */
+    affected_gene_symbol?: string,
+    /** ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele. */
+    construct_zfin_id?: string,
+    /** The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP). */
+    construct_name?: string,
+    /** The allele's zygosity in the fish. ZFIN records unknown zygosity as a value, and so does this. */
+    zygosity: string,
+    /** The allele's zygosity in the mother. Absent when not recorded. */
+    mother_zygosity?: string,
+    /** The allele's zygosity in the father. Absent when not recorded. */
+    father_zygosity?: string,
+}
+
+
+/**
+ * A sequence-targeting reagent injected into the embryos (a morpholino, CRISPR or TALEN). Transient and not heritable, so part of the fish and not of its genotype. Dose and injection stage belong to the experiment.
+ */
+export interface TransientReagent extends ZappEntity {
+    /** ZFIN's id for the reagent (ZDB-MRPHLNO-, ZDB-CRISPR- or ZDB-TALEN-…). */
+    reagent_zfin_id?: string,
+    /** The reagent's name as ZFIN writes it, e.g. MO1-fgf8a. */
+    reagent_symbol: string,
+    /** What kind of reagent it is. */
+    reagent_type?: string,
+    /** ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one. */
+    affected_gene_zfin_id?: string,
+    /** The symbol of the gene the allele affects, e.g. fgf8a. */
+    affected_gene_symbol?: string,
 }
 
 
@@ -479,7 +598,7 @@ export interface ResearchGroupMember extends ZappEntity {
 
 
 /**
- * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time.
+ * A chemical a research group keeps on hand. Recorded once, then reused to pre-fill curation instead of re-searching the chemical each time. An entry is one stock on the shelf: the same chemical from two suppliers is two entries, so both can be picked while a group transitions between suppliers.
  */
 export interface ChemicalCabinetEntry extends ZappEntity {
     /** The research group an entry belongs to. */
@@ -488,6 +607,12 @@ export interface ChemicalCabinetEntry extends ZappEntity {
     chemical_id: string,
     /** What the group calls this chemical, e.g. "BPA stock". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it. */
     nickname?: string,
+    /** The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it. */
+    manufacturer?: string,
+    /** Free-text name for a manufacturer or supplier that is not in the controlled ManufacturerEnum list. */
+    unrecognized_manufacturer_name?: string,
+    /** The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with. */
+    vehicle_type?: string,
 }
 
 
@@ -499,6 +624,8 @@ export interface FishTankEntry extends ZappEntity {
     research_group: ResearchGroupId,
     /** The fish line the group maintains. */
     fish: Fish,
+    /** What the group calls this line, e.g. "our fli1 reporter". Optional; when given it is what the line is listed under when pre-filling a submission, and no two entries in the group may share it. */
+    nickname?: string,
 }
 
 

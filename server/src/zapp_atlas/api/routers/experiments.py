@@ -1,42 +1,24 @@
 """Experiment endpoints.
 
-Creation is scoped to a Study (no orphan experiments yet):
-
-* POST /studies/{study_id}/experiments
-
-Reading/listing is via a top-level experiments resource:
-
-* GET /experiments
-* GET /experiments/{experiment_id}
+Created beneath a study, then read, replaced and deleted by its own id.
 """
-
-from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, status
 
-from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.services.experiments import (
-    create_experiment_for_study,
-    delete_experiment,
-    get_experiment_by_id,
-    list_experiments,
-    patch_experiment,
-)
-from zapp_atlas.db.image_storage import Storage, get_storage
-from zapp_atlas.schema.pydantic_crud import (
-    ExperimentCreate,
-    ExperimentRead,
-    ExperimentUpdate,
-)
+from zapp_atlas.api.authz import SignedIn
+from zapp_atlas.api.deps import SessionDep, StorageDep
+from zapp_atlas.api.resources import readable, writable
+from zapp_atlas.api.services import levels
+from zapp_atlas.schema.pydantic_crud import ExperimentInput, ExperimentRead
+from zapp_atlas.schema.sqla import Experiment, Study
 
 router = APIRouter(tags=["experiments"])
 
-
-def _as_read(exp) -> ExperimentRead:
-    return ExperimentRead.model_validate(exp, from_attributes=True)
+Readable = Annotated[Experiment, readable("Experiment")]
+Writable = Annotated[Experiment, writable("Experiment")]
+WritableParent = Annotated[Study, writable("Study")]
 
 
 @router.post(
@@ -44,64 +26,26 @@ def _as_read(exp) -> ExperimentRead:
     response_model=ExperimentRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_experiment_for_study_endpoint(
-    study_id: int,
-    payload: ExperimentCreate,
-    session: Annotated[Session, Depends(get_session)],
-) -> ExperimentRead:
-    exp = create_experiment_for_study(session, study_id=study_id, payload=payload)
-    if exp is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study not found")
-    return _as_read(exp)
-
-
-@router.get("/experiments", response_model=list[ExperimentRead])
-def list_experiments_endpoint(
-    session: Annotated[Session, Depends(get_session)],
-    limit: int = 50,
-    offset: int = 0,
-) -> list[ExperimentRead]:
-    rows = list_experiments(session, limit=limit, offset=offset)
-    return [_as_read(e) for e in rows]
+def create_experiment(
+    parent: WritableParent, body: ExperimentInput, identity: SignedIn, session: SessionDep
+) -> Experiment:
+    return levels.create(session, "Experiment", body, parent=parent, by=identity)
 
 
 @router.get("/experiments/{experiment_id}", response_model=ExperimentRead)
-def get_experiment_endpoint(
-    experiment_id: int,
-    session: Annotated[Session, Depends(get_session)],
-) -> ExperimentRead:
-    exp = get_experiment_by_id(session, experiment_id)
-    if exp is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Experiment not found",
-        )
-    return _as_read(exp)
+def read_experiment(experiment: Readable) -> Experiment:
+    return experiment
 
 
-@router.patch("/experiments/{experiment_id}", response_model=ExperimentRead)
-def patch_experiment_endpoint(
-    experiment_id: int,
-    patch: ExperimentUpdate,
-    session: Annotated[Session, Depends(get_session)],
-) -> ExperimentRead:
-    exp = patch_experiment(session, experiment_id, patch)
-    if exp is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Experiment not found",
-        )
-    return _as_read(exp)
+@router.put("/experiments/{experiment_id}", response_model=ExperimentRead)
+def replace_experiment(
+    experiment: Writable, body: ExperimentInput, identity: SignedIn, session: SessionDep
+) -> Experiment:
+    return levels.replace(session, "Experiment", experiment, body, by=identity)
 
 
 @router.delete("/experiments/{experiment_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_experiment_endpoint(
-    experiment_id: int,
-    session: Annotated[Session, Depends(get_session)],
-    storage: Annotated[Storage, Depends(get_storage)],
+def delete_experiment(
+    experiment: Writable, identity: SignedIn, session: SessionDep, storage: StorageDep
 ) -> None:
-    if not delete_experiment(session, experiment_id, storage=storage):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Experiment not found",
-        )
+    levels.delete(session, "Experiment", experiment, storage, by=identity)

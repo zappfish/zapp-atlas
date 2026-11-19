@@ -12,8 +12,13 @@ import {
   fetchMembers,
   removeMember,
 } from "./groups";
-import type { ResearchGroupRole } from "./types";
+import type {
+  FishDescription,
+  FishTankEntryBody,
+  ResearchGroupRole,
+} from "./types";
 import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
+import { fetchWildtypes, resolveFish, searchAlleles } from "./zfin";
 import {
   addChemical,
   deleteChemical,
@@ -22,6 +27,12 @@ import {
   updateChemical,
 } from "./cabinet";
 import { normalizeChemical, searchChemicals } from "./chemicals";
+import {
+  createStudy,
+  deleteStudy,
+  fetchGroupStudies,
+  fetchStudy,
+} from "./studies";
 import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
@@ -31,14 +42,20 @@ export const keys = {
   chemical: (id: string) => ["chemicals", id] as const,
   chemicalByCurie: (curie: string) => ["chemicals", "by-curie", curie] as const,
   groups: ["groups"] as const,
+  study: (id: number) => ["studies", id] as const,
   group: (id: number) => ["group", id] as const,
   members: (id: number) => ["group", id, "members"] as const,
   fishTank: (id: number) => ["group", id, "fish-tank"] as const,
   cabinet: (id: number) => ["group", id, "cabinet"] as const,
+  groupStudies: (id: number) => ["group", id, "studies"] as const,
   fishEntry: (id: number, entryId: number) =>
     ["group", id, "fish-tank", entryId] as const,
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
+  wildtypes: ["zfin", "wildtypes"] as const,
+  alleleSearch: (q: string) => ["zfin", "alleles", q] as const,
+  resolveFish: (description: FishDescription) =>
+    ["zfin", "resolve", description] as const,
 };
 
 export const MIN_SEARCH_LENGTH = 2;
@@ -98,12 +115,54 @@ export const useGroup = (groupId: number) =>
     queryFn: ({ signal }) => fetchGroup(groupId, signal),
   });
 
+/** A group's tank on its own, for the form's fish panel. */
+export const useFishTank = (groupId: number) =>
+  useQuery({
+    queryKey: keys.fishTank(groupId),
+    queryFn: ({ signal }) => fetchFishTank(groupId, signal),
+  });
+
 /** A group's cabinet on its own, for anything that needs it without the page. */
 export const useCabinet = (groupId: number) =>
   useQuery({
     queryKey: keys.cabinet(groupId),
     queryFn: ({ signal }) => fetchCabinet(groupId, signal),
   });
+
+/** ZFIN's wild-type lines. Reference data from the bundle: it does not move. */
+export const useWildtypes = () =>
+  useQuery({
+    queryKey: keys.wildtypes,
+    queryFn: ({ signal }) => fetchWildtypes(signal),
+    staleTime: Infinity,
+  });
+
+/** ZFIN alleles matching what has been typed, by symbol, gene or construct. */
+export const useAlleleSearch = (q: string) =>
+  useQuery({
+    queryKey: keys.alleleSearch(q),
+    queryFn: ({ signal }) => searchAlleles(q, signal),
+    enabled: q.trim().length >= MIN_SEARCH_LENGTH,
+    staleTime: Infinity,
+  });
+
+/**
+ * What ZFIN has registered for a description, or nothing when there is no
+ * description yet. Cached for good: the bundle does not change while the app
+ * runs.
+ */
+export const useResolveFish = (description: FishDescription | null) => {
+  const asked = description ?? NO_DESCRIPTION;
+  return useQuery({
+    queryKey: keys.resolveFish(asked),
+    queryFn: ({ signal }) => resolveFish(asked, signal),
+    enabled: description !== null,
+    staleTime: Infinity,
+  });
+};
+
+/** Stands in for a missing description so the query has a stable key; never sent. */
+const NO_DESCRIPTION: FishDescription = { alleles: [], reagents: [] };
 
 /** One record, for its detail page. */
 export const useFishEntry = (groupId: number, entryId: number) =>
@@ -207,8 +266,7 @@ export const useRemoveMember = (groupId: number) => {
 export const useAddFish = (groupId: number) => {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (fish: { zfin_id: string; name: string }) =>
-      addFish(groupId, fish),
+    mutationFn: (entry: FishTankEntryBody) => addFish(groupId, entry),
     onSuccess: () =>
       client.invalidateQueries({ queryKey: keys.fishTank(groupId) }),
   });
@@ -271,6 +329,44 @@ export const useDeleteChemical = (groupId: number) => {
     onSuccess: (_data, entryId) => {
       client.invalidateQueries({ queryKey: keys.cabinet(groupId) });
       client.removeQueries({ queryKey: keys.cabinetEntry(groupId, entryId) });
+    },
+  });
+};
+
+/** A group's studies, for its page. */
+export const useGroupStudies = (groupId: number) =>
+  useQuery({
+    queryKey: keys.groupStudies(groupId),
+    queryFn: ({ signal }) => fetchGroupStudies(groupId, signal),
+  });
+
+/** One study, for its page. */
+export const useStudy = (studyId: number) =>
+  useQuery({
+    queryKey: keys.study(studyId),
+    queryFn: ({ signal }) => fetchStudy(studyId, signal),
+  });
+
+/** Seeds the new study's cache entry, so its page opens without a refetch. */
+export const useCreateStudy = (groupId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (study: Parameters<typeof createStudy>[1]) =>
+      createStudy(groupId, study),
+    onSuccess: (study) => {
+      if (study) client.setQueryData(keys.study(study.id), study);
+      client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
+    },
+  });
+};
+
+export const useDeleteStudy = (groupId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (studyId: number) => deleteStudy(studyId),
+    onSuccess: (_data, studyId) => {
+      client.removeQueries({ queryKey: keys.study(studyId) });
+      client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
     },
   });
 };

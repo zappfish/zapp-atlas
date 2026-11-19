@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
+from typing import Self
 from unittest.mock import patch
+from urllib.error import URLError
 from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
@@ -12,10 +15,12 @@ from zapp_atlas.auth.models import OrcidIdentity
 from zapp_atlas.auth.services import (
     ORCID_AUTH_COOKIE,
     ORCID_STATE_COOKIE,
+    fetch_orcid_public_name,
+    prefetch_orcid_identity,
     store_orcid_identity,
 )
 from zapp_atlas.db import init_db
-from zapp_atlas.settings import DEFAULT_ORCID_REDIRECT_URI
+from zapp_atlas.settings import DEFAULT_ORCID_REDIRECT_URI, AppSettings
 
 
 def test_login_page_offers_sign_in_when_signed_out(client: TestClient) -> None:
@@ -201,6 +206,106 @@ def test_store_orcid_identity_updates_existing_identity() -> None:
     assert second.id == first.id
     assert identity_count == 1
     assert second.name == "Dr. Sofia Garcia"
+
+
+def _memory_sessionmaker() -> sessionmaker:
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    init_db(engine)
+    return sessionmaker(bind=engine)
+
+
+def test_prefetched_name_survives_logins(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "zapp_atlas.auth.services.fetch_orcid_public_name",
+        lambda *args, **kwargs: "Public Name",
+    )
+    Session = _memory_sessionmaker()
+
+    with Session() as session:
+        prefetched = prefetch_orcid_identity(session, "0000-0001-2345-6789")
+        assert prefetched.name == "Public Name"
+
+        # A login whose token payload lacks a name must not clobber the
+        # prefetched one with null ...
+        logged_in = store_orcid_identity(session, {"orcid": "0000-0001-2345-6789"})
+        assert logged_in.id == prefetched.id
+        assert logged_in.name == "Public Name"
+
+        # ... a login that does carry a name is authoritative ...
+        renamed = store_orcid_identity(
+            session, {"orcid": "0000-0001-2345-6789", "name": "Real Name"}
+        )
+        assert renamed.name == "Real Name"
+
+        # ... and a later prefetch (say, added to a second group) keeps it.
+        assert prefetch_orcid_identity(session, "0000-0001-2345-6789").name == "Real Name"
+
+        count = session.scalar(select(func.count()).select_from(OrcidIdentity))
+    assert count == 1
+
+
+class _FakeResponse:
+    def __init__(self, payload: object) -> None:
+        self._payload = payload
+
+    def read(self) -> bytes:
+        return json.dumps(self._payload).encode("utf-8")
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+
+def _fetch_against(monkeypatch, payload: object, base_url: str) -> tuple[str | None, str | None]:
+    """Run the real fetch_orcid_public_name against a canned response."""
+    seen: dict[str, str] = {}
+
+    def fake_urlopen(request, timeout=None):
+        seen["url"] = request.full_url
+        return _FakeResponse(payload)
+
+    monkeypatch.setattr("zapp_atlas.auth.services.urlopen", fake_urlopen)
+    settings = AppSettings(orcid_base_url=base_url, _env_file=None)
+    return fetch_orcid_public_name("0000-0002-1825-0097", settings), seen.get("url")
+
+
+def test_fetch_public_name_parses_the_record(monkeypatch) -> None:
+    # The published credit name wins when present ...
+    payload = {
+        "name": {
+            "credit-name": {"value": "J. S. Carberry"},
+            "given-names": {"value": "Josiah"},
+            "family-name": {"value": "Carberry"},
+        }
+    }
+    name, url = _fetch_against(monkeypatch, payload, "https://orcid.org")
+    assert name == "J. S. Carberry"
+    assert url == "https://pub.orcid.org/v3.0/0000-0002-1825-0097/personal-details"
+
+    # ... otherwise given + family; the sandbox site maps to its public host.
+    payload = {"name": {"given-names": {"value": "Josiah"}, "family-name": {"value": "Carberry"}}}
+    name, url = _fetch_against(monkeypatch, payload, "https://sandbox.orcid.org")
+    assert name == "Josiah Carberry"
+    assert url == "https://pub.sandbox.orcid.org/v3.0/0000-0002-1825-0097/personal-details"
+
+
+def test_fetch_public_name_returns_none_on_failure(monkeypatch) -> None:
+    # A private record publishes no name block.
+    name, _ = _fetch_against(monkeypatch, {"name": None}, "https://orcid.org")
+    assert name is None
+
+    # Network trouble is swallowed; the caller falls back to the bare ORCID.
+    def failing_urlopen(request, timeout=None):
+        raise URLError("no route to host")
+
+    monkeypatch.setattr("zapp_atlas.auth.services.urlopen", failing_urlopen)
+    assert fetch_orcid_public_name("0000-0002-1825-0097", AppSettings(_env_file=None)) is None
 
 
 def test_orcid_identity_table_is_registered_with_init_db() -> None:

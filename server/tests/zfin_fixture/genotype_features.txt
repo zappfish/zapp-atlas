@@ -1,0 +1,8 @@
+ZDB-GENO-000215-8	Df(Chr03)c1033/c1033	c1033[2,U,U]AB	ZDB-ALT-000215-12	Df(Chr03)c1033	c1033	deficiency	Deficiency			homozygous		
+ZDB-GENO-160602-1	snapc1b<sup>fh111/+</sup>	fh111[1,1,2]AB	ZDB-ALT-160602-14	fh111	fh111	point_mutation	Allele with one point mutation	snapc1b	ZDB-GENE-030131-5417	heterozygous		
+ZDB-GENO-130130-1	w200Tg	w200Tg[U,U,U]	ZDB-ALT-130130-3	w200Tg	w200Tg	transgenic_insertion	Transgenic Insertion			unknown	Tg(mpeg1:YFP)	ZDB-TGCONSTRCT-130130-3
+ZDB-GENO-070117-1	gz13Tg	gz13Tg[U,U,U]	ZDB-ALT-070117-1	gz13Tg	gz13Tg	transgenic_insertion	Transgenic Insertion			unknown	Tg(fli1a:EGFP)	ZDB-TGCONSTRCT-070117-1
+ZDB-GENO-070117-1	gz13Tg	gz13Tg[U,U,U]	ZDB-ALT-070117-1	gz13Tg	gz13Tg	transgenic_insertion	Transgenic Insertion			unknown	Tg(gata1:DsRed)	ZDB-TGCONSTRCT-070117-2
+ZDB-GENO-170101-1	snapc1b<sup>fh111/fh111</sup>; w200Tg	fh111[2,U,U] w200Tg[1,U,U]	ZDB-ALT-160602-14	fh111	fh111	point_mutation	Allele with one point mutation	snapc1b	ZDB-GENE-030131-5417	homozygous		
+ZDB-GENO-170101-1	snapc1b<sup>fh111/fh111</sup>; w200Tg	fh111[2,U,U] w200Tg[1,U,U]	ZDB-ALT-130130-3	w200Tg	w200Tg	transgenic_insertion	Transgenic Insertion			heterozygous	Tg(mpeg1:YFP)	ZDB-TGCONSTRCT-130130-3
+ZDB-GENO-180101-1	fgf8a<sup>ti282a/ti282a</sup>	ti282a	ZDB-ALT-980203-1091	ti282a	ti282a	point_mutation	Allele with one point mutation	fgf8a	ZDB-GENE-990415-72	homozygous		

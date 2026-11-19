@@ -5,14 +5,15 @@ import { useDeleteFish } from "@/api/hooks";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
 import { EyeIcon, TrashIcon } from "@/components/icons";
+import { describeFish, zfinStatus } from "@/fish";
 import AddFishForm from "./AddFishForm";
 import RecordSection, { type Row } from "@/components/RecordSection";
 
 const toRows = (entries: FishTankEntry[]): Row[] =>
   entries.map((entry) => ({
     id: entry.id,
-    label: entry.fish.name,
-    sublabel: entry.fish.zfin_id,
+    label: entry.nickname ?? describeFish(entry.fish),
+    sublabel: zfinStatus(entry.fish),
   }));
 
 const RowActions = ({

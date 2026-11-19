@@ -1,0 +1,8 @@
+ZDB-ALT-980203-769	SO:1000008	a1	a1	Allele with one point mutation	ENU	not specified					
+ZDB-ALT-160602-14	SO:1000008	fh111	fh111	Allele with one point mutation	ENU	not specified					
+ZDB-ALT-980203-1091	SO:1000008	ti282a	ti282a	Allele with one point mutation	ENU	adult males					
+ZDB-ALT-000215-12	SO:1000029	c1033	Df(Chr03)c1033	Deficiency	gamma rays	not specified					
+ZDB-ALT-130130-3	SO:0001218	w200Tg	w200Tg	Transgenic Insertion	DNA	not specified	ZDB-TGCONSTRCT-130130-3	Tg(mpeg1:YFP)	SO:0000902		
+ZDB-ALT-070117-1	SO:0001218	gz13Tg	gz13Tg	Transgenic Insertion	DNA	not specified	ZDB-TGCONSTRCT-070117-1	Tg(fli1a:EGFP)	SO:0000902		
+ZDB-ALT-070117-1	SO:0001218	gz13Tg	gz13Tg	Transgenic Insertion	DNA	not specified	ZDB-TGCONSTRCT-070117-2	Tg(gata1:DsRed)	SO:0000902		
+ZDB-ALT-200101-1		mn001	mn001	Allele with one mnv	not specified	not specified					

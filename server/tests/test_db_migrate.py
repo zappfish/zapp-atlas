@@ -157,7 +157,6 @@ def test_migrate_is_idempotent(legacy_db) -> None:
 # generic column step covers them. The unique keys on the nicknames are what
 # needed the index step: create_all never adds an index to an existing table.
 NICKNAME_ADDED = [
-    ("Study", "research_group"),
     ("Study", "nickname"),
     ("Study", "description"),
     ("ChemicalCabinetEntry", "nickname"),
@@ -172,8 +171,8 @@ NICKNAME_INDEXES = {
 def pre_nickname_db(tmp_path):
     """A database created before nicknames existed, holding two published studies.
 
-    ``Study`` is recreated wholesale in its earlier layout: SQLite will not
-    DROP a foreign-key column such as ``research_group``.
+    ``Study`` is recreated wholesale in its earlier layout, which is simpler
+    than dropping its columns and the index over them one at a time.
     """
     path = tmp_path / "zapp.db"
     init_db(create_engine(f"sqlite:///{path}"))
@@ -182,7 +181,10 @@ def pre_nickname_db(tmp_path):
     con.executescript(
         """
         DROP TABLE "Study";
-        CREATE TABLE "Study" (publication TEXT, lab TEXT, id INTEGER NOT NULL PRIMARY KEY);
+        CREATE TABLE "Study" (
+            research_group INTEGER NOT NULL, status TEXT NOT NULL, publication TEXT, lab TEXT,
+            id INTEGER NOT NULL PRIMARY KEY
+        );
         DROP INDEX "uq_ChemicalCabinetEntry_cabinet_nickname_grain";
         ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "nickname";
         INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
@@ -190,8 +192,14 @@ def pre_nickname_db(tmp_path):
             VALUES (1, 1, 'CHEBI:16236');
         """
     )
-    con.execute("INSERT INTO Study (id, publication) VALUES (1, 'PMID:22194820')")
-    con.execute("INSERT INTO Study (id, publication) VALUES (2, 'PMID:40359302')")
+    con.execute(
+        "INSERT INTO Study (id, research_group, status, publication) "
+        "VALUES (1, 1, 'published', 'PMID:22194820')"
+    )
+    con.execute(
+        "INSERT INTO Study (id, research_group, status, publication) "
+        "VALUES (2, 1, 'published', 'PMID:40359302')"
+    )
     con.commit()
     con.close()
     return path
@@ -212,7 +220,7 @@ def test_migrate_adds_the_nickname_columns(pre_nickname_db) -> None:
         study = session.get(Study, 1)
         assert study.publication == "PMID:22194820"
         # Existing rows are published, belong to no group, and have no nickname yet.
-        assert study.research_group is None
+        assert study.research_group == 1
         assert study.nickname is None
         assert study.description is None
         entry = session.get(ChemicalCabinetEntry, 1)
@@ -261,6 +269,56 @@ def test_rows_that_break_a_new_key_are_reported_and_the_app_still_starts(
     assert name not in {i["name"] for i in inspect(engine).get_indexes("ChemicalCabinetEntry")}
     # The key that could be added still was.
     assert NICKNAME_INDEXES["Study"] in {i["name"] for i in inspect(engine).get_indexes("Study")}
+
+
+@pytest.fixture
+def pre_supplier_db(tmp_path):
+    """A database from before the cabinet grain included the supplier (#175).
+
+    The generic column step covers the three new optional columns; what needs
+    its own step is the old ``cabinet_grain`` index, which nothing else drops
+    and which would keep rejecting a second supplier of the same chemical.
+    """
+    path = tmp_path / "zapp.db"
+    init_db(create_engine(f"sqlite:///{path}"))
+
+    con = sqlite3.connect(path)
+    con.executescript(
+        """
+        DROP INDEX "uq_ChemicalCabinetEntry_cabinet_supplier_grain";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "manufacturer";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "unrecognized_manufacturer_name";
+        ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "vehicle_type";
+        CREATE UNIQUE INDEX "uq_ChemicalCabinetEntry_cabinet_grain"
+            ON "ChemicalCabinetEntry" (research_group, chemical_id);
+        INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
+        INSERT INTO "ChemicalCabinetEntry" (id, research_group, chemical_id)
+            VALUES (1, 1, 'CHEBI:33216');
+        """
+    )
+    con.commit()
+    con.close()
+    return path
+
+
+def test_migrate_widens_the_cabinet_grain_to_the_supplier(pre_supplier_db) -> None:
+    engine = create_engine(f"sqlite:///{pre_supplier_db}")
+
+    migrate(engine)
+
+    indexes = {i["name"]: i for i in inspect(engine).get_indexes("ChemicalCabinetEntry")}
+    assert "uq_ChemicalCabinetEntry_cabinet_grain" not in indexes
+    widened = indexes["uq_ChemicalCabinetEntry_cabinet_supplier_grain"]
+    assert widened["unique"]
+    assert widened["column_names"] == ["research_group", "chemical_id", "manufacturer"]
+    # The stored row survived, and a second supplier of its chemical now fits.
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO ChemicalCabinetEntry (research_group, chemical_id, manufacturer) "
+                "VALUES (1, 'CHEBI:33216', 'sigma_aldrich')"
+            )
+        )
 
 
 def test_migrate_is_a_no_op_on_a_fresh_database(tmp_path) -> None:

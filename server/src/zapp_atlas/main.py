@@ -24,6 +24,8 @@ from zapp_atlas.api.routers.images import router as images_router
 from zapp_atlas.api.routers.observations import router as observations_router
 from zapp_atlas.api.routers.research_groups import router as research_groups_router
 from zapp_atlas.api.routers.studies import router as studies_router
+from zapp_atlas.api.routers.zfin import router as zfin_router
+from zapp_atlas.api.routers.zfin import zfin_unavailable_handler
 from zapp_atlas.auth.router import router as auth_router
 from zapp_atlas.db import get_engine, get_session_factory, init_db
 from zapp_atlas.extdata import make_extdata_router
@@ -32,6 +34,7 @@ from zapp_atlas.html.router import router as html_router
 from zapp_atlas.labels import Labels
 from zapp_atlas.seed import seed
 from zapp_atlas.settings import AppSettings, load_settings
+from zapp_atlas.zfin import Zfin, ZfinUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +68,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     )
     app.state.settings = settings or load_settings()
     app.state.labels = Labels(app.state.settings.extdata_dir / "labels.db")
+    app.state.zfin = Zfin(app.state.settings.extdata_dir / "zfin.db")
 
     @app.exception_handler(SchemaRuleViolation)
     def _schema_rule_violation(request: Request, exc: SchemaRuleViolation) -> JSONResponse:
@@ -75,6 +79,8 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content={"detail": [{"type": "schema_rule", "msg": str(exc)}]},
         )
+
+    app.add_exception_handler(ZfinUnavailable, zfin_unavailable_handler)
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -93,6 +99,7 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
     api.include_router(cabinet_router)
     api.include_router(fish_tank_router)
     api.include_router(chemicals_router)
+    api.include_router(zfin_router)
     app.include_router(api)
 
     # Static assets for the server-rendered (HTMX) viewing app.

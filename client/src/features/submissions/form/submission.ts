@@ -1,8 +1,11 @@
 /**
  * What the form collects. Shaped like the form rather than the LinkML schema,
  * which has no slot yet for about twenty of these fields; translating to a
- * Study is the step after the schema catches up.
+ * Study is the step after the schema catches up. The fish is the exception:
+ * it is held as the body the API stores, taken from the group's tank.
  */
+
+import type { FishBody } from "@/api/types";
 
 export interface ImageValues {
   file?: FileList;
@@ -86,11 +89,11 @@ export interface Submission {
   };
   images: ImageValues[];
   fish: {
-    existing: string;
-    strain: string;
-    lineDescription: string;
+    /** The tank entry the fish was taken from, as a string for the select. */
+    entryId: string;
+    /** The fish as the experiment will store it: its own copy of the tank's description. */
+    description: FishBody | null;
     additionalCondition: string;
-    notes: string;
   };
   /** The schema keeps rearing on Experiment, not on Fish. */
   experiment: {
@@ -178,11 +181,9 @@ export const emptySubmission = (): Submission => ({
   },
   images: [emptyImage()],
   fish: {
-    existing: "",
-    strain: "",
-    lineDescription: "",
+    entryId: "",
+    description: null,
     additionalCondition: "",
-    notes: "",
   },
   experiment: {
     rearing: "Standard",

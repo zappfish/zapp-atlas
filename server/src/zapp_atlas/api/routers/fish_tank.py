@@ -1,9 +1,9 @@
 """Fish tank endpoints (a research group's maintained fish lines).
 
-Scoped to a group in the path and requires membership. The grain
-``(research_group, fish)`` is unique, so a duplicate POST is a 409. The
-referenced ``Fish`` is get-or-created from the payload; a malformed ``zfin_id``
-is rejected by the DTO (422). ``research_group`` is always path-derived.
+Scoped to a group in the path and requires membership. An entry carries the
+fish as the curator describes it (see ``Fish`` in the schema) and, optionally,
+the group's nickname for it, which is unique within the group: a reused one
+is a 409. ``research_group`` is always path-derived.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from zapp_atlas.api.authz import GroupMember
 from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.dto import TankEntryIn, TankEntryOut
+from zapp_atlas.api.models import TankEntryIn, TankEntryOut
 from zapp_atlas.api.services.fish_tank import (
     add_entry,
     delete_entry,
@@ -52,7 +52,7 @@ def add_tank_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> TankEntryOut:
-    entry = add_entry(session, group_id, payload.fish)
+    entry = add_entry(session, group_id, payload)
     return TankEntryOut.model_validate(entry)
 
 

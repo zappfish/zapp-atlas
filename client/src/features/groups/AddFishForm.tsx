@@ -1,93 +1,109 @@
-import { useState, type FormEvent } from "react";
+import { useCallback, useState } from "react";
 import { useAddFish } from "@/api/hooks";
+import type { FishBody, FishTankEntry } from "@/api/types";
 import Modal from "@/components/Modal";
+import FishBuilder from "@/features/fish/FishBuilder";
 import {
-  ModalActions,
+  ModalBanded,
+  ModalBody,
   ModalField,
-  ModalForm,
+  ModalFoot,
+  ModalHead,
   ModalInput,
   ModalLabel,
   ModalText,
   ModalTitle,
 } from "@/styles/elements";
 
-/** Matches the schema's zfin_id pattern, which the API validates too. */
-const ZFIN_PATTERN = "ZFIN:ZDB-[A-Z]+-\\d{6}-\\d+";
-
+/**
+ * Adds a line to the group's tank: background, alleles with zygosity, notes,
+ * and an optional nickname the group picks it by. The server sets the ZFIN
+ * ids when it saves the entry.
+ */
 const AddFishForm = ({
   groupId,
   open,
   onClose,
+  onAdded,
 }: {
   groupId: number;
   open: boolean;
   onClose: () => void;
+  /** The saved entry, for a caller that wants to pick it straight away. */
+  onAdded?: (entry: FishTankEntry) => void;
 }) => {
-  const [zfinId, setZfinId] = useState("");
-  const [name, setName] = useState("");
+  const [fish, setFish] = useState<FishBody | null>(null);
+  const [nickname, setNickname] = useState("");
   const addFish = useAddFish(groupId);
+  const onChange = useCallback((next: FishBody | null) => setFish(next), []);
 
   const close = () => {
     addFish.reset();
-    setZfinId("");
-    setName("");
+    setFish(null);
+    setNickname("");
     onClose();
   };
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
+  const save = () => {
+    if (!fish) return;
     addFish.mutate(
-      { zfin_id: zfinId.trim(), name: name.trim() },
-      { onSuccess: close },
+      { fish, nickname: nickname.trim() || null },
+      {
+        onSuccess: (entry) => {
+          if (entry) onAdded?.(entry);
+          close();
+        },
+      },
     );
   };
 
   return (
-    <Modal open={open} title="Add fish line" onClose={close}>
-      <ModalForm onSubmit={submit}>
-        <ModalTitle>Add fish line</ModalTitle>
+    <Modal open={open} title="Add fish line" onClose={close} isWide>
+      <ModalBanded>
+        <ModalHead>
+          <ModalTitle>Add fish line</ModalTitle>
+          <ModalText>
+            Choose the background and add the alleles the line carries. If ZFIN has a
+            registered fish with this description, its ids are stored with the entry.
+          </ModalText>
+        </ModalHead>
 
-        <ModalField>
-          <ModalLabel>ZFIN id</ModalLabel>
-          <ModalInput
-            value={zfinId}
-            onChange={(e) => setZfinId(e.target.value)}
-            required
-            autoFocus
-            placeholder="ZFIN:ZDB-GENO-960809-7"
-            pattern={ZFIN_PATTERN}
-            title="e.g. ZFIN:ZDB-GENO-960809-7"
-          />
-        </ModalField>
+        <ModalBody>
+          <FishBuilder isDisabled={addFish.isPending} onChange={onChange} />
 
-        <ModalField>
-          <ModalLabel>Name</ModalLabel>
-          <ModalInput
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            maxLength={200}
-            placeholder="e.g. AB"
-          />
-        </ModalField>
+          <ModalField>
+            <ModalLabel>Nickname (optional)</ModalLabel>
+            <ModalInput
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={200}
+              placeholder="What this group calls the line"
+              disabled={addFish.isPending}
+            />
+          </ModalField>
 
-        {addFish.error && (
-          <ModalText role="alert">{addFish.error.message}</ModalText>
-        )}
+          {addFish.error && <ModalText role="alert">{addFish.error.message}</ModalText>}
+        </ModalBody>
 
-        <ModalActions>
-          <button className="btn btn--neutral" type="button" onClick={close}>
+        <ModalFoot>
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={close}
+            disabled={addFish.isPending}
+          >
             Cancel
           </button>
           <button
             className="btn btn--primary"
-            type="submit"
-            disabled={addFish.isPending}
+            type="button"
+            onClick={save}
+            disabled={!fish || addFish.isPending}
           >
-            {addFish.isPending ? "Adding…" : "Add"}
+            {addFish.isPending ? "Adding…" : "Add to tank"}
           </button>
-        </ModalActions>
-      </ModalForm>
+        </ModalFoot>
+      </ModalBanded>
     </Modal>
   );
 };

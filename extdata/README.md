@@ -1,11 +1,12 @@
 # extdata
 
-Read-only reference data the app ships: ontology files built offline from
-pinned upstream releases. Nothing here is built at runtime, and none of it
-lives on the app's persistent volume.
+Read-only reference data the app ships: ontology files and ZFIN's registry
+of fish lines, built offline from pinned upstream releases. Nothing here is
+built at runtime, and none of it lives on the app's persistent volume.
 
 ```sh
-just extdata        # build dist/ (needs docker and uv)
+just extdata                      # build dist/ (needs docker and uv)
+make -C extdata dist/zfin.db      # just the ZFIN part (needs only uv)
 ```
 
 The first build downloads the ROBOT image and the sources, and takes a few
@@ -21,6 +22,7 @@ nothing else is affected.
 | `zfa.json`, `zfa.json.gz` | ZFA | client: phenotype picker (anatomy) |
 | `zfin_counts.tsv` | ZP's `fish_to_phenotype.tsv` | client: sorting by ZFIN usage |
 | `labels.db` | ZP, ZFA (same filtered OWL as the JSON), ChEBI lite | server: label lookups |
+| `zfin.db` | five ZFIN bulk downloads | server: fish lookups (`/api/zfin`) |
 | `manifest.json` | | everything: versions, sizes, checksums |
 
 An ontology's JSON and its rows in `labels.db` come from one filtered OWL
@@ -42,6 +44,24 @@ Two ZP-specific steps:
 reads it through `zapp_atlas/labels.py`. Terms without a label are left out
 (including ChEBI's obsolete terms, which have none), and callers fall back to
 the CURIE.
+
+## ZFIN
+
+`zfin.db` holds what a curator's description of a fish is matched against:
+ZFIN's registered alleles (with their genes and constructs), genotypes (with
+each allele's zygosity, and the parents' where ZFIN records it), fish (a
+genotype plus any injected morpholino / CRISPR / TALEN reagents), wild-type
+lines, and the backgrounds genotypes are kept on. Ids are CURIEs
+(`ZFIN:ZDB-ALT-…`). Allele search runs on an FTS5 table over symbols, gene
+symbols and construct names. `scripts/zfin_db.py` documents the five input
+files column by column.
+
+ZFIN refreshes https://zfin.org/downloads in place, so the files are taken
+from the dated archive instead (`ZFIN_DATE` in `sources.mk`; the archive
+at https://zfin.org/downloads/archive has every day since 2012). Updating
+means setting a newer date and rebuilding. If an old date ever stops
+resolving, the published bundle release is unaffected; only a rebuild needs
+a newer pin.
 
 ## Temporary workarounds
 

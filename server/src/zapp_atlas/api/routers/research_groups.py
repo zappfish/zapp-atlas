@@ -2,11 +2,11 @@
 
 A minimal surface: create a group (creator becomes admin), list the groups you
 belong to, and manage membership. Membership changes require the admin role;
-everything else requires being a member. Full membership management (invites,
-role edits, ownership transfer) is tracked separately (#104).
+everything else requires being a member. A group must always retain at least
+one admin, so the last one can be neither demoted nor removed. The rest of
+membership management (invites, leaving a group, ownership transfer) is
+tracked separately (#104).
 """
-
-from __future__ import annotations
 
 from typing import Annotated
 
@@ -18,22 +18,26 @@ from zapp_atlas.api.authz import (
     GroupMember,
     require_current_identity,
 )
-from zapp_atlas.api.deps import get_session
-from zapp_atlas.api.dto import MemberIn, MemberOut
+from zapp_atlas.api.deps import get_app_settings, get_session
+from zapp_atlas.api.models import MemberIn, MemberOut, MemberPatch
 from zapp_atlas.api.services.research_groups import (
     add_member,
     create_group,
     list_groups_for,
     list_members,
     remove_member,
+    update_member_role,
 )
 from zapp_atlas.auth.models import OrcidIdentity
-from zapp_atlas.schema.pydantic_crud import ResearchGroupCreate, ResearchGroupRead
-from zapp_atlas.schema.sqla import ResearchGroup
+from zapp_atlas.auth.services import prefetch_orcid_identity
+from zapp_atlas.schema.pydantic_crud import ResearchGroupInput, ResearchGroupRead
+from zapp_atlas.schema.sqla import ResearchGroup, ResearchGroupMember
+from zapp_atlas.settings import AppSettings
 
 router = APIRouter(prefix="/research-groups", tags=["research-groups"])
 
 SessionDep = Annotated[Session, Depends(get_session)]
+SettingsDep = Annotated[AppSettings, Depends(get_app_settings)]
 CurrentIdentity = Annotated[OrcidIdentity, Depends(require_current_identity)]
 
 
@@ -41,9 +45,13 @@ def _group_read(group: ResearchGroup) -> ResearchGroupRead:
     return ResearchGroupRead.model_validate(group, from_attributes=True)
 
 
+def _member_out(membership: ResearchGroupMember, name: str | None) -> MemberOut:
+    return MemberOut.model_validate(membership).model_copy(update={"name": name})
+
+
 @router.post("", response_model=ResearchGroupRead, status_code=status.HTTP_201_CREATED)
 def create_group_endpoint(
-    payload: ResearchGroupCreate,
+    payload: ResearchGroupInput,
     session: SessionDep,
     identity: CurrentIdentity,
 ) -> ResearchGroupRead:
@@ -74,7 +82,7 @@ def list_members_endpoint(
     session: SessionDep,
     _: GroupMember,
 ) -> list[MemberOut]:
-    return [MemberOut.model_validate(m) for m in list_members(session, group_id)]
+    return [_member_out(m, name) for m, name in list_members(session, group_id)]
 
 
 @router.post(
@@ -86,9 +94,27 @@ def add_member_endpoint(
     group_id: int,
     payload: MemberIn,
     session: SessionDep,
+    settings: SettingsDep,
     _: GroupAdmin,
 ) -> MemberOut:
     membership = add_member(session, group_id, payload.member, payload.role.value)
+    # The person may never have signed in; give them an identity row now so
+    # there is a display name to show before their first login (#142).
+    identity = prefetch_orcid_identity(session, payload.member.removeprefix("ORCID:"), settings)
+    return _member_out(membership, identity.name)
+
+
+@router.patch("/{group_id}/members/{member_id}", response_model=MemberOut)
+def update_member_endpoint(
+    group_id: int,
+    member_id: int,
+    payload: MemberPatch,
+    session: SessionDep,
+    _: GroupAdmin,
+) -> MemberOut:
+    membership = update_member_role(session, group_id, member_id, payload.role.value)
+    if membership is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found")
     return MemberOut.model_validate(membership)
 
 

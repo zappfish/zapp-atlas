@@ -15,8 +15,6 @@ Currently seeded:
   co-exposure amplifies pericardial edema.
 """
 
-from __future__ import annotations
-
 from sqlalchemy.orm import Session
 
 from zapp_atlas.db import get_engine, get_session_factory, init_db
@@ -45,7 +43,9 @@ SEEDED_PUBLICATIONS = {
 }
 
 # The dev sign-in's identity (ZAPP_DEV_AUTH), so a preview opens on a group
-# that already holds records rather than an empty dashboard.
+# that already holds records rather than an empty dashboard. Every study
+# belongs to a research group and only its members may edit it, so the seeded
+# studies go to this group too.
 DEV_GROUP_NAME = "Zebrafish Toxicology Lab"
 DEV_MEMBER = "ORCID:0000-0002-1825-0097"
 
@@ -55,12 +55,20 @@ DEV_MEMBER = "ORCID:0000-0002-1825-0097"
 # ---------------------------------------------------------------------------
 
 
-def _upsert_fish(session: Session, *, zfin_id: str, name: str) -> Fish:
-    fish = session.query(Fish).filter_by(zfin_id=zfin_id).one_or_none()
-    if fish is None:
-        fish = Fish(zfin_id=zfin_id, name=name)
-        session.add(fish)
-    return fish
+AB_GENOTYPE = "ZFIN:ZDB-GENO-960809-7"
+AB_FISH = "ZFIN:ZDB-FISH-150901-27842"
+
+
+def _ab_fish() -> Fish:
+    """Wild-type AB: the background is the line itself, with ZFIN's genotype
+    and fish ids for it. Each experiment and tank entry owns its own Fish row,
+    so this returns a new one each time."""
+    return Fish(
+        background_zfin_id=AB_GENOTYPE,
+        background_name="AB",
+        genotype_zfin_id=AB_GENOTYPE,
+        fish_zfin_id=AB_FISH,
+    )
 
 
 def _upsert_phenotype_term(session: Session, *, term_uri: str, term_label: str) -> PhenotypeTerm:
@@ -109,7 +117,7 @@ def _build_bpa_study(session: Session) -> Study:
     embryos produces pericardial edema at 72 hpf.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _ab_fish()
     bpa = {
         "chemical_id": "CHEBI:33216",
         "cas_id": "80-05-7",
@@ -175,7 +183,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     embryos from dome stage (ZFS:0000013) through hatching-day larva.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _ab_fish()
     bpa = {
         "chemical_id": "CHEBI:33216",
         "cas_id": "80-05-7",
@@ -254,7 +262,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     seed are simplified representative concentrations.
     """
 
-    fish = _upsert_fish(session, zfin_id="ZFIN:ZDB-GENO-960809-7", name="AB")
+    fish = _ab_fish()
     malathion = {
         "chemical_id": "CHEBI:6651",
         "cas_id": "121-75-5",
@@ -331,8 +339,8 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
 # ---------------------------------------------------------------------------
 
 
-def _build_dev_group(session: Session) -> None:
-    """A group for the dev identity, stocked from the studies seeded above.
+def _build_dev_group(session: Session) -> ResearchGroup:
+    """A group for the dev identity, stocked from the seeded studies.
 
     Previews have no volume, so this runs again on every restart; each piece
     is looked up before it is added.
@@ -351,15 +359,12 @@ def _build_dev_group(session: Session) -> None:
     if membership is None:
         session.add(ResearchGroupMember(research_group=group.id, member=DEV_MEMBER, role="admin"))
 
-    zfin_id = "ZFIN:ZDB-GENO-960809-7"
-    _upsert_fish(session, zfin_id=zfin_id, name="AB")
+    # The line the seeded studies use, under the nickname the group would pick it by.
     entry = (
-        session.query(FishTankEntry)
-        .filter_by(research_group=group.id, fish_zfin_id=zfin_id)
-        .one_or_none()
+        session.query(FishTankEntry).filter_by(research_group=group.id, nickname="AB").one_or_none()
     )
     if entry is None:
-        session.add(FishTankEntry(research_group=group.id, fish_zfin_id=zfin_id))
+        session.add(FishTankEntry(research_group=group.id, nickname="AB", fish=_ab_fish()))
 
     # The chemicals the seeded studies use, so the cabinet is not empty.
     for chemical_id in ("CHEBI:33216", "CHEBI:15367", "CHEBI:6651", "CHEBI:9747"):
@@ -370,6 +375,8 @@ def _build_dev_group(session: Session) -> None:
         )
         if entry is None:
             session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=chemical_id))
+
+    return group
 
 
 def seed(session: Session) -> None:
@@ -388,12 +395,15 @@ def seed(session: Session) -> None:
         "PMID:41812223": _build_moreira_guanitoxin_study,
     }
 
+    group = _build_dev_group(session)
     for pub, builder in builders.items():
         if pub in existing:
             continue
-        session.add(builder(session))
+        study = builder(session)
+        study.research_group = group.id
+        study.status = "published"
+        session.add(study)
 
-    _build_dev_group(session)
     session.commit()
 
 

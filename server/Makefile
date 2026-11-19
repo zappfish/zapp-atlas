@@ -1,6 +1,5 @@
 SCHEMA_DIR := src/zapp_atlas/schema
 LINKML_SCHEMA := $(SCHEMA_DIR)/zebrafish_toxicology_atlas_schema.yaml
-PYDANTIC_OUTPUT := $(SCHEMA_DIR)/_gen/pydantic.py
 PYDANTIC_CRUD_OUTPUT := $(SCHEMA_DIR)/_gen/pydantic_crud.py
 SQLA_OUTPUT := $(SCHEMA_DIR)/_gen/sqla.py
 TS_OUTPUT := ../client/src/schema/index.ts
@@ -15,12 +14,7 @@ JSON_SCHEMA_OUTPUT := ../client/src/schema/schema.json
 SCHEMA_IMPORTS := $(SCHEMA_DIR)/chemical_enums.yaml
 
 .PHONY: schema
-schema: $(PYDANTIC_OUTPUT) $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
-
-$(PYDANTIC_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
-	mkdir -p $(@D)
-	echo "# GENERATED FILE. DO NOT EDIT." > $@
-	uv run gen-pydantic $< >> $@
+schema: $(SQLA_OUTPUT) $(PYDANTIC_CRUD_OUTPUT) $(TS_OUTPUT) $(JSON_SCHEMA_OUTPUT)
 
 $(PYDANTIC_CRUD_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
@@ -32,13 +26,15 @@ $(SQLA_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	echo "# GENERATED FILE. DO NOT EDIT." > $@
 	uv run gen-sqla --declarative --sqla-style 2 $< >> $@
 
+# The post-processor gives identifier aliases their real type -- see
+# zapp_atlas/schema/typescript_post.py.
 $(TS_OUTPUT): $(LINKML_SCHEMA) $(SCHEMA_IMPORTS)
 	mkdir -p $(@D)
 	echo "/*" > $@
 	echo "GENERATED FILE. DO NOT EDIT." >> $@
 	echo "*/" >> $@
 	echo "" >> $@
-	uv run gen-typescript $< >>$@
+	uv run gen-typescript $< | uv run python -m zapp_atlas.schema.typescript_post $< >> $@
 
 # JSON Schema for the client: runtime validation (Ajv) + type-safe unmarshalling.
 # The post-processor injects the "do not edit" notice and makes LinkML's
