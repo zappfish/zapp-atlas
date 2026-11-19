@@ -284,9 +284,16 @@ from, the archived `legacy/client`).
 client/
 ├── src/
 │   ├── main.tsx        the Vite entry; mounts <App/> into #root
-│   ├── App.tsx         placeholder shell ("editing UI goes here")
-│   ├── styles.css      React-side stylesheet (empty placeholder)
+│   ├── routes.tsx      the client's pages, by path
+│   ├── api/            calls to /api, their query hooks, and the generated
+│   │                   OpenAPI types
+│   ├── features/       the pages: dashboard, research groups, studies, and
+│   │                   the experiment form under submissions/form/
+│   ├── problems.ts     what is wrong with a request body, in one shape
 │   └── schema/         generated types + JSON Schema + the form toolkit
+├── tests/              unit tests (vitest), with the request examples the
+│                       server writes
+├── e2e/                browser tests (Playwright)
 ├── vite.config.ts      base '/edit/', '@'→src alias, manifest build
 ├── tsconfig.json       strict; verbatimModuleSyntax + noUnused*; target es2023
 ├── tsconfig.node.json  Node typing for vite.config.ts (editor only)
@@ -304,6 +311,40 @@ SPA sit inside the shared shell. Consequences:
   origin, so `/api` requests already land on the backend.
 - Scripts are `dev`, `build`, `lint`. (`preview` was removed: it served a
   standalone `index.html` that no longer exists.)
+
+### The editing pages
+
+The pages follow the API's levels, so each save is one request:
+
+| Page | Saves | Lists |
+|---|---|---|
+| A research group | its tank, cabinet and members, each through a dialog | its studies |
+| A study (`features/groups/StudyDetail.tsx`) | the study's own fields, in a dialog | its experiments |
+| An experiment (`features/submissions/form/ExperimentForm.tsx`) | the experiment: fish, rearing, controls | its exposure events, each a card that saves on its own |
+
+A new experiment is saved before an exposure event can be added to it, since
+the event is created beneath the experiment's id. Opening a saved record loads
+what was stored, and saving replaces it.
+
+A form's values are the body it sends. Fields are registered under the
+schema's slot names, so three generic pieces do the rest, with no code per
+class:
+
+- `toBody` (`schema/bodies.ts`) makes the body from the form's values, or
+  from a record as it was read. It leaves out what the schema marks
+  `readOnly`, which is every id and every slot the server sets, and whatever
+  is blank.
+- `bodyResolver` (`problems.ts`) checks that body against the JSON Schema as
+  the form is filled in, and puts each problem on its field. A check the
+  schema cannot make, such as an end stage preceding a start stage, is passed
+  to it as a function.
+- `showProblems` puts a 422's problems on the same fields. The server decides
+  what is accepted; the client's check is for early feedback.
+
+Where a control takes more than the schema stores, it keeps the rest in its
+own state and gives the form the schema's value: `StageField` takes a time and
+holds the ZFS stage it falls in, and `useQuantity` takes a number and a unit
+and holds a quantity once there is a number.
 
 ## How the two halves wire together
 
@@ -369,8 +410,8 @@ save path like any other owned part. The alteration and zygosity enums carry
 SO and GENO terms as meanings, which is how a ZFIN record's SO id maps to an
 enum value.
 
-A line is described in the fish tank and picked from it on the submission
-form, the way a chemical is added to the cabinet and picked from it. The
+A line is described in the fish tank and picked from it on an experiment's
+page, the way a chemical is added to the cabinet and picked from it. The
 tank's add dialog (`features/groups/AddFishForm.tsx`, around
 `features/fish/FishBuilder.tsx`) takes a wild-type background, alleles found
 by symbol, gene or construct fragment (`AlleleSearch`), and a zygosity for
