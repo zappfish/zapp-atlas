@@ -90,8 +90,8 @@ linkml_meta = LinkMLMeta({'default_prefix': 'zebrafish_toxicology_atlas_schema',
                             'prefix_reference': 'http://purl.obolibrary.org/obo/CHEBI_'},
                   'ECTO': {'prefix_prefix': 'ECTO',
                            'prefix_reference': 'http://purl.obolibrary.org/obo/ECTO_'},
-                  'EXO': {'prefix_prefix': 'EXO',
-                          'prefix_reference': 'http://purl.obolibrary.org/obo/EXO_'},
+                  'ExO': {'prefix_prefix': 'ExO',
+                          'prefix_reference': 'http://purl.obolibrary.org/obo/ExO_'},
                   'GENO': {'prefix_prefix': 'GENO',
                            'prefix_reference': 'http://purl.obolibrary.org/obo/GENO_'},
                   'ORCID': {'prefix_prefix': 'ORCID',
@@ -398,6 +398,25 @@ class SeverityEnum(str, Enum):
     """
     Severe severity
     """
+
+
+class ExposureRouteEnum(str, Enum):
+    """
+    The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).
+    """
+    aquatic_environment = "aquatic_environment"
+    """
+    Through the water the fish is kept in.
+    """
+    ingestion = "ingestion"
+    """
+    Through the diet.
+    """
+    gavage = "gavage"
+    """
+    Administered directly into the gastrointestinal tract.
+    """
+    injection = "injection"
 
 
 class ExposureRegimenTypeEnum(str, Enum):
@@ -930,7 +949,7 @@ class ExposureEvent(ZappEntity):
 
     stressor: Optional[list[StressorChemical]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmission]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRoute] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[Regimen] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -950,7 +969,7 @@ class ExposureEventInput(ConfiguredBaseModel):
     """
     stressor: Optional[list[StressorChemicalInput]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmissionInput]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRoute] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenInput] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -968,7 +987,7 @@ class ExposureEventRead(ReadBaseModel):
     """
     stressor: Optional[list[StressorChemicalRead]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmissionRead]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRouteRead] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenRead] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -988,7 +1007,7 @@ class ExposureEventSummary(ReadBaseModel):
     """
     stressor: Optional[list[StressorChemicalRead]] = Field(default=None, description="""Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     vehicle: Optional[list[VehicleOfTransmissionRead]] = Field(default=None, description="""The substance or medium used to deliver a stressor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
-    route: Optional[ExposureRouteRead] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
+    route: Optional[ExposureRouteEnum] = Field(default=None, description="""The route of exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     regimen: Optional[RegimenRead] = Field(default=None, description="""The regimen for the exposure.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_start_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure started.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
     exposure_end_stage: Optional[str] = Field(default=None, description="""The developmental stage of fish when exposure ended.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ExposureEvent']} })
@@ -1298,37 +1317,16 @@ class PhenotypeTerm(OntologyEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'exact_mappings': ['biolink:PhenotypicFeature'],
          'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema'})
 
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
+    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
 
 
 class PhenotypeTermRead(ReadBaseModel):
     """
     What the API returns for PhenotypeTerm, with everything beneath it.
     """
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-
-
-class ExposureRoute(OntologyEntity):
-    """
-    A route-of-exposure term. Term URIs are expected to be reachable from
-    EXO:0000154 (route of exposure) in the EXO ontology.
-
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
-         'slot_usage': {'term_label': {'name': 'term_label', 'required': True}}})
-
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-
-
-class ExposureRouteRead(ReadBaseModel):
-    """
-    What the API returns for ExposureRoute, with everything beneath it.
-    """
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
+    term_label: Optional[str] = Field(default=None, description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
 
 
 class ExposureType(OntologyEntity):
@@ -1339,16 +1337,16 @@ class ExposureType(OntologyEntity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema',
          'slot_usage': {'term_label': {'name': 'term_label', 'required': True}}})
 
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
+    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
 
 
 class ExposureTypeRead(ReadBaseModel):
     """
     What the API returns for ExposureType, with everything beneath it.
     """
-    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
-    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureRoute', 'ExposureType']} })
+    term_uri: str = Field(default=..., description="""The URI of the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
+    term_label: str = Field(default=..., description="""The human-readable label for the phenotype ontology term.""", json_schema_extra = { "linkml_meta": {'domain_of': ['PhenotypeTerm', 'ExposureType']} })
 
 
 class Fish(ZappEntity):
@@ -2219,8 +2217,6 @@ ControlImageInput.model_rebuild()
 ControlImageRead.model_rebuild()
 PhenotypeTerm.model_rebuild()
 PhenotypeTermRead.model_rebuild()
-ExposureRoute.model_rebuild()
-ExposureRouteRead.model_rebuild()
 ExposureType.model_rebuild()
 ExposureTypeRead.model_rebuild()
 Fish.model_rebuild()

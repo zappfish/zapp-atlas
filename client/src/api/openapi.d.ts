@@ -1273,7 +1273,7 @@ export interface components {
             /** @description The regimen for the exposure. */
             regimen?: components["schemas"]["RegimenInput"] | null;
             /** @description The route of exposure. */
-            route?: components["schemas"]["ExposureRoute"] | null;
+            route?: components["schemas"]["ExposureRouteEnum"] | null;
             /**
              * Stressor
              * @description Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.
@@ -1325,7 +1325,7 @@ export interface components {
             /** @description The regimen for the exposure. */
             regimen?: components["schemas"]["RegimenRead"] | null;
             /** @description The route of exposure. */
-            route?: components["schemas"]["ExposureRouteRead"] | null;
+            route?: components["schemas"]["ExposureRouteEnum"] | null;
             /**
              * Stressor
              * @description Substance, chemical or toxicant that elicits a response (a phenotype) in a subject when encountered through exposure.
@@ -1344,38 +1344,11 @@ export interface components {
          */
         ExposureRegimenTypeEnum: "continuous" | "repeated";
         /**
-         * ExposureRoute
-         * @description A route-of-exposure term. Term URIs are expected to be reachable from
-         *     EXO:0000154 (route of exposure) in the EXO ontology.
+         * ExposureRouteEnum
+         * @description The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).
+         * @enum {string}
          */
-        ExposureRoute: {
-            /**
-             * Term Label
-             * @description The human-readable label for the phenotype ontology term.
-             */
-            term_label: string;
-            /**
-             * Term Uri
-             * @description The URI of the phenotype ontology term.
-             */
-            term_uri: string;
-        };
-        /**
-         * ExposureRouteRead
-         * @description What the API returns for ExposureRoute, with everything beneath it.
-         */
-        ExposureRouteRead: {
-            /**
-             * Term Label
-             * @description The human-readable label for the phenotype ontology term.
-             */
-            term_label: string;
-            /**
-             * Term Uri
-             * @description The URI of the phenotype ontology term.
-             */
-            term_uri: string;
-        };
+        ExposureRouteEnum: "aquatic_environment" | "ingestion" | "gavage" | "injection";
         /**
          * ExposureType
          * @description An exposure-type term from ECTO.
@@ -2580,8 +2553,7 @@ export type ExperimentRead = components['schemas']['ExperimentRead'];
 export type ExposureEventInput = components['schemas']['ExposureEventInput'];
 export type ExposureEventRead = components['schemas']['ExposureEventRead'];
 export type ExposureRegimenTypeEnum = components['schemas']['ExposureRegimenTypeEnum'];
-export type ExposureRoute = components['schemas']['ExposureRoute'];
-export type ExposureRouteRead = components['schemas']['ExposureRouteRead'];
+export type ExposureRouteEnum = components['schemas']['ExposureRouteEnum'];
 export type ExposureType = components['schemas']['ExposureType'];
 export type ExposureTypeRead = components['schemas']['ExposureTypeRead'];
 export type FishInput = components['schemas']['FishInput'];

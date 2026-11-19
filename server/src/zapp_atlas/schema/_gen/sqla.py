@@ -245,14 +245,13 @@ class ExposureEvent(ZappEntity):
 
     __tablename__ = "ExposureEvent"
 
+    route: Mapped[str | None] = mapped_column(Enum('aquatic_environment', 'ingestion', 'gavage', 'injection', name='ExposureRouteEnum'))
     exposure_start_stage: Mapped[str | None] = mapped_column(Text())
     exposure_end_stage: Mapped[str | None] = mapped_column(Text())
     comment: Mapped[str | None] = mapped_column(Text())
     additional_exposure_condition: Mapped[str | None] = mapped_column(Text())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     Experiment_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Experiment.id"))
-    route_term_uri: Mapped[str | None] = mapped_column(Text(), ForeignKey("ExposureRoute.term_uri"))
-    route: Mapped[ExposureRoute | None] = relationship(foreign_keys=[route_term_uri])
     regimen_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("Regimen.id"))
     regimen: Mapped[Regimen | None] = relationship(foreign_keys=[regimen_id])
     exposure_type_term_uri: Mapped[str | None] = mapped_column(Text(), ForeignKey("ExposureType.term_uri"))
@@ -268,7 +267,7 @@ class ExposureEvent(ZappEntity):
     phenotype_observation: Mapped[list[PhenotypeObservationSet]] = relationship(foreign_keys="[PhenotypeObservationSet.ExposureEvent_id]")
 
     def __repr__(self):
-        return f"ExposureEvent(exposure_start_stage={self.exposure_start_stage},exposure_end_stage={self.exposure_end_stage},comment={self.comment},additional_exposure_condition={self.additional_exposure_condition},id={self.id},Experiment_id={self.Experiment_id},route_term_uri={self.route_term_uri},regimen_id={self.regimen_id},exposure_type_term_uri={self.exposure_type_term_uri},)"
+        return f"ExposureEvent(route={self.route},exposure_start_stage={self.exposure_start_stage},exposure_end_stage={self.exposure_end_stage},comment={self.comment},additional_exposure_condition={self.additional_exposure_condition},id={self.id},Experiment_id={self.Experiment_id},regimen_id={self.regimen_id},exposure_type_term_uri={self.exposure_type_term_uri},)"
 
     __mapper_args__ = {"concrete": True}
 
@@ -413,24 +412,6 @@ class PhenotypeTerm(OntologyEntity):
 
     def __repr__(self):
         return f"PhenotypeTerm(term_uri={self.term_uri},term_label={self.term_label},)"
-
-    __mapper_args__ = {"concrete": True}
-
-
-class ExposureRoute(OntologyEntity):
-    """
-    A route-of-exposure term. Term URIs are expected to be reachable from
-EXO:0000154 (route of exposure) in the EXO ontology.
-
-    """
-
-    __tablename__ = "ExposureRoute"
-
-    term_uri: Mapped[str] = mapped_column(Text(), primary_key=True)
-    term_label: Mapped[str] = mapped_column(Text(), primary_key=True)
-
-    def __repr__(self):
-        return f"ExposureRoute(term_uri={self.term_uri},term_label={self.term_label},)"
 
     __mapper_args__ = {"concrete": True}
 

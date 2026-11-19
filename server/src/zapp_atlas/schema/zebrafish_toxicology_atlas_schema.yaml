@@ -18,7 +18,8 @@ prefixes:
   CHEBI: http://purl.obolibrary.org/obo/CHEBI_
   CAS: https://commonchemistry.cas.org/detail?cas_rn=
   ECTO: http://purl.obolibrary.org/obo/ECTO_
-  EXO: http://purl.obolibrary.org/obo/EXO_
+  # EXO's own spelling. It also has a few ids under EXO_, which name other terms.
+  ExO: http://purl.obolibrary.org/obo/ExO_
   ZP: http://purl.obolibrary.org/obo/ZP_
   ORCID: https://orcid.org/
   ZFIN: https://zfin.org/
@@ -268,18 +269,6 @@ classes:
       - term_label
     exact_mappings:
       - biolink:PhenotypicFeature
-
-  ExposureRoute:
-    is_a: OntologyEntity
-    description: |
-      A route-of-exposure term. Term URIs are expected to be reachable from
-      EXO:0000154 (route of exposure) in the EXO ontology.
-    slots:
-      - term_uri
-      - term_label
-    slot_usage:
-      term_label:
-        required: true
 
   ExposureType:
     is_a: OntologyEntity
@@ -751,9 +740,7 @@ slots:
     inlined: true
   route:
     description: The route of exposure.
-    range: ExposureRoute
-    inlined: true
-    inlined_as_list: true
+    range: ExposureRouteEnum
   regimen:
     description: The regimen for the exposure.
     range: Regimen
@@ -897,6 +884,23 @@ enums:
         description: Moderate severity
       severe:
         description: Severe severity
+
+  ExposureRouteEnum:
+    description: >-
+      The ways a fish comes into contact with a stressor, each one of EXO's
+      exposure routes (ExO:0000055).
+    permissible_values:
+      aquatic_environment:
+        description: Through the water the fish is kept in.
+        meaning: ExO:0000161
+      ingestion:
+        description: Through the diet.
+        meaning: ExO:0000056
+      gavage:
+        description: Administered directly into the gastrointestinal tract.
+        meaning: ExO:0000166
+      injection:
+        meaning: ExO:0000060
 
   ExposureRegimenTypeEnum:
     description: An enumeration of exposure regimen types.

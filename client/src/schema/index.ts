@@ -15,7 +15,6 @@ export type VehicleOfTransmissionId = number;
 export type ImageId = number;
 export type ControlImageId = number;
 export type PhenotypeTermTermUri = string;
-export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishId = number;
 export type AlleleId = number;
@@ -179,6 +178,19 @@ export enum SeverityEnum {
     moderate = "moderate",
     /** Severe severity */
     severe = "severe",
+};
+/**
+* The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).
+*/
+export enum ExposureRouteEnum {
+    
+    /** Through the water the fish is kept in. */
+    aquatic_environment = "aquatic_environment",
+    /** Through the diet. */
+    ingestion = "ingestion",
+    /** Administered directly into the gastrointestinal tract. */
+    gavage = "gavage",
+    injection = "injection",
 };
 /**
 * An enumeration of exposure regimen types.
@@ -359,7 +371,7 @@ export interface ExposureEvent extends ZappEntity {
     /** The substance or medium used to deliver a stressor. */
     vehicle?: VehicleOfTransmission[],
     /** The route of exposure. */
-    route?: ExposureRoute,
+    route?: string,
     /** The regimen for the exposure. */
     regimen?: Regimen,
     /** The developmental stage of fish when exposure started. */
@@ -482,19 +494,6 @@ export interface PhenotypeTerm extends OntologyEntity {
     term_uri: string,
     /** The human-readable label for the phenotype ontology term. */
     term_label?: string,
-}
-
-
-/**
- * A route-of-exposure term. Term URIs are expected to be reachable from
-EXO:0000154 (route of exposure) in the EXO ontology.
-
- */
-export interface ExposureRoute extends OntologyEntity {
-    /** The URI of the phenotype ontology term. */
-    term_uri: string,
-    /** The human-readable label for the phenotype ontology term. */
-    term_label: string,
 }
 
 

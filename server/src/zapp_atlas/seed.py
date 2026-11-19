@@ -22,7 +22,6 @@ from zapp_atlas.schema.sqla import (  # type: ignore
     ChemicalCabinetEntry,
     Experiment,
     ExposureEvent,
-    ExposureRoute,
     ExposureType,
     Fish,
     FishTankEntry,
@@ -79,30 +78,12 @@ def _upsert_phenotype_term(session: Session, *, term_uri: str, term_label: str) 
     return term
 
 
-def _upsert_exposure_route(session: Session, *, term_uri: str, term_label: str) -> ExposureRoute:
-    term = session.query(ExposureRoute).filter_by(term_uri=term_uri).one_or_none()
-    if term is None:
-        term = ExposureRoute(term_uri=term_uri, term_label=term_label)
-        session.add(term)
-    return term
-
-
 def _upsert_exposure_type(session: Session, *, term_uri: str, term_label: str) -> ExposureType:
     term = session.query(ExposureType).filter_by(term_uri=term_uri).one_or_none()
     if term is None:
         term = ExposureType(term_uri=term_uri, term_label=term_label)
         session.add(term)
     return term
-
-
-# Shared route / type terms. Both seeded studies use standard water-immersion
-# exposure of developing embryos.
-def _aquatic_route(session: Session) -> ExposureRoute:
-    return _upsert_exposure_route(
-        session,
-        term_uri="ExO:0000161",
-        term_label="ambient acquatic environment route",
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +116,6 @@ def _build_bpa_study(session: Session) -> Study:
         annotator=["ORCID:0000-0001-0101-0101"],
     )
 
-    route = _aquatic_route(session)
     exposure_type = _upsert_exposure_type(
         session,
         term_uri="ECTO:9000057",
@@ -146,7 +126,7 @@ def _build_bpa_study(session: Session) -> Study:
     study.experiment.append(experiment)
 
     exposure = ExposureEvent(
-        route=route,
+        route="aquatic_environment",
         exposure_start_stage="ZFS:0000011",
         exposure_end_stage="ZFS:0000039",
         exposure_type=exposure_type,
@@ -207,7 +187,6 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
         annotator=["ORCID:0000-0003-0303-0303"],
     )
 
-    route = _aquatic_route(session)
     exposure_type = _upsert_exposure_type(
         session,
         term_uri="ECTO:9000057",
@@ -218,7 +197,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     study.experiment.append(experiment)
 
     exposure = ExposureEvent(
-        route=route,
+        route="aquatic_environment",
         exposure_start_stage="ZFS:0000013",
         exposure_end_stage="ZFS:0000050",
         exposure_type=exposure_type,
@@ -285,7 +264,6 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
         annotator=["ORCID:0000-0004-0404-0404"],
     )
 
-    route = _aquatic_route(session)
     exposure_type = _upsert_exposure_type(
         session,
         term_uri="ECTO:9001150",
@@ -296,7 +274,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     study.experiment.append(experiment)
 
     exposure = ExposureEvent(
-        route=route,
+        route="aquatic_environment",
         exposure_start_stage="ZFS:0000016",
         exposure_end_stage="ZFS:0000050",
         exposure_type=exposure_type,

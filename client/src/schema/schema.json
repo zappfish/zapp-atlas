@@ -426,7 +426,7 @@
         "route": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ExposureRoute"
+              "$ref": "#/$defs/ExposureRouteEnum"
             },
             {
               "type": "null"
@@ -470,25 +470,16 @@
       "title": "ExposureRegimenTypeEnum",
       "type": "string"
     },
-    "ExposureRoute": {
-      "additionalProperties": false,
-      "description": "A route-of-exposure term. Term URIs are expected to be reachable from\nEXO:0000154 (route of exposure) in the EXO ontology.",
-      "properties": {
-        "term_label": {
-          "description": "The human-readable label for the phenotype ontology term.",
-          "type": "string"
-        },
-        "term_uri": {
-          "description": "The URI of the phenotype ontology term.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "term_uri",
-        "term_label"
+    "ExposureRouteEnum": {
+      "description": "The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).",
+      "enum": [
+        "aquatic_environment",
+        "ingestion",
+        "gavage",
+        "injection"
       ],
-      "title": "ExposureRoute",
-      "type": "object"
+      "title": "ExposureRouteEnum",
+      "type": "string"
     },
     "ExposureType": {
       "additionalProperties": false,
