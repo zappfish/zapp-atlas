@@ -755,15 +755,13 @@
           "description": "The phenotype ontology term."
         },
         "prevalence": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/QuantityValue"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "The percentage of subject exhibiting this phenotype."
+          "description": "The percentage of subjects exhibiting this phenotype, from 0 to 100.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "severity": {
           "anyOf": [
@@ -863,10 +861,8 @@
       "properties": {
         "numeric_value": {
           "description": "The numeric value of the quantity value.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "minimum": 0,
+          "type": "number"
         },
         "unit": {
           "description": "The unit of the quantity value.",
@@ -876,6 +872,9 @@
           ]
         }
       },
+      "required": [
+        "numeric_value"
+      ],
       "title": "QuantityValue",
       "type": "object"
     },
@@ -932,6 +931,7 @@
         },
         "number_of_individual_exposure": {
           "description": "Total number of individual exposures.",
+          "minimum": 1,
           "type": [
             "integer",
             "null"

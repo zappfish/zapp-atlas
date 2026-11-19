@@ -340,8 +340,8 @@ export interface PhenotypeObservationSet extends ZappEntity {
 export interface Phenotype extends ZappEntity {
     /** The developmental stage of fish when the phenotype was observed. */
     stage?: string,
-    /** The percentage of subject exhibiting this phenotype. */
-    prevalence?: QuantityValue,
+    /** The percentage of subjects exhibiting this phenotype, from 0 to 100. */
+    prevalence?: number,
     /** The intensity of the observed phenotype. */
     severity?: string,
     /** The phenotype ontology term. */
@@ -637,7 +637,7 @@ export interface QuantityValue {
     /** The unit of the quantity value. */
     unit?: string,
     /** The numeric value of the quantity value. */
-    numeric_value?: string,
+    numeric_value: number,
 }
 
 

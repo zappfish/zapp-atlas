@@ -1638,8 +1638,11 @@ export interface components {
         PhenotypeInput: {
             /** @description The phenotype ontology term. */
             phenotype_term_id?: components["schemas"]["PhenotypeTerm"] | null;
-            /** @description The percentage of subject exhibiting this phenotype. */
-            prevalence?: components["schemas"]["QuantityValue"] | null;
+            /**
+             * Prevalence
+             * @description The percentage of subjects exhibiting this phenotype, from 0 to 100.
+             */
+            prevalence?: number | null;
             /** @description The intensity of the observed phenotype. */
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
@@ -1702,8 +1705,11 @@ export interface components {
             id: number;
             /** @description The phenotype ontology term. */
             phenotype_term_id?: components["schemas"]["PhenotypeTermRead"] | null;
-            /** @description The percentage of subject exhibiting this phenotype. */
-            prevalence?: components["schemas"]["QuantityValueRead"] | null;
+            /**
+             * Prevalence
+             * @description The percentage of subjects exhibiting this phenotype, from 0 to 100.
+             */
+            prevalence?: number | null;
             /** @description The intensity of the observed phenotype. */
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
@@ -1753,7 +1759,7 @@ export interface components {
              * Numeric Value
              * @description The numeric value of the quantity value.
              */
-            numeric_value?: string | null;
+            numeric_value: number;
             /**
              * Unit
              * @description The unit of the quantity value.
@@ -1769,7 +1775,7 @@ export interface components {
              * Numeric Value
              * @description The numeric value of the quantity value.
              */
-            numeric_value?: string | null;
+            numeric_value: number;
             /**
              * Unit
              * @description The unit of the quantity value.

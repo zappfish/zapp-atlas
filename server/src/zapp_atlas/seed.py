@@ -136,7 +136,7 @@ def _build_bpa_study(session: Session) -> Study:
     exposure.stressor.append(
         StressorChemical(
             **bpa,
-            concentration=QuantityValue(unit="µg/L", numeric_value="100"),
+            concentration=QuantityValue(unit="µg/L", numeric_value=100),
             manufacturer="sigma_aldrich",
         )
     )
@@ -148,7 +148,7 @@ def _build_bpa_study(session: Session) -> Study:
             stage="ZFS:0000035",
             severity="moderate",
             phenotype_term_id=pericardial_edema,
-            prevalence=QuantityValue(unit="%", numeric_value="60"),
+            prevalence=60,
         )
     )
 
@@ -208,13 +208,13 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     exposure.stressor.append(
         StressorChemical(
             **bpa,
-            concentration=QuantityValue(unit="µM", numeric_value="10"),
+            concentration=QuantityValue(unit="µM", numeric_value=10),
         )
     )
     exposure.stressor.append(
         StressorChemical(
             **retinoic_acid,
-            concentration=QuantityValue(unit="µM", numeric_value="0.1"),
+            concentration=QuantityValue(unit="µM", numeric_value=0.1),
         )
     )
 
@@ -225,7 +225,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
             stage="ZFS:0000044",
             severity="moderate",
             phenotype_term_id=head_abnormal,
-            prevalence=QuantityValue(unit="%", numeric_value="48"),
+            prevalence=48,
         )
     )
 
@@ -288,13 +288,13 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     exposure.stressor.append(
         StressorChemical(
             **malathion,
-            concentration=QuantityValue(unit="µM", numeric_value="5"),
+            concentration=QuantityValue(unit="µM", numeric_value=5),
         )
     )
     exposure.stressor.append(
         StressorChemical(
             **trichlorfon,
-            concentration=QuantityValue(unit="µM", numeric_value="1"),
+            concentration=QuantityValue(unit="µM", numeric_value=1),
         )
     )
 
@@ -305,7 +305,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
             stage="ZFS:0000050",
             severity="severe",
             phenotype_term_id=pericardial_edema,
-            prevalence=QuantityValue(unit="%", numeric_value="100"),
+            prevalence=100,
         )
     )
 

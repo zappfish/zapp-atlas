@@ -62,7 +62,7 @@ class QuantityValue(Base):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     unit: Mapped[str | None] = mapped_column(Text())
-    numeric_value: Mapped[str | None] = mapped_column(Text())
+    numeric_value: Mapped[float] = mapped_column(Float())
 
     def __repr__(self):
         return f"QuantityValue(id={self.id},unit={self.unit},numeric_value={self.numeric_value},)"
@@ -201,16 +201,15 @@ class Phenotype(ZappEntity):
     __tablename__ = "Phenotype"
 
     stage: Mapped[str | None] = mapped_column(Text())
+    prevalence: Mapped[float | None] = mapped_column(Float())
     severity: Mapped[str | None] = mapped_column(Enum('mild', 'moderate', 'severe', name='SeverityEnum'))
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     PhenotypeObservationSet_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("PhenotypeObservationSet.id"))
-    prevalence_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("QuantityValue.id"))
-    prevalence: Mapped[QuantityValue | None] = relationship(foreign_keys=[prevalence_id])
     phenotype_term_id_term_uri: Mapped[str | None] = mapped_column(Text(), ForeignKey("PhenotypeTerm.term_uri"))
     phenotype_term_id: Mapped[PhenotypeTerm | None] = relationship(foreign_keys=[phenotype_term_id_term_uri])
 
     def __repr__(self):
-        return f"Phenotype(stage={self.stage},severity={self.severity},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},prevalence_id={self.prevalence_id},phenotype_term_id_term_uri={self.phenotype_term_id_term_uri},)"
+        return f"Phenotype(stage={self.stage},prevalence={self.prevalence},severity={self.severity},id={self.id},PhenotypeObservationSet_id={self.PhenotypeObservationSet_id},phenotype_term_id_term_uri={self.phenotype_term_id_term_uri},)"
 
     __mapper_args__ = {"concrete": True}
 

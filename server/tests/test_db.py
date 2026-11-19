@@ -63,7 +63,7 @@ def test_study_round_trip():
 
     fish = Fish(background_zfin_id="ZFIN:ZDB-GENO-960809-7", background_name="AB")
 
-    concentration = QuantityValue(unit="µg/L", numeric_value="100")
+    concentration = QuantityValue(unit="µg/L", numeric_value=100)
 
     zp_pericardial_edema = PhenotypeTerm(
         term_uri="ZP:0105827",
@@ -149,7 +149,7 @@ def test_study_round_trip():
     assert list(loaded_stressor.synonym) == ["bisphenol A"]
     assert loaded_stressor.chemical_id == "CHEBI:33216"
     assert loaded_stressor.cas_id == "80-05-7"
-    assert loaded_stressor.concentration.numeric_value == "100"
+    assert loaded_stressor.concentration.numeric_value == 100
     assert loaded_stressor.concentration.unit == "µg/L"
     assert loaded_stressor.manufacturer == "sigma_aldrich"
 

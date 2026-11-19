@@ -2532,18 +2532,21 @@
           "prevalence": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuantityValue"
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The percentage of subject exhibiting this phenotype.",
+            "description": "The percentage of subjects exhibiting this phenotype, from 0 to 100.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
               ]
-            }
+            },
+            "title": "Prevalence"
           },
           "severity": {
             "anyOf": [
@@ -2744,18 +2747,21 @@
           "prevalence": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuantityValueRead"
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The percentage of subject exhibiting this phenotype.",
+            "description": "The percentage of subjects exhibiting this phenotype, from 0 to 100.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
               ]
-            }
+            },
+            "title": "Prevalence"
           },
           "severity": {
             "anyOf": [
@@ -2881,21 +2887,15 @@
         "description": "A value of an attribute that is quantitative and measurable, expressed as a combination of a unit and a numeric value",
         "properties": {
           "numeric_value": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
             "description": "The numeric value of the quantity value.",
             "linkml_meta": {
               "domain_of": [
                 "QuantityValue"
               ]
             },
-            "title": "Numeric Value"
+            "minimum": 0.0,
+            "title": "Numeric Value",
+            "type": "number"
           },
           "unit": {
             "anyOf": [
@@ -2915,6 +2915,9 @@
             "title": "Unit"
           }
         },
+        "required": [
+          "numeric_value"
+        ],
         "title": "QuantityValue",
         "type": "object"
       },
@@ -2922,21 +2925,15 @@
         "description": "What the API returns for QuantityValue, with everything beneath it.",
         "properties": {
           "numeric_value": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
             "description": "The numeric value of the quantity value.",
             "linkml_meta": {
               "domain_of": [
                 "QuantityValue"
               ]
             },
-            "title": "Numeric Value"
+            "minimum": 0.0,
+            "title": "Numeric Value",
+            "type": "number"
           },
           "unit": {
             "anyOf": [
@@ -2956,6 +2953,9 @@
             "title": "Unit"
           }
         },
+        "required": [
+          "numeric_value"
+        ],
         "title": "QuantityValueRead",
         "type": "object"
       },
@@ -3024,6 +3024,7 @@
           "number_of_individual_exposure": {
             "anyOf": [
               {
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
@@ -3122,6 +3123,7 @@
           "number_of_individual_exposure": {
             "anyOf": [
               {
+                "minimum": 1.0,
                 "type": "integer"
               },
               {

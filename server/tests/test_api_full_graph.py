@@ -36,7 +36,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
                     "chemical_id": "CHEBI:33216",
                     "cas_id": "80-05-7",
                     "synonym": ["bisphenol A"],
-                    "concentration": {"unit": "µg/L", "numeric_value": "100"},
+                    "concentration": {"unit": "µg/L", "numeric_value": 100},
                 }
             ],
         },

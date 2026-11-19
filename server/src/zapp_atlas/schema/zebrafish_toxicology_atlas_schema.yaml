@@ -461,6 +461,9 @@ classes:
     slots:
       - unit
       - numeric_value
+    slot_usage:
+      numeric_value:
+        required: true
 
 
 slots:
@@ -516,6 +519,8 @@ slots:
     description: The unit of the quantity value.
   numeric_value:
     description: The numeric value of the quantity value.
+    range: float
+    minimum_value: 0
   experiment:
     description: The experiment in a study.
     range: Experiment
@@ -672,10 +677,10 @@ slots:
     description: The developmental stage of fish when the phenotype was observed.
     range: uriorcurie
   prevalence:
-    description: The percentage of subject exhibiting this phenotype.
-    range: QuantityValue
-    inlined_as_list: true
-    inlined: true
+    description: The percentage of subjects exhibiting this phenotype, from 0 to 100.
+    range: float
+    minimum_value: 0
+    maximum_value: 100
   severity:
     description: The intensity of the observed phenotype.
     range: SeverityEnum
@@ -723,6 +728,7 @@ slots:
   number_of_individual_exposure:
     description: Total number of individual exposures.
     range: integer
+    minimum_value: 1
   rearing_condition_comment:
     description: Comments on rearing conditions, for example, about how conditions deviated from standard parameters.
     range: string
