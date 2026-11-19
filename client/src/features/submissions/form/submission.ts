@@ -1,11 +1,8 @@
 /**
- * What the form collects. Shaped like the form rather than the LinkML schema,
- * which has no slot yet for about twenty of these fields; translating to a
- * Study is the step after the schema catches up. The fish is the exception:
- * it is held as the body the API stores, taken from the group's tank.
+ * What the observation form collects, shaped like the form. It is not sent
+ * anywhere yet: the experiment page holds the schema's own shapes, and this
+ * follows when observations and their images are saved.
  */
-
-import type { FishBody } from "@/api/types";
 
 export interface ImageValues {
   file?: FileList;
@@ -21,49 +18,6 @@ export interface ImageValues {
   notes: string;
 }
 
-export interface ExposureValues {
-  substance: string;
-  description: string;
-  idType: string;
-  identifier: string;
-  concentration: string;
-  concentrationUnit: string;
-  supplier: string;
-  supplierOther: string;
-  vehicle: string;
-  vehicleOther: string;
-  route: string;
-  regimen: string;
-  duration: string;
-  durationUnit: string;
-  pattern: string[];
-  durationPerExposure: string;
-  durationPerExposureUnit: string;
-  exposureCount: string;
-  interval: string;
-  intervalUnit: string;
-  totalDuration: string;
-  totalDurationUnit: string;
-  /** A number in `startStageUnit`; its ZFS stage is derived (stages.ts). */
-  startStage: string;
-  startStageUnit: string;
-  endStage: string;
-  endStageUnit: string;
-  notes: string;
-}
-
-export interface ControlValues {
-  type: string;
-  vehicle: string;
-  strain: string;
-  lineDescription: string;
-  rearing: string;
-  rearingComment: string;
-  phenotypeDescription: string;
-  notes: string;
-  images: ImageValues[];
-}
-
 export interface ObservationValues {
   stage: string;
   stageUnit: string;
@@ -75,33 +29,7 @@ export interface ObservationValues {
 }
 
 export interface Submission {
-  title: string;
-  provenance: {
-    principalInvestigatorOrcid: string;
-    principalInvestigatorName: string;
-    laboratory: string;
-    sourceType: string;
-    /** PMID or DOI: Study.publication. */
-    sourceValue: string;
-    /** In place of an identifier, for unpublished sources. */
-    sourceNote: string;
-    notes: string;
-  };
   images: ImageValues[];
-  fish: {
-    /** The tank entry the fish was taken from, as a string for the select. */
-    entryId: string;
-    /** The fish as the experiment will store it: its own copy of the tank's description. */
-    description: FishBody | null;
-    additionalCondition: string;
-  };
-  /** The schema keeps rearing on Experiment, not on Fish. */
-  experiment: {
-    rearing: string;
-    rearingComment: string;
-  };
-  exposures: ExposureValues[];
-  controls: ControlValues[];
   observations: ObservationValues[];
 }
 
@@ -117,48 +45,6 @@ export const emptyImage = (): ImageValues => ({
   notes: "",
 });
 
-export const emptyExposure = (): ExposureValues => ({
-  substance: "",
-  description: "",
-  idType: "CAS",
-  identifier: "",
-  concentration: "",
-  concentrationUnit: "µM",
-  supplier: "",
-  supplierOther: "",
-  vehicle: "",
-  vehicleOther: "",
-  route: "environment",
-  regimen: "Continuous exposure",
-  duration: "",
-  durationUnit: "minute",
-  pattern: [],
-  durationPerExposure: "",
-  durationPerExposureUnit: "minute",
-  exposureCount: "",
-  interval: "",
-  intervalUnit: "minute",
-  totalDuration: "",
-  totalDurationUnit: "minute",
-  startStage: "",
-  startStageUnit: "hpf",
-  endStage: "",
-  endStageUnit: "hpf",
-  notes: "",
-});
-
-export const emptyControl = (): ControlValues => ({
-  type: "",
-  vehicle: "",
-  strain: "",
-  lineDescription: "",
-  rearing: "Standard",
-  rearingComment: "",
-  phenotypeDescription: "",
-  notes: "",
-  images: [],
-});
-
 export const emptyObservation = (): ObservationValues => ({
   stage: "",
   stageUnit: "hpf",
@@ -166,30 +52,4 @@ export const emptyObservation = (): ObservationValues => ({
   phenotypeId: "",
   prevalence: "",
   severity: "",
-});
-
-export const emptySubmission = (): Submission => ({
-  title: "",
-  provenance: {
-    principalInvestigatorOrcid: "",
-    principalInvestigatorName: "",
-    laboratory: "",
-    sourceType: "",
-    sourceValue: "",
-    sourceNote: "",
-    notes: "",
-  },
-  images: [emptyImage()],
-  fish: {
-    entryId: "",
-    description: null,
-    additionalCondition: "",
-  },
-  experiment: {
-    rearing: "Standard",
-    rearingComment: "",
-  },
-  exposures: [emptyExposure()],
-  controls: [emptyControl()],
-  observations: [emptyObservation()],
 });

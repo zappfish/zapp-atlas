@@ -162,7 +162,9 @@ export const Status = ({
 /* ---- submission form ---- */
 
 export const FormLayout = styled("div", "form-layout");
-export const FormMain = styled("form", "form-main");
+export const FormMain = styled("div", "form-main");
+/** A form within the page, laid out as if its parts were the page's own. */
+export const FormPart = styled("form", "form-main__part");
 export const FormIntro = styled("header", "form-intro");
 export const RequiredMark = styled("span", "form-required");
 
@@ -256,6 +258,10 @@ export const FieldNote = styled("p", "field__note");
 
 
 export const EntryCard = styled("div", "form-entry");
+/** A card that saves on its own. */
+export const EntryForm = styled("form", "form-entry");
+export const EntryActions = styled("div", "form-entry__actions");
+export const EntryStatus = styled("p", "form-entry__status");
 /** Names one of several repeated entries, and removes it. */
 export const EntryHead = styled("div", "form-entry__head");
 export const EntryTitle = styled("h3", "form-entry__title");

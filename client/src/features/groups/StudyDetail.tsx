@@ -1,11 +1,101 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { useDeleteStudy, useGroupDashboard, useStudy } from "@/api/hooks";
+import { Link, useNavigate } from "react-router";
+import {
+  useDeleteExperiment,
+  useDeleteStudy,
+  useGroupDashboard,
+  useStudy,
+} from "@/api/hooks";
+import type { Experiment } from "@/api/types";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RecordDetail from "@/components/RecordDetail";
+import RecordSection, { type Row } from "@/components/RecordSection";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
 import { PencilIcon, TrashIcon } from "@/components/icons";
+import { describeFish } from "@/fish";
 import EditStudyForm from "./EditStudyForm";
+
+/** An experiment goes by its fish, with how many groups of them it treated. */
+const toRows = (experiments: Experiment[]): Row[] =>
+  experiments.map((experiment, i) => {
+    const groups = experiment.exposure_event?.length ?? 0;
+    return {
+      id: experiment.id,
+      label: experiment.fish ? describeFish(experiment.fish) : `Experiment ${i + 1}`,
+      sublabel: `${groups} exposure event${groups === 1 ? "" : "s"}`,
+    };
+  });
+
+/** The study's experiments. One is opened to change it, or to add to it. */
+const Experiments = ({
+  groupId,
+  studyId,
+  experiments,
+}: {
+  groupId: number;
+  studyId: number;
+  experiments: Experiment[];
+}) => {
+  const [removing, setRemoving] = useState<Row | null>(null);
+  const deleteExperiment = useDeleteExperiment(studyId);
+  const navigate = useNavigate();
+  const here = `/research-groups/${groupId}/studies/${studyId}/experiments`;
+  const rows = toRows(experiments);
+
+  const addLink = (
+    <Link className="btn btn--secondary" to={`${here}/new`}>
+      + New experiment
+    </Link>
+  );
+
+  return (
+    <>
+      <RecordSection
+        id="experiments"
+        title="Experiments"
+        rows={rows}
+        emptyTitle="No experiments yet"
+        emptyText="Add an experiment to describe the fish and what they were exposed to."
+        emptyAction={addLink}
+        // With rows, the link moves up beside the title, as on the group's page.
+        actions={rows.length > 0 ? addLink : undefined}
+        rowActions={(row) => (
+          <RowMenu label={`Actions for ${row.label}`}>
+            <RowMenuItem
+              icon={<PencilIcon />}
+              label="Open"
+              onClick={() => navigate(`${here}/${row.id}`)}
+            />
+            <RowMenuItem
+              icon={<TrashIcon />}
+              label="Remove"
+              danger
+              onClick={() => setRemoving(row)}
+            />
+          </RowMenu>
+        )}
+      />
+
+      <ConfirmDialog
+        open={removing !== null}
+        title="Remove experiment"
+        message={`Remove ${removing?.label ?? "this experiment"}, with its exposure events and observations?`}
+        isPending={deleteExperiment.isPending}
+        error={deleteExperiment.error?.message}
+        onConfirm={() =>
+          removing &&
+          deleteExperiment.mutate(removing.id, {
+            onSuccess: () => setRemoving(null),
+          })
+        }
+        onClose={() => {
+          deleteExperiment.reset();
+          setRemoving(null);
+        }}
+      />
+    </>
+  );
+};
 
 const StudyDetail = ({
   groupId,
@@ -80,6 +170,14 @@ const StudyDetail = ({
           </RowMenu>
         }
       />
+
+      {data && (
+        <Experiments
+          groupId={groupId}
+          studyId={studyId}
+          experiments={data.experiment ?? []}
+        />
+      )}
 
       {data && (
         <EditStudyForm

@@ -1,11 +1,6 @@
 import { useState } from "react";
 import {
-  AddButton,
-  AddRow,
   EntryCard,
-  EntryHead,
-  EntryRemove,
-  EntryTitle,
   FieldGrid,
   MeasureGrid,
   RadioGroup,
@@ -13,29 +8,30 @@ import {
   RadioLabel,
   MeasureRow,
   SelectInput,
-  ShortSelect,
   TextArea,
   TextInput,
 } from "@/styles/elements";
-import {
-  useFieldArray,
-  useFormContext,
-  type FieldPath,
-} from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import Field from "../Field";
-import { emptyExposure, type Submission } from "../submission";
 import OptionalNotes from "../OptionalNotes";
 import InfoTip from "../InfoTip";
-import { VEHICLE_LABELS } from "../vehicles";
+import { VEHICLE_LABELS, VEHICLE_UNITS } from "../vehicles";
+import { supplierLabel } from "../suppliers";
+import QuantityField from "../QuantityField";
 import StageField from "../StageField";
-import { NUMBER, WHOLE_NUMBER, required } from "../validation";
+import { asNumber, useQuantity } from "../quantity";
 import {
   CONCENTRATION_INFO,
-  PATTERN_INFO,
   REARING_INFO,
   REGIMEN_INFO,
 } from "../explanations";
-import { ManufacturerEnum, VehicleEnum } from "@/schema";
+import {
+  ExposureRegimenTypeEnum,
+  ExposureRouteEnum,
+  ManufacturerEnum,
+  VehicleEnum,
+} from "@/schema";
+import type { Body } from "@/schema/bodies";
 import ChemicalPicker, { type Staged } from "@/features/groups/ChemicalPicker";
 import AddChemicalForm from "@/features/groups/AddChemicalForm";
 import {
@@ -56,68 +52,50 @@ import {
 
 const CONCENTRATION_UNITS = ["µM", "mg/L", "Other"];
 
-/** Spelled out rather than capitalised: "vwr" -> "VWR". */
-const SUPPLIER_ACRONYMS = new Set(["vwr"]);
-
-const supplierLabel = (value: string) =>
-  value
-    .split("_")
-    .map((word) =>
-      SUPPLIER_ACRONYMS.has(word)
-        ? word.toUpperCase()
-        : word.charAt(0).toUpperCase() + word.slice(1),
-    )
-    .join(" ");
-
 /**
  * The exposure's chemical: from the group's cabinet, or found in the database.
  * Choosing the database swaps the panel for the search, which is the same
  * picker the cabinet dialog uses.
  */
-const Substance = ({
-  groupId,
-  at,
-}: {
-  groupId: number;
-  at: `exposures.${number}`;
-}) => {
+const Substance = ({ groupId }: { groupId: number }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const { setValue, watch } = useFormContext<Submission>();
+  const { setValue, watch } = useFormContext<Body<"ExposureEvent">>();
   const { data: cabinet = [] } = useCabinet(groupId);
-  // An entry stores only the identifier, so names are looked up.
-  const names = useChemicalNames(cabinet.map((row) => row.chemical_id));
-
-  const [substance, identifier] = watch([`${at}.substance`, `${at}.identifier`]);
+  const chemicalId = watch("stressor.0.chemical_id") ?? "";
+  // An entry, like a stressor, stores only the identifier, so names are looked up.
+  const names = useChemicalNames([
+    ...cabinet.map((row) => row.chemical_id),
+    ...(chemicalId ? [chemicalId] : []),
+  ]);
 
   const addChemical = useAddChemical(groupId);
   const refreshCabinet = useRefreshCabinet(groupId);
-  const isInCabinet = cabinet.some((row) => row.chemical_id === identifier);
+  const isInCabinet = cabinet.some((row) => row.chemical_id === chemicalId);
 
-  const take = (chebiId: string, name: string) => {
-    setValue(`${at}.substance`, name || chebiId);
-    setValue(`${at}.idType`, "CHEBI");
-    setValue(`${at}.identifier`, chebiId);
+  const take = (chebiId: string) => {
+    setValue("stressor.0.chemical_id", chebiId, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
     setIsSearching(false);
   };
 
-  const clear = () => {
-    setValue(`${at}.substance`, "");
-    setValue(`${at}.idType`, "");
-    setValue(`${at}.identifier`, "");
-  };
+  const clear = () =>
+    setValue("stressor.0.chemical_id", null, { shouldDirty: true });
 
   // What was chosen, in place of the two ways of choosing it.
-  if (identifier) {
+  if (chemicalId) {
+    const name = names.get(chemicalId) ?? chemicalId;
     return (
       <StockChosen
         icon={<FlaskIcon />}
-        name={substance}
+        name={name}
         // A chemical with no name stands under its own identifier.
-        detail={substance !== identifier ? identifier : undefined}
+        detail={name !== chemicalId ? chemicalId : undefined}
         actions={
           // Found in the database but not on the group's shelf: offered here
-          // so the next submission can pick it from the cabinet.
+          // so the next exposure event can pick it from the cabinet.
           isInCabinet ? (
             addChemical.isSuccess && <StockSaved>Saved for reuse</StockSaved>
           ) : (
@@ -125,7 +103,7 @@ const Substance = ({
               type="button"
               onClick={() =>
                 addChemical.mutate(
-                  { chemicalId: identifier },
+                  { chemicalId },
                   { onSuccess: refreshCabinet },
                 )
               }
@@ -149,9 +127,7 @@ const Substance = ({
         backLabel="Use cabinet"
         onBack={() => setIsSearching(false)}
       >
-        <ChemicalPicker
-          onPick={(chemical: Staged) => take(chemical.chebiId, chemical.name)}
-        />
+        <ChemicalPicker onPick={(chemical: Staged) => take(chemical.chebiId)} />
       </StockSearch>
     );
   }
@@ -168,7 +144,7 @@ const Substance = ({
           label: row.nickname ? `${row.nickname} — ${name}` : name,
         };
       })}
-      onPick={(chemicalId) => take(chemicalId, names.get(chemicalId) ?? "")}
+      onPick={take}
       emptyText="Your cabinet is empty."
       whenEmpty={
         <StockAdd type="button" onClick={() => setIsAdding(true)}>
@@ -191,151 +167,125 @@ const Substance = ({
   );
 };
 
-const ROUTES = [
-  { value: "environment", label: "via environment (chemical added to fish water)" },
-  { value: "diet", label: "via diet (ingestion)" },
+type Route = `${ExposureRouteEnum}`;
+type Regimen = `${ExposureRegimenTypeEnum}`;
+
+const ROUTES: { value: Route; label: string }[] = [
+  {
+    value: "aquatic_environment",
+    label: "via environment (chemical added to fish water)",
+  },
+  { value: "ingestion", label: "via diet (ingestion)" },
   { value: "gavage", label: "via gavage" },
   { value: "injection", label: "via injection" },
-] as const;
-type Route = (typeof ROUTES)[number]["value"];
+];
+
+const REGIMEN_LABELS: Record<Regimen, string> = {
+  continuous: "Continuous exposure",
+  single: "Single exposure",
+  repeated: "Repeated exposures",
+};
 
 /** Sustained exposure is "continuous"; the other routes call it a single dose. */
-const regimens = (route: Route): [string, string] =>
-  route === "environment"
-    ? ["Continuous exposure", "Repeated exposures"]
-    : ["Single exposure", "Repeated exposures"];
+const regimens = (route: Route): [Regimen, Regimen] =>
+  route === "aquatic_environment"
+    ? ["continuous", "repeated"]
+    : ["single", "repeated"];
 
 const DURATION_UNITS = ["minute", "hour", "day"];
 
-const PATTERNS = [
-  "Sustained - static",
-  "Sustained - static renewal",
-  "Sustained - dynamic (flow through)",
-];
-
-/** A value and the unit it is measured in. */
-const UnitField = ({
-  label,
-  units,
-  placeholder,
-  name,
-  unitName,
-  rules,
-}: {
-  label: string;
-  units: string[];
-  placeholder?: string;
-  name: FieldPath<Submission>;
-  unitName: FieldPath<Submission>;
-  rules?: typeof NUMBER;
-}) => {
-  const { register } = useFormContext<Submission>();
+/** The stressor's concentration: a number, with its unit chosen beside it. */
+const Concentration = () => {
+  const quantity = useQuantity(
+    "stressor.0.concentration",
+    CONCENTRATION_UNITS[0]!,
+  );
 
   return (
-    <Field label={label} name={name}>
-      {(id, _labelId, errorProps) => (
-        <MeasureRow>
+    <MeasureGrid>
+      <Field
+        label="Substance concentration"
+        name="stressor.0.concentration.numeric_value"
+        error={quantity.error}
+        info={<p>{CONCENTRATION_INFO}</p>}
+      >
+        {(id, _labelId, errorProps) => (
           <TextInput
             id={id}
-            inputMode={rules ? "decimal" : undefined}
-            placeholder={placeholder}
+            inputMode="decimal"
+            placeholder="e.g. 10"
+            value={quantity.text}
+            onChange={(event) => quantity.type(event.target.value)}
+            onBlur={quantity.onBlur}
             {...errorProps}
-            {...register(name, rules)}
           />
-          <ShortSelect aria-label={`${label} unit`} {...register(unitName)}>
-            {units.map((unit) => (
-              <option key={unit}>{unit}</option>
+        )}
+      </Field>
+
+      <Field label="Unit" labels="value">
+        {(_id, labelId) => (
+          <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+            {CONCENTRATION_UNITS.map((unit) => (
+              <RadioLabel key={unit}>
+                <input
+                  type="radio"
+                  checked={quantity.unit === unit}
+                  onChange={() => quantity.choose(unit)}
+                />
+                {unit}
+              </RadioLabel>
             ))}
-          </ShortSelect>
-        </MeasureRow>
-      )}
-    </Field>
+          </RadioGroup>
+        )}
+      </Field>
+    </MeasureGrid>
   );
 };
 
-/** One exposure: what the fish met, by what route, and for how long. */
-const ExposureEvent = ({
-  n,
-  index,
-  groupId,
-  onRemove,
-}: {
-  n: number;
-  index: number;
-  groupId: number;
-  onRemove?: () => void;
-}) => {
-  const { register, watch, setValue } = useFormContext<Submission>();
-  const at = `exposures.${index}` as const;
-  const [route, regimen, supplier, vehicle] = watch([
-    `${at}.route`,
-    `${at}.regimen`,
-    `${at}.supplier`,
-    `${at}.vehicle`,
-  ]) as [Route, string, string, string];
+/**
+ * One exposure event: what the fish met, by what route, and for how long.
+ * The schema's exposure pattern has no slot yet, so it is not asked for.
+ */
+export const ExposureFields = ({ groupId }: { groupId: number }) => {
+  const { register, watch, setValue } =
+    useFormContext<Body<"ExposureEvent">>();
+  const [route, regimen, supplier, vehicle, vehicleSupplier] = watch([
+    "route",
+    "regimen.exposure_regimen_type",
+    "stressor.0.manufacturer",
+    "vehicle.0.vehicle_type",
+    "vehicle.0.manufacturer",
+  ]);
 
   // The regimen options differ by route, so a route change picks the first of
   // the new set rather than leaving a value the radios no longer offer.
   const chooseRoute = (next: Route) => {
-    setValue(`${at}.route`, next);
-    setValue(`${at}.regimen`, regimens(next)[0]);
+    setValue("route", next, { shouldDirty: true });
+    setValue("regimen.exposure_regimen_type", regimens(next)[0], {
+      shouldDirty: true,
+    });
   };
 
-  const repeated = regimen === "Repeated exposures";
-  const sustained = route === "environment" && !repeated;
+  const repeated = regimen === "repeated";
+  const sustained = regimen === "continuous";
 
   return (
-    <EntryCard>
-      <EntryHead>
-        <EntryTitle>Exposure event {n}</EntryTitle>
-        {onRemove && (
-          <EntryRemove type="button" onClick={onRemove}>
-            Remove
-          </EntryRemove>
-        )}
-      </EntryHead>
-
-      <Substance groupId={groupId} at={at} />
+    <>
+      <Substance groupId={groupId} />
 
       <FieldGrid>
-        <MeasureGrid>
-          <Field
-            label="Substance concentration"
-            name={`${at}.concentration`}
-            info={<p>{CONCENTRATION_INFO}</p>}
-          >
-            {(id, _labelId, errorProps) => (
-              <TextInput
-                id={id}
-                inputMode="decimal"
-                placeholder="e.g. 10"
-                {...errorProps}
-                {...register(`${at}.concentration`, NUMBER)}
-              />
-            )}
-          </Field>
+        <Concentration />
 
-          <Field label="Unit" labels="value">
-            {(_id, labelId) => (
-              <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                {CONCENTRATION_UNITS.map((unit) => (
-                  <RadioLabel key={unit}>
-                    <input
-                      type="radio"
-                      value={unit}
-                      {...register(`${at}.concentrationUnit`)}
-                    />
-                    {unit}
-                  </RadioLabel>
-                ))}
-              </RadioGroup>
-            )}
-          </Field>
-        </MeasureGrid>
-
-        <Field label="Chemical supplier of the test substance">
-          {(id) => (
-            <SelectInput id={id} {...register(`${at}.supplier`)}>
+        <Field
+          label="Chemical supplier of the test substance"
+          name="stressor.0.manufacturer"
+        >
+          {(id, _labelId, errorProps) => (
+            <SelectInput
+              id={id}
+              {...errorProps}
+              {...register("stressor.0.manufacturer")}
+            >
               <option value="">Select a supplier</option>
               {Object.values(ManufacturerEnum).map((each) => (
                 <option key={each} value={each}>
@@ -349,20 +299,30 @@ const ExposureEvent = ({
         {/* The schema requires the name when the controlled list is escaped;
             without it the entry records no recoverable supplier. */}
         {supplier === ManufacturerEnum.other_not_listed && (
-          <Field label="Supplier name">
-            {(id) => (
+          <Field
+            label="Supplier name"
+            name="stressor.0.unrecognized_manufacturer_name"
+          >
+            {(id, _labelId, errorProps) => (
               <TextInput
                 id={id}
                 placeholder="Enter the supplier's name"
-                {...register(`${at}.supplierOther`)}
+                {...errorProps}
+                {...register("stressor.0.unrecognized_manufacturer_name", {
+                  shouldUnregister: true,
+                })}
               />
             )}
           </Field>
         )}
 
-        <Field label="Vehicle of dilution">
-          {(id) => (
-            <SelectInput id={id} {...register(`${at}.vehicle`)}>
+        <Field label="Vehicle of dilution" name="vehicle.0.vehicle_type">
+          {(id, _labelId, errorProps) => (
+            <SelectInput
+              id={id}
+              {...errorProps}
+              {...register("vehicle.0.vehicle_type")}
+            >
               <option value="">Select a vehicle</option>
               {Object.values(VehicleEnum).map((each) => (
                 <option key={each} value={each}>
@@ -375,34 +335,83 @@ const ExposureEvent = ({
 
         {/* As with the supplier: the schema requires a name for "other". */}
         {vehicle === VehicleEnum.other_not_listed && (
-          <Field label="Vehicle name">
-            {(id) => (
+          <Field
+            label="Vehicle name"
+            name="vehicle.0.unrecognized_chemical_name"
+          >
+            {(id, _labelId, errorProps) => (
               <TextInput
                 id={id}
                 placeholder="Enter the vehicle's name"
-                {...register(`${at}.vehicleOther`)}
+                {...errorProps}
+                {...register("vehicle.0.unrecognized_chemical_name", {
+                  shouldUnregister: true,
+                })}
               />
             )}
           </Field>
         )}
 
-          <Field wide label="Exposure route" required labels="value">
-            {(_id, labelId) => (
-              <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                {ROUTES.map((option) => (
-                  <RadioLabel key={option.value}>
-                    <input
-                      type="radio"
-                      checked={route === option.value}
-                      onChange={() => chooseRoute(option.value)}
-                    />
-                    {option.label}
-                  </RadioLabel>
-                ))}
-              </RadioGroup>
+        <QuantityField
+          label="Vehicle concentration"
+          placeholder="e.g. 0.1"
+          units={VEHICLE_UNITS}
+          name="vehicle.0.concentration"
+        />
+
+        <Field label="Supplier of the vehicle" name="vehicle.0.manufacturer">
+          {(id, _labelId, errorProps) => (
+            <SelectInput
+              id={id}
+              {...errorProps}
+              {...register("vehicle.0.manufacturer")}
+            >
+              <option value="">Select a supplier</option>
+              {Object.values(ManufacturerEnum).map((each) => (
+                <option key={each} value={each}>
+                  {supplierLabel(each)}
+                </option>
+              ))}
+            </SelectInput>
+          )}
+        </Field>
+
+        {vehicleSupplier === ManufacturerEnum.other_not_listed && (
+          <Field
+            label="Vehicle supplier name"
+            name="vehicle.0.unrecognized_manufacturer_name"
+          >
+            {(id, _labelId, errorProps) => (
+              <TextInput
+                id={id}
+                placeholder="Enter the supplier's name"
+                {...errorProps}
+                {...register("vehicle.0.unrecognized_manufacturer_name", {
+                  shouldUnregister: true,
+                })}
+              />
             )}
           </Field>
+        )}
 
+        <Field wide label="Exposure route" required labels="value">
+          {(_id, labelId) => (
+            <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+              {ROUTES.map((option) => (
+                <RadioLabel key={option.value}>
+                  <input
+                    type="radio"
+                    checked={route === option.value}
+                    onChange={() => chooseRoute(option.value)}
+                  />
+                  {option.label}
+                </RadioLabel>
+              ))}
+            </RadioGroup>
+          )}
+        </Field>
+
+        {route && (
           <Field wide label="Exposure regimen" labels="value">
             {(_id, labelId) => (
               <RadioGroup role="radiogroup" aria-labelledby={labelId}>
@@ -412,13 +421,13 @@ const ExposureEvent = ({
                       <input
                         type="radio"
                         value={option}
-                        {...register(`${at}.regimen`)}
+                        {...register("regimen.exposure_regimen_type")}
                       />
-                      {option}
+                      {REGIMEN_LABELS[option]}
                     </RadioLabel>
-                    {REGIMEN_INFO[option] && (
-                      <InfoTip label={option}>
-                        <p>{REGIMEN_INFO[option]}</p>
+                    {REGIMEN_INFO[REGIMEN_LABELS[option]] && (
+                      <InfoTip label={REGIMEN_LABELS[option]}>
+                        <p>{REGIMEN_INFO[REGIMEN_LABELS[option]]}</p>
                       </InfoTip>
                     )}
                   </RadioItem>
@@ -426,53 +435,30 @@ const ExposureEvent = ({
               </RadioGroup>
             )}
           </Field>
-
-        {sustained && (
-            <Field wide label="Exposure pattern" labels="value">
-              {(_id, labelId) => (
-                <RadioGroup role="group" aria-labelledby={labelId}>
-                  {PATTERNS.map((pattern) => (
-                    <RadioItem key={pattern}>
-                      <RadioLabel>
-                        <input
-                          type="checkbox"
-                          value={pattern}
-                          {...register(`${at}.pattern`)}
-                        />
-                        {pattern}
-                      </RadioLabel>
-                      <InfoTip label={pattern}>
-                        <p>{PATTERN_INFO[pattern]}</p>
-                      </InfoTip>
-                    </RadioItem>
-                  ))}
-                </RadioGroup>
-              )}
-            </Field>
         )}
 
         <MeasureGrid>
           {sustained && (
-            <UnitField
+            <QuantityField
               label="Exposure duration"
               placeholder="e.g. 24"
-              rules={NUMBER}
               units={DURATION_UNITS}
-              name={`${at}.duration`}
-              unitName={`${at}.durationUnit`}
+              name="regimen.total_exposure_duration"
             />
           )}
+
           {repeated && (
             <>
-              <UnitField
+              <QuantityField
                 label="Duration per exposure"
                 placeholder="e.g. 24"
-                rules={NUMBER}
                 units={DURATION_UNITS}
-                name={`${at}.durationPerExposure`}
-                unitName={`${at}.durationPerExposureUnit`}
+                name="regimen.individual_exposure_duration"
               />
-              <Field label="Number of exposures" name={`${at}.exposureCount`}>
+              <Field
+                label="Number of exposures"
+                name="regimen.number_of_individual_exposure"
+              >
                 {(id, _labelId, errorProps) => (
                   <MeasureRow>
                     <TextInput
@@ -480,59 +466,57 @@ const ExposureEvent = ({
                       inputMode="numeric"
                       placeholder="e.g. 3"
                       {...errorProps}
-                      {...register(`${at}.exposureCount`, WHOLE_NUMBER)}
+                      {...register("regimen.number_of_individual_exposure", {
+                        setValueAs: asNumber,
+                      })}
                     />
                   </MeasureRow>
                 )}
               </Field>
-              <UnitField
+              <QuantityField
                 label="Interval between exposures"
                 placeholder="e.g. 24"
-                rules={NUMBER}
                 units={DURATION_UNITS}
-                name={`${at}.interval`}
-                unitName={`${at}.intervalUnit`}
+                name="regimen.interval_between_individual_exposures"
               />
-              <UnitField
+              <QuantityField
                 label="Total duration of exposure"
                 placeholder="e.g. 24"
-                rules={NUMBER}
                 units={DURATION_UNITS}
-                name={`${at}.totalDuration`}
-                unitName={`${at}.totalDurationUnit`}
+                name="regimen.total_exposure_duration"
               />
             </>
           )}
 
-          <StageField
-            label="Start stage"
-            name={`${at}.startStage`}
-            unitName={`${at}.startStageUnit`}
-            revalidate={`${at}.endStage`}
-          />
-          <StageField
-            label="End stage"
-            name={`${at}.endStage`}
-            unitName={`${at}.endStageUnit`}
-            after={{
-              name: `${at}.startStage`,
-              unitName: `${at}.startStageUnit`,
-            }}
-          />
+          <StageField label="Start stage" name="exposure_start_stage" />
+          <StageField label="End stage" name="exposure_end_stage" />
         </MeasureGrid>
+
+        <Field
+          wide
+          label="Additional exposure condition"
+          hint="Anything else about the conditions the exposure took place under."
+        >
+          {(id) => (
+            <TextInput id={id} {...register("additional_exposure_condition")} />
+          )}
+        </Field>
       </FieldGrid>
 
-      <OptionalNotes name={`${at}.notes`} />
-    </EntryCard>
+      <OptionalNotes name="comment" />
+    </>
   );
 };
 
-const REARING = ["Standard", "Non-standard"];
+const REARING = [
+  { value: true, label: "Standard" },
+  { value: false, label: "Non-standard" },
+];
 
 /** Per experiment, not per exposure: the schema has it on Experiment. */
-const Rearing = () => {
-  const { register, watch } = useFormContext<Submission>();
-  const rearing = watch("experiment.rearing");
+export const Rearing = () => {
+  const { register, watch, setValue } = useFormContext<Body<"Experiment">>();
+  const isStandard = watch("standard_rearing_condition");
 
   return (
     <EntryCard>
@@ -543,18 +527,23 @@ const Rearing = () => {
           {(_id, labelId) => (
             <RadioGroup role="radiogroup" aria-labelledby={labelId}>
               {REARING.map((option) => (
-                <RadioItem key={option}>
+                <RadioItem key={option.label}>
                   <RadioLabel>
+                    {/* A radio's own value is text; the slot is a yes or no. */}
                     <input
                       type="radio"
-                      value={option}
-                      {...register("experiment.rearing")}
+                      checked={isStandard === option.value}
+                      onChange={() =>
+                        setValue("standard_rearing_condition", option.value, {
+                          shouldDirty: true,
+                        })
+                      }
                     />
-                    {option}
+                    {option.label}
                   </RadioLabel>
-                  {REARING_INFO[option] && (
-                    <InfoTip label={`${option} rearing`}>
-                      <p>{REARING_INFO[option]}</p>
+                  {REARING_INFO[option.label] && (
+                    <InfoTip label={`${option.label} rearing`}>
+                      <p>{REARING_INFO[option.label]}</p>
                     </InfoTip>
                   )}
                 </RadioItem>
@@ -563,20 +552,18 @@ const Rearing = () => {
           )}
         </Field>
 
-        {rearing === "Non-standard" && (
+        {isStandard === false && (
           <Field
             wide
             label="Describe the conditions"
-            required
-            name="experiment.rearingComment"
+            name="rearing_condition_comment"
           >
             {(id, _labelId, errorProps) => (
               <TextArea
                 id={id}
                 rows={3}
                 {...errorProps}
-                {...register("experiment.rearingComment", {
-                  ...required("Describe the conditions."),
+                {...register("rearing_condition_comment", {
                   shouldUnregister: true,
                 })}
               />
@@ -587,36 +574,3 @@ const Rearing = () => {
     </EntryCard>
   );
 };
-
-/** How the fish were reared, and the exposures they were given. */
-const ExperimentSection = ({ groupId }: { groupId: number }) => {
-  const { control } = useFormContext<Submission>();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "exposures",
-  });
-
-  return (
-    <>
-      <Rearing />
-
-      {fields.map((field, i) => (
-        <ExposureEvent
-          key={field.id}
-          n={i + 1}
-          index={i}
-          groupId={groupId}
-          onRemove={fields.length > 1 ? () => remove(i) : undefined}
-        />
-      ))}
-
-      <AddRow>
-        <AddButton type="button" onClick={() => append(emptyExposure())}>
-          + Add another exposure
-        </AddButton>
-      </AddRow>
-    </>
-  );
-};
-
-export default ExperimentSection;

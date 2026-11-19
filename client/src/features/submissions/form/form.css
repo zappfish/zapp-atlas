@@ -40,6 +40,9 @@
   gap: var(--s3);
 }
 
+/* A form inside the page: its sections sit in the page's column. */
+.form-main__part { display: contents; }
+
 .form-intro { display: flex; flex-direction: column; gap: var(--s3); }
 /* The breadcrumb's own margin would double the column gap. */
 .form-main .crumbs { margin-bottom: 0; }
@@ -542,6 +545,22 @@ select.field__input {
 .form-entry__head .form-entry__summary { margin: 0; }
 
 .form-entry__footer { padding-top: var(--s3); }
+
+/* A card's own save, under its fields. */
+.form-entry__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  padding-top: var(--s3);
+}
+.form-entry__status {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-subtext);
+  color: var(--muted);
+}
 
 /* ---- An image and its metadata ------------------------------------------ */
 

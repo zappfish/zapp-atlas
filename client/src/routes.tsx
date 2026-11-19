@@ -4,7 +4,7 @@ import FishDetail from "@/features/groups/FishDetail";
 import GroupView from "@/features/groups/GroupView";
 import StudyDetail from "@/features/groups/StudyDetail";
 import MySubmissions from "@/features/submissions/MySubmissions";
-import SubmissionForm from "@/features/submissions/form/SubmissionForm";
+import ExperimentForm from "@/features/submissions/form/ExperimentForm";
 
 /** A new path here also needs adding to html/client_router.py, or it 404s. */
 
@@ -27,11 +27,22 @@ const FishDetailRoute = () => {
   return <FishDetail groupId={ids[0]!} entryId={ids[1]!} />;
 };
 
-/** The form, which a group's page starts and its breadcrumb names. */
-const GroupSubmissionRoute = () => {
-  const ids = useIds("groupId");
+/** An experiment of a study, being added to it or opened from its page. */
+const ExperimentRoute = () => {
+  const { experimentId } = useParams();
+  const ids = useIds(
+    "groupId",
+    "studyId",
+    ...(experimentId === undefined ? [] : ["experimentId"]),
+  );
   if (!ids) return <Navigate to="/my-submissions" replace />;
-  return <SubmissionForm groupId={ids[0]!} />;
+  return (
+    <ExperimentForm
+      groupId={ids[0]!}
+      studyId={ids[1]!}
+      experimentId={ids[2] ?? null}
+    />
+  );
 };
 
 const ChemicalDetailRoute = () => {
@@ -53,10 +64,6 @@ const AppRoutes = () => (
       path="/submissions/new"
       element={<Navigate to="/my-submissions" replace />}
     />
-    <Route
-      path="/research-groups/:groupId/submissions/new"
-      element={<GroupSubmissionRoute />}
-    />
     <Route path="/research-groups/:groupId" element={<GroupRoute />} />
     <Route
       path="/research-groups/:groupId/fish-tank/:entryId"
@@ -69,6 +76,14 @@ const AppRoutes = () => (
     <Route
       path="/research-groups/:groupId/studies/:studyId"
       element={<StudyDetailRoute />}
+    />
+    <Route
+      path="/research-groups/:groupId/studies/:studyId/experiments/new"
+      element={<ExperimentRoute />}
+    />
+    <Route
+      path="/research-groups/:groupId/studies/:studyId/experiments/:experimentId"
+      element={<ExperimentRoute />}
     />
   </Routes>
 );

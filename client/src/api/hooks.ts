@@ -35,6 +35,13 @@ import {
   replaceStudy,
 } from "./studies";
 import type { StudyBody } from "./types";
+import {
+  createExperiment,
+  deleteExperiment,
+  replaceExperiment,
+} from "./experiments";
+import { createExposure, deleteExposure, replaceExposure } from "./exposures";
+import type { Body } from "@/schema/bodies";
 import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
@@ -384,3 +391,44 @@ export const useDeleteStudy = (groupId: number) => {
     },
   });
 };
+
+/**
+ * Saving beneath a study. Its page and its experiments' pages all read the
+ * one study, which the API returns whole, so every save refreshes that.
+ */
+const useStudyMutation = <Sent, Answer>(
+  studyId: number,
+  mutationFn: (sent: Sent) => Promise<Answer>,
+) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.study(studyId) }),
+  });
+};
+
+/** Creates the experiment when it has no id yet, and replaces it otherwise. */
+export const useSaveExperiment = (studyId: number, experimentId: number | null) =>
+  useStudyMutation(studyId, (body: Body<"Experiment">) =>
+    experimentId === null
+      ? createExperiment(studyId, body)
+      : replaceExperiment(experimentId, body),
+  );
+
+export const useDeleteExperiment = (studyId: number) =>
+  useStudyMutation(studyId, deleteExperiment);
+
+/** Creates the exposure event when it has no id yet, and replaces it otherwise. */
+export const useSaveExposure = (
+  studyId: number,
+  experimentId: number,
+  exposureId: number | null,
+) =>
+  useStudyMutation(studyId, (body: Body<"ExposureEvent">) =>
+    exposureId === null
+      ? createExposure(experimentId, body)
+      : replaceExposure(exposureId, body),
+  );
+
+export const useDeleteExposure = (studyId: number) =>
+  useStudyMutation(studyId, deleteExposure);

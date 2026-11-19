@@ -2,10 +2,7 @@
  * A smoke test of the whole stack: the server-rendered pages, development
  * sign-in, the React client, and the API behind it.
  *
- * It checks that the pieces are connected, not how each screen behaves. The
- * submission form does not save to the server yet, so beyond adding a study
- * on the group page, the study routes are exercised here through the
- * signed-in browser session.
+ * It checks that the pieces are connected, not how each screen behaves.
  *
  * See playwright.config.ts for how the server is started.
  */
@@ -42,17 +39,6 @@ test("a group's page lists its fish tank, chemical cabinet and studies", async (
   await expect(page.getByText("CHEBI:33216")).toBeVisible();
   // One of the studies the seed gives the group.
   await expect(page.getByText("PMID:22194820")).toBeVisible();
-});
-
-test("the submission form opens for a group", async ({ page }) => {
-  await signIn(page);
-  await page.getByRole("link", { name: GROUP }).click();
-  await page.getByRole("link", { name: "+ New Submission" }).click();
-
-  await expect(
-    page.getByRole("heading", { name: "Annotate your data" }),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
 });
 
 test("a study added on the group page is saved as a draft, and listed", async ({
@@ -220,12 +206,121 @@ test("a fish described in the tank dialog gets its ZFIN ids, and the form offers
     ],
   });
 
-  // The form offers the tank's lines, and shows the chosen one.
-  await page.getByRole("link", { name: "+ New Submission" }).click();
+  // A new experiment's form offers the tank's lines, and shows the chosen one.
+  const study = await (
+    await page.request.post("/api/studies", {
+      data: { research_group: groups[0].id, status: "draft", nickname: "Tank test" },
+    })
+  ).json();
+  await page.goto(
+    `/research-groups/${groups[0].id}/studies/${study.id}/experiments/new`,
+  );
   await page
     .getByLabel("Select a fish line from your tank")
     .selectOption({ label: "fh111 carriers — fh111/+ (AB)" });
   const fish = page.locator("#fish");
   await expect(fish.getByText("fh111 carriers")).toBeVisible();
   await expect(fish.getByText(/ZFIN:ZDB-GENO-160602-1/)).toBeVisible();
+});
+
+test("an experiment is set up on its page, saved, reopened and changed", async ({
+  page,
+}) => {
+  await signIn(page);
+  const groups = await (await page.request.get("/api/research-groups")).json();
+  const study = await (
+    await page.request.post("/api/studies", {
+      data: { research_group: groups[0].id, status: "draft", nickname: "Experiment test" },
+    })
+  ).json();
+  const stored = async () =>
+    (await (await page.request.get(`/api/studies/${study.id}`)).json()).experiment;
+
+  await page.goto(`/research-groups/${groups[0].id}/studies/${study.id}`);
+  await page.getByRole("link", { name: "+ New experiment" }).click();
+  await expect(page.getByRole("heading", { name: "New experiment" })).toBeVisible();
+  // Nothing hangs off an experiment that has not been saved.
+  await expect(page.getByText("Save the experiment to add its exposure events.")).toBeVisible();
+
+  // The setup: a fish from the tank, how it was kept, and a control.
+  await page.getByLabel("Select a fish line from your tank").selectOption({ index: 1 });
+  await page.getByRole("radio", { name: "Non-standard" }).check();
+  await page.getByRole("textbox", { name: "Describe the conditions" }).fill("Kept in the dark");
+  await page.getByRole("radio", { name: "Vehicle control" }).check();
+  await page.getByLabel("Vehicle used").selectOption("dmso");
+  await page.getByRole("textbox", { name: "Vehicle concentration" }).fill("0.1");
+  await page.getByRole("button", { name: "Save experiment" }).click();
+
+  // Saved, and now at the address named for it.
+  await expect(page).toHaveURL(/\/experiments\/\d+$/);
+  await expect(page.getByRole("heading", { name: "Experiment", exact: true })).toBeVisible();
+
+  // An exposure event is saved on its own, and checked before it is sent.
+  await page.getByRole("button", { name: "+ Add an exposure event" }).click();
+  const group = page.getByRole("form", { name: "Exposure event 1" });
+  await group.getByLabel("Select a chemical from your cabinet").selectOption({ index: 1 });
+  await group.getByRole("textbox", { name: "Substance concentration" }).fill("10");
+  // A vehicle's concentration is refused without the vehicle it is of.
+  await group.getByRole("textbox", { name: "Vehicle concentration" }).fill("0.1");
+  await group.getByRole("textbox", { name: "Start stage" }).fill("6");
+  await group.getByRole("textbox", { name: "End stage" }).fill("2");
+  await group.getByRole("button", { name: "Save exposure event" }).click();
+  await expect(group.getByText("Must not be before the start stage.")).toBeVisible();
+  await expect(group.getByText("This is required.")).toBeVisible();
+  await group.getByLabel("Vehicle of dilution").selectOption("dmso");
+  await group.getByRole("textbox", { name: "End stage" }).fill("120");
+  await group.getByLabel("Additional exposure condition").fill("Plates sealed");
+  await group.getByRole("button", { name: "Save exposure event" }).click();
+  // Folded to a line once saved.
+  await expect(group.getByRole("button", { name: "Save exposure event" })).toBeHidden();
+  await expect(group.getByText(/10 µM/)).toBeVisible();
+
+  expect(await stored()).toMatchObject([
+    {
+      standard_rearing_condition: false,
+      rearing_condition_comment: "Kept in the dark",
+      fish: { background_name: "AB" },
+      control: [
+        {
+          control_type: "Vehicle control",
+          vehicle_if_treated: {
+            vehicle_type: "dmso",
+            concentration: { numeric_value: 0.1, unit: "%" },
+          },
+        },
+      ],
+      exposure_event: [
+        {
+          route: "aquatic_environment",
+          regimen: { exposure_regimen_type: "continuous" },
+          stressor: [{ concentration: { numeric_value: 10, unit: "µM" } }],
+          vehicle: [{ vehicle_type: "dmso", concentration: { numeric_value: 0.1, unit: "%" } }],
+          // 6 hpf and 120 hpf, as the stages they fall in.
+          exposure_start_stage: "ZFS:0000019",
+          exposure_end_stage: "ZFS:0000037",
+          additional_exposure_condition: "Plates sealed",
+        },
+      ],
+    },
+  ]);
+
+  // Opened again, it holds what was saved, and a change to it is a replacement.
+  await page.reload();
+  const conditions = page.getByRole("textbox", { name: "Describe the conditions" });
+  await expect(conditions).toHaveValue("Kept in the dark");
+  await conditions.fill("Kept at 30 degrees");
+  await page.getByRole("button", { name: "Save experiment" }).click();
+  await expect(page.getByText("Changes not saved.")).toBeHidden();
+
+  const [experiment] = await stored();
+  expect(experiment.rearing_condition_comment).toBe("Kept at 30 degrees");
+  // What the form did not change is as it was, the fish and control included.
+  expect(experiment.fish).toMatchObject({ background_name: "AB" });
+  expect(experiment.control).toHaveLength(1);
+  // Saving the experiment leaves its exposure events alone.
+  expect(experiment.exposure_event).toHaveLength(1);
+
+  // The study's page lists it.
+  await page.goto(`/research-groups/${groups[0].id}/studies/${study.id}`);
+  await expect(page.locator("#experiments").getByText("1 exposure event")).toBeVisible();
 });

@@ -1,11 +1,9 @@
-/** The form's sections, in the order they are filled. */
+/** The experiment page's sections, in the order they are filled. */
 export const SECTIONS = [
-  { slug: "provenance", label: "Provenance" },
-  { slug: "images", label: "Images" },
   { slug: "fish", label: "Fish Information" },
   { slug: "experiment", label: "Experiment Information" },
-  { slug: "phenotype", label: "Phenotype Observation" },
   { slug: "control", label: "Control" },
+  { slug: "exposures", label: "Exposure Events" },
 ] as const;
 
 export type SectionSlug = (typeof SECTIONS)[number]["slug"];

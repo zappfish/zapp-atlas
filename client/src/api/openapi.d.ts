@@ -870,15 +870,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/research-groups/{group_id}/submissions/new": {
+    "/research-groups/{group_id}/studies/{study_id}/experiments/new": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** New Group Submission Page */
-        get: operations["new_group_submission_page_research_groups__group_id__submissions_new_get"];
+        /** New Experiment Page */
+        get: operations["new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/research-groups/{group_id}/studies/{study_id}/experiments/{experiment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Experiment Page */
+        get: operations["experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4781,12 +4798,48 @@ export interface operations {
             };
         };
     };
-    new_group_submission_page_research_groups__group_id__submissions_new_get: {
+    new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 group_id: number;
+                study_id: number;
+            };
+            cookie?: {
+                zapp_orcid_auth?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: number;
+                study_id: number;
+                experiment_id: number;
             };
             cookie?: {
                 zapp_orcid_auth?: string | null;

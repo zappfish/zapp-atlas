@@ -9123,9 +9123,9 @@
         ]
       }
     },
-    "/research-groups/{group_id}/submissions/new": {
+    "/research-groups/{group_id}/studies/{study_id}/experiments/new": {
       "get": {
-        "operationId": "new_group_submission_page_research_groups__group_id__submissions_new_get",
+        "operationId": "new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get",
         "parameters": [
           {
             "in": "path",
@@ -9133,6 +9133,15 @@
             "required": true,
             "schema": {
               "title": "Group Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "title": "Study Id",
               "type": "integer"
             }
           },
@@ -9175,7 +9184,83 @@
             "description": "Validation Error"
           }
         },
-        "summary": "New Group Submission Page",
+        "summary": "New Experiment Page",
+        "tags": [
+          "html"
+        ]
+      }
+    },
+    "/research-groups/{group_id}/studies/{study_id}/experiments/{experiment_id}": {
+      "get": {
+        "operationId": "experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "title": "Study Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "zapp_orcid_auth",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Zapp Orcid Auth"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Experiment Page",
         "tags": [
           "html"
         ]
