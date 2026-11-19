@@ -24,8 +24,9 @@ import type { JSONSchemaDocument } from "./variants";
 // strict:false — the LinkML output carries annotation keywords ($comment, title,
 // version, metamodel_version) and multi-type ("array"|"null") slots that Ajv's
 // strict mode would reject. allErrors:true so one validate() call reports every
-// field problem.
-const ajv = new Ajv2019({ allErrors: true, strict: false });
+// field problem. verbose:true so an error carries the schema it failed, whose
+// `examples` say what a pattern is asking for.
+const ajv = new Ajv2019({ allErrors: true, strict: false, verbose: true });
 
 /**
  * Compile a validator for a single entity within the bundled schema document.
