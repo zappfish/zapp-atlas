@@ -106,6 +106,9 @@ test("a study's own fields are edited on its page, and checked as the schema say
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText("Edited on its page")).toBeVisible();
+  // Whoever saved it is named, from the server's record of the save.
+  await expect(page.getByText("Entered by")).toBeVisible();
+  await expect(page.getByText("Josiah Carberry").last()).toBeVisible();
 
   const stored = await (await page.request.get(`/api/studies/${study.id}`)).json();
   expect(stored).toMatchObject({

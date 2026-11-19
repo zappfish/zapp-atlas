@@ -104,7 +104,7 @@ const StudyDetail = ({
   groupId: number;
   studyId: number;
 }) => {
-  const { group } = useGroupDashboard(groupId);
+  const { group, members } = useGroupDashboard(groupId);
   const { isPending, error, data } = useStudy(studyId);
   const [editing, setEditing] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -144,6 +144,22 @@ const StudyDetail = ({
                   ? [{ label: "Description", value: data.description }]
                   : []),
                 ...(data.lab ? [{ label: "ZFIN lab", value: data.lab, mono: true }] : []),
+                ...(data.annotator?.length
+                  ? [
+                      {
+                        label: "Entered by",
+                        // A member's name where the group has it, and the
+                        // ORCID that was recorded otherwise.
+                        value: data.annotator
+                          .map(
+                            (orcid) =>
+                              members.find((each) => each.member === orcid)
+                                ?.name ?? orcid,
+                          )
+                          .join(", "),
+                      },
+                    ]
+                  : []),
                 {
                   label: "Visibility",
                   value:
