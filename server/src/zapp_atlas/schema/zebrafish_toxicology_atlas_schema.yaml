@@ -822,9 +822,12 @@ slots:
     description: Scale bar information, including the physical length it represents and the unit of measurement.
     range: string
   annotator:
-    description: ORCID identifier of the indidvidual submitting the study data.
+    description: >-
+      ORCID identifiers of the people who entered the study's data: everyone
+      who has saved the study or anything in it.
     range: uriorcurie
     multivalued: true
+    readonly: Set by the server from whoever is signed in when a save is made.
     pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
     examples:
       - value: ORCID:0000-0002-1825-0097

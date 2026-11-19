@@ -43,4 +43,4 @@ def test_slots_are_sorted_into_kinds() -> None:
 
     study = {slot.name: slot.kind for slot in layout().slots("Study")}
     assert study["research_group"] is SlotKind.VALUE
-    assert study["annotator"] is SlotKind.VALUE
+    assert study["annotator"] is SlotKind.DERIVED

@@ -83,7 +83,6 @@ def _experiment(client: TestClient, group: int) -> int:
         json={
             "publication": "PMID:1",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()

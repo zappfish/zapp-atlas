@@ -2025,11 +2025,6 @@ export interface components {
          */
         StudyInput: {
             /**
-             * Annotator
-             * @description ORCID identifier of the indidvidual submitting the study data.
-             */
-            annotator?: string[] | null;
-            /**
              * Description
              * @description A free-text summary of what the study set out to do.
              */
@@ -2064,7 +2059,7 @@ export interface components {
         StudyRead: {
             /**
              * Annotator
-             * @description ORCID identifier of the indidvidual submitting the study data.
+             * @description ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.
              */
             annotator?: string[] | null;
             /**
@@ -2118,7 +2113,7 @@ export interface components {
         StudySummary: {
             /**
              * Annotator
-             * @description ORCID identifier of the indidvidual submitting the study data.
+             * @description ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.
              */
             annotator?: string[] | null;
             /**

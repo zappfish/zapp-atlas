@@ -283,7 +283,7 @@ export interface Study extends ZappEntity {
     nickname?: string,
     /** A free-text summary of what the study set out to do. */
     description?: string,
-    /** ORCID identifier of the indidvidual submitting the study data. */
+    /** ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it. */
     annotator?: string[],
     /** ZFIN lab identifier of the laboratory that produced the study data. */
     lab?: string,

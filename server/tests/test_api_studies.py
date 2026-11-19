@@ -11,7 +11,6 @@ def test_study_create_then_get_round_trip_minimal(client: TestClient, group: int
     payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
-        "annotator": ["ORCID:0000-0000-0000-0000"],
         **study_fields(group),
     }
     create_res = client.post("/api/studies", json=payload)
@@ -34,7 +33,6 @@ def test_study_put_updates_top_level_fields(client: TestClient, group: int) -> N
     create_payload = {
         "publication": "PMID:123456",
         "lab": "ZFIN:ZDB-LAB-1-1",
-        "annotator": ["ORCID:0000-0000-0000-0000"],
         **study_fields(group),
     }
     created = client.post("/api/studies", json=create_payload).json()

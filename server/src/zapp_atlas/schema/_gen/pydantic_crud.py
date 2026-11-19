@@ -554,7 +554,9 @@ class Study(ZappEntity):
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
+    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'],
+         'examples': [{'value': 'ORCID:0000-0002-1825-0097'}],
+         'readonly': 'Set by the server from whoever is signed in when a save is made.'} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -610,7 +612,6 @@ class StudyInput(ConfiguredBaseModel):
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
 
     @field_validator('nickname')
@@ -623,19 +624,6 @@ class StudyInput(ConfiguredBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
-            raise ValueError(err_msg)
-        return v
-
-    @field_validator('annotator')
-    def pattern_annotator(cls, v):
-        pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.search(element):
-                    err_msg = f"Invalid annotator format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.search(v):
-            err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -666,7 +654,9 @@ class StudyRead(ReadBaseModel):
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
+    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'],
+         'examples': [{'value': 'ORCID:0000-0002-1825-0097'}],
+         'readonly': 'Set by the server from whoever is signed in when a save is made.'} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
@@ -722,7 +712,9 @@ class StudySummary(ReadBaseModel):
     publication: Optional[str] = Field(default=None, description="""The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
     nickname: Optional[str] = Field(default=None, description="""A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study', 'ChemicalCabinetEntry', 'FishTankEntry']} })
     description: Optional[str] = Field(default=None, description="""A free-text summary of what the study set out to do.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study']} })
-    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifier of the indidvidual submitting the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ORCID:0000-0002-1825-0097'}]} })
+    annotator: Optional[list[str]] = Field(default=None, description="""ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'],
+         'examples': [{'value': 'ORCID:0000-0002-1825-0097'}],
+         'readonly': 'Set by the server from whoever is signed in when a save is made.'} })
     lab: Optional[str] = Field(default=None, description="""ZFIN lab identifier of the laboratory that produced the study data.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study'], 'examples': [{'value': 'ZFIN:ZDB-LAB-970408-1'}]} })
     id: int = Field(default=..., description="""Auto-generated integer identifier.""", json_schema_extra = { "linkml_meta": {'domain_of': ['ZappEntity']} })
 
