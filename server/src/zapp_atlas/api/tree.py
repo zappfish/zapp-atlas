@@ -16,14 +16,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from zapp_atlas.api.errors import SchemaRuleViolation
-from zapp_atlas.api.fish import set_zfin_ids
+from zapp_atlas.api.fish import describe_from_zfin
 from zapp_atlas.api.layout import Slot, SlotKind, layout
 from zapp_atlas.api.terms import checked, term_values
 from zapp_atlas.schema import sqla
 from zapp_atlas.schema.sqla import Base
 
 # Sets a class's derived slots on a row, once the body has been stored on it.
-_DERIVE: dict[str, Callable[[Session, Base], None]] = {"Fish": set_zfin_ids}
+_DERIVE: dict[str, Callable[[Session, Base], None]] = {"Fish": describe_from_zfin}
 
 
 def build(session: Session, class_name: str, body: BaseModel) -> Base:

@@ -429,7 +429,11 @@ yet in the form), and `line_description` for anything else. `fish_zfin_id`
 and `genotype_zfin_id` are set by the server each time a fish is saved, by
 matching the description against ZFIN's registry (`api/fish.py`); a fish
 without them is one ZFIN has not registered, or one with an allele ZFIN does
-not have. The schema marks the two slots `readonly`, which keeps them out of
+not have. The same step names the fish's parts: a background, allele, gene,
+construct or reagent given by its ZFIN id takes the name the registry has
+for it, whatever the request sent, and an id the registry does not have is
+refused. A part described without an id keeps the name it was given. With no
+`zfin.db`, a fish that names any id is not stored (503). The schema marks the two slots `readonly`, which keeps them out of
 request bodies: the layout sorts such a slot as `DERIVED`.
 Each experiment and tank entry owns its own `Fish` row, built by the generic
 save path like any other owned part. The alteration and zygosity enums carry

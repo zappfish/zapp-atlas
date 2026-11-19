@@ -10,6 +10,8 @@ from zapp_atlas.api.layout import LEVELS, SlotKind, layout
 
 # The few terms the tests name, as ROBOT exports an ontology's labels.
 LABELS_FIXTURE = Path(__file__).parent / "labels_fixture" / "labels.tsv"
+# A miniature of ZFIN's bulk downloads (see its README).
+ZFIN_FIXTURE = Path(__file__).parent / "zfin_fixture"
 
 
 def built(script: str, output: Path, *arguments: str) -> Path:

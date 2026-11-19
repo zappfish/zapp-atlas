@@ -183,7 +183,9 @@ submissions render from placeholder data (`html/dashboard_placeholder.py`)
 until the group-scoped endpoints are wired in.
 `Fish` is a description (background, alleles with zygosity, injected
 reagents); the server sets its ZFIN ids on save by matching the description
-against the registry, and a request cannot send them. ZFIN's
+against the registry, and a request cannot send them. The names beside the
+ids in a description (a background's, an allele's, a gene's) are the
+registry's too, whatever a request sends. ZFIN's
 registry of fish lines is served read-only at `/api/zfin` from the
 extdata bundle. A fish is described in the tank's add dialog and picked
 from the tank on an experiment's page; the dialog uses existing elements and

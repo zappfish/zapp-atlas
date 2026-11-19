@@ -26,7 +26,7 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
-from support import LABELS_FIXTURE, body, built
+from support import LABELS_FIXTURE, ZFIN_FIXTURE, body, built
 
 from zapp_atlas.api.errors import SchemaRuleViolation
 from zapp_atlas.api.layout import LEVELS, SlotKind, layout
@@ -156,9 +156,12 @@ def request_examples() -> list[dict[str, object]]:
     engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
     init_db(engine)
     with tempfile.TemporaryDirectory() as bundle, Session(engine) as session:
-        # As the app's sessions carry them: no ZFIN data, so no fish is
-        # matched, and the labels of the terms the tests name.
-        session.info["zfin"] = Zfin(Path("no-bundle") / "zfin.db")
+        # As the app's sessions carry them: the ZFIN records and the term
+        # labels the tests name.
+        zfin = built(
+            "zfin_db.py", Path(bundle) / "zfin.db", str(ZFIN_FIXTURE), "--zfin-date", "fixture"
+        )
+        session.info["zfin"] = Zfin(zfin)
         labels = built("labels_db.py", Path(bundle) / "labels.db", str(LABELS_FIXTURE))
         session.info["labels"] = Labels(labels)
         return [

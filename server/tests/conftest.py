@@ -38,15 +38,16 @@ def labels_db(tmp_path_factory) -> Path:
 
 
 @pytest.fixture
-def extdata_dir(tmp_path_factory, labels_db) -> Path:
+def extdata_dir(tmp_path_factory, labels_db, zfin_db) -> Path:
     """Where the app looks for its reference bundle: a directory holding the
-    tests' own term labels and nothing else, whatever the developer has
-    built. A module overrides this to add to it, or to have no bundle."""
+    tests' own term labels and ZFIN records and nothing else, whatever the
+    developer has built. A module overrides this to have no bundle."""
     import shutil
 
     # Apart from the test's own directory, which is where uploads are kept.
     bundle = tmp_path_factory.mktemp("extdata")
     shutil.copy(labels_db, bundle / "labels.db")
+    shutil.copy(zfin_db, bundle / "zfin.db")
     return bundle
 
 
@@ -79,27 +80,27 @@ def client(tmp_path, extdata_dir) -> TestClient:
 @pytest.fixture(scope="session")
 def zfin_db(tmp_path_factory) -> Path:
     """zfin.db built from tests/zfin_fixture by the real extdata builder."""
-    from support import built
+    from support import ZFIN_FIXTURE, built
 
     return built(
         "zfin_db.py",
         tmp_path_factory.mktemp("zfin") / "zfin.db",
-        str(Path(__file__).parent / "zfin_fixture"),
+        str(ZFIN_FIXTURE),
         "--zfin-date",
         "2026.11.01",
     )
 
 
 @pytest.fixture
-def session(labels_db) -> Iterator[Session]:
+def session(labels_db, zfin_db) -> Iterator[Session]:
     """A session on an empty in-memory database, for tests below the HTTP layer."""
     from zapp_atlas.db import init_db
 
     engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
     init_db(engine)
     with Session(engine) as session:
-        # As the app's sessions carry them. With no ZFIN data, no fish is matched.
-        session.info["zfin"] = Zfin(Path("no-bundle") / "zfin.db")
+        # As the app's sessions carry them.
+        session.info["zfin"] = Zfin(zfin_db)
         session.info["labels"] = Labels(labels_db)
         yield session
 
