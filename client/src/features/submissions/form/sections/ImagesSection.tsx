@@ -51,7 +51,7 @@ const ImageEntry = ({
               key={measure.label}
               {...measure}
               name={`images.${index}.${field}` as const}
-              unitName={`images.${index}.${unitField}` as const}
+              unitName={unitField && (`images.${index}.${unitField}` as const)}
             />
           ))}
 

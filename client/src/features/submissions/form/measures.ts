@@ -1,5 +1,16 @@
+import type { ImageValues } from "./submission";
+
+interface Measure {
+  label: string;
+  placeholder: string;
+  field: keyof ImageValues;
+  units?: readonly string[];
+  unitField?: keyof ImageValues;
+  suffix?: string;
+}
+
 /** The metadata every image carries, in the order it is asked for. */
-export const MEASURES = [
+export const MEASURES: readonly Measure[] = [
   {
     label: "Scale bar",
     placeholder: "e.g. 100",
@@ -7,13 +18,12 @@ export const MEASURES = [
     field: "scaleBar",
     unitField: "scaleBarUnit",
   },
-  // One unit is notation, not a choice, so it reads as a suffix.
+  // Its unit is notation, not a choice: shown as a suffix, not stored.
   {
     label: "Magnification",
     placeholder: "e.g. 40",
     suffix: "X",
     field: "magnification",
-    unitField: "magnificationUnit",
   },
   {
     label: "Resolution",
@@ -22,4 +32,4 @@ export const MEASURES = [
     field: "resolution",
     unitField: "resolutionUnit",
   },
-] as const;
+];
