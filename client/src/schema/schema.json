@@ -89,6 +89,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "mother_zygosity": {
@@ -135,6 +136,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "manufacturer": {
@@ -225,6 +227,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "vehicle_if_treated": {
@@ -251,6 +254,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "magnification": {
@@ -332,6 +336,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "rearing_condition_comment": {
@@ -400,6 +405,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "phenotype_observation": {
@@ -563,6 +569,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "line_description": {
@@ -599,6 +606,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "nickname": {
@@ -628,6 +636,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "image_scope": {
@@ -741,6 +750,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "phenotype_term_id": {
@@ -804,6 +814,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "image": {
@@ -905,6 +916,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "individual_exposure_duration": {
@@ -961,6 +973,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "name": {
@@ -981,6 +994,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "member": {
@@ -1129,6 +1143,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "manufacturer": {
@@ -1226,6 +1241,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "lab": {
@@ -1322,6 +1338,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "reagent_symbol": {
@@ -1467,6 +1484,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "manufacturer": {
@@ -1522,6 +1540,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         }
       },

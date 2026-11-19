@@ -365,7 +365,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -732,7 +733,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -980,7 +982,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -1194,7 +1197,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -1502,7 +1506,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -1921,7 +1926,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2069,7 +2075,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2663,7 +2670,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2723,7 +2731,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3083,7 +3092,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3190,7 +3200,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3549,7 +3560,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3822,7 +3834,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3981,7 +3994,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -4356,7 +4370,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -4764,7 +4779,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"

@@ -472,6 +472,7 @@ slots:
     identifier: true
     description: Auto-generated integer identifier.
     range: integer
+    readonly: Assigned by the server when the row is first stored.
 
   term_uri:
     identifier: true
