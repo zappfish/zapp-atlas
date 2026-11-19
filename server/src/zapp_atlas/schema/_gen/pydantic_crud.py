@@ -11,6 +11,7 @@ from datetime import (
 from decimal import Decimal
 from enum import Enum
 from typing import (
+    Annotated,
     Any,
     ClassVar,
     Literal,
@@ -30,7 +31,7 @@ from pydantic import (
 )
 
 
-metamodel_version = "1.7.0"
+metamodel_version = "1.12.0"
 version = "None"
 
 
@@ -562,10 +563,10 @@ class Study(ZappEntity):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -575,10 +576,10 @@ class Study(ZappEntity):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -588,10 +589,10 @@ class Study(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -617,10 +618,10 @@ class StudyInput(ConfiguredBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -630,10 +631,10 @@ class StudyInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -643,10 +644,10 @@ class StudyInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -656,7 +657,7 @@ class StudyRead(ReadBaseModel):
     """
     What the API returns for Study, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
@@ -674,10 +675,10 @@ class StudyRead(ReadBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -687,10 +688,10 @@ class StudyRead(ReadBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -700,10 +701,10 @@ class StudyRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -713,7 +714,7 @@ class StudySummary(ReadBaseModel):
     """
     What the API returns for Study alone, without the next level.
     """
-    research_group: int = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group the study belongs to, whose members may edit it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
@@ -730,10 +731,10 @@ class StudySummary(ReadBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -743,10 +744,10 @@ class StudySummary(ReadBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid annotator format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid annotator format: {v}"
             raise ValueError(err_msg)
         return v
@@ -756,10 +757,10 @@ class StudySummary(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid lab format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid lab format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1382,10 +1383,10 @@ class Fish(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-FISH-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid fish_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1395,10 +1396,10 @@ class Fish(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid genotype_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid genotype_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1408,10 +1409,10 @@ class Fish(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1432,10 +1433,10 @@ class FishInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1463,10 +1464,10 @@ class FishRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-FISH-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid fish_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid fish_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1476,10 +1477,10 @@ class FishRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid genotype_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid genotype_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1489,10 +1490,10 @@ class FishRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENO-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid background_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid background_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1525,10 +1526,10 @@ class Allele(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-ALT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid allele_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid allele_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1538,10 +1539,10 @@ class Allele(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1551,10 +1552,10 @@ class Allele(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid construct_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid construct_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1582,10 +1583,10 @@ class AlleleInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-ALT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid allele_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid allele_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1595,10 +1596,10 @@ class AlleleInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1608,10 +1609,10 @@ class AlleleInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid construct_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid construct_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1640,10 +1641,10 @@ class AlleleRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-ALT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid allele_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid allele_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1653,10 +1654,10 @@ class AlleleRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1666,10 +1667,10 @@ class AlleleRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-TGCONSTRCT-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid construct_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid construct_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1696,10 +1697,10 @@ class TransientReagent(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid reagent_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid reagent_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1709,10 +1710,10 @@ class TransientReagent(ZappEntity):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1735,10 +1736,10 @@ class TransientReagentInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid reagent_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid reagent_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1748,10 +1749,10 @@ class TransientReagentInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1775,10 +1776,10 @@ class TransientReagentRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid reagent_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid reagent_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1788,10 +1789,10 @@ class TransientReagentRead(ReadBaseModel):
         pattern=re.compile(r"^ZFIN:ZDB-GENE-\d{6}-\d+$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid affected_gene_zfin_id format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid affected_gene_zfin_id format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1847,10 +1848,10 @@ class ResearchGroupMember(ZappEntity):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid member format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid member format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1873,10 +1874,10 @@ class ResearchGroupMemberInput(ConfiguredBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid member format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid member format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1886,7 +1887,7 @@ class ResearchGroupMemberRead(ReadBaseModel):
     """
     What the API returns for ResearchGroupMember, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
@@ -1900,10 +1901,10 @@ class ResearchGroupMemberRead(ReadBaseModel):
         pattern=re.compile(r"^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid member format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid member format: {v}"
             raise ValueError(err_msg)
         return v
@@ -1993,10 +1994,10 @@ class ChemicalCabinetEntry(ZappEntity):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2027,10 +2028,10 @@ class ChemicalCabinetEntryInput(ConfiguredBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2040,7 +2041,7 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
     """
     What the API returns for ChemicalCabinetEntry, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
@@ -2062,10 +2063,10 @@ class ChemicalCabinetEntryRead(ReadBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2105,10 +2106,10 @@ class FishTankEntry(ZappEntity):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2130,10 +2131,10 @@ class FishTankEntryInput(ConfiguredBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v
@@ -2143,7 +2144,7 @@ class FishTankEntryRead(ReadBaseModel):
     """
     What the API returns for FishTankEntry, with everything beneath it.
     """
-    research_group: int = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
+    research_group: Annotated[int, Field(validation_alias="research_group_id")] = Field(default=..., description="""The research group an entry belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Study',
                        'ResearchGroupMember',
                        'ChemicalCabinetEntry',
                        'FishTankEntry']} })
@@ -2156,10 +2157,10 @@ class FishTankEntryRead(ReadBaseModel):
         pattern=re.compile(r"^.{0,200}$")
         if isinstance(v, list):
             for element in v:
-                if isinstance(element, str) and not pattern.match(element):
+                if isinstance(element, str) and not pattern.search(element):
                     err_msg = f"Invalid nickname format: {element}"
                     raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
+        elif isinstance(v, str) and not pattern.search(v):
             err_msg = f"Invalid nickname format: {v}"
             raise ValueError(err_msg)
         return v

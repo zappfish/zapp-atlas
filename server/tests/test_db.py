@@ -77,7 +77,7 @@ def test_study_round_trip():
     # --- study / experiment -----------------------------------------------
 
     study = Study(
-        research_group=1,
+        research_group_id=1,
         status="published",
         publication="PMID:22194820",
         lab="Gong Lab, National University of Singapore",

@@ -7,6 +7,9 @@
       "properties": {
         "affected_gene_symbol": {
           "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
+          "examples": [
+            "fgf8a"
+          ],
           "type": [
             "string",
             "null"
@@ -14,6 +17,9 @@
         },
         "affected_gene_zfin_id": {
           "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.",
+          "examples": [
+            "ZFIN:ZDB-GENE-990415-72"
+          ],
           "pattern": "^ZFIN:ZDB-GENE-\\d{6}-\\d+$",
           "type": [
             "string",
@@ -22,10 +28,16 @@
         },
         "allele_symbol": {
           "description": "The allele's designation as ZFIN writes it, e.g. ti282a, fh111, w200Tg.",
+          "examples": [
+            "ti282a"
+          ],
           "type": "string"
         },
         "allele_zfin_id": {
           "description": "ZFIN's id for the allele (ZDB-ALT-…).",
+          "examples": [
+            "ZFIN:ZDB-ALT-980203-1091"
+          ],
           "pattern": "^ZFIN:ZDB-ALT-\\d{6}-\\d+$",
           "type": [
             "string",
@@ -33,11 +45,21 @@
           ]
         },
         "alteration_type": {
-          "$ref": "#/$defs/SequenceAlterationTypeEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SequenceAlterationTypeEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The kind of sequence alteration the allele is."
         },
         "construct_name": {
           "description": "The construct's name as ZFIN writes it, e.g. Tg(mpeg1:YFP).",
+          "examples": [
+            "Tg(mpeg1:YFP)"
+          ],
           "type": [
             "string",
             "null"
@@ -45,6 +67,9 @@
         },
         "construct_zfin_id": {
           "description": "ZFIN's id for the construct a transgenic insertion holds (ZDB-TGCONSTRCT-…). Absent for a mutant allele.",
+          "examples": [
+            "ZFIN:ZDB-TGCONSTRCT-130130-3"
+          ],
           "pattern": "^ZFIN:ZDB-TGCONSTRCT-\\d{6}-\\d+$",
           "type": [
             "string",
@@ -52,7 +77,14 @@
           ]
         },
         "father_zygosity": {
-          "$ref": "#/$defs/ParentZygosityEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParentZygosityEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The allele's zygosity in the father. Absent when not recorded."
         },
         "id": {
@@ -60,7 +92,14 @@
           "type": "integer"
         },
         "mother_zygosity": {
-          "$ref": "#/$defs/ParentZygosityEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParentZygosityEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The allele's zygosity in the mother. Absent when not recorded."
         },
         "zygosity": {
@@ -99,7 +138,14 @@
           "type": "integer"
         },
         "manufacturer": {
-          "$ref": "#/$defs/ManufacturerEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManufacturerEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The supplier this stock comes from. Optional, and part of the cabinet grain: entries for the same chemical are told apart by it."
         },
         "nickname": {
@@ -122,7 +168,14 @@
           ]
         },
         "vehicle_type": {
-          "$ref": "#/$defs/VehicleEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VehicleEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The vehicle the group habitually delivers this chemical in, offered as a pre-fill default and corrected per submission like any other. other_not_listed is not accepted here, because the entry has no slot to name an unlisted vehicle with."
         }
       },
@@ -473,6 +526,9 @@
         },
         "background_name": {
           "description": "The wild-type line's name as ZFIN abbreviates it, e.g. AB, TU, TL.",
+          "examples": [
+            "AB"
+          ],
           "type": [
             "string",
             "null"
@@ -480,6 +536,9 @@
         },
         "background_zfin_id": {
           "description": "The wild-type line the fish is kept on, as ZFIN's genotype id for that line (ZDB-GENO-…). Picked from ZFIN's wild-type lines.",
+          "examples": [
+            "ZFIN:ZDB-GENO-960809-7"
+          ],
           "pattern": "^ZFIN:ZDB-GENO-\\d{6}-\\d+$",
           "type": [
             "string",
@@ -488,7 +547,11 @@
         },
         "fish_zfin_id": {
           "description": "ZFIN's id for the registered fish this description matches (ZDB-FISH-…), when it matches one.",
+          "examples": [
+            "ZFIN:ZDB-FISH-150901-27842"
+          ],
           "pattern": "^ZFIN:ZDB-FISH-\\d{6}-\\d+$",
+          "readOnly": true,
           "type": [
             "string",
             "null"
@@ -496,7 +559,11 @@
         },
         "genotype_zfin_id": {
           "description": "ZFIN's id for the registered genotype this description matches (ZDB-GENO-…), when it matches one.",
+          "examples": [
+            "ZFIN:ZDB-GENO-960809-7"
+          ],
           "pattern": "^ZFIN:ZDB-GENO-\\d{6}-\\d+$",
+          "readOnly": true,
           "type": [
             "string",
             "null"
@@ -572,7 +639,14 @@
           "type": "integer"
         },
         "image_scope": {
-          "$ref": "#/$defs/ImageScopeEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageScopeEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Whether the image shows the entire organism or only a region, organ, or structure. Phenotype annotations on a partial-organism image should be limited to what is visible in the imaged region."
         },
         "magnification": {
@@ -700,7 +774,14 @@
           "description": "The percentage of subject exhibiting this phenotype."
         },
         "severity": {
-          "$ref": "#/$defs/SeverityEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeverityEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The intensity of the observed phenotype."
         },
         "stage": {
@@ -821,7 +902,14 @@
       "description": "The schedule and pattern of an exposure event.",
       "properties": {
         "exposure_regimen_type": {
-          "$ref": "#/$defs/ExposureRegimenTypeEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExposureRegimenTypeEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The type of exposure regimen (e.g., continuous or repeated)."
         },
         "id": {
@@ -905,6 +993,9 @@
         },
         "member": {
           "description": "ORCID identifier of a research group member.",
+          "examples": [
+            "ORCID:0000-0002-1825-0097"
+          ],
           "pattern": "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$",
           "type": "string"
         },
@@ -1049,7 +1140,14 @@
           "type": "integer"
         },
         "manufacturer": {
-          "$ref": "#/$defs/ManufacturerEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManufacturerEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The manufacturer or supplier of the chemical."
         },
         "synonym": {
@@ -1102,6 +1200,11 @@
       "properties": {
         "annotator": {
           "description": "ORCID identifier of the indidvidual submitting the study data.",
+          "examples": [
+            [
+              "ORCID:0000-0002-1825-0097"
+            ]
+          ],
           "items": {
             "pattern": "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$",
             "type": "string"
@@ -1134,6 +1237,9 @@
         },
         "lab": {
           "description": "ZFIN lab identifier of the laboratory that produced the study data.",
+          "examples": [
+            "ZFIN:ZDB-LAB-970408-1"
+          ],
           "pattern": "^ZFIN:ZDB-LAB-[0-9]+-[0-9]+$",
           "type": [
             "string",
@@ -1198,6 +1304,9 @@
       "properties": {
         "affected_gene_symbol": {
           "description": "The symbol of the gene the allele affects, e.g. fgf8a.",
+          "examples": [
+            "fgf8a"
+          ],
           "type": [
             "string",
             "null"
@@ -1205,6 +1314,9 @@
         },
         "affected_gene_zfin_id": {
           "description": "ZFIN's id for the gene the allele affects (ZDB-GENE-…); for a transgenic insertion, the construct's driver or reporter gene when ZFIN records one.",
+          "examples": [
+            "ZFIN:ZDB-GENE-990415-72"
+          ],
           "pattern": "^ZFIN:ZDB-GENE-\\d{6}-\\d+$",
           "type": [
             "string",
@@ -1217,14 +1329,27 @@
         },
         "reagent_symbol": {
           "description": "The reagent's name as ZFIN writes it, e.g. MO1-fgf8a.",
+          "examples": [
+            "MO1-fgf8a"
+          ],
           "type": "string"
         },
         "reagent_type": {
-          "$ref": "#/$defs/ReagentTypeEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReagentTypeEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "What kind of reagent it is."
         },
         "reagent_zfin_id": {
           "description": "ZFIN's id for the reagent (ZDB-MRPHLNO-, ZDB-CRISPR- or ZDB-TALEN-…).",
+          "examples": [
+            "ZFIN:ZDB-MRPHLNO-040101-1"
+          ],
           "pattern": "^ZFIN:ZDB-(MRPHLNO|CRISPR|TALEN)-\\d{6}-\\d+$",
           "type": [
             "string",
@@ -1348,7 +1473,14 @@
           "type": "integer"
         },
         "manufacturer": {
-          "$ref": "#/$defs/ManufacturerEnum",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManufacturerEnum"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "The manufacturer or supplier of the chemical."
         },
         "synonym": {
@@ -1393,10 +1525,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": "integer"
         }
       },
       "required": [
@@ -1420,7 +1549,7 @@
   "$id": "https://w3id.org/sierra-moxon/zebrafish-toxicology-atlas-schema",
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": true,
-  "metamodel_version": "1.7.0",
+  "metamodel_version": "1.12.0",
   "title": "zebrafish-toxicology-atlas-schema",
   "type": "object",
   "version": null

@@ -37,11 +37,11 @@ def list_studies(
     """Published studies, and the drafts of the caller's own research groups."""
     visible = or_(
         Study.status == StudyStatusEnum.published.value,
-        Study.research_group.in_(groups_of(session, identity)),
+        Study.research_group_id.in_(groups_of(session, identity)),
     )
     query = select(Study).where(visible).order_by(Study.id).offset(offset).limit(limit)
     if research_group is not None:
-        query = query.where(Study.research_group == research_group)
+        query = query.where(Study.research_group_id == research_group)
     return list(session.scalars(query))
 
 

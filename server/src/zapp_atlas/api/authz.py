@@ -76,7 +76,7 @@ def _find_membership(
     return (
         session.query(ResearchGroupMember)
         .filter(
-            ResearchGroupMember.research_group == group_id,
+            ResearchGroupMember.research_group_id == group_id,
             ResearchGroupMember.member == orcid_curie(identity.orcid_id),
         )
         .one_or_none()
@@ -121,7 +121,7 @@ def groups_of(session: Session, identity: OrcidIdentity | None) -> list[int]:
         return []
     return list(
         session.scalars(
-            select(ResearchGroupMember.research_group).where(
+            select(ResearchGroupMember.research_group_id).where(
                 ResearchGroupMember.member == orcid_curie(identity.orcid_id)
             )
         )

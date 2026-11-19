@@ -25,7 +25,7 @@ def _is_last_admin(session: Session, membership: ResearchGroupMember) -> bool:
     remaining = (
         session.query(ResearchGroupMember)
         .filter(
-            ResearchGroupMember.research_group == membership.research_group,
+            ResearchGroupMember.research_group_id == membership.research_group_id,
             ResearchGroupMember.role == ResearchGroupRoleEnum.admin.value,
         )
         .count()
@@ -50,7 +50,7 @@ def create_group(session: Session, name: str, creator: OrcidIdentity) -> Researc
     session.flush()  # assign group.id before the membership row references it
     session.add(
         ResearchGroupMember(
-            research_group=group.id,
+            research_group_id=group.id,
             member=orcid_curie(creator.orcid_id),
             role=ResearchGroupRoleEnum.admin.value,
         )
@@ -65,7 +65,7 @@ def list_groups_for(session: Session, identity: OrcidIdentity) -> list[ResearchG
         session.query(ResearchGroup)
         .join(
             ResearchGroupMember,
-            ResearchGroupMember.research_group == ResearchGroup.id,
+            ResearchGroupMember.research_group_id == ResearchGroup.id,
         )
         .filter(ResearchGroupMember.member == orcid_curie(identity.orcid_id))
         .order_by(ResearchGroup.id)
@@ -86,7 +86,7 @@ def list_members(session: Session, group_id: int) -> list[tuple[ResearchGroupMem
             OrcidIdentity,
             ResearchGroupMember.member == literal("ORCID:") + OrcidIdentity.orcid_id,
         )
-        .filter(ResearchGroupMember.research_group == group_id)
+        .filter(ResearchGroupMember.research_group_id == group_id)
         .order_by(ResearchGroupMember.id)
         .all()
     )
@@ -94,7 +94,9 @@ def list_members(session: Session, group_id: int) -> list[tuple[ResearchGroupMem
 
 
 def add_member(session: Session, group_id: int, member: str, role: str) -> ResearchGroupMember:
-    membership = ResearchGroupMember(research_group=group_id, member=orcid_curie(member), role=role)
+    membership = ResearchGroupMember(
+        research_group_id=group_id, member=orcid_curie(member), role=role
+    )
     session.add(membership)
     commit_or_conflict(session, "That ORCID is already a member of this group")
     session.refresh(membership)
@@ -107,7 +109,7 @@ def get_membership(session: Session, group_id: int, member_id: int) -> ResearchG
         session.query(ResearchGroupMember)
         .filter(
             ResearchGroupMember.id == member_id,
-            ResearchGroupMember.research_group == group_id,
+            ResearchGroupMember.research_group_id == group_id,
         )
         .one_or_none()
     )

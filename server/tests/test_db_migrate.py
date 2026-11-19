@@ -182,22 +182,22 @@ def pre_nickname_db(tmp_path):
         """
         DROP TABLE "Study";
         CREATE TABLE "Study" (
-            research_group INTEGER NOT NULL, status TEXT NOT NULL, publication TEXT, lab TEXT,
+            research_group_id INTEGER NOT NULL, status TEXT NOT NULL, publication TEXT, lab TEXT,
             id INTEGER NOT NULL PRIMARY KEY
         );
         DROP INDEX "uq_ChemicalCabinetEntry_cabinet_nickname_grain";
         ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "nickname";
         INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
-        INSERT INTO "ChemicalCabinetEntry" (id, research_group, chemical_id)
+        INSERT INTO "ChemicalCabinetEntry" (id, research_group_id, chemical_id)
             VALUES (1, 1, 'CHEBI:16236');
         """
     )
     con.execute(
-        "INSERT INTO Study (id, research_group, status, publication) "
+        "INSERT INTO Study (id, research_group_id, status, publication) "
         "VALUES (1, 1, 'published', 'PMID:22194820')"
     )
     con.execute(
-        "INSERT INTO Study (id, research_group, status, publication) "
+        "INSERT INTO Study (id, research_group_id, status, publication) "
         "VALUES (2, 1, 'published', 'PMID:40359302')"
     )
     con.commit()
@@ -220,7 +220,7 @@ def test_migrate_adds_the_nickname_columns(pre_nickname_db) -> None:
         study = session.get(Study, 1)
         assert study.publication == "PMID:22194820"
         # Existing rows are published, belong to no group, and have no nickname yet.
-        assert study.research_group == 1
+        assert study.research_group_id == 1
         assert study.nickname is None
         assert study.description is None
         entry = session.get(ChemicalCabinetEntry, 1)
@@ -238,9 +238,9 @@ def test_migrate_makes_nicknames_unique_within_a_group(pre_nickname_db) -> None:
     for table, name in NICKNAME_INDEXES.items():
         indexes = {i["name"]: i for i in inspect(engine).get_indexes(table)}
         assert indexes[name]["unique"]
-        assert indexes[name]["column_names"] == ["research_group", "nickname"]
+        assert indexes[name]["column_names"] == ["research_group_id", "nickname"]
 
-    named = "UPDATE Study SET research_group = 1, nickname = 'BPA pilot' WHERE id = :id"
+    named = "UPDATE Study SET research_group_id = 1, nickname = 'BPA pilot' WHERE id = :id"
     with engine.begin() as connection:
         connection.execute(text(named), {"id": 1})
     with pytest.raises(IntegrityError), engine.begin() as connection:
@@ -258,7 +258,7 @@ def test_rows_that_break_a_new_key_are_reported_and_the_app_still_starts(
         connection.execute(text("UPDATE ChemicalCabinetEntry SET nickname = 'stock'"))
         connection.execute(
             text(
-                "INSERT INTO ChemicalCabinetEntry (research_group, chemical_id, nickname) "
+                "INSERT INTO ChemicalCabinetEntry (research_group_id, chemical_id, nickname) "
                 "VALUES (1, 'CHEBI:33216', 'stock')"
             )
         )
@@ -290,9 +290,9 @@ def pre_supplier_db(tmp_path):
         ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "unrecognized_manufacturer_name";
         ALTER TABLE "ChemicalCabinetEntry" DROP COLUMN "vehicle_type";
         CREATE UNIQUE INDEX "uq_ChemicalCabinetEntry_cabinet_grain"
-            ON "ChemicalCabinetEntry" (research_group, chemical_id);
+            ON "ChemicalCabinetEntry" (research_group_id, chemical_id);
         INSERT INTO "ResearchGroup" (id, name) VALUES (1, 'Some Lab');
-        INSERT INTO "ChemicalCabinetEntry" (id, research_group, chemical_id)
+        INSERT INTO "ChemicalCabinetEntry" (id, research_group_id, chemical_id)
             VALUES (1, 1, 'CHEBI:33216');
         """
     )
@@ -310,12 +310,12 @@ def test_migrate_widens_the_cabinet_grain_to_the_supplier(pre_supplier_db) -> No
     assert "uq_ChemicalCabinetEntry_cabinet_grain" not in indexes
     widened = indexes["uq_ChemicalCabinetEntry_cabinet_supplier_grain"]
     assert widened["unique"]
-    assert widened["column_names"] == ["research_group", "chemical_id", "manufacturer"]
+    assert widened["column_names"] == ["research_group_id", "chemical_id", "manufacturer"]
     # The stored row survived, and a second supplier of its chemical now fits.
     with engine.begin() as connection:
         connection.execute(
             text(
-                "INSERT INTO ChemicalCabinetEntry (research_group, chemical_id, manufacturer) "
+                "INSERT INTO ChemicalCabinetEntry (research_group_id, chemical_id, manufacturer) "
                 "VALUES (1, 'CHEBI:33216', 'sigma_aldrich')"
             )
         )

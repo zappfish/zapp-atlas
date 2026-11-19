@@ -353,28 +353,32 @@ def _build_dev_group(session: Session) -> ResearchGroup:
 
     membership = (
         session.query(ResearchGroupMember)
-        .filter_by(research_group=group.id, member=DEV_MEMBER)
+        .filter_by(research_group_id=group.id, member=DEV_MEMBER)
         .one_or_none()
     )
     if membership is None:
-        session.add(ResearchGroupMember(research_group=group.id, member=DEV_MEMBER, role="admin"))
+        session.add(
+            ResearchGroupMember(research_group_id=group.id, member=DEV_MEMBER, role="admin")
+        )
 
     # The line the seeded studies use, under the nickname the group would pick it by.
     entry = (
-        session.query(FishTankEntry).filter_by(research_group=group.id, nickname="AB").one_or_none()
+        session.query(FishTankEntry)
+        .filter_by(research_group_id=group.id, nickname="AB")
+        .one_or_none()
     )
     if entry is None:
-        session.add(FishTankEntry(research_group=group.id, nickname="AB", fish=_ab_fish()))
+        session.add(FishTankEntry(research_group_id=group.id, nickname="AB", fish=_ab_fish()))
 
     # The chemicals the seeded studies use, so the cabinet is not empty.
     for chemical_id in ("CHEBI:33216", "CHEBI:15367", "CHEBI:6651", "CHEBI:9747"):
         entry = (
             session.query(ChemicalCabinetEntry)
-            .filter_by(research_group=group.id, chemical_id=chemical_id)
+            .filter_by(research_group_id=group.id, chemical_id=chemical_id)
             .one_or_none()
         )
         if entry is None:
-            session.add(ChemicalCabinetEntry(research_group=group.id, chemical_id=chemical_id))
+            session.add(ChemicalCabinetEntry(research_group_id=group.id, chemical_id=chemical_id))
 
     return group
 
@@ -400,7 +404,7 @@ def seed(session: Session) -> None:
         if pub in existing:
             continue
         study = builder(session)
-        study.research_group = group.id
+        study.research_group_id = group.id
         study.status = "published"
         session.add(study)
 

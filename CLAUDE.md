@@ -44,8 +44,11 @@ Two things about that codegen are easy to get wrong:
   renders neither, so `schema/constraints.py` reads them back out of the YAML at
   import and attaches them to the generated tables. Declare them in the schema as
   usual; nothing needs restating in Python. Note that a slot does not always
-  become a column of the same name — an inlined slot whose range has an
-  identifier becomes `<slot>_<identifier>` (`fish` → `fish_zfin_id`).
+  become a column of the same name — a slot whose range is a class with an
+  identifier becomes `<slot>_<identifier>` (`research_group` →
+  `research_group_id`, `fish` → `fish_id`), and the slot's own name is a
+  relationship to the other row. `column_name` in `schema/view.py` is the one
+  statement of that rule.
 - **Class-level `rules` reach neither generated validators nor, unaided, the
   client.** `pydanticgen` does not turn a `rule` into a validator, so anything
   declared that way needs a guard in the service too — raise

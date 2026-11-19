@@ -23,7 +23,7 @@ def list_entries(
 ) -> list[FishTankEntry]:
     return (
         session.query(FishTankEntry)
-        .filter(FishTankEntry.research_group == group_id)
+        .filter(FishTankEntry.research_group_id == group_id)
         .order_by(FishTankEntry.id)
         .offset(offset)
         .limit(limit)
@@ -37,7 +37,7 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> FishTankEntry |
         session.query(FishTankEntry)
         .filter(
             FishTankEntry.id == entry_id,
-            FishTankEntry.research_group == group_id,
+            FishTankEntry.research_group_id == group_id,
         )
         .one_or_none()
     )
@@ -45,7 +45,7 @@ def get_entry(session: Session, group_id: int, entry_id: int) -> FishTankEntry |
 
 def add_entry(session: Session, group_id: int, payload: TankEntryIn) -> FishTankEntry:
     entry = FishTankEntry(
-        research_group=group_id,
+        research_group_id=group_id,
         nickname=payload.nickname,
         fish=tree.build(session, "Fish", payload.fish),
     )

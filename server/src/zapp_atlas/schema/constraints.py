@@ -15,32 +15,13 @@ from linkml_runtime.linkml_model.meta import ClassDefinition
 from sqlalchemy import Column, DateTime, Index, Table, inspect
 
 from zapp_atlas.schema._gen.sqla import Base
-from zapp_atlas.schema.view import SCHEMA_PATH, owned_slots
+from zapp_atlas.schema.view import SCHEMA_PATH, column_name, owned_slots
 
 TIMESTAMPED = "timestamped"
 
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
-
-
-def _column(view: SchemaView, table: Table, class_name: str, slot_name: str) -> Column:
-    """Resolve a LinkML slot to the column ``gen-sqla`` generated for it.
-
-    An inlined slot whose range carries an identifier becomes
-    ``<slot>_<identifier>`` (``fish`` -> ``fish_zfin_id``); every other slot
-    keeps its own name.
-    """
-    if slot_name in table.c:
-        return table.c[slot_name]
-
-    identifier = view.get_identifier_slot(view.induced_slot(slot_name, class_name).range)
-    if identifier is not None:
-        qualified = f"{slot_name}_{identifier.name}"
-        if qualified in table.c:
-            return table.c[qualified]
-
-    raise KeyError(f"{class_name}.{slot_name} has no generated column")
 
 
 def _apply_unique_keys(view: SchemaView, model: type, definition: ClassDefinition) -> None:
@@ -50,7 +31,7 @@ def _apply_unique_keys(view: SchemaView, model: type, definition: ClassDefinitio
         name = f"uq_{definition.name}_{key_name}"
         if name in existing:
             continue
-        columns = [_column(view, table, definition.name, s) for s in key.unique_key_slots]
+        columns = [table.c[column_name(view, definition.name, s)] for s in key.unique_key_slots]
         Index(name, *columns, unique=True)
 
 

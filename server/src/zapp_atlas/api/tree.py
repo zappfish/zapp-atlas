@@ -40,7 +40,7 @@ def assign(session: Session, class_name: str, row: Base, body: BaseModel) -> Non
     not part of a body and is left alone.
     """
     for slot in layout().body_slots(class_name):
-        setattr(row, slot.name, _stored(session, slot, getattr(body, slot.name)))
+        setattr(row, slot.attribute, _stored(session, slot, getattr(body, slot.name)))
     _check_rules(class_name, row)
     if class_name in _DERIVE:
         _DERIVE[class_name](session, row)
