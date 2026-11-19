@@ -19,7 +19,7 @@ import type { components } from "@/api/openapi";
 
 import { schemaDocument } from "./document";
 import { compile } from "./validation";
-import { toInputSchema, type JSONSchemaDef } from "./variants";
+import { toInputSchema } from "./variants";
 
 type Schemas = components["schemas"];
 
@@ -41,70 +41,129 @@ const validators = new Map<Stored, ValidateFunction>();
 export function validateBody<Class extends Stored>(
   name: Class,
 ): ValidateFunction<Body<Class>> {
-  const made = validators.get(name) ?? compile(inputSchema, name);
-  validators.set(name, made);
-  return made as ValidateFunction<Body<Class>>;
+  const validator = validators.get(name) ?? compile(inputSchema, name);
+  validators.set(name, validator);
+  return validator as ValidateFunction<Body<Class>>;
 }
 
-interface Declared {
+// -- reading the schema ------------------------------------------------------
+
+/** A property of a class, as JSON Schema writes it. */
+interface Property {
   readOnly?: boolean;
   $ref?: string;
-  anyOf?: Declared[];
-  items?: Declared;
+  anyOf?: Property[];
+  items?: Property;
 }
 
-const definitions = schemaDocument.$defs as Record<string, JSONSchemaDef>;
+/** A slot of a class: what the rest of this file needs to know of a property. */
+interface Slot {
+  key: string;
+  /** Set by the server, so a body does not carry it. */
+  readOnly: boolean;
+  /** The class the slot holds, singly or in a list. Undefined for a plain value. */
+  holds: string | undefined;
+}
+
+const definitions = schemaDocument.$defs as Record<
+  string,
+  { properties?: Record<string, Property> }
+>;
 
 /**
- * The class a property holds, when it holds one, singly or in a list. An enum
- * is referred to the same way, and is told apart by having no properties.
+ * The class a property refers to, directly, as a list's items, or as one
+ * side of an optional value. An enum is referred to the same way, and is told
+ * apart by having no properties of its own.
  */
-function classOf(declared: Declared): string | undefined {
-  const ref = [declared, declared.items, ...(declared.anyOf ?? [])].find(
+function classHeld(property: Property): string | undefined {
+  const ref = [property, property.items, ...(property.anyOf ?? [])].find(
     (each) => each?.$ref,
   )?.$ref;
   const name = ref?.replace("#/$defs/", "");
   return name !== undefined && definitions[name]?.properties ? name : undefined;
 }
 
+/** A class's slots, in the schema's order. */
+function slotsOf(className: string): Slot[] {
+  return Object.entries(definitions[className]?.properties ?? {}).map(
+    ([key, property]) => ({
+      key,
+      readOnly: property.readOnly === true,
+      holds: classHeld(property),
+    }),
+  );
+}
+
+// -- making a body -----------------------------------------------------------
+
+type Fields = Record<string, unknown>;
+
+/** Is there nothing here for a body to say? */
 const isBlank = (value: unknown) =>
   value == null ||
   (Array.isArray(value) && value.length === 0) ||
   (typeof value === "string" && value.trim() === "") ||
   (typeof value === "number" && Number.isNaN(value));
 
-function carried(defName: string, value: object): Record<string, unknown> {
-  const properties = definitions[defName]?.properties as Record<string, Declared>;
-
-  const unknown = Object.keys(value).find((key) => !(key in properties));
+/**
+ * Throws when `value` has a key the class has no slot for. That is a form
+ * field named for something other than the schema's slot, which is a mistake
+ * in the form and not something a user typed.
+ */
+function checkKeys(className: string, value: Fields, slots: Slot[]): void {
+  const unknown = Object.keys(value).find(
+    (key) => !slots.some((slot) => slot.key === key),
+  );
   if (unknown !== undefined) {
-    throw new Error(`${defName} has no slot named ${unknown}`);
+    throw new Error(`${className} has no slot named ${unknown}`);
   }
+}
 
-  // In the schema's order, so two bodies that say the same thing are written
-  // the same way.
-  const body: Record<string, unknown> = {};
-  for (const [key, declared] of Object.entries(properties)) {
-    const held = (value as Record<string, unknown>)[key];
-    if (declared.readOnly || isBlank(held)) continue;
+/**
+ * What a body says of one instance of a class: its slots in the schema's
+ * order, without those the server sets and those left blank. The same is
+ * done to every class nested in it.
+ *
+ * An instance with nothing filled in comes back as `{}`.
+ */
+function prune(className: string, value: Fields): Fields {
+  const slots = slotsOf(className);
+  checkKeys(className, value, slots);
 
-    const nested = classOf(declared);
-    if (nested === undefined) {
-      body[key] = held;
-    } else if (Array.isArray(held)) {
-      // A row with nothing filled in is a row that is not there, and a list
-      // with no rows is a list that is not there.
-      const rows = held
-        .map((item: object) => carried(nested, item))
-        .filter((item) => Object.keys(item).length > 0);
-      if (rows.length > 0) body[key] = rows;
-    } else {
-      const part = carried(nested, held as object);
-      // A part with nothing filled in is a part that is not there.
-      if (Object.keys(part).length > 0) body[key] = part;
-    }
+  const body: Fields = {};
+  for (const slot of slots) {
+    if (slot.readOnly) continue;
+    const held = value[slot.key];
+    const said = slot.holds === undefined ? held : pruneHeld(slot.holds, held);
+    if (!isBlank(said)) body[slot.key] = said;
   }
   return body;
+}
+
+/**
+ * What a body says of a slot that holds a class: the rows that say
+ * something, or the one instance if it says something, or nothing.
+ */
+function pruneHeld(className: string, held: unknown): unknown {
+  if (isBlank(held)) return undefined;
+  if (Array.isArray(held)) {
+    return filledRows(className, held).map(({ row }) => row);
+  }
+  const instance = prune(className, held as Fields);
+  return Object.keys(instance).length > 0 ? instance : undefined;
+}
+
+/**
+ * The rows of a list that say something, pruned, each with its position in
+ * the list it came from. A row with nothing filled in is not in a body.
+ */
+function filledRows(
+  className: string,
+  rows: Fields[],
+): { index: number; row: Fields }[] {
+  return rows
+    .map((row, index) => ({ index, row: prune(className, row) }))
+    .filter(({ row }) => Object.keys(row).length > 0);
 }
 
 /**
@@ -119,8 +178,10 @@ export function toBody<Class extends Stored>(
   name: Class,
   value: object,
 ): Body<Class> {
-  return carried(name, value) as Body<Class>;
+  return prune(name, value as Fields) as Body<Class>;
 }
+
+type Path = (string | number)[];
 
 /**
  * Where in `value` a place in its body is.
@@ -129,32 +190,37 @@ export function toBody<Class extends Stored>(
  * form's fourth. A problem found in the body is shown on the form, and has
  * to be counted in the form's rows.
  */
-export function placeIn(
-  name: Stored,
-  value: object,
-  bodyPath: (string | number)[],
-): (string | number)[] {
-  let defName: string | undefined = name;
-  let held: unknown = value;
+export function placeIn(name: Stored, value: object, bodyPath: Path): Path {
+  return placeWithin(name, value, bodyPath);
+}
 
-  return bodyPath.map((key) => {
-    const className = defName;
-    if (typeof key === "number" && Array.isArray(held) && className) {
-      const kept = held.flatMap((row: object, index) =>
-        Object.keys(carried(className, row)).length > 0 ? [index] : [],
-      );
-      const index = kept[key] ?? key;
-      held = held[index];
-      return index;
-    }
-    const declared: Declared | undefined =
+/**
+ * `placeIn`, one step of the path at a time. `className` is the class
+ * `value` is an instance or a list of, and is undefined once the path has
+ * gone into a plain value.
+ */
+function placeWithin(
+  className: string | undefined,
+  value: unknown,
+  [key, ...rest]: Path,
+): Path {
+  if (key === undefined) return [];
+
+  if (typeof key === "number") {
+    // The body's row `key` is the form's row `index`.
+    const rows = value as Fields[];
+    const index =
       className === undefined
-        ? undefined
-        : (definitions[className]?.properties as Record<string, Declared>)[key];
-    defName = declared && classOf(declared);
-    held = (held as Record<string, unknown> | undefined)?.[key];
-    return key;
-  });
+        ? key
+        : (filledRows(className, rows)[key]?.index ?? key);
+    return [index, ...placeWithin(className, rows[index], rest)];
+  }
+
+  const slot =
+    className === undefined
+      ? undefined
+      : slotsOf(className).find((each) => each.key === key);
+  return [key, ...placeWithin(slot?.holds, (value as Fields)[key], rest)];
 }
 
 /** Do two values make the same body? Whether a form has anything to save. */
