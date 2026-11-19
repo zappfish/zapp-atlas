@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useGroupDashboard } from "@/api/hooks";
-import Submissions from "@/features/submissions/Submissions";
 import { MicroscopeIcon, UsersIcon } from "@/components/icons";
 import {
   DashEyebrow,
@@ -19,7 +18,7 @@ import StudiesSection from "./StudiesSection";
 
 /**
  * One research group. Each section owns its own records and the dialogs that
- * change them; submissions have no endpoint, so that list is empty.
+ * change them. A study's experiments are entered from the study's own page.
  */
 const GroupView = ({ groupId }: { groupId: number }) => {
   const { error, group, members, fishTank, cabinet } = useGroupDashboard(groupId);
@@ -76,12 +75,6 @@ const GroupView = ({ groupId }: { groupId: number }) => {
       />
 
       <StudiesSection groupId={groupId} />
-
-      <Submissions
-        submissions={[]}
-        emptyText="Create a submission to share this group's observations."
-        newHref={`/research-groups/${groupId}/submissions/new`}
-      />
     </>
   );
 };

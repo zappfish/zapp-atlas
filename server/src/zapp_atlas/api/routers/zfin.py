@@ -3,6 +3,8 @@
 Public, read-only, and not group-scoped: this is ZFIN's data served back
 from the extdata bundle (``zapp_atlas/zfin.py``), not anything a user wrote.
 
+* ``GET /zfin/stages`` -- the developmental stages and the hours each covers,
+  for turning a time into the stage it falls in
 * ``GET /zfin/wildtypes`` -- the wild-type lines, for the background picker
 * ``GET /zfin/alleles?q=`` -- allele autocomplete by symbol, gene or construct
 * ``GET /zfin/alleles/{id}``, ``/genotypes/{id}``, ``/fish/{id}`` -- one
@@ -31,6 +33,7 @@ from zapp_atlas.api.models import (
     ZfinGenotypeOut,
     ZfinResolveIn,
     ZfinResolveOut,
+    ZfinStageOut,
     ZfinStatusOut,
     ZfinWildtypeOut,
 )
@@ -59,6 +62,11 @@ def status_endpoint(zfin: ZfinData) -> ZfinStatusOut:
             if key.endswith("_count")
         },
     )
+
+
+@router.get("/stages", response_model=list[ZfinStageOut])
+def stages_endpoint(zfin: ZfinData) -> list[ZfinStageOut]:
+    return [ZfinStageOut.model_validate(s) for s in zfin.stages()]
 
 
 @router.get("/wildtypes", response_model=list[ZfinWildtypeOut])

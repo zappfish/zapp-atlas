@@ -338,7 +338,7 @@ export interface PhenotypeObservationSet extends ZappEntity {
  * Any measurable or visible trait change in the subject as a result of exposure.
  */
 export interface Phenotype extends ZappEntity {
-    /** The developmental stage of fish when the phenotype was observed. */
+    /** The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages. */
     stage?: string,
     /** The percentage of subjects exhibiting this phenotype, from 0 to 100. */
     prevalence?: number,
@@ -376,9 +376,9 @@ export interface ExposureEvent extends ZappEntity {
     route?: string,
     /** The regimen for the exposure. */
     regimen?: Regimen,
-    /** The developmental stage of fish when exposure started. */
+    /** The developmental stage of fish when exposure started, as one of ZFIN's stages. */
     exposure_start_stage?: string,
-    /** The developmental stage of fish when exposure ended. */
+    /** The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at. */
     exposure_end_stage?: string,
     /** Additional comments. */
     comment?: string,
@@ -412,7 +412,7 @@ export interface Regimen extends ZappEntity {
  * A chemical that elicits a response (a phenotype) in a subject when encountered through exposure.
  */
 export interface StressorChemical extends ZappEntity {
-    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    /** The chemical's ChEBI identifier. */
     chemical_id?: string,
     /** CAS identifier for the chemical. */
     cas_id?: string,
@@ -437,7 +437,7 @@ export interface StressorChemical extends ZappEntity {
 export interface VehicleOfTransmission extends ZappEntity {
     /** The type of vehicle used to deliver a stressor, drawn from a controlled vocabulary. */
     vehicle_type: string,
-    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    /** The chemical's ChEBI identifier. */
     chemical_id?: string,
     /** CAS identifier for the chemical. */
     cas_id?: string,
@@ -489,7 +489,7 @@ export interface ControlImage extends ZappEntity {
 
 
 /**
- * A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+ * A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.
  */
 export interface PhenotypeTerm extends OntologyEntity {
     /** The URI of the phenotype ontology term. */
@@ -604,7 +604,7 @@ export interface ResearchGroupMember extends ZappEntity {
 export interface ChemicalCabinetEntry extends ZappEntity {
     /** The research group an entry belongs to. */
     research_group: ResearchGroupId,
-    /** Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical. */
+    /** The chemical's ChEBI identifier. */
     chemical_id: string,
     /** What the group calls this chemical, e.g. "BPA stock". Optional; when given it is what the chemical is listed under when pre-filling a submission, and no two entries in the group may share it. */
     nickname?: string,

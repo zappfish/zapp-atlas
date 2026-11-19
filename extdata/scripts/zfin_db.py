@@ -3,9 +3,10 @@
 # dependencies = ["typer==0.19.2"]
 # ///
 """Build zfin.db: ZFIN's registered alleles, genotypes, fish and wild-type
-lines, for the server's fish lookups (``zapp_atlas/zfin.py``).
+lines, for the server's fish lookups (``zapp_atlas/zfin.py``), and its
+developmental stages.
 
-Reads five of ZFIN's bulk downloads. All are tab-separated with no header
+Reads six of ZFIN's bulk downloads. All are tab-separated with no header
 row; the column layouts below are from https://zfin.org/downloads. Ids are
 stored as CURIEs (``ZFIN:ZDB-ALT-...``), the form the schema's patterns want.
 
@@ -47,6 +48,13 @@ aggregated by (fish, affector). A fish can list two backgrounds::
     0 fish id         1 fish name        2 gene id         3 gene symbol
     4 affector id     5 affector symbol  6 construct id    7 construct symbol
     8 background id   9 background name 10 genotype id    11 genotype name
+
+``stage_ontology.txt`` -- the developmental stages, each with the hours post
+fertilization it runs from and up to. The first row is "Unknown", which
+covers every hour and is left out::
+
+    0 stage id (ZDB-STAGE-)   1 ZFS id   2 name ("Period:Stage")
+    3 start (hpf)             4 end (hpf)
 """
 
 import csv
@@ -64,7 +72,11 @@ INPUTS = (
     "wildtypes_fish.txt",
     "genotype_features.txt",
     "fish_components_fish.txt",
+    "stage_ontology.txt",
 )
+
+# "Unknown": a stage in name only, running from fertilization to old age.
+ZFS_UNKNOWN = "ZFS:0000000"
 
 SO_TRANSGENIC_INSERTION = "SO:0001218"
 ALLELE_OF = "is allele of"
@@ -91,6 +103,13 @@ HTML_TAG = re.compile(r"<[^>]+>")
 
 SCHEMA = """
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
+
+CREATE TABLE stage (
+    stage_id TEXT PRIMARY KEY,       -- ZFS:...
+    name TEXT NOT NULL,              -- "Period:Stage", or the period alone
+    start_hours REAL NOT NULL,       -- hours post fertilization, from
+    end_hours REAL NOT NULL          -- up to but not including
+) WITHOUT ROWID;
 
 CREATE TABLE wildtype (
     fish_id TEXT PRIMARY KEY,
@@ -214,6 +233,13 @@ def parental_zygosity(unique_name: str, symbols: set[str]) -> dict[str, tuple[st
         return {symbol: (ZYGOSITY_CODES[t[1]], ZYGOSITY_CODES[t[2]]) for symbol, t in found.items()}
     except KeyError:
         return {}
+
+
+def load_stages(path: Path, db: sqlite3.Connection) -> None:
+    db.executemany(
+        "INSERT INTO stage VALUES (?, ?, ?, ?)",
+        ((r[1], r[2], float(r[3]), float(r[4])) for r in rows(path) if r[1] != ZFS_UNKNOWN),
+    )
 
 
 def load_wildtypes(path: Path, db: sqlite3.Connection) -> None:
@@ -354,7 +380,7 @@ def build_fts(db: sqlite3.Connection) -> None:
 def write_meta(db: sqlite3.Connection, zfin_date: str) -> dict[str, int]:
     counts = {
         table: db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
-        for table in ("wildtype", "allele", "genotype", "fish", "reagent")
+        for table in ("wildtype", "allele", "genotype", "fish", "reagent", "stage")
     }
     db.execute("INSERT INTO meta VALUES ('zfin_date', ?)", (zfin_date,))
     db.executemany(
@@ -393,6 +419,13 @@ INVARIANTS = {
     "every reagent targets a gene": """
         SELECT count(*) FROM reagent r
         WHERE NOT EXISTS (SELECT 1 FROM reagent_gene rg WHERE rg.reagent_id = r.reagent_id)""",
+    # So a time after fertilization falls in exactly one stage.
+    "no two stages cover the same hour": """
+        SELECT count(*) FROM stage a JOIN stage b
+          ON a.stage_id < b.stage_id
+         AND a.start_hours < b.end_hours AND b.start_hours < a.end_hours""",
+    "every stage runs forward": """
+        SELECT count(*) FROM stage WHERE end_hours <= start_hours""",
 }
 
 # Parsing that degrades rather than fails: the share of rows it must cover.
@@ -419,7 +452,7 @@ COVERAGE = {
 def check(db: sqlite3.Connection) -> list[str]:
     """Problems with the built database; empty when every invariant holds."""
     problems = []
-    for table in ("wildtype", "allele", "genotype", "fish", "reagent"):
+    for table in ("wildtype", "allele", "genotype", "fish", "reagent", "stage"):
         if db.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0:
             problems.append(f"no rows in {table}")
     for statement, sql in INVARIANTS.items():
@@ -452,6 +485,7 @@ def main(
         load_wildtypes(zfin_dir / INPUTS[2], db)
         load_genotypes(zfin_dir / INPUTS[3], db)
         load_fish(zfin_dir / INPUTS[4], db)
+        load_stages(zfin_dir / INPUTS[5], db)
         build_fts(db)
         counts = write_meta(db, zfin_date)
     problems = check(db)

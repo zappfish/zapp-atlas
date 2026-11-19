@@ -21,8 +21,8 @@ nothing else is affected.
 | `zp.json`, `zp.json.gz` | ZP's ZAPP subset | client: phenotype picker |
 | `zfa.json`, `zfa.json.gz` | ZFA | client: phenotype picker (anatomy) |
 | `zfin_counts.tsv` | ZP's `fish_to_phenotype.tsv` | client: sorting by ZFIN usage |
-| `labels.db` | ZP, ZFA (same filtered OWL as the JSON), ChEBI lite | server: label lookups |
-| `zfin.db` | five ZFIN bulk downloads | server: fish lookups (`/api/zfin`) |
+| `labels.db` | ZP, ZFA (same filtered OWL as the JSON), ChEBI lite, ZFIN's stages | server: label lookups, and checking the terms a request names |
+| `zfin.db` | six ZFIN bulk downloads | server: fish and stage lookups (`/api/zfin`) |
 | `manifest.json` | | everything: versions, sizes, checksums |
 
 An ontology's JSON and its rows in `labels.db` come from one filtered OWL
@@ -53,8 +53,10 @@ each allele's zygosity, and the parents' where ZFIN records it), fish (a
 genotype plus any injected morpholino / CRISPR / TALEN reagents), wild-type
 lines, and the backgrounds genotypes are kept on. Ids are CURIEs
 (`ZFIN:ZDB-ALT-…`). Allele search runs on an FTS5 table over symbols, gene
-symbols and construct names. `scripts/zfin_db.py` documents the five input
-files column by column.
+symbols and construct names. It also holds ZFIN's developmental stages with
+the hours post fertilization each covers, which the client uses to turn a
+time into a stage and the server to order two stages. `scripts/zfin_db.py`
+documents the six input files column by column.
 
 ZFIN refreshes https://zfin.org/downloads in place, so the files are taken
 from the dated archive instead (`ZFIN_DATE` in `sources.mk`; the archive

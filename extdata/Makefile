@@ -141,8 +141,13 @@ $(DIST)/%.json.gz: $(DIST)/%.json $(RECIPES)
 $(TMP)/%-labels.tsv: $(TMP)/%.owl $(RECIPES)
 	$(ROBOT) export --input $< --include classes --header "ID|LABEL" --export $@
 
+# ZFIN's developmental stages are terms too, named by their ZFS ids. Their
+# labels come from the same download zfin.db takes their hours from.
+$(TMP)/zfs-labels.tsv: $(TMP)/zfin/stage_ontology.txt $(RECIPES)
+	{ printf 'ID\tLABEL\n'; cut -f2,3 $<; } > $@
+
 $(DIST)/labels.db: $(TMP)/zp-labels.tsv $(TMP)/zfa-filtered-labels.tsv $(TMP)/chebi-labels.tsv \
-		scripts/labels_db.py $(RECIPES) | $(DIST)
+		$(TMP)/zfs-labels.tsv scripts/labels_db.py $(RECIPES) | $(DIST)
 	$(PY) scripts/labels_db.py $@ $(filter %.tsv,$^)
 
 $(DIST)/zfin_counts.tsv: $(TMP)/fish_to_phenotype.tsv scripts/zfin_counts.py $(RECIPES) | $(DIST)

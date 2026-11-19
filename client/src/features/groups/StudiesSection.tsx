@@ -55,7 +55,7 @@ const StudiesSection = ({ groupId }: { groupId: number }) => {
         error={studies.error}
         onRetry={() => void studies.refetch()}
         emptyTitle="No studies yet"
-        emptyText="Add a study to group this lab's submissions under it."
+        emptyText="Add a study, then enter its experiments from the study's page."
         emptyAction={addButton}
         // With rows, the button moves up beside the title, as in the fish
         // tank; in the empty box it would otherwise appear twice.

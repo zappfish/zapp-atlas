@@ -110,7 +110,7 @@ server/src/zapp_atlas/
 | `/api/studies/{id}/revisions` | `api` studies router | a study's history |
 | `/api/research-groups/…` | `api` routers | groups, members, chemical cabinet, fish tank |
 | `/api/chemicals/{autocomplete,normalize,vehicle-info}` | `api` chemicals router | read-only chemical lookups (NodeNorm + ChEBI cache) |
-| `GET /api/zfin/{wildtypes,status}`, `GET /api/zfin/alleles?q=`, `GET /api/zfin/{alleles,genotypes,fish}/{id}` | `api` zfin router | read-only ZFIN lookups from the bundle's `zfin.db` (503 without it) |
+| `GET /api/zfin/{stages,wildtypes,status}`, `GET /api/zfin/alleles?q=`, `GET /api/zfin/{alleles,genotypes,fish}/{id}` | `api` zfin router | read-only ZFIN lookups from the bundle's `zfin.db` (503 without it) |
 | `POST /api/zfin/resolve` | `api` zfin router | the registered ZFIN genotype and fish a described fish corresponds to |
 | `GET /extdata/manifest.json` | `extdata` router | the ontology bundle's hash and versions (not cached) |
 | `GET /extdata/<hash>/*` | `extdata` router | ontology files for the client, immutable per hash |
@@ -284,9 +284,16 @@ from, the archived `legacy/client`).
 client/
 ├── src/
 │   ├── main.tsx        the Vite entry; mounts <App/> into #root
-│   ├── App.tsx         placeholder shell ("editing UI goes here")
-│   ├── styles.css      React-side stylesheet (empty placeholder)
+│   ├── routes.tsx      the client's pages, by path
+│   ├── api/            calls to /api, their query hooks, and the generated
+│   │                   OpenAPI types
+│   ├── features/       the pages: dashboard, research groups, studies, and
+│   │                   the experiment form under submissions/form/
+│   ├── problems.ts     what is wrong with a request body, in one shape
 │   └── schema/         generated types + JSON Schema + the form toolkit
+├── tests/              unit tests (vitest), with the request examples the
+│                       server writes
+├── e2e/                browser tests (Playwright)
 ├── vite.config.ts      base '/edit/', '@'→src alias, manifest build
 ├── tsconfig.json       strict; verbatimModuleSyntax + noUnused*; target es2023
 ├── tsconfig.node.json  Node typing for vite.config.ts (editor only)
@@ -304,6 +311,51 @@ SPA sit inside the shared shell. Consequences:
   origin, so `/api` requests already land on the backend.
 - Scripts are `dev`, `build`, `lint`. (`preview` was removed: it served a
   standalone `index.html` that no longer exists.)
+
+### The editing pages
+
+The pages follow the API's levels, so each save is one request:
+
+| Page | Saves | Lists |
+|---|---|---|
+| A research group | its tank, cabinet and members, each through a dialog | its studies |
+| A study (`features/groups/StudyDetail.tsx`) | the study's own fields, in a dialog | its experiments |
+| An experiment (`features/submissions/form/ExperimentForm.tsx`) | the experiment: fish, rearing, controls | its exposure events |
+
+Beneath the experiment, on the same page, each level is a card that saves on
+its own, set in under the one it belongs to:
+
+| Card | Saves | Beneath it |
+|---|---|---|
+| An exposure event (`ExposureEventCard.tsx`) | the stressor, vehicle, route, regimen and stages | its observations |
+| An observation (`ObservationCard.tsx`) | the phenotypes seen at one look | its images |
+| An image (`ImageCard.tsx`) | a new image's file with its description; a saved one's description | |
+
+A record is saved before anything can be added beneath it, since the level
+beneath is created under its id. Opening a saved record loads what was stored,
+and saving replaces it.
+
+A form's values are the body it sends. Fields are registered under the
+schema's slot names, so three generic pieces do the rest, with no code per
+class:
+
+- `toBody` (`schema/bodies.ts`) makes the body from the form's values, or
+  from a record as it was read. It leaves out what the schema marks
+  `readOnly`, which is every id and every slot the server sets, and whatever
+  is blank.
+- `bodyResolver` (`problems.ts`) checks that body against the JSON Schema as
+  the form is filled in, and puts each problem on its field. A check the
+  schema cannot make, such as an end stage preceding a start stage, is passed
+  to it as a function.
+- `showProblems` puts a 422's problems on the same fields. The server decides
+  what is accepted; the client's check is for early feedback.
+
+Where a control takes more than the schema stores, it keeps the rest in its
+own state and gives the form the schema's value: `StageField` takes a time and
+holds the stage it falls in, by the table the server serves, `useQuantity` takes a number and a unit and
+holds a quantity once there is a number, and an image's `Measure` holds the
+two as the one text its slot stores. An image's file is not a field at all: it
+is handed to the card, which uploads it beside the fields.
 
 ## How the two halves wire together
 
@@ -350,8 +402,30 @@ runtime: ZP and ZFA as OBO JSON for the client, `labels.db`, a CURIE ->
 label table the server reads through `zapp_atlas/labels.py`, and `zfin.db`,
 ZFIN's registered alleles, genotypes, fish and wild-type lines, read through
 `zapp_atlas/zfin.py`. Without it the app still runs, but `/extdata` answers
-404, label lookups fall back to the CURIE, and `/api/zfin` answers 503. See
-[extdata/README.md](extdata/README.md).
+404, label lookups fall back to the CURIE, `/api/zfin` answers 503, and so
+does any save that names an ontology term, since there is nothing to check
+the term against. See [extdata/README.md](extdata/README.md).
+
+### Terms a request names
+
+A request says which ontology term it means by the term's CURIE, and the
+server checks it (`api/terms.py`). The schema declares which ontology a slot
+draws from, as `id_prefixes`: on a slot that holds a CURIE (`chemical_id` is
+a ChEBI term), or on a class of shared term rows (`PhenotypeTerm` is a ZP
+term). A CURIE with another prefix is refused, and so is one `labels.db` does
+not have. A term's label is the bundle's: what a body sends for it is not
+used, and a stored term's label is brought up to date when it is next named.
+
+The bundle does not carry every ontology the schema names. A term from one it
+lacks, which today is an exposure type from ECTO, is held to its prefix alone
+and keeps the label it was sent with.
+
+A developmental stage is such a term: a stage slot holds one of ZFIN's stages
+by its ZFS id. `zfin.db` has each stage's hours post fertilization, served at
+`GET /api/zfin/stages`. The form takes a time and stores the stage it falls
+in, and the server refuses an exposure whose end stage is before its start
+stage (`api/stages.py`), a rule about two slots that the schema cannot
+state.
 
 ### Reference data for the fish picker
 
@@ -362,15 +436,19 @@ yet in the form), and `line_description` for anything else. `fish_zfin_id`
 and `genotype_zfin_id` are set by the server each time a fish is saved, by
 matching the description against ZFIN's registry (`api/fish.py`); a fish
 without them is one ZFIN has not registered, or one with an allele ZFIN does
-not have. The schema marks the two slots `readonly`, which keeps them out of
+not have. The same step names the fish's parts: a background, allele, gene,
+construct or reagent given by its ZFIN id takes the name the registry has
+for it, whatever the request sent, and an id the registry does not have is
+refused. A part described without an id keeps the name it was given. With no
+`zfin.db`, a fish that names any id is not stored (503). The schema marks the two slots `readonly`, which keeps them out of
 request bodies: the layout sorts such a slot as `DERIVED`.
 Each experiment and tank entry owns its own `Fish` row, built by the generic
 save path like any other owned part. The alteration and zygosity enums carry
 SO and GENO terms as meanings, which is how a ZFIN record's SO id maps to an
 enum value.
 
-A line is described in the fish tank and picked from it on the submission
-form, the way a chemical is added to the cabinet and picked from it. The
+A line is described in the fish tank and picked from it on an experiment's
+page, the way a chemical is added to the cabinet and picked from it. The
 tank's add dialog (`features/groups/AddFishForm.tsx`, around
 `features/fish/FishBuilder.tsx`) takes a wild-type background, alleles found
 by symbol, gene or construct fragment (`AlleleSearch`), and a zygosity for

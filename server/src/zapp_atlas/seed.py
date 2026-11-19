@@ -199,7 +199,7 @@ def _build_nishi_bpa_ra_study(session: Session) -> Study:
     exposure = ExposureEvent(
         route="aquatic_environment",
         exposure_start_stage="ZFS:0000013",
-        exposure_end_stage="ZFS:0000050",
+        exposure_end_stage="ZFS:0000035",
         exposure_type=exposure_type,
         comment="BPA + retinoic acid co-exposure; RA potentiation observed.",
     )
@@ -276,7 +276,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     exposure = ExposureEvent(
         route="aquatic_environment",
         exposure_start_stage="ZFS:0000016",
-        exposure_end_stage="ZFS:0000050",
+        exposure_end_stage="ZFS:0000035",
         exposure_type=exposure_type,
         comment=(
             "Trichlorfon + guanitoxin co-exposure potentiated pericardial "
@@ -302,7 +302,7 @@ def _build_moreira_guanitoxin_study(session: Session) -> Study:
     exposure.phenotype_observation.append(obs)
     obs.phenotype.append(
         Phenotype(
-            stage="ZFS:0000050",
+            stage="ZFS:0000035",
             severity="severe",
             phenotype_term_id=pericardial_edema,
             prevalence=100,

@@ -21,21 +21,12 @@ import {
   Tab,
   TabCount,
   TabList,
-  UpdatedOn,
 } from "@/styles/elements";
 
-/**
- * A group's submissions, filtered by status. No endpoint serves them yet, so
- * the list is always empty.
- */
+/** What has been entered, filtered by who can see it. */
 
-/** Not in the schema yet. */
-export const STATUSES = [
-  "Published",
-  "In Progress",
-  "On Hold",
-  "Retracted",
-] as const;
+/** A study's `status`, as it is shown. */
+export const STATUSES = ["Draft", "Published"] as const;
 
 export type StatusName = (typeof STATUSES)[number];
 
@@ -43,8 +34,10 @@ export interface Submission {
   id: number;
   title: string;
   status: StatusName;
-  submittedBy: string;
-  date: string;
+  /** The research group it belongs to. */
+  group: string;
+  /** Its own page. */
+  href: string;
 }
 
 type Filter = StatusName | "All";
@@ -90,16 +83,16 @@ const FilterTabs = ({
 const SubmissionRow = ({ submission }: { submission: Submission }) => (
   <SubmissionItem>
     <SubmissionInfo>
-      <SubmissionTitle>{submission.title}</SubmissionTitle>
+      <SubmissionTitle>
+        <Link to={submission.href}>{submission.title}</Link>
+      </SubmissionTitle>
       <SubmissionMeta>
         <Status status={submission.status}>
           <StatusDot aria-hidden="true" />
           {submission.status}
         </Status>
         <MetaSeparator aria-hidden="true">&middot;</MetaSeparator>
-        <SubmittedBy>Submitted by {submission.submittedBy}</SubmittedBy>
-        <MetaSeparator aria-hidden="true">&middot;</MetaSeparator>
-        <UpdatedOn>Updated on {submission.date}</UpdatedOn>
+        <SubmittedBy>{submission.group}</SubmittedBy>
       </SubmissionMeta>
     </SubmissionInfo>
   </SubmissionItem>
@@ -108,14 +101,10 @@ const SubmissionRow = ({ submission }: { submission: Submission }) => (
 const Submissions = ({
   submissions,
   emptyText,
-  newHref,
 }: {
   submissions: Submission[];
-  /** What to do about it, which differs per page. */
+  /** What to do about there being none. */
   emptyText: string;
-  /** Where "New Submission" goes. Absent outside a group, which is the only
-   *  place a submission can be started. */
-  newHref?: string;
 }) => {
   const [filter, setFilter] = useState<Filter>("All");
 
@@ -128,7 +117,7 @@ const Submissions = ({
     <SubmissionsSection id="submissions">
       <SubmissionsHead>
         <SubmissionsTitle>
-          Submissions
+          Studies
           {submissions.length > 0 && <Count>{submissions.length}</Count>}
         </SubmissionsTitle>
       </SubmissionsHead>
@@ -153,19 +142,12 @@ const Submissions = ({
         <Empty>
           <EmptyTitle>
             {submissions.length === 0
-              ? "No submissions yet"
-              : `No ${filter.toLowerCase()} submissions`}
+              ? "No studies yet"
+              : `No ${filter.toLowerCase()} studies`}
           </EmptyTitle>
           <EmptyText>
             {submissions.length === 0 ? emptyText : "Try another status."}
           </EmptyText>
-          {/* Only when there is nothing at all: a filter with no matches is
-              not a reason to start something new. */}
-          {submissions.length === 0 && newHref && (
-            <Link className="btn btn--secondary" to={newHref}>
-              + New Submission
-            </Link>
-          )}
         </Empty>
       )}
     </SubmissionsSection>

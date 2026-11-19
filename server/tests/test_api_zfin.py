@@ -1,5 +1,7 @@
 """/api/zfin against a bundle holding the database built from tests/zfin_fixture."""
 
+from itertools import pairwise
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -30,8 +32,32 @@ def test_status_names_the_snapshot(client):
     assert res.status_code == 200
     assert res.json() == {
         "zfin_date": "2026.11.01",
-        "counts": {"wildtype": 2, "allele": 7, "genotype": 8, "fish": 9, "reagent": 1},
+        "counts": {
+            "wildtype": 2,
+            "allele": 7,
+            "genotype": 8,
+            "fish": 9,
+            "reagent": 1,
+            "stage": 44,
+        },
     }
+
+
+def test_stages_are_served_earliest_first_with_their_hours(client):
+    res = client.get("/api/zfin/stages")
+    assert res.status_code == 200
+    stages = res.json()
+    assert stages[0] == {
+        "stage_id": "ZFS:0000001",
+        "name": "Zygote:1-cell",
+        "start_hours": 0.0,
+        "end_hours": 0.75,
+    }
+    assert stages[-1]["name"] == "Adult"
+    # Each begins where the one before ended, so a time falls in exactly one.
+    assert all(later["start_hours"] == earlier["end_hours"] for earlier, later in pairwise(stages))
+    # "Unknown" covers every hour, so it is not a stage a time can fall in.
+    assert "ZFS:0000000" not in {stage["stage_id"] for stage in stages}
 
 
 def test_wildtypes(client):

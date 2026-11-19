@@ -1,9 +1,28 @@
 """Helpers shared by the API tests."""
 
+import subprocess
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from sampling import sample
 
 from zapp_atlas.api.layout import LEVELS, SlotKind, layout
+
+# The few terms the tests name, as ROBOT exports an ontology's labels, and
+# ZFIN's stages, as the bundle's Makefile takes them from its stage file.
+LABELS_FIXTURES = sorted((Path(__file__).parent / "labels_fixture").glob("*.tsv"))
+# A miniature of ZFIN's bulk downloads (see its README).
+ZFIN_FIXTURE = Path(__file__).parent / "zfin_fixture"
+
+
+def built(script: str, output: Path, *arguments: str) -> Path:
+    """Run one of the extdata bundle's own builders, as the real bundle is built."""
+    builder = Path(__file__).resolve().parents[2] / "extdata" / "scripts" / script
+    subprocess.run(
+        ["uv", "run", "--quiet", "--script", str(builder), str(output), *arguments], check=True
+    )
+    return output
+
 
 CURATOR = "0000-0002-1825-0097"
 OUTSIDER = "0000-0003-3333-4444"

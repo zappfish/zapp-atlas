@@ -2,95 +2,33 @@ import { useCallback, useState } from "react";
 import {
   AddButton,
   AddRow,
-  AddRowInline,
-  EntryBody,
   EntryCard,
   EntryHead,
-  EntryMeta,
   EntryRemove,
-  EntryTitle,
   FieldGrid,
   EntryCaret,
   GroupSummaryText,
   GroupToggle,
   RadioGroup,
-  RadioItem,
   RadioLabel,
   SelectInput,
   TextArea,
   TextInput,
 } from "@/styles/elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
+import { ManufacturerEnum, VehicleEnum } from "@/schema";
+import type { Body } from "@/schema/bodies";
 import Field from "../Field";
-import { emptyControl, emptyImage, type Submission } from "../submission";
-import { ImageUpload, Measure } from "../imageEntry";
-import { MEASURES } from "../measures";
-import InfoTip from "../InfoTip";
-import { REARING_INFO } from "../explanations";
+import QuantityField from "../QuantityField";
+import { supplierLabel } from "../suppliers";
+import { VEHICLE_LABELS, VEHICLE_UNITS } from "../vehicles";
 
 const TYPES = ["Negative control / untreated", "Vehicle control"];
 
-const VEHICLES = [
-  "Dimethylformamide (DMF)",
-  "Dimethyl sulfoxide (DMSO)",
-  "Embryonic media (EM/E3)",
-  "Ethanol",
-  "Methylcellulose",
-];
-
-const REARING = ["Standard", "Not standard"];
-
-/** One image attached to a control, with its own metadata. */
-const ControlImage = ({
-  n,
-  control: c,
-  index,
-  onRemove,
-}: {
-  n: number;
-  control: number;
-  index: number;
-  onRemove: () => void;
-}) => {
-  const { register } = useFormContext<Submission>();
-  const at = `controls.${c}.images.${index}` as const;
-
-  return (
-  <EntryCard>
-    <EntryHead>
-      <EntryTitle>Image {n}</EntryTitle>
-      <EntryRemove type="button" onClick={onRemove}>
-        Remove
-      </EntryRemove>
-    </EntryHead>
-
-    <EntryBody>
-      <ImageUpload required={false} name={`${at}.file`} />
-      <EntryMeta>
-        {MEASURES.map(({ field, unitField, ...measure }) => (
-          <Measure
-            key={measure.label}
-            {...measure}
-            name={`${at}.${field}` as const}
-            unitName={unitField && (`${at}.${unitField}` as const)}
-          />
-        ))}
-        <Field label="Microscope information">
-          {(id) => (
-            <TextInput
-              id={id}
-              placeholder="e.g. Zeiss Axio Imager"
-              {...register(`${at}.microscope`)}
-            />
-          )}
-        </Field>
-      </EntryMeta>
-    </EntryBody>
-  </EntryCard>
-  );
-};
-
-/** What this control was, and what it looked like. */
+/**
+ * What this control was. The schema has a type, a vehicle and a comment for
+ * a control; its strain, rearing and images wait on how controls are modelled.
+ */
 const Control = ({
   n,
   index,
@@ -103,21 +41,17 @@ const Control = ({
   const [isOpen, setIsOpen] = useState(n === 1);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
-  const { register, control, watch } = useFormContext<Submission>();
-  const at = `controls.${index}` as const;
-  const [type, vehicle, strain, rearing] = watch([
-    `${at}.type`,
-    `${at}.vehicle`,
-    `${at}.strain`,
-    `${at}.rearing`,
+  const { register, watch } = useFormContext<Body<"Experiment">>();
+  const at = `control.${index}` as const;
+  const [type, vehicle, supplier] = watch([
+    `${at}.control_type`,
+    `${at}.vehicle_if_treated.vehicle_type`,
+    `${at}.vehicle_if_treated.manufacturer`,
   ]);
-  const images = useFieldArray({ control, name: `${at}.images` });
 
   // Only what has been filled in: a control with nothing entered says nothing.
   const summary = [
-    type === "Vehicle control" ? vehicle : "",
-    strain,
-    images.fields.length ? `${images.fields.length} images` : "No images",
+    type === "Vehicle control" && vehicle ? VEHICLE_LABELS[vehicle] : "",
   ].filter(Boolean);
 
   return (
@@ -142,136 +76,123 @@ const Control = ({
       )}
 
       {isOpen && (
-        <>
-          <FieldGrid>
-              <Field wide label="Control type" labels="value">
-                {(_id, labelId) => (
-                  <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                    {TYPES.map((option) => (
-                      <RadioLabel key={option}>
-                        <input
-                          type="radio"
-                          value={option}
-                          {...register(`${at}.type`)}
-                        />
-                        {option}
-                      </RadioLabel>
-                    ))}
-                  </RadioGroup>
-                )}
-              </Field>
-
-            <Field label="Vehicle used">
-              {(id) => (
-                <SelectInput id={id} {...register(`${at}.vehicle`)}>
-                  <option value="">Select vehicle used</option>
-                  {VEHICLES.map((option) => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </SelectInput>
-              )}
-            </Field>
-
-            <Field label="Strain / background">
-              {(id) => (
-                <TextInput
-                  id={id}
-                  placeholder="Type a line (e.g., AB, TL, AB/...)"
-                  {...register(`${at}.strain`)}
-                />
-              )}
-            </Field>
-
-            <Field label="Line description">
-              {(id) => (
-                <TextInput
-                  id={id}
-                  placeholder="If you don't see your wildtype, or you have a transgenic or mutant line, enter its description here"
-                  {...register(`${at}.lineDescription`)}
-                />
-              )}
-            </Field>
-
-              <Field wide label="Rearing conditions" labels="value">
-                {(_id, labelId) => (
-                  <RadioGroup role="radiogroup" aria-labelledby={labelId}>
-                    {REARING.map((option) => (
-                      <RadioItem key={option}>
-                        <RadioLabel>
-                          <input
-                            type="radio"
-                            value={option}
-                            {...register(`${at}.rearing`)}
-                          />
-                          {option}
-                        </RadioLabel>
-                        {REARING_INFO[option] && (
-                          <InfoTip label={`${option} rearing`}>
-                            <p>{REARING_INFO[option]}</p>
-                          </InfoTip>
-                        )}
-                      </RadioItem>
-                    ))}
-                  </RadioGroup>
-                )}
-              </Field>
-
-              {rearing === "Not standard" && (
-                <Field wide label="Describe">
-                  {(id) => (
-                    <TextArea
-                      id={id}
-                      rows={3}
-                      placeholder={'If "not standard", please describe here, e.g. kept in the dark'}
-                      {...register(`${at}.rearingComment`)}
+        <FieldGrid>
+          <Field wide label="Control type" labels="value">
+            {(_id, labelId) => (
+              <RadioGroup role="radiogroup" aria-labelledby={labelId}>
+                {TYPES.map((option) => (
+                  <RadioLabel key={option}>
+                    <input
+                      type="radio"
+                      value={option}
+                      {...register(`${at}.control_type`)}
                     />
+                    {option}
+                  </RadioLabel>
+                ))}
+              </RadioGroup>
+            )}
+          </Field>
+
+          <Field
+            label="Vehicle used"
+            name={`${at}.vehicle_if_treated.vehicle_type`}
+          >
+            {(id, _labelId, errorProps) => (
+              <SelectInput
+                id={id}
+                {...errorProps}
+                {...register(`${at}.vehicle_if_treated.vehicle_type`)}
+              >
+                <option value="">Select vehicle used</option>
+                {Object.values(VehicleEnum).map((each) => (
+                  <option key={each} value={each}>
+                    {VEHICLE_LABELS[each]}
+                  </option>
+                ))}
+              </SelectInput>
+            )}
+          </Field>
+
+          {/* The schema requires a name when the list is escaped. */}
+          {vehicle === VehicleEnum.other_not_listed && (
+            <Field
+              label="Vehicle name"
+              name={`${at}.vehicle_if_treated.unrecognized_chemical_name`}
+            >
+              {(id, _labelId, errorProps) => (
+                <TextInput
+                  id={id}
+                  placeholder="Enter the vehicle's name"
+                  {...errorProps}
+                  {...register(
+                    `${at}.vehicle_if_treated.unrecognized_chemical_name`,
+                    { shouldUnregister: true },
                   )}
-                </Field>
+                />
               )}
+            </Field>
+          )}
 
-              <Field wide label="Phenotype description">
-                {(id) => (
-                  <TextArea
-                    id={id}
-                    rows={3}
-                    placeholder="If control fish show phenotypes unrelated to the experiment, describe them here."
-                    {...register(`${at}.phenotypeDescription`)}
-                  />
-                )}
-              </Field>
+          <QuantityField
+            label="Vehicle concentration"
+            placeholder="e.g. 0.1"
+            units={VEHICLE_UNITS}
+            name={`${at}.vehicle_if_treated.concentration`}
+          />
 
-              <Field wide label="Notes">
-                {(id) => <TextArea id={id} rows={3} {...register(`${at}.notes`)} />}
-              </Field>
-          </FieldGrid>
+          <Field
+            label="Supplier of the vehicle"
+            name={`${at}.vehicle_if_treated.manufacturer`}
+          >
+            {(id, _labelId, errorProps) => (
+              <SelectInput
+                id={id}
+                {...errorProps}
+                {...register(`${at}.vehicle_if_treated.manufacturer`)}
+              >
+                <option value="">Select a supplier</option>
+                {Object.values(ManufacturerEnum).map((each) => (
+                  <option key={each} value={each}>
+                    {supplierLabel(each)}
+                  </option>
+                ))}
+              </SelectInput>
+            )}
+          </Field>
 
-          <EntryTitle>Control images (optional)</EntryTitle>
+          {supplier === ManufacturerEnum.other_not_listed && (
+            <Field
+              label="Vehicle supplier name"
+              name={`${at}.vehicle_if_treated.unrecognized_manufacturer_name`}
+            >
+              {(id, _labelId, errorProps) => (
+                <TextInput
+                  id={id}
+                  placeholder="Enter the supplier's name"
+                  {...errorProps}
+                  {...register(
+                    `${at}.vehicle_if_treated.unrecognized_manufacturer_name`,
+                    { shouldUnregister: true },
+                  )}
+                />
+              )}
+            </Field>
+          )}
 
-          {images.fields.map((field, i) => (
-            <ControlImage
-              key={field.id}
-              n={i + 1}
-              control={index}
-              index={i}
-              onRemove={() => images.remove(i)}
-            />
-          ))}
-
-          <AddRowInline>
-            <AddButton type="button" onClick={() => images.append(emptyImage())}>
-              + Add control image
-            </AddButton>
-          </AddRowInline>
-        </>
+          <Field wide label="Notes">
+            {(id) => <TextArea id={id} rows={3} {...register(`${at}.comment`)} />}
+          </Field>
+        </FieldGrid>
       )}
     </EntryCard>
   );
 };
 
-/** The controls this submission was measured against. */
+/** The controls this experiment was measured against. */
 const ControlSection = () => {
-  const { control } = useFormContext<Submission>();
-  const { fields, append, remove } = useFieldArray({ control, name: "controls" });
+  const { control } = useFormContext<Body<"Experiment">>();
+  const { fields, append, remove } = useFieldArray({ control, name: "control" });
 
   return (
     <>
@@ -285,7 +206,8 @@ const ControlSection = () => {
       ))}
 
       <AddRow>
-        <AddButton type="button" onClick={() => append(emptyControl())}>
+        {/* A row with nothing filled in is not saved. */}
+        <AddButton type="button" onClick={() => append({})}>
           + Add another control
         </AddButton>
       </AddRow>

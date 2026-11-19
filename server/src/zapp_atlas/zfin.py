@@ -50,6 +50,16 @@ class Construct:
 
 
 @dataclass(frozen=True)
+class Stage:
+    stage_id: str
+    name: str
+    """ZFIN's name for it: "Period:Stage", or the period alone."""
+    start_hours: float
+    end_hours: float
+    """Hours post fertilization, from ``start_hours`` up to but not including this."""
+
+
+@dataclass(frozen=True)
 class Wildtype:
     fish_id: str
     genotype_id: str
@@ -223,6 +233,24 @@ class Zfin:
     def meta(self) -> dict[str, str]:
         return {row["key"]: row["value"] for row in self.db.execute("SELECT key, value FROM meta")}
 
+    # -- stages ---------------------------------------------------------------
+
+    def stages(self) -> list[Stage]:
+        """The developmental stages, earliest first."""
+        return [
+            Stage(**row)
+            for row in self.db.execute(
+                "SELECT stage_id, name, start_hours, end_hours FROM stage ORDER BY start_hours"
+            )
+        ]
+
+    def stage(self, stage_id: str) -> Stage | None:
+        row = self.db.execute(
+            "SELECT stage_id, name, start_hours, end_hours FROM stage WHERE stage_id = ?",
+            (stage_id,),
+        ).fetchone()
+        return Stage(**row) if row else None
+
     # -- wild types -----------------------------------------------------------
 
     def wildtypes(self) -> list[Wildtype]:
@@ -232,6 +260,55 @@ class Zfin:
                 "SELECT fish_id, genotype_id, name, abbreviation FROM wildtype ORDER BY name"
             )
         ]
+
+    def wildtype(self, genotype_id: str) -> Wildtype | None:
+        """The wild-type line a genotype id names, if it names one."""
+        row = self.db.execute(
+            "SELECT fish_id, genotype_id, name, abbreviation FROM wildtype WHERE genotype_id = ?",
+            (genotype_id,),
+        ).fetchone()
+        return Wildtype(**row) if row else None
+
+    # -- genes and constructs ---------------------------------------------------
+    # Known only through the alleles and reagents that involve them.
+
+    def gene_symbol(self, gene_id: str) -> str | None:
+        row = self.db.execute(
+            "SELECT gene_symbol FROM allele_gene WHERE gene_id = :id "
+            "UNION SELECT gene_symbol FROM reagent_gene WHERE gene_id = :id LIMIT 1",
+            {"id": gene_id},
+        ).fetchone()
+        return row["gene_symbol"] if row else None
+
+    def construct_name(self, construct_id: str) -> str | None:
+        row = self.db.execute(
+            "SELECT construct_name FROM allele_construct WHERE construct_id = ? LIMIT 1",
+            (construct_id,),
+        ).fetchone()
+        return row["construct_name"] if row else None
+
+    # -- reagents -------------------------------------------------------------
+
+    def reagent(self, reagent_id: str) -> Reagent | None:
+        row = self.db.execute(
+            "SELECT reagent_id, symbol, kind FROM reagent WHERE reagent_id = ?", (reagent_id,)
+        ).fetchone()
+        return self._reagent(row) if row else None
+
+    def _reagent(self, row: sqlite3.Row) -> Reagent:
+        return Reagent(
+            reagent_id=row["reagent_id"],
+            symbol=row["symbol"],
+            kind=row["kind"],
+            genes=tuple(
+                Gene(g["gene_id"], g["gene_symbol"])
+                for g in self.db.execute(
+                    "SELECT gene_id, gene_symbol FROM reagent_gene "
+                    "WHERE reagent_id = ? ORDER BY gene_symbol",
+                    (row["reagent_id"],),
+                )
+            ),
+        )
 
     # -- alleles --------------------------------------------------------------
 
@@ -350,19 +427,7 @@ class Zfin:
             ),
             backgrounds=self._backgrounds("fish_background", "fish_id", fish_id),
             reagents=tuple(
-                Reagent(
-                    reagent_id=r["reagent_id"],
-                    symbol=r["symbol"],
-                    kind=r["kind"],
-                    genes=tuple(
-                        Gene(g["gene_id"], g["gene_symbol"])
-                        for g in self.db.execute(
-                            "SELECT gene_id, gene_symbol FROM reagent_gene "
-                            "WHERE reagent_id = ? ORDER BY gene_symbol",
-                            (r["reagent_id"],),
-                        )
-                    ),
-                )
+                self._reagent(r)
                 for r in self.db.execute(
                     "SELECT r.reagent_id, r.symbol, r.kind FROM fish_reagent fr "
                     "JOIN reagent r USING (reagent_id) WHERE fr.fish_id = ? ORDER BY r.symbol",

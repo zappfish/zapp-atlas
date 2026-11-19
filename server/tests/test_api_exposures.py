@@ -17,7 +17,7 @@ def _create_study_and_experiment(client: TestClient, group: int) -> tuple[int, i
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-990101-1", "background_name": "AB"},
+            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
             "control": [],
         },
     ).json()

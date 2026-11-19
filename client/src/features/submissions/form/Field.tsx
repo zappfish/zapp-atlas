@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { get, useFormState, type FieldPath } from "react-hook-form";
+import { get, useFormState } from "react-hook-form";
 import {
   FieldBox,
   FieldError,
@@ -10,7 +10,6 @@ import {
   RequiredMark,
 } from "@/styles/elements";
 import InfoTip from "./InfoTip";
-import type { Submission } from "./submission";
 
 /** Spread onto the control while it has an error. */
 export type ErrorProps = {
@@ -28,6 +27,7 @@ const Field = ({
   hint,
   info,
   name,
+  error,
   labels = "control",
   wide = false,
   children,
@@ -39,7 +39,9 @@ const Field = ({
   /** Rendered in an InfoTip beside the label. */
   info?: ReactNode;
   /** The validated value, whose error shows under the control. */
-  name?: FieldPath<Submission>;
+  name?: string;
+  /** A problem the control found itself, before it had a value to validate. */
+  error?: string;
   /**
    * What the label describes. `<label for>` binds only to form controls, so a
    * displayed value is labelled by aria-labelledby from the other direction.
@@ -53,10 +55,9 @@ const Field = ({
   const id = useId();
   const labelId = `${id}-label`;
   const errorId = `${id}-error`;
-  const { errors } = useFormState<Submission>({ name });
-  const message: string | undefined = name
-    ? get(errors, name)?.message
-    : undefined;
+  const { errors } = useFormState({ name });
+  const message: string | undefined =
+    error ?? (name ? get(errors, name)?.message : undefined);
   const errorProps: ErrorProps = message
     ? { "aria-invalid": true, "aria-describedby": errorId }
     : {};

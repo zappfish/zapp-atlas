@@ -522,6 +522,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/zfin/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stages Endpoint */
+        get: operations["stages_endpoint_api_zfin_stages_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/zfin/status": {
         parameters: {
             query?: never;
@@ -870,15 +887,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/research-groups/{group_id}/submissions/new": {
+    "/research-groups/{group_id}/studies/{study_id}/experiments/new": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** New Group Submission Page */
-        get: operations["new_group_submission_page_research_groups__group_id__submissions_new_get"];
+        /** New Experiment Page */
+        get: operations["new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/research-groups/{group_id}/studies/{study_id}/experiments/{experiment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Experiment Page */
+        get: operations["experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1260,12 +1294,12 @@ export interface components {
             comment?: string | null;
             /**
              * Exposure End Stage
-             * @description The developmental stage of fish when exposure ended.
+             * @description The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.
              */
             exposure_end_stage?: string | null;
             /**
              * Exposure Start Stage
-             * @description The developmental stage of fish when exposure started.
+             * @description The developmental stage of fish when exposure started, as one of ZFIN's stages.
              */
             exposure_start_stage?: string | null;
             /** @description An instance of exposure specifying the type of stressor a subject was exposed to. */
@@ -1302,12 +1336,12 @@ export interface components {
             comment?: string | null;
             /**
              * Exposure End Stage
-             * @description The developmental stage of fish when exposure ended.
+             * @description The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.
              */
             exposure_end_stage?: string | null;
             /**
              * Exposure Start Stage
-             * @description The developmental stage of fish when exposure started.
+             * @description The developmental stage of fish when exposure started, as one of ZFIN's stages.
              */
             exposure_start_stage?: string | null;
             /** @description An instance of exposure specifying the type of stressor a subject was exposed to. */
@@ -1647,7 +1681,7 @@ export interface components {
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
              * Stage
-             * @description The developmental stage of fish when the phenotype was observed.
+             * @description The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.
              */
             stage?: string | null;
         };
@@ -1714,13 +1748,13 @@ export interface components {
             severity?: components["schemas"]["SeverityEnum"] | null;
             /**
              * Stage
-             * @description The developmental stage of fish when the phenotype was observed.
+             * @description The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.
              */
             stage?: string | null;
         };
         /**
          * PhenotypeTerm
-         * @description A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).
+         * @description A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.
          */
         PhenotypeTerm: {
             /**
@@ -1925,7 +1959,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -1965,7 +1999,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2256,7 +2290,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2298,7 +2332,7 @@ export interface components {
             cas_id?: string | null;
             /**
              * Chemical Id
-             * @description Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.
+             * @description The chemical's ChEBI identifier.
              */
             chemical_id?: string | null;
             /**
@@ -2510,6 +2544,21 @@ export interface components {
             fish: components["schemas"]["ZfinFishRefOut"] | null;
             genotype: components["schemas"]["ZfinGenotypeRefOut"] | null;
         };
+        /**
+         * ZfinStageOut
+         * @description A developmental stage, and the hours post fertilization it covers:
+         *     from ``start_hours`` up to, but not including, ``end_hours``.
+         */
+        ZfinStageOut: {
+            /** End Hours */
+            end_hours: number;
+            /** Name */
+            name: string;
+            /** Stage Id */
+            stage_id: string;
+            /** Start Hours */
+            start_hours: number;
+        };
         /** ZfinStatusOut */
         ZfinStatusOut: {
             /** Counts */
@@ -2626,6 +2675,7 @@ export type ZfinReagentOut = components['schemas']['ZfinReagentOut'];
 export type ZfinResolveCandidateOut = components['schemas']['ZfinResolveCandidateOut'];
 export type ZfinResolveIn = components['schemas']['ZfinResolveIn'];
 export type ZfinResolveOut = components['schemas']['ZfinResolveOut'];
+export type ZfinStageOut = components['schemas']['ZfinStageOut'];
 export type ZfinStatusOut = components['schemas']['ZfinStatusOut'];
 export type ZfinWildtypeOut = components['schemas']['ZfinWildtypeOut'];
 export type ZygosityEnum = components['schemas']['ZygosityEnum'];
@@ -4250,6 +4300,26 @@ export interface operations {
             };
         };
     };
+    stages_endpoint_api_zfin_stages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZfinStageOut"][];
+                };
+            };
+        };
+    };
     status_endpoint_api_zfin_status_get: {
         parameters: {
             query?: never;
@@ -4781,12 +4851,48 @@ export interface operations {
             };
         };
     };
-    new_group_submission_page_research_groups__group_id__submissions_new_get: {
+    new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 group_id: number;
+                study_id: number;
+            };
+            cookie?: {
+                zapp_orcid_auth?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: number;
+                study_id: number;
+                experiment_id: number;
             };
             cookie?: {
                 zapp_orcid_auth?: string | null;

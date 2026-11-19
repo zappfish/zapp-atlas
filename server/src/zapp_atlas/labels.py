@@ -43,6 +43,22 @@ class Labels:
             check_same_thread=False,
         )
 
+    @property
+    def available(self) -> bool:
+        """Is there a table to look terms up in?"""
+        return self._db is not None
+
+    def covers(self, prefix: str) -> bool:
+        """Does the table hold any term of an ontology, by its CURIE prefix?"""
+        if self._db is None:
+            return False
+        # A range over the primary key: every id from "ZP:" up to, but not
+        # including, "ZP;" (the character after a colon).
+        row = self._db.execute(
+            "SELECT 1 FROM term WHERE id >= ? AND id < ? LIMIT 1", (f"{prefix}:", f"{prefix};")
+        ).fetchone()
+        return row is not None
+
     def label(self, curie: str) -> str | None:
         """The term's label, or None if the table has none for it."""
         if self._db is None:

@@ -43,8 +43,8 @@ const initials = (name: string) => {
   return letters.join("").toUpperCase();
 };
 
-/** Either submission form: the bare one, or a group's. */
-const onForm = (pathname: string) => pathname.endsWith("/submissions/new");
+/** An experiment's page, which is a long form with a rail of its own. */
+const onForm = (pathname: string) => pathname.includes("/experiments/");
 
 const GroupItem = ({
   group,
@@ -83,7 +83,6 @@ const SECTIONS = [
   { slug: "fish-tank", label: "Fish Tank" },
   { slug: "chemical-cabinet", label: "Chemical Cabinet" },
   { slug: "studies", label: "Studies" },
-  { slug: "submissions", label: "Submissions" },
 ];
 
 const GroupSections = ({ groupId }: { groupId: number }) => {

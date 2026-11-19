@@ -4,10 +4,9 @@ import { useFishTank } from "@/api/hooks";
 import type { FishTankEntry } from "@/api/types";
 import { StockAdd, StockChoices, StockChosen } from "@/components/StockPanel";
 import AddFishForm from "@/features/groups/AddFishForm";
-import { copyOf, describeFish, zfinStatus } from "@/fish";
-import { EntryCard, FieldGrid, TextInput } from "@/styles/elements";
-import Field from "../Field";
-import type { Submission } from "../submission";
+import { describeFish, zfinStatus } from "@/fish";
+import { toBody, type Body } from "@/schema/bodies";
+import { EntryCard } from "@/styles/elements";
 
 /**
  * The fish the experiment used, picked from the group's tank, or added to
@@ -15,30 +14,31 @@ import type { Submission } from "../submission";
  */
 const FishFromTank = ({ groupId }: { groupId: number }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const { setValue, watch } = useFormContext<Submission>();
+  // Which tank entry the fish was taken from, while this page is open. It is
+  // not stored: the experiment keeps the description, not the link.
+  const [taken, setTaken] = useState<FishTankEntry | null>(null);
+  const { setValue, watch } = useFormContext<Body<"Experiment">>();
   const { data: tank = [] } = useFishTank(groupId);
-  const [entryId, description] = watch(["fish.entryId", "fish.description"]);
+  const fish = watch("fish");
 
   const take = (entry: FishTankEntry) => {
-    setValue("fish.entryId", String(entry.id));
+    setTaken(entry);
     // The experiment stores its own copy, so the tank entry can change later
-    // without rewriting what this submission said.
-    setValue("fish.description", copyOf(entry.fish));
+    // without rewriting what this experiment said.
+    setValue("fish", toBody("Fish", entry.fish), { shouldDirty: true });
   };
 
   const clear = () => {
-    setValue("fish.entryId", "");
-    setValue("fish.description", null);
+    setTaken(null);
+    setValue("fish", null, { shouldDirty: true });
   };
 
-  if (description) {
-    // The copy has no ZFIN ids until it is saved; the entry it came from does.
-    const entry = tank.find((row) => String(row.id) === entryId);
-    const nickname = entry?.nickname;
+  if (fish) {
+    const nickname = taken?.nickname;
     return (
       <StockChosen
-        name={nickname ?? describeFish(description)}
-        detail={[nickname && describeFish(description), entry && zfinStatus(entry.fish)]
+        name={nickname ?? describeFish(fish)}
+        detail={[nickname && describeFish(fish), taken && zfinStatus(taken.fish)]
           .filter(Boolean)
           .join(" · ")}
         onChange={clear}
@@ -79,20 +79,10 @@ const FishFromTank = ({ groupId }: { groupId: number }) => {
 };
 
 /** The fish the experiment used. */
-const FishSection = ({ groupId }: { groupId: number }) => {
-  const { register } = useFormContext<Submission>();
-
-  return (
-    <EntryCard>
-      <FishFromTank groupId={groupId} />
-
-      <FieldGrid>
-        <Field label="Additional condition">
-          {(id) => <TextInput id={id} {...register("fish.additionalCondition")} />}
-        </Field>
-      </FieldGrid>
-    </EntryCard>
-  );
-};
+const FishSection = ({ groupId }: { groupId: number }) => (
+  <EntryCard>
+    <FishFromTank groupId={groupId} />
+  </EntryCard>
+);
 
 export default FishSection;

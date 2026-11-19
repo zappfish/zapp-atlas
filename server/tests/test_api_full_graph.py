@@ -21,7 +21,7 @@ def test_get_study_returns_nested_experiments_exposures_observations(
         f"/api/studies/{study['id']}/experiments",
         json={
             "standard_rearing_condition": True,
-            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-990101-3", "background_name": "AB"},
+            "fish": {"background_zfin_id": "ZFIN:ZDB-GENO-960809-7", "background_name": "AB"},
             "control": [],
         },
     ).json()

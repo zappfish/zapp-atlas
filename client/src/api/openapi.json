@@ -1294,10 +1294,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure ended.",
+            "description": "The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000037"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure End Stage"
@@ -1311,10 +1319,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure started.",
+            "description": "The developmental stage of fish when exposure started, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000019"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure Start Stage"
@@ -1460,10 +1476,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure ended.",
+            "description": "The developmental stage of fish when exposure ended, as one of ZFIN's stages. Not one that comes before the stage it started at.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000037"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure End Stage"
@@ -1477,10 +1501,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when exposure started.",
+            "description": "The developmental stage of fish when exposure started, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "ExposureEvent"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000019"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Exposure Start Stage"
@@ -1653,6 +1685,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ECTO:9000057"
+                }
               ]
             },
             "title": "Term Uri",
@@ -1686,6 +1723,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ECTO:9000057"
+                }
               ]
             },
             "title": "Term Uri",
@@ -2580,10 +2622,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when the phenotype was observed.",
+            "description": "The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000035"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Stage"
@@ -2797,10 +2847,18 @@
                 "type": "null"
               }
             ],
-            "description": "The developmental stage of fish when the phenotype was observed.",
+            "description": "The developmental stage of fish when the phenotype was observed, as one of ZFIN's stages.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
+              ],
+              "examples": [
+                {
+                  "value": "ZFS:0000035"
+                }
+              ],
+              "id_prefixes": [
+                "ZFS"
               ]
             },
             "title": "Stage"
@@ -2814,7 +2872,7 @@
       },
       "PhenotypeTerm": {
         "additionalProperties": false,
-        "description": "A phenotype ontology term from the Zebrafish Phenotype ontology (ZP).",
+        "description": "A phenotype ontology term from the Zebrafish Phenotype ontology (ZP). Named by its id; the server takes its label from the ontology.",
         "properties": {
           "term_label": {
             "anyOf": [
@@ -2830,6 +2888,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "edematous pericardial region"
+                }
               ]
             },
             "title": "Term Label"
@@ -2840,6 +2903,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ZP:0105827"
+                }
               ]
             },
             "title": "Term Uri",
@@ -2869,6 +2937,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "edematous pericardial region"
+                }
               ]
             },
             "title": "Term Label"
@@ -2879,6 +2952,11 @@
               "domain_of": [
                 "PhenotypeTerm",
                 "ExposureType"
+              ],
+              "examples": [
+                {
+                  "value": "ZP:0105827"
+                }
               ]
             },
             "title": "Term Uri",
@@ -3351,12 +3429,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -3508,12 +3594,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -4557,12 +4651,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -4727,12 +4829,20 @@
                 "type": "null"
               }
             ],
-            "description": "Chemical identifier (e.g., a CHEBI or other ontology URI) for the chemical.",
+            "description": "The chemical's ChEBI identifier.",
             "linkml_meta": {
               "domain_of": [
                 "StressorChemical",
                 "VehicleOfTransmission",
                 "ChemicalCabinetEntry"
+              ],
+              "examples": [
+                {
+                  "value": "CHEBI:16236"
+                }
+              ],
+              "id_prefixes": [
+                "CHEBI"
               ]
             },
             "title": "Chemical Id"
@@ -5386,6 +5496,35 @@
           "candidates"
         ],
         "title": "ZfinResolveOut",
+        "type": "object"
+      },
+      "ZfinStageOut": {
+        "description": "A developmental stage, and the hours post fertilization it covers:\nfrom ``start_hours`` up to, but not including, ``end_hours``.",
+        "properties": {
+          "end_hours": {
+            "title": "End Hours",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "stage_id": {
+            "title": "Stage Id",
+            "type": "string"
+          },
+          "start_hours": {
+            "title": "Start Hours",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stage_id",
+          "name",
+          "start_hours",
+          "end_hours"
+        ],
+        "title": "ZfinStageOut",
         "type": "object"
       },
       "ZfinStatusOut": {
@@ -8307,6 +8446,31 @@
         ]
       }
     },
+    "/api/zfin/stages": {
+      "get": {
+        "operationId": "stages_endpoint_api_zfin_stages_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ZfinStageOut"
+                  },
+                  "title": "Response Stages Endpoint Api Zfin Stages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Stages Endpoint",
+        "tags": [
+          "zfin"
+        ]
+      }
+    },
     "/api/zfin/status": {
       "get": {
         "operationId": "status_endpoint_api_zfin_status_get",
@@ -9123,9 +9287,9 @@
         ]
       }
     },
-    "/research-groups/{group_id}/submissions/new": {
+    "/research-groups/{group_id}/studies/{study_id}/experiments/new": {
       "get": {
-        "operationId": "new_group_submission_page_research_groups__group_id__submissions_new_get",
+        "operationId": "new_experiment_page_research_groups__group_id__studies__study_id__experiments_new_get",
         "parameters": [
           {
             "in": "path",
@@ -9133,6 +9297,15 @@
             "required": true,
             "schema": {
               "title": "Group Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "title": "Study Id",
               "type": "integer"
             }
           },
@@ -9175,7 +9348,83 @@
             "description": "Validation Error"
           }
         },
-        "summary": "New Group Submission Page",
+        "summary": "New Experiment Page",
+        "tags": [
+          "html"
+        ]
+      }
+    },
+    "/research-groups/{group_id}/studies/{study_id}/experiments/{experiment_id}": {
+      "get": {
+        "operationId": "experiment_page_research_groups__group_id__studies__study_id__experiments__experiment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "title": "Study Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "zapp_orcid_auth",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Zapp Orcid Auth"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Experiment Page",
         "tags": [
           "html"
         ]

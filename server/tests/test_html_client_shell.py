@@ -35,6 +35,17 @@ def test_group_route_serves_the_shell_for_any_group_id(client: TestClient) -> No
     assert client.get("/api/research-groups/999999").status_code == 404
 
 
+@pytest.mark.parametrize("last", ["new", "7"])
+def test_an_experiment_page_is_served_the_shell(client: TestClient, last: str) -> None:
+    """A new experiment's page and a saved one's, which differ in their last part."""
+    _sign_in(client)
+
+    res = client.get(f"/research-groups/1/studies/2/experiments/{last}")
+
+    assert res.status_code == 200
+    assert '<div id="root"></div>' in res.text
+
+
 def test_client_route_renders_inside_the_site_shell(client: TestClient) -> None:
     _sign_in(client)
 

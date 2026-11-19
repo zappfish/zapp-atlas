@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFormContext, type FieldPath } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   EntryFooter,
   FieldHint,
@@ -10,12 +10,12 @@ import {
   TextArea,
 } from "@/styles/elements";
 import Field from "./Field";
-import type { Submission } from "./submission";
 
 /** Anything the section's own fields do not capture. */
-const OptionalNotes = ({ name }: { name: FieldPath<Submission> }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { register } = useFormContext<Submission>();
+const OptionalNotes = ({ name }: { name: string }) => {
+  const { register, getValues } = useFormContext();
+  // Open on notes that were saved, so they are not hidden behind the toggle.
+  const [isOpen, setIsOpen] = useState(() => Boolean(getValues(name)));
 
   return (
     <EntryFooter>

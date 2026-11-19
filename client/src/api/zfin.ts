@@ -2,9 +2,14 @@ import { get, send } from "./client";
 import type {
   FishDescription,
   FishResolution,
+  Stage,
   Wildtype,
   ZfinAlleleSearch,
 } from "./types";
+
+/** ZFIN's developmental stages, earliest first. */
+export const fetchStages = (signal?: AbortSignal) =>
+  get<Stage[]>("/zfin/stages", signal);
 
 /** ZFIN's wild-type lines: the backgrounds a fish can be kept on. */
 export const fetchWildtypes = (signal?: AbortSignal) =>
