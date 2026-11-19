@@ -903,14 +903,18 @@ enums:
         meaning: ExO:0000060
 
   ExposureRegimenTypeEnum:
-    description: An enumeration of exposure regimen types.
+    description: >-
+      An enumeration of exposure regimen types. Where EXO has a term for one
+      among its exposure regimens (ExO:0000172), that is its meaning.
     permissible_values:
+      single:
+        description: One exposure, given once. EXO has no term for it.
       continuous:
-        description: Continuous exposure
-        meaning: EXO:0000109
+        description: Continuous exposure, uninterrupted over a period of time.
+        meaning: ExO:0000167
       repeated:
-        description: Repeated exposure
-        meaning: EXO:0000110
+        description: Repeated exposure, more than once at intervals.
+        meaning: ExO:0000171
 
   # VehicleEnum and ManufacturerEnum are defined in chemical_enums.yaml
   # (imported above) to keep this schema focused on structure.

@@ -1339,10 +1339,10 @@ export interface components {
         };
         /**
          * ExposureRegimenTypeEnum
-         * @description An enumeration of exposure regimen types.
+         * @description An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.
          * @enum {string}
          */
-        ExposureRegimenTypeEnum: "continuous" | "repeated";
+        ExposureRegimenTypeEnum: "single" | "continuous" | "repeated";
         /**
          * ExposureRouteEnum
          * @description The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).

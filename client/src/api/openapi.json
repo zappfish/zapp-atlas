@@ -1607,8 +1607,9 @@
         "type": "object"
       },
       "ExposureRegimenTypeEnum": {
-        "description": "An enumeration of exposure regimen types.",
+        "description": "An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.",
         "enum": [
+          "single",
           "continuous",
           "repeated"
         ],

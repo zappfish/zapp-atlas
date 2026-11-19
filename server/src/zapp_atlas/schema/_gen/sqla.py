@@ -279,7 +279,7 @@ class Regimen(ZappEntity):
 
     __tablename__ = "Regimen"
 
-    exposure_regimen_type: Mapped[str | None] = mapped_column(Enum('continuous', 'repeated', name='ExposureRegimenTypeEnum'))
+    exposure_regimen_type: Mapped[str | None] = mapped_column(Enum('single', 'continuous', 'repeated', name='ExposureRegimenTypeEnum'))
     number_of_individual_exposure: Mapped[int | None] = mapped_column(Integer())
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     interval_between_individual_exposures_id: Mapped[int | None] = mapped_column(Integer(), ForeignKey("QuantityValue.id"))

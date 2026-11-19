@@ -421,15 +421,19 @@ class ExposureRouteEnum(str, Enum):
 
 class ExposureRegimenTypeEnum(str, Enum):
     """
-    An enumeration of exposure regimen types.
+    An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.
+    """
+    single = "single"
+    """
+    One exposure, given once. EXO has no term for it.
     """
     continuous = "continuous"
     """
-    Continuous exposure
+    Continuous exposure, uninterrupted over a period of time.
     """
     repeated = "repeated"
     """
-    Repeated exposure
+    Repeated exposure, more than once at intervals.
     """
 
 

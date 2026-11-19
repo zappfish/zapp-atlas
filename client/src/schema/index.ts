@@ -193,13 +193,15 @@ export enum ExposureRouteEnum {
     injection = "injection",
 };
 /**
-* An enumeration of exposure regimen types.
+* An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.
 */
 export enum ExposureRegimenTypeEnum {
     
-    /** Continuous exposure */
+    /** One exposure, given once. EXO has no term for it. */
+    single = "single",
+    /** Continuous exposure, uninterrupted over a period of time. */
     continuous = "continuous",
-    /** Repeated exposure */
+    /** Repeated exposure, more than once at intervals. */
     repeated = "repeated",
 };
 /**
