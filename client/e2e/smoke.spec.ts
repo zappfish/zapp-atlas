@@ -33,10 +33,10 @@ test("My Submissions lists the studies of the caller's groups, each opening its 
 }) => {
   await signIn(page);
 
-  // One of the studies the seed gives the group, which is published.
+  // One of the studies the seed gives the group, which is public.
   const study = page.locator("#submissions").getByRole("link", { name: "PMID:22194820" });
   await expect(study).toBeVisible();
-  await page.getByRole("button", { name: /^Draft/ }).click();
+  await page.getByRole("button", { name: /^Private/ }).click();
   await expect(study).toBeHidden();
 
   await page.getByRole("button", { name: /^All/ }).click();
@@ -136,6 +136,51 @@ test("a study's own fields are edited on its page, and checked as the schema say
     status: "draft",
     research_group: groups[0].id,
   });
+});
+
+test("a study is made public, and private again, on its page", async ({
+  page,
+  playwright,
+}) => {
+  await signIn(page);
+  const groups = await (await page.request.get("/api/research-groups")).json();
+  const study = await (
+    await page.request.post("/api/studies", {
+      data: {
+        research_group: groups[0].id,
+        status: "draft",
+        nickname: "Share me",
+        description: "Kept through both changes",
+      },
+    })
+  ).json();
+  const anonymous = await playwright.request.newContext({
+    baseURL: new URL(page.url()).origin,
+  });
+  const seenFromOutside = async () =>
+    (await anonymous.get(`/api/studies/${study.id}`)).status();
+
+  await page.goto(`/research-groups/${groups[0].id}/studies/${study.id}`);
+  await expect(page.getByText("Private, visible to this group only")).toBeVisible();
+  expect(await seenFromOutside()).toBe(404);
+
+  await page.getByLabel("Actions for Share me").click();
+  await page.getByRole("menuitem", { name: "Make public" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Make public" }).click();
+  await expect(page.getByText("Public, visible to everyone")).toBeVisible();
+  expect(await seenFromOutside()).toBe(200);
+  // The study's other fields are as they were.
+  expect((await (await anonymous.get(`/api/studies/${study.id}`)).json()).description).toBe(
+    "Kept through both changes",
+  );
+
+  await page.getByLabel("Actions for Share me").click();
+  await page.getByRole("menuitem", { name: "Make private" }).click();
+  await dialog.getByRole("button", { name: "Make private" }).click();
+  await expect(page.getByText("Private, visible to this group only")).toBeVisible();
+  expect(await seenFromOutside()).toBe(404);
+  await anonymous.dispose();
 });
 
 test("the signed-in session can save a study, and a draft stays private", async ({

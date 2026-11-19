@@ -15,10 +15,7 @@ import {
   ModalTextArea,
   ModalTitle,
 } from "@/styles/elements";
-
-/** The study's own fields as a body. Its experiments are saved on their own. */
-const ownFields = (study: Study): StudyBody =>
-  toBody("Study", { ...study, experiment: undefined });
+import { ownFields } from "./studyFields";
 
 /**
  * A study's own fields. What is checked, and what each message says, comes

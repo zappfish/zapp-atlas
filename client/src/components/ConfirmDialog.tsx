@@ -6,12 +6,14 @@ import {
   ModalTitle,
 } from "@/styles/elements";
 
-/** Confirmation before something irreversible. */
+/** Confirmation before something that matters. A removal, unless told otherwise. */
 const ConfirmDialog = ({
   open,
   title,
   message,
   confirmLabel = "Remove",
+  pendingLabel = "Removing…",
+  danger = true,
   isPending = false,
   error,
   onConfirm,
@@ -21,6 +23,8 @@ const ConfirmDialog = ({
   title: string;
   message: string;
   confirmLabel?: string;
+  pendingLabel?: string;
+  danger?: boolean;
   isPending?: boolean;
   error?: string;
   onConfirm: () => void;
@@ -40,12 +44,12 @@ const ConfirmDialog = ({
           Cancel
         </button>
         <button
-          className="btn btn--danger"
+          className={danger ? "btn btn--danger" : "btn btn--primary"}
           type="button"
           onClick={onConfirm}
           disabled={isPending}
         >
-          {isPending ? "Removing…" : confirmLabel}
+          {isPending ? pendingLabel : confirmLabel}
         </button>
       </ModalActions>
     </ModalPanel>

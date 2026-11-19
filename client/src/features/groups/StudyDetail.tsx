@@ -4,6 +4,7 @@ import {
   useDeleteExperiment,
   useDeleteStudy,
   useGroupDashboard,
+  useReplaceStudy,
   useStudy,
 } from "@/api/hooks";
 import type { Experiment } from "@/api/types";
@@ -11,9 +12,10 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import RecordDetail from "@/components/RecordDetail";
 import RecordSection, { type Row } from "@/components/RecordSection";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
-import { PencilIcon, TrashIcon } from "@/components/icons";
+import { EyeIcon, PencilIcon, TrashIcon } from "@/components/icons";
 import { describeFish } from "@/fish";
 import EditStudyForm from "./EditStudyForm";
+import { ownFields } from "./studyFields";
 
 /** An experiment goes by its fish, with how many groups of them it treated. */
 const toRows = (experiments: Experiment[]): Row[] =>
@@ -108,12 +110,17 @@ const StudyDetail = ({
   const { isPending, error, data } = useStudy(studyId);
   const [editing, setEditing] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [changingVisibility, setChangingVisibility] = useState(false);
   const deleteStudy = useDeleteStudy(groupId);
+  const replaceStudy = useReplaceStudy(groupId, studyId);
   const navigate = useNavigate();
 
   if (error) return <p>This study is not available.</p>;
 
   const name = data?.nickname ?? data?.publication ?? undefined;
+  // `status` says who may read the study: a draft is its group's alone.
+  const isPrivate = data?.status === "draft";
+  const visibilityAction = isPrivate ? "Make public" : "Make private";
 
   const confirmRemove = () =>
     deleteStudy.mutate(studyId, {
@@ -162,10 +169,9 @@ const StudyDetail = ({
                   : []),
                 {
                   label: "Visibility",
-                  value:
-                    data.status === "draft"
-                      ? "Draft, visible to this group only"
-                      : "Published",
+                  value: isPrivate
+                    ? "Private, visible to this group only"
+                    : "Public, visible to everyone",
                 },
               ]
             : []
@@ -176,6 +182,11 @@ const StudyDetail = ({
               icon={<PencilIcon />}
               label="Edit"
               onClick={() => setEditing(true)}
+            />
+            <RowMenuItem
+              icon={<EyeIcon />}
+              label={visibilityAction}
+              onClick={() => setChangingVisibility(true)}
             />
             <RowMenuItem
               icon={<TrashIcon />}
@@ -201,6 +212,33 @@ const StudyDetail = ({
           study={data}
           open={editing}
           onClose={() => setEditing(false)}
+        />
+      )}
+
+      {data && (
+        <ConfirmDialog
+          open={changingVisibility}
+          title={visibilityAction}
+          message={
+            isPrivate
+              ? `Make ${name ?? "this study"} public? Anyone will be able to see it, with its experiments, observations and images.`
+              : `Make ${name ?? "this study"} private? Only members of ${group?.name ?? "its research group"} will be able to see it.`
+          }
+          confirmLabel={visibilityAction}
+          pendingLabel="Saving…"
+          danger={false}
+          isPending={replaceStudy.isPending}
+          error={replaceStudy.error?.message}
+          onConfirm={() =>
+            replaceStudy.mutate(
+              { ...ownFields(data), status: isPrivate ? "published" : "draft" },
+              { onSuccess: () => setChangingVisibility(false) },
+            )
+          }
+          onClose={() => {
+            replaceStudy.reset();
+            setChangingVisibility(false);
+          }}
         />
       )}
 

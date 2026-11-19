@@ -9,7 +9,7 @@ const MySubmissions = () => {
   const submissions: Submission[] = studies.map(({ study, group }) => ({
     id: study.id,
     title: study.nickname ?? study.publication ?? `Study ${study.id}`,
-    status: study.status === "draft" ? "Draft" : "Published",
+    status: study.status === "draft" ? "Private" : "Public",
     group: group.name,
     href: `/research-groups/${group.id}/studies/${study.id}`,
   }));

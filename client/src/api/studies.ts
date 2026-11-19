@@ -11,9 +11,10 @@ export const fetchStudy = (studyId: number, signal?: AbortSignal) =>
 /**
  * A study with a publication carries `publication`; one without, a nickname.
  *
- * Every new study starts as a draft, which only its research group can see.
- * That `status` is about who may read the study, and is separate from whether
- * it has a publication.
+ * Every new study starts private (`status: draft`): only its research group
+ * can see it, until someone makes it public on its page. That `status` is
+ * about who may read the study, and is separate from whether it has a
+ * publication.
  */
 export const createStudy = (
   groupId: number,

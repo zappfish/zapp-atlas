@@ -25,8 +25,8 @@ import {
 
 /** What has been entered, filtered by who can see it. */
 
-/** A study's `status`, as it is shown. */
-export const STATUSES = ["Draft", "Published"] as const;
+/** A study's `status`, as it is shown: a draft is private, a published one public. */
+export const STATUSES = ["Private", "Public"] as const;
 
 export type StatusName = (typeof STATUSES)[number];
 

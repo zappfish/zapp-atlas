@@ -195,5 +195,6 @@ requires a signed-in caller, and the study tree can be written only by members
 of the study's research group. In the client, a study's page edits its own
 fields and lists its experiments, and an experiment's page saves the fish,
 rearing and controls. Beneath those, each exposure event, each observation of
-it and each image of an observation saves on its own. Nothing in the client
-publishes a study, so everything entered is a draft.
+it and each image of an observation saves on its own. A study starts private
+(`status: draft`, visible to its research group only) and is made public, or
+private again, from its page.
