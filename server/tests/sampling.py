@@ -10,6 +10,7 @@ from zapp_atlas.api.layout import Slot, SlotKind, layout
 _SCALARS = {
     "string": "some text",
     "integer": 1,
+    "float": 1.5,
     "boolean": True,
     "uriorcurie": "EXAMPLE:1",
 }

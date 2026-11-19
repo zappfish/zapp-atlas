@@ -18,9 +18,8 @@ def _build_study_graph(client: TestClient, group: int) -> dict:
     study = client.post(
         "/api/studies",
         json={
-            "publication": "PMID:delete-1",
+            "publication": "PMID:1001",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()
@@ -128,9 +127,8 @@ def _exposure_with_synonyms(client: TestClient, group: int) -> int:
     study = client.post(
         "/api/studies",
         json={
-            "publication": "PMID:delete-synonyms",
+            "publication": "PMID:1002",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()

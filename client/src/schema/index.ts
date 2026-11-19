@@ -15,7 +15,6 @@ export type VehicleOfTransmissionId = number;
 export type ImageId = number;
 export type ControlImageId = number;
 export type PhenotypeTermTermUri = string;
-export type ExposureRouteTermUri = string;
 export type ExposureTypeTermUri = string;
 export type FishId = number;
 export type AlleleId = number;
@@ -181,13 +180,28 @@ export enum SeverityEnum {
     severe = "severe",
 };
 /**
-* An enumeration of exposure regimen types.
+* The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).
+*/
+export enum ExposureRouteEnum {
+    
+    /** Through the water the fish is kept in. */
+    aquatic_environment = "aquatic_environment",
+    /** Through the diet. */
+    ingestion = "ingestion",
+    /** Administered directly into the gastrointestinal tract. */
+    gavage = "gavage",
+    injection = "injection",
+};
+/**
+* An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.
 */
 export enum ExposureRegimenTypeEnum {
     
-    /** Continuous exposure */
+    /** One exposure, given once. EXO has no term for it. */
+    single = "single",
+    /** Continuous exposure, uninterrupted over a period of time. */
     continuous = "continuous",
-    /** Repeated exposure */
+    /** Repeated exposure, more than once at intervals. */
     repeated = "repeated",
 };
 /**
@@ -277,13 +291,13 @@ export interface Study extends ZappEntity {
     status: string,
     /** The experiment in a study. */
     experiment?: Experiment[],
-    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
+    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123. */
     publication?: string,
     /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one. */
     nickname?: string,
     /** A free-text summary of what the study set out to do. */
     description?: string,
-    /** ORCID identifier of the indidvidual submitting the study data. */
+    /** ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it. */
     annotator?: string[],
     /** ZFIN lab identifier of the laboratory that produced the study data. */
     lab?: string,
@@ -326,8 +340,8 @@ export interface PhenotypeObservationSet extends ZappEntity {
 export interface Phenotype extends ZappEntity {
     /** The developmental stage of fish when the phenotype was observed. */
     stage?: string,
-    /** The percentage of subject exhibiting this phenotype. */
-    prevalence?: QuantityValue,
+    /** The percentage of subjects exhibiting this phenotype, from 0 to 100. */
+    prevalence?: number,
     /** The intensity of the observed phenotype. */
     severity?: string,
     /** The phenotype ontology term. */
@@ -359,7 +373,7 @@ export interface ExposureEvent extends ZappEntity {
     /** The substance or medium used to deliver a stressor. */
     vehicle?: VehicleOfTransmission[],
     /** The route of exposure. */
-    route?: ExposureRoute,
+    route?: string,
     /** The regimen for the exposure. */
     regimen?: Regimen,
     /** The developmental stage of fish when exposure started. */
@@ -482,19 +496,6 @@ export interface PhenotypeTerm extends OntologyEntity {
     term_uri: string,
     /** The human-readable label for the phenotype ontology term. */
     term_label?: string,
-}
-
-
-/**
- * A route-of-exposure term. Term URIs are expected to be reachable from
-EXO:0000154 (route of exposure) in the EXO ontology.
-
- */
-export interface ExposureRoute extends OntologyEntity {
-    /** The URI of the phenotype ontology term. */
-    term_uri: string,
-    /** The human-readable label for the phenotype ontology term. */
-    term_label: string,
 }
 
 
@@ -636,7 +637,7 @@ export interface QuantityValue {
     /** The unit of the quantity value. */
     unit?: string,
     /** The numeric value of the quantity value. */
-    numeric_value?: string,
+    numeric_value: number,
 }
 
 

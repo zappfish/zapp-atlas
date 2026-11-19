@@ -18,7 +18,8 @@ prefixes:
   CHEBI: http://purl.obolibrary.org/obo/CHEBI_
   CAS: https://commonchemistry.cas.org/detail?cas_rn=
   ECTO: http://purl.obolibrary.org/obo/ECTO_
-  EXO: http://purl.obolibrary.org/obo/EXO_
+  # EXO's own spelling. It also has a few ids under EXO_, which name other terms.
+  ExO: http://purl.obolibrary.org/obo/ExO_
   ZP: http://purl.obolibrary.org/obo/ZP_
   ORCID: https://orcid.org/
   ZFIN: https://zfin.org/
@@ -269,18 +270,6 @@ classes:
     exact_mappings:
       - biolink:PhenotypicFeature
 
-  ExposureRoute:
-    is_a: OntologyEntity
-    description: |
-      A route-of-exposure term. Term URIs are expected to be reachable from
-      EXO:0000154 (route of exposure) in the EXO ontology.
-    slots:
-      - term_uri
-      - term_label
-    slot_usage:
-      term_label:
-        required: true
-
   ExposureType:
     is_a: OntologyEntity
     description: |
@@ -472,6 +461,9 @@ classes:
     slots:
       - unit
       - numeric_value
+    slot_usage:
+      numeric_value:
+        required: true
 
 
 slots:
@@ -480,6 +472,7 @@ slots:
     identifier: true
     description: Auto-generated integer identifier.
     range: integer
+    readonly: Assigned by the server when the row is first stored.
 
   term_uri:
     identifier: true
@@ -498,8 +491,14 @@ slots:
     description: >-
       The persistent publication identifier (e.g., PMID, DOI) for the study.
       Absent while the study is unpublished, in which case its nickname
-      identifies it instead.
+      identifies it instead. A PubMed id as PMID:22194820, or a DOI as
+      DOI:10.1000/xyz123.
     range: string
+    # Blank is allowed because blank text is stored as no value at all, and
+    # a blank form field is how a client says a study has no publication.
+    pattern: "^(\\s*|PMID:[0-9]+|DOI:10\\.[0-9]{4,9}/\\S+)$"
+    examples:
+      - value: PMID:22194820
   nickname:
     description: >-
       An informal label a research group gives to something it works with,
@@ -527,6 +526,8 @@ slots:
     description: The unit of the quantity value.
   numeric_value:
     description: The numeric value of the quantity value.
+    range: float
+    minimum_value: 0
   experiment:
     description: The experiment in a study.
     range: Experiment
@@ -683,10 +684,10 @@ slots:
     description: The developmental stage of fish when the phenotype was observed.
     range: uriorcurie
   prevalence:
-    description: The percentage of subject exhibiting this phenotype.
-    range: QuantityValue
-    inlined_as_list: true
-    inlined: true
+    description: The percentage of subjects exhibiting this phenotype, from 0 to 100.
+    range: float
+    minimum_value: 0
+    maximum_value: 100
   severity:
     description: The intensity of the observed phenotype.
     range: SeverityEnum
@@ -734,6 +735,7 @@ slots:
   number_of_individual_exposure:
     description: Total number of individual exposures.
     range: integer
+    minimum_value: 1
   rearing_condition_comment:
     description: Comments on rearing conditions, for example, about how conditions deviated from standard parameters.
     range: string
@@ -751,9 +753,7 @@ slots:
     inlined: true
   route:
     description: The route of exposure.
-    range: ExposureRoute
-    inlined: true
-    inlined_as_list: true
+    range: ExposureRouteEnum
   regimen:
     description: The regimen for the exposure.
     range: Regimen
@@ -822,9 +822,12 @@ slots:
     description: Scale bar information, including the physical length it represents and the unit of measurement.
     range: string
   annotator:
-    description: ORCID identifier of the indidvidual submitting the study data.
+    description: >-
+      ORCID identifiers of the people who entered the study's data: everyone
+      who has saved the study or anything in it.
     range: uriorcurie
     multivalued: true
+    readonly: Set by the server from whoever is signed in when a save is made.
     pattern: "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$"
     examples:
       - value: ORCID:0000-0002-1825-0097
@@ -895,15 +898,36 @@ enums:
       severe:
         description: Severe severity
 
-  ExposureRegimenTypeEnum:
-    description: An enumeration of exposure regimen types.
+  ExposureRouteEnum:
+    description: >-
+      The ways a fish comes into contact with a stressor, each one of EXO's
+      exposure routes (ExO:0000055).
     permissible_values:
+      aquatic_environment:
+        description: Through the water the fish is kept in.
+        meaning: ExO:0000161
+      ingestion:
+        description: Through the diet.
+        meaning: ExO:0000056
+      gavage:
+        description: Administered directly into the gastrointestinal tract.
+        meaning: ExO:0000166
+      injection:
+        meaning: ExO:0000060
+
+  ExposureRegimenTypeEnum:
+    description: >-
+      An enumeration of exposure regimen types. Where EXO has a term for one
+      among its exposure regimens (ExO:0000172), that is its meaning.
+    permissible_values:
+      single:
+        description: One exposure, given once. EXO has no term for it.
       continuous:
-        description: Continuous exposure
-        meaning: EXO:0000109
+        description: Continuous exposure, uninterrupted over a period of time.
+        meaning: ExO:0000167
       repeated:
-        description: Repeated exposure
-        meaning: EXO:0000110
+        description: Repeated exposure, more than once at intervals.
+        meaning: ExO:0000171
 
   # VehicleEnum and ManufacturerEnum are defined in chemical_enums.yaml
   # (imported above) to keep this schema focused on structure.

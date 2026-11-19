@@ -10,7 +10,6 @@ def _create_study_and_experiment(client: TestClient, group: int) -> tuple[int, i
         json={
             "publication": "PMID:111",
             "lab": "ZFIN:ZDB-LAB-1-1",
-            "annotator": ["ORCID:0000-0000-0000-0000"],
             **study_fields(group),
         },
     ).json()
@@ -36,7 +35,7 @@ def test_create_exposure_for_experiment(client: TestClient, group: int) -> None:
                 "chemical_id": "CHEBI:33216",
                 "cas_id": "80-05-7",
                 "synonym": ["bisphenol A"],
-                "concentration": {"unit": "µg/L", "numeric_value": "100"},
+                "concentration": {"unit": "µg/L", "numeric_value": 100},
             }
         ],
     }
@@ -98,9 +97,9 @@ def test_put_exposure_missing_404(client: TestClient, group: int) -> None:
     assert client.put("/api/exposures/999999", json={"comment": "x"}).status_code == 404
 
 
-# -- ontology-backed fields round-trip as {term_uri, term_label} objects ------
-# No server-side validation in this pass; clients are expected to pick the
-# term via autocomplete and send both the URI and the label.
+# -- route and exposure type ----------------------------------------------------
+# The route is one of the schema's own values. The exposure type is an
+# ontology term, sent with its label and not yet checked by the server.
 
 
 def test_create_exposure_with_route_round_trips(client: TestClient, group: int) -> None:
@@ -109,10 +108,7 @@ def test_create_exposure_with_route_round_trips(client: TestClient, group: int) 
     res = client.post(
         f"/api/experiments/{exp_id}/exposures",
         json={
-            "route": {
-                "term_uri": "ExO:0000057",
-                "term_label": "inhalation route",
-            },
+            "route": "gavage",
             "exposure_type": {
                 "term_uri": "ECTO:9000057",
                 "term_label": "exposure to bisphenol A",
@@ -122,44 +118,29 @@ def test_create_exposure_with_route_round_trips(client: TestClient, group: int) 
     )
     assert res.status_code == 201, res.text
     body = res.json()
-    assert body["route"] == {
-        "term_uri": "ExO:0000057",
-        "term_label": "inhalation route",
-    }
+    assert body["route"] == "gavage"
     assert body["exposure_type"] == {
         "term_uri": "ECTO:9000057",
         "term_label": "exposure to bisphenol A",
     }
 
     got = client.get(f"/api/exposures/{body['id']}").json()
-    assert got["route"]["term_label"] == "inhalation route"
+    assert got["route"] == "gavage"
     assert got["exposure_type"]["term_label"] == "exposure to bisphenol A"
 
 
 def test_put_exposure_replaces_route(client: TestClient, group: int) -> None:
     _, exp_id = _create_study_and_experiment(client, group)
-
     created = client.post(
-        f"/api/experiments/{exp_id}/exposures",
-        json={
-            "route": {
-                "term_uri": "ExO:0000057",
-                "term_label": "inhalation route",
-            },
-            "stressor": [],
-        },
+        f"/api/experiments/{exp_id}/exposures", json={"route": "gavage", "stressor": []}
     ).json()
 
-    res = client.put(
-        f"/api/exposures/{created['id']}",
-        json={
-            "route": {
-                "term_uri": "ExO:0000056",
-                "term_label": "dermal route",
-            }
-        },
-    )
+    res = client.put(f"/api/exposures/{created['id']}", json={"route": "injection"})
     assert res.status_code == 200, res.text
-    body = res.json()
-    assert body["route"]["term_uri"] == "ExO:0000056"
-    assert body["route"]["term_label"] == "dermal route"
+    assert res.json()["route"] == "injection"
+
+
+def test_a_route_outside_the_schema_is_refused(client: TestClient, group: int) -> None:
+    _, exp_id = _create_study_and_experiment(client, group)
+    res = client.post(f"/api/experiments/{exp_id}/exposures", json={"route": "inhalation"})
+    assert res.status_code == 422

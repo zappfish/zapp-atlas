@@ -38,9 +38,10 @@ def test_slots_are_sorted_into_kinds() -> None:
     assert kinds["comment"] is SlotKind.VALUE
     assert kinds["stressor"] is SlotKind.OWNED
     assert kinds["regimen"] is SlotKind.OWNED
-    assert kinds["route"] is SlotKind.REFERENCE
+    assert kinds["route"] is SlotKind.VALUE
+    assert kinds["exposure_type"] is SlotKind.REFERENCE
     assert kinds["phenotype_observation"] is SlotKind.LEVEL
 
     study = {slot.name: slot.kind for slot in layout().slots("Study")}
     assert study["research_group"] is SlotKind.VALUE
-    assert study["annotator"] is SlotKind.VALUE
+    assert study["annotator"] is SlotKind.DERIVED

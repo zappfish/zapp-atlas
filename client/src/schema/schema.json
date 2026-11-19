@@ -89,6 +89,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "mother_zygosity": {
@@ -135,6 +136,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "manufacturer": {
@@ -225,6 +227,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "vehicle_if_treated": {
@@ -251,6 +254,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "magnification": {
@@ -332,6 +336,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "rearing_condition_comment": {
@@ -400,6 +405,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "phenotype_observation": {
@@ -426,7 +432,7 @@
         "route": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ExposureRoute"
+              "$ref": "#/$defs/ExposureRouteEnum"
             },
             {
               "type": "null"
@@ -462,33 +468,25 @@
       "type": "object"
     },
     "ExposureRegimenTypeEnum": {
-      "description": "An enumeration of exposure regimen types.",
+      "description": "An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.",
       "enum": [
+        "single",
         "continuous",
         "repeated"
       ],
       "title": "ExposureRegimenTypeEnum",
       "type": "string"
     },
-    "ExposureRoute": {
-      "additionalProperties": false,
-      "description": "A route-of-exposure term. Term URIs are expected to be reachable from\nEXO:0000154 (route of exposure) in the EXO ontology.",
-      "properties": {
-        "term_label": {
-          "description": "The human-readable label for the phenotype ontology term.",
-          "type": "string"
-        },
-        "term_uri": {
-          "description": "The URI of the phenotype ontology term.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "term_uri",
-        "term_label"
+    "ExposureRouteEnum": {
+      "description": "The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).",
+      "enum": [
+        "aquatic_environment",
+        "ingestion",
+        "gavage",
+        "injection"
       ],
-      "title": "ExposureRoute",
-      "type": "object"
+      "title": "ExposureRouteEnum",
+      "type": "string"
     },
     "ExposureType": {
       "additionalProperties": false,
@@ -571,6 +569,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "line_description": {
@@ -607,6 +606,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "nickname": {
@@ -636,6 +636,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "image_scope": {
@@ -749,6 +750,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "phenotype_term_id": {
@@ -763,15 +765,13 @@
           "description": "The phenotype ontology term."
         },
         "prevalence": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/QuantityValue"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "The percentage of subject exhibiting this phenotype."
+          "description": "The percentage of subjects exhibiting this phenotype, from 0 to 100.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "severity": {
           "anyOf": [
@@ -814,6 +814,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "image": {
@@ -871,10 +872,8 @@
       "properties": {
         "numeric_value": {
           "description": "The numeric value of the quantity value.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "minimum": 0,
+          "type": "number"
         },
         "unit": {
           "description": "The unit of the quantity value.",
@@ -884,6 +883,9 @@
           ]
         }
       },
+      "required": [
+        "numeric_value"
+      ],
       "title": "QuantityValue",
       "type": "object"
     },
@@ -914,6 +916,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "individual_exposure_duration": {
@@ -940,6 +943,7 @@
         },
         "number_of_individual_exposure": {
           "description": "Total number of individual exposures.",
+          "minimum": 1,
           "type": [
             "integer",
             "null"
@@ -969,6 +973,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "name": {
@@ -989,6 +994,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "member": {
@@ -1137,6 +1143,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "manufacturer": {
@@ -1199,7 +1206,7 @@
       },
       "properties": {
         "annotator": {
-          "description": "ORCID identifier of the indidvidual submitting the study data.",
+          "description": "ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.",
           "examples": [
             [
               "ORCID:0000-0002-1825-0097"
@@ -1209,6 +1216,7 @@
             "pattern": "^ORCID:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$",
             "type": "string"
           },
+          "readOnly": true,
           "type": [
             "array",
             "null"
@@ -1233,6 +1241,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "lab": {
@@ -1255,7 +1264,11 @@
           ]
         },
         "publication": {
-          "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+          "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
+          "examples": [
+            "PMID:22194820"
+          ],
+          "pattern": "^(\\s*|PMID:[0-9]+|DOI:10\\.[0-9]{4,9}/\\S+)$",
           "type": [
             "string",
             "null"
@@ -1325,6 +1338,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "reagent_symbol": {
@@ -1470,6 +1484,7 @@
         },
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         },
         "manufacturer": {
@@ -1525,6 +1540,7 @@
       "properties": {
         "id": {
           "description": "Auto-generated integer identifier.",
+          "readOnly": true,
           "type": "integer"
         }
       },

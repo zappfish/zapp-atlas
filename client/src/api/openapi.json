@@ -365,7 +365,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -732,7 +733,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -980,7 +982,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -1194,7 +1197,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -1350,7 +1354,7 @@
           "route": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ExposureRoute"
+                "$ref": "#/components/schemas/ExposureRouteEnum"
               },
               {
                 "type": "null"
@@ -1502,7 +1506,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -1546,7 +1551,7 @@
           "route": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ExposureRouteRead"
+                "$ref": "#/components/schemas/ExposureRouteEnum"
               },
               {
                 "type": "null"
@@ -1607,84 +1612,25 @@
         "type": "object"
       },
       "ExposureRegimenTypeEnum": {
-        "description": "An enumeration of exposure regimen types.",
+        "description": "An enumeration of exposure regimen types. Where EXO has a term for one among its exposure regimens (ExO:0000172), that is its meaning.",
         "enum": [
+          "single",
           "continuous",
           "repeated"
         ],
         "title": "ExposureRegimenTypeEnum",
         "type": "string"
       },
-      "ExposureRoute": {
-        "additionalProperties": false,
-        "description": "A route-of-exposure term. Term URIs are expected to be reachable from\nEXO:0000154 (route of exposure) in the EXO ontology.",
-        "properties": {
-          "term_label": {
-            "description": "The human-readable label for the phenotype ontology term.",
-            "linkml_meta": {
-              "domain_of": [
-                "PhenotypeTerm",
-                "ExposureRoute",
-                "ExposureType"
-              ]
-            },
-            "title": "Term Label",
-            "type": "string"
-          },
-          "term_uri": {
-            "description": "The URI of the phenotype ontology term.",
-            "linkml_meta": {
-              "domain_of": [
-                "PhenotypeTerm",
-                "ExposureRoute",
-                "ExposureType"
-              ]
-            },
-            "title": "Term Uri",
-            "type": "string"
-          }
-        },
-        "required": [
-          "term_uri",
-          "term_label"
+      "ExposureRouteEnum": {
+        "description": "The ways a fish comes into contact with a stressor, each one of EXO's exposure routes (ExO:0000055).",
+        "enum": [
+          "aquatic_environment",
+          "ingestion",
+          "gavage",
+          "injection"
         ],
-        "title": "ExposureRoute",
-        "type": "object"
-      },
-      "ExposureRouteRead": {
-        "description": "What the API returns for ExposureRoute, with everything beneath it.",
-        "properties": {
-          "term_label": {
-            "description": "The human-readable label for the phenotype ontology term.",
-            "linkml_meta": {
-              "domain_of": [
-                "PhenotypeTerm",
-                "ExposureRoute",
-                "ExposureType"
-              ]
-            },
-            "title": "Term Label",
-            "type": "string"
-          },
-          "term_uri": {
-            "description": "The URI of the phenotype ontology term.",
-            "linkml_meta": {
-              "domain_of": [
-                "PhenotypeTerm",
-                "ExposureRoute",
-                "ExposureType"
-              ]
-            },
-            "title": "Term Uri",
-            "type": "string"
-          }
-        },
-        "required": [
-          "term_uri",
-          "term_label"
-        ],
-        "title": "ExposureRouteRead",
-        "type": "object"
+        "title": "ExposureRouteEnum",
+        "type": "string"
       },
       "ExposureType": {
         "additionalProperties": false,
@@ -1695,7 +1641,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -1707,7 +1652,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -1730,7 +1674,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -1742,7 +1685,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -1984,7 +1926,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2132,7 +2075,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2595,18 +2539,21 @@
           "prevalence": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuantityValue"
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The percentage of subject exhibiting this phenotype.",
+            "description": "The percentage of subjects exhibiting this phenotype, from 0 to 100.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
               ]
-            }
+            },
+            "title": "Prevalence"
           },
           "severity": {
             "anyOf": [
@@ -2723,7 +2670,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2783,7 +2731,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -2807,18 +2756,21 @@
           "prevalence": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuantityValueRead"
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "The percentage of subject exhibiting this phenotype.",
+            "description": "The percentage of subjects exhibiting this phenotype, from 0 to 100.",
             "linkml_meta": {
               "domain_of": [
                 "Phenotype"
               ]
-            }
+            },
+            "title": "Prevalence"
           },
           "severity": {
             "anyOf": [
@@ -2877,7 +2829,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -2888,7 +2839,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -2918,7 +2868,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -2929,7 +2878,6 @@
             "linkml_meta": {
               "domain_of": [
                 "PhenotypeTerm",
-                "ExposureRoute",
                 "ExposureType"
               ]
             },
@@ -2948,21 +2896,15 @@
         "description": "A value of an attribute that is quantitative and measurable, expressed as a combination of a unit and a numeric value",
         "properties": {
           "numeric_value": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
             "description": "The numeric value of the quantity value.",
             "linkml_meta": {
               "domain_of": [
                 "QuantityValue"
               ]
             },
-            "title": "Numeric Value"
+            "minimum": 0.0,
+            "title": "Numeric Value",
+            "type": "number"
           },
           "unit": {
             "anyOf": [
@@ -2982,6 +2924,9 @@
             "title": "Unit"
           }
         },
+        "required": [
+          "numeric_value"
+        ],
         "title": "QuantityValue",
         "type": "object"
       },
@@ -2989,21 +2934,15 @@
         "description": "What the API returns for QuantityValue, with everything beneath it.",
         "properties": {
           "numeric_value": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
             "description": "The numeric value of the quantity value.",
             "linkml_meta": {
               "domain_of": [
                 "QuantityValue"
               ]
             },
-            "title": "Numeric Value"
+            "minimum": 0.0,
+            "title": "Numeric Value",
+            "type": "number"
           },
           "unit": {
             "anyOf": [
@@ -3023,6 +2962,9 @@
             "title": "Unit"
           }
         },
+        "required": [
+          "numeric_value"
+        ],
         "title": "QuantityValueRead",
         "type": "object"
       },
@@ -3091,6 +3033,7 @@
           "number_of_individual_exposure": {
             "anyOf": [
               {
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
@@ -3149,7 +3092,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3189,6 +3133,7 @@
           "number_of_individual_exposure": {
             "anyOf": [
               {
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
@@ -3255,7 +3200,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3614,7 +3560,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3706,31 +3653,6 @@
         "additionalProperties": false,
         "description": "What the API accepts for Study.",
         "properties": {
-          "annotator": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "ORCID identifier of the indidvidual submitting the study data.",
-            "linkml_meta": {
-              "domain_of": [
-                "Study"
-              ],
-              "examples": [
-                {
-                  "value": "ORCID:0000-0002-1825-0097"
-                }
-              ]
-            },
-            "title": "Annotator"
-          },
           "description": {
             "anyOf": [
               {
@@ -3798,10 +3720,15 @@
                 "type": "null"
               }
             ],
-            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
+              ],
+              "examples": [
+                {
+                  "value": "PMID:22194820"
+                }
               ]
             },
             "title": "Publication"
@@ -3851,7 +3778,7 @@
                 "type": "null"
               }
             ],
-            "description": "ORCID identifier of the indidvidual submitting the study data.",
+            "description": "ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
@@ -3860,7 +3787,8 @@
                 {
                   "value": "ORCID:0000-0002-1825-0097"
                 }
-              ]
+              ],
+              "readonly": "Set by the server from whoever is signed in when a save is made."
             },
             "title": "Annotator"
           },
@@ -3906,7 +3834,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -3961,10 +3890,15 @@
                 "type": "null"
               }
             ],
-            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
+              ],
+              "examples": [
+                {
+                  "value": "PMID:22194820"
+                }
               ]
             },
             "title": "Publication"
@@ -4024,7 +3958,7 @@
                 "type": "null"
               }
             ],
-            "description": "ORCID identifier of the indidvidual submitting the study data.",
+            "description": "ORCID identifiers of the people who entered the study's data: everyone who has saved the study or anything in it.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
@@ -4033,7 +3967,8 @@
                 {
                   "value": "ORCID:0000-0002-1825-0097"
                 }
-              ]
+              ],
+              "readonly": "Set by the server from whoever is signed in when a save is made."
             },
             "title": "Annotator"
           },
@@ -4059,7 +3994,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -4114,10 +4050,15 @@
                 "type": "null"
               }
             ],
-            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
+              ],
+              "examples": [
+                {
+                  "value": "PMID:22194820"
+                }
               ]
             },
             "title": "Publication"
@@ -4429,7 +4370,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
@@ -4837,7 +4779,8 @@
             "linkml_meta": {
               "domain_of": [
                 "ZappEntity"
-              ]
+              ],
+              "readonly": "Assigned by the server when the row is first stored."
             },
             "title": "Id",
             "type": "integer"
