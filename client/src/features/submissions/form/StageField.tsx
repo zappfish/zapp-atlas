@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useController } from "react-hook-form";
 import { MeasureRow, ShortSelect, TextInput } from "@/styles/elements";
 import Field from "./Field";
-import { STAGE_UNITS, ZFS_STAGES, stageAt, type Stage } from "./stages";
+import { STAGE_UNITS, ZFS_STAGES, stageAt, stageSpan, type Stage } from "./stages";
 
 const describe = (stage: Stage) =>
   `ZFS stage: ${stage.period}${stage.name === stage.period ? "" : `: ${stage.name}`} (${stage.id})`;
@@ -54,7 +54,7 @@ const StageField = ({
         saved &&
         (typed
           ? describe(saved)
-          : `${describe(saved)}, ${saved.start} to ${saved.end} hpf`)
+          : `${describe(saved)}, ${stageSpan(saved)}`)
       }
     >
       {(id, _labelId, errorProps) => (

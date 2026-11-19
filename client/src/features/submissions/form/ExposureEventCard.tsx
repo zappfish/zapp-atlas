@@ -20,6 +20,7 @@ import {
   GroupSummaryText,
   GroupToggle,
 } from "@/styles/elements";
+import { Observations } from "./ObservationCard";
 import { ExposureFields } from "./sections/ExperimentSection";
 import { ZFS_STAGES } from "./stages";
 
@@ -119,10 +120,12 @@ const ExposureEventCard = ({
             <EntryCaret aria-hidden="true" isOpen={isOpen}>
               ▶
             </EntryCaret>
-            Exposure event {n}
+            {/* Named for what it is, once that is known; its number is the
+                lesser label. */}
+            {summary.length > 0 ? summary.join(" • ") : `Exposure event ${n}`}
           </GroupToggle>
           {summary.length > 0 && (
-            <GroupSummaryText>{summary.join(" • ")}</GroupSummaryText>
+            <GroupSummaryText>Exposure event {n}</GroupSummaryText>
           )}
           <EntryRemove
             type="button"
@@ -156,22 +159,32 @@ const ExposureEventCard = ({
             </EntryActions>
           </>
         )}
+
+        {/* Inside the card, so that one card still directly follows another. */}
+        {saved && (
+          <ConfirmDialog
+            open={removing}
+            title="Remove exposure event"
+            message={`Remove exposure event ${n} and the observations made of it?`}
+            isPending={remove.isPending}
+            error={remove.error?.message}
+            onConfirm={() => remove.mutate(saved.id)}
+            onClose={() => {
+              remove.reset();
+              setRemoving(false);
+            }}
+          />
+        )}
       </EntryForm>
 
       {saved && (
-        <ConfirmDialog
-          open={removing}
-          title="Remove exposure event"
-          message={`Remove exposure event ${n} and the observations made of it?`}
-          isPending={remove.isPending}
-          error={remove.error?.message}
-          onConfirm={() => remove.mutate(saved.id)}
-          onClose={() => {
-            remove.reset();
-            setRemoving(false);
-          }}
+        <Observations
+          studyId={studyId}
+          exposureId={saved.id}
+          saved={saved.phenotype_observation ?? []}
         />
       )}
+
     </FormProvider>
   );
 };

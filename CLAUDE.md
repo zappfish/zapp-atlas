@@ -158,9 +158,10 @@ editing pages". The things that are easy to get wrong:
   is a number and a unit. `StageField` and `useQuantity` hold what was typed
   in component state and give the form only the schema's value. `toBody`
   throws on a key the schema does not have.
-- **A page saves what its level owns.** An experiment's page saves the
-  experiment; each exposure event beneath it saves on its own. Nothing sends
-  two levels in one request.
+- **A card saves what its level owns.** An experiment's page saves the
+  experiment; each exposure event, observation and image beneath it is a card
+  that saves on its own. Nothing sends two levels in one request, and a card
+  for the level beneath appears once its parent is saved.
 - **Use the schema's names on the page.** It is an "exposure event", as the
   schema and the original form have it.
 - **After a route or model changes**, `just api-types` also rewrites the
@@ -186,8 +187,6 @@ plain controls and has not been designed yet (see ARCHITECTURE.md,
 requires a signed-in caller, and the study tree can be written only by members
 of the study's research group. In the client, a study's page edits its own
 fields and lists its experiments, and an experiment's page saves the fish,
-rearing and controls, and each exposure event on its own. Observations and
-their images are not entered yet: their sections exist
-(`form/sections/PhenotypeSection.tsx`, `ImagesSection.tsx`) but are on no
-page. Nothing in the client publishes a study, so everything entered is a
-draft.
+rearing and controls. Beneath those, each exposure event, each observation of
+it and each image of an observation saves on its own. Nothing in the client
+publishes a study, so everything entered is a draft.

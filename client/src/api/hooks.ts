@@ -42,6 +42,12 @@ import {
   replaceExperiment,
 } from "./experiments";
 import { createExposure, deleteExposure, replaceExposure } from "./exposures";
+import {
+  createObservation,
+  deleteObservation,
+  replaceObservation,
+} from "./observations";
+import { deleteImage, replaceImage, uploadImage } from "./images";
 import type { Body } from "@/schema/bodies";
 import type { Suggestion } from "./chemicals";
 
@@ -457,3 +463,35 @@ export const useSaveExposure = (
 
 export const useDeleteExposure = (studyId: number) =>
   useStudyMutation(studyId, deleteExposure);
+
+/** Creates the observation when it has no id yet, and replaces it otherwise. */
+export const useSaveObservation = (
+  studyId: number,
+  exposureId: number,
+  observationId: number | null,
+) =>
+  useStudyMutation(studyId, (body: Body<"PhenotypeObservationSet">) =>
+    observationId === null
+      ? createObservation(exposureId, body)
+      : replaceObservation(observationId, body),
+  );
+
+export const useDeleteObservation = (studyId: number) =>
+  useStudyMutation(studyId, deleteObservation);
+
+/** A new image: its file, uploaded once, with what is said about it. */
+export const useUploadImage = (studyId: number, observationId: number) =>
+  useStudyMutation(
+    studyId,
+    ({ file, description }: { file: File; description: Body<"Image"> }) =>
+      uploadImage(observationId, file, description),
+  );
+
+/** What is said about an image. Its file stays as uploaded. */
+export const useReplaceImage = (studyId: number, imageId: number) =>
+  useStudyMutation(studyId, (description: Body<"Image">) =>
+    replaceImage(imageId, description),
+  );
+
+export const useDeleteImage = (studyId: number) =>
+  useStudyMutation(studyId, deleteImage);

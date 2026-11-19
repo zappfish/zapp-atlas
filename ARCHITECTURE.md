@@ -320,11 +320,20 @@ The pages follow the API's levels, so each save is one request:
 |---|---|---|
 | A research group | its tank, cabinet and members, each through a dialog | its studies |
 | A study (`features/groups/StudyDetail.tsx`) | the study's own fields, in a dialog | its experiments |
-| An experiment (`features/submissions/form/ExperimentForm.tsx`) | the experiment: fish, rearing, controls | its exposure events, each a card that saves on its own |
+| An experiment (`features/submissions/form/ExperimentForm.tsx`) | the experiment: fish, rearing, controls | its exposure events |
 
-A new experiment is saved before an exposure event can be added to it, since
-the event is created beneath the experiment's id. Opening a saved record loads
-what was stored, and saving replaces it.
+Beneath the experiment, on the same page, each level is a card that saves on
+its own, set in under the one it belongs to:
+
+| Card | Saves | Beneath it |
+|---|---|---|
+| An exposure event (`ExposureEventCard.tsx`) | the stressor, vehicle, route, regimen and stages | its observations |
+| An observation (`ObservationCard.tsx`) | the phenotypes seen at one look | its images |
+| An image (`ImageCard.tsx`) | a new image's file with its description; a saved one's description | |
+
+A record is saved before anything can be added beneath it, since the level
+beneath is created under its id. Opening a saved record loads what was stored,
+and saving replaces it.
 
 A form's values are the body it sends. Fields are registered under the
 schema's slot names, so three generic pieces do the rest, with no code per
@@ -343,8 +352,10 @@ class:
 
 Where a control takes more than the schema stores, it keeps the rest in its
 own state and gives the form the schema's value: `StageField` takes a time and
-holds the ZFS stage it falls in, and `useQuantity` takes a number and a unit
-and holds a quantity once there is a number.
+holds the ZFS stage it falls in, `useQuantity` takes a number and a unit and
+holds a quantity once there is a number, and an image's `Measure` holds the
+two as the one text its slot stores. An image's file is not a field at all: it
+is handed to the card, which uploads it beside the fields.
 
 ## How the two halves wire together
 

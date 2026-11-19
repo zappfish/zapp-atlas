@@ -1,11 +1,11 @@
-import type { ImageValues } from "./submission";
+import type { Body } from "@/schema/bodies";
 
 interface Measure {
   label: string;
   placeholder: string;
-  field: keyof ImageValues;
+  /** The image's slot, which holds the number and its unit as one text. */
+  slot: keyof Body<"Image">;
   units?: readonly string[];
-  unitField?: keyof ImageValues;
   suffix?: string;
 }
 
@@ -15,21 +15,19 @@ export const MEASURES: readonly Measure[] = [
     label: "Scale bar",
     placeholder: "e.g. 100",
     units: ["µm", "mm", "Other"],
-    field: "scaleBar",
-    unitField: "scaleBarUnit",
+    slot: "scale_bar",
   },
-  // Its unit is notation, not a choice: shown as a suffix, not stored.
+  // Its unit is notation, not a choice: shown as a suffix.
   {
     label: "Magnification",
     placeholder: "e.g. 40",
     suffix: "X",
-    field: "magnification",
+    slot: "magnification",
   },
   {
     label: "Resolution",
     placeholder: "e.g. 300",
     units: ["dpi", "Other"],
-    field: "resolution",
-    unitField: "resolutionUnit",
+    slot: "resolution",
   },
 ];

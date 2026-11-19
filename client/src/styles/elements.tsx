@@ -261,6 +261,15 @@ export const EntryCard = styled("div", "form-entry");
 /** A card that saves on its own. */
 export const EntryForm = styled("form", "form-entry");
 export const EntryActions = styled("div", "form-entry__actions");
+/** What hangs beneath a card and is saved apart from it. */
+export const EntryNested = styled("div", "form-entry__nested");
+/** Names a nested list, with the button that adds to it beside the name. */
+export const EntryListHead = styled("div", "form-entry__list-head");
+export const EntryListAdd = styled("button", "form-entry__list-add");
+/** The part of a card that is its own form, when the card holds others too. */
+export const EntryPart = styled("form", "form-entry__part");
+/** A list inside a card, set apart from the fields that follow it. */
+export const EntryList = styled("div", "form-entry__list");
 export const EntryStatus = styled("p", "form-entry__status");
 /** Names one of several repeated entries, and removes it. */
 export const EntryHead = styled("div", "form-entry__head");

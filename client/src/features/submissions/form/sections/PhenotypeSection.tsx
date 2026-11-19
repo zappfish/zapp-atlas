@@ -1,19 +1,17 @@
-import { lazy, Suspense, useCallback, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import type { OBOGraphNode } from "frogpot";
 import Modal from "@/components/Modal";
 import { ChevronIcon, SearchIcon } from "@/components/icons";
 import {
   AddButton,
   AddRow,
-  EntryCaret,
   EntryCard,
   EntryHead,
   EntryRemove,
+  EntryTitle,
   FieldGrid,
   FieldNote,
   MeasureGrid,
-  GroupSummaryText,
-  GroupToggle,
   MeasureInput,
   MeasureSuffix,
   RadioGroup,
@@ -38,8 +36,8 @@ import {
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { curieOf } from "../curie";
 import Field from "../Field";
-import { emptyObservation, type Submission } from "../submission";
-import { PERCENT } from "../validation";
+import type { Body } from "@/schema/bodies";
+import { asNumber } from "../quantity";
 import StageField from "../StageField";
 import { PHENOTYPE_INFO } from "../explanations";
 
@@ -47,30 +45,32 @@ import { PHENOTYPE_INFO } from "../explanations";
 // brings frogpot and its search indexes, which no other page needs.
 const PhenotypePicker = lazy(() => import("../PhenotypePicker"));
 
-const SEVERITIES = ["Mild", "Moderate", "Severe"];
+type Values = Body<"PhenotypeObservationSet">;
 
-/** A phenotype seen in the exposed fish, and how strongly. */
-const Observation = ({
+const SEVERITIES = [
+  { value: "mild", label: "Mild" },
+  { value: "moderate", label: "Moderate" },
+  { value: "severe", label: "Severe" },
+] as const;
+
+/**
+ * A phenotype seen in the exposed fish, and how strongly. Always open: it
+ * sits inside an observation, which is the card that folds.
+ */
+const Phenotype = ({
   n,
   index,
-  defaultOpen,
   onRemove,
 }: {
   n: number;
   index: number;
-  defaultOpen: boolean;
   onRemove?: () => void;
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  const toggle = useCallback(() => setIsOpen((was) => !was), []);
-
-  const { register, setValue, watch } = useFormContext<Submission>();
-  const at = `observations.${index}` as const;
-  const [phenotype, phenotypeId, severity] = watch([
-    `${at}.phenotype`,
-    `${at}.phenotypeId`,
-    `${at}.severity`,
-  ]);
+  const { register, setValue, watch } = useFormContext<Values>();
+  const at = `phenotype.${index}` as const;
+  const term = watch(`${at}.phenotype_term_id`);
+  const phenotypeId = term?.term_uri;
+  const phenotype = term?.term_label ?? phenotypeId;
 
   // The picker's choice is held here until confirmed, so cancelling it
   // leaves the field as it was.
@@ -82,26 +82,20 @@ const Observation = ({
   };
   const confirmPick = () => {
     if (pending) {
-      const curie = curieOf(pending.uri);
-      setValue(`${at}.phenotype`, pending.label ?? curie, { shouldDirty: true });
-      setValue(`${at}.phenotypeId`, curie, { shouldDirty: true });
+      // The term's id is what is stored; its label goes with it to be shown.
+      setValue(
+        `${at}.phenotype_term_id`,
+        { term_uri: curieOf(pending.uri), term_label: pending.label },
+        { shouldDirty: true, shouldValidate: true },
+      );
     }
     closePicker();
   };
 
-  // Only what has been filled in: an empty observation says nothing.
-  const summary = [severity].filter(Boolean);
-
   return (
     <EntryCard>
       <EntryHead>
-        <GroupToggle type="button" onClick={toggle} aria-expanded={isOpen}>
-          <EntryCaret aria-hidden="true" isOpen={isOpen}>
-            ▶
-          </EntryCaret>
-          Observation {n}
-        </GroupToggle>
-        {phenotype && <GroupSummaryText>{phenotype}</GroupSummaryText>}
+        <EntryTitle>Phenotype {n}</EntryTitle>
         {onRemove && (
           <EntryRemove type="button" onClick={onRemove}>
             Remove
@@ -109,12 +103,6 @@ const Observation = ({
         )}
       </EntryHead>
 
-      {!isOpen && summary.length > 0 && (
-        <GroupSummaryText>{summary.join(" • ")}</GroupSummaryText>
-      )}
-
-      {isOpen && (
-        <>
           <FieldGrid>
             <Field
               wide
@@ -172,7 +160,7 @@ const Observation = ({
                       inputMode="decimal"
                       placeholder="e.g. 80"
                       {...errorProps}
-                      {...register(`${at}.prevalence`, PERCENT)}
+                      {...register(`${at}.prevalence`, { setValueAs: asNumber })}
                     />
                     <MeasureSuffix>%</MeasureSuffix>
                   </MeasureInput>
@@ -184,21 +172,19 @@ const Observation = ({
               {(_id, labelId) => (
                 <RadioGroup role="radiogroup" aria-labelledby={labelId}>
                   {SEVERITIES.map((option) => (
-                    <RadioLabel key={option}>
+                    <RadioLabel key={option.value}>
                       <input
                         type="radio"
-                        value={option}
+                        value={option.value}
                         {...register(`${at}.severity`)}
                       />
-                      {option}
+                      {option.label}
                     </RadioLabel>
                   ))}
                 </RadioGroup>
               )}
             </Field>
           </FieldGrid>
-        </>
-      )}
 
       <Modal
         open={isPicking}
@@ -241,36 +227,32 @@ const Observation = ({
   );
 };
 
-/** The phenotypes this submission reports. */
-const PhenotypeSection = () => {
-  const { control } = useFormContext<Submission>();
+/** The phenotypes seen at one observation, in the order they were entered. */
+const PhenotypeFields = () => {
+  const { control } = useFormContext<Values>();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "observations",
+    name: "phenotype",
   });
-  // Those already there on load start collapsed after the first; one added
-  // with the button opens, since it is about to be filled in.
-  const [initialIds] = useState(() => new Set(fields.map((f) => f.id)));
-
   return (
     <>
       {fields.map((field, i) => (
-        <Observation
+        <Phenotype
           key={field.id}
           n={i + 1}
           index={i}
-          defaultOpen={i === 0 || !initialIds.has(field.id)}
           onRemove={fields.length > 1 ? () => remove(i) : undefined}
         />
       ))}
 
       <AddRow>
-        <AddButton type="button" onClick={() => append(emptyObservation())}>
-          + Add another observation
+        {/* A row with nothing filled in is not saved. */}
+        <AddButton type="button" onClick={() => append({})}>
+          + Add another phenotype
         </AddButton>
       </AddRow>
     </>
   );
 };
 
-export default PhenotypeSection;
+export default PhenotypeFields;

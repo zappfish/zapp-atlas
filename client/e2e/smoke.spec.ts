@@ -344,3 +344,116 @@ test("an experiment is set up on its page, saved, reopened and changed", async (
   await page.goto(`/research-groups/${groups[0].id}/studies/${study.id}`);
   await expect(page.locator("#experiments").getByText("1 exposure event")).toBeVisible();
 });
+
+// A valid PNG, one red pixel: the server reads an upload's first bytes.
+const PNG =
+  "89504E470D0A1A0A0000000D4948445200000001000000010802000000907753DE" +
+  "0000000C4944415408D76368F8FF1F0000040100017F3F8F180000000049454E44AE426082";
+
+test("an observation and its image are saved beneath an exposure event, and reopened", async ({
+  page,
+}) => {
+  await signIn(page);
+  const groups = await (await page.request.get("/api/research-groups")).json();
+  const post = async (path: string, data: object) =>
+    (await page.request.post(path, { data })).json();
+  const study = await post("/api/studies", {
+    research_group: groups[0].id,
+    status: "draft",
+    nickname: "Observation test",
+  });
+  const experiment = await post(`/api/studies/${study.id}/experiments`, {
+    standard_rearing_condition: true,
+  });
+  await post(`/api/experiments/${experiment.id}/exposures`, {
+    route: "aquatic_environment",
+    stressor: [{ chemical_id: "CHEBI:41774" }],
+  });
+  const stored = async () =>
+    (await (await page.request.get(`/api/studies/${study.id}`)).json()).experiment[0]
+      .exposure_event[0].phenotype_observation;
+
+  await page.goto(
+    `/research-groups/${groups[0].id}/studies/${study.id}/experiments/${experiment.id}`,
+  );
+  await expect(page.getByText("No observations of this exposure event yet.")).toBeVisible();
+
+  // An observation is checked as the schema says, and as the guidelines ask.
+  await page.getByRole("button", { name: "+ Add an observation" }).click();
+  const observation = page.getByRole("group", { name: "Observation 1" });
+  await observation.getByRole("textbox", { name: "Prevalence" }).fill("120");
+  await observation.getByRole("radio", { name: "Moderate" }).check();
+  await observation.getByRole("button", { name: "Save observation" }).click();
+  await expect(observation.getByText("Enter 100 or less.")).toBeVisible();
+  await expect(
+    observation.getByText("Enter the stage the phenotype was seen at."),
+  ).toBeVisible();
+
+  await observation.getByRole("textbox", { name: "Prevalence" }).fill("80");
+  await observation
+    .getByRole("textbox", { name: "Fish stage at observation" })
+    .fill("72");
+  await observation.getByRole("button", { name: "Save observation" }).click();
+  // Folded to a line once saved, named for when it was made.
+  // The card's own toggle is its first; the info buttons inside open too.
+  const toggle = observation.locator("button[aria-expanded]").first();
+  await expect(toggle).toHaveText(/72 to 96 hpf/);
+  await expect(observation.getByText("Observation 1 • 0 images")).toBeVisible();
+
+  // An image is uploaded on its own, with what is said about it.
+  await toggle.click();
+  await page.getByRole("button", { name: "+ Add an image" }).click();
+  const image = page.getByRole("form", { name: "Image 1" });
+  // By its type: the upload box's info button is named "Upload image" too.
+  const upload = image.locator('button[type="submit"]');
+  await expect(upload).toHaveText("Upload image");
+  await upload.click();
+  await expect(image.getByText("Choose an image.")).toBeVisible();
+
+  // Chosen as a dropped file is: made in the page and handed to the input.
+  await image.locator('input[type="file"]').evaluate((input: HTMLInputElement, hex) => {
+    const bytes = Uint8Array.from(hex.match(/../g)!, (byte) => parseInt(byte, 16));
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([bytes], "fish.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, PNG);
+  await image.getByRole("textbox", { name: "Scale bar" }).fill("100");
+  await image
+    .getByRole("radiogroup", { name: "Scale bar unit" })
+    .getByRole("radio", { name: "µm" })
+    .check();
+  await image.getByRole("textbox", { name: "Magnification" }).fill("40");
+  await image.getByRole("radio", { name: "The whole fish" }).check();
+  await upload.click();
+  await expect(image.getByRole("button", { name: "Save image" })).toBeVisible();
+
+  const [saved] = await stored();
+  expect(saved).toMatchObject({
+    // 72 hpf, as the stage it falls in.
+    phenotype: [{ stage: "ZFS:0000035", prevalence: 80, severity: "moderate" }],
+    image: [
+      { scale_bar: "100 µm", magnification: "40X", image_scope: "whole_organism" },
+    ],
+  });
+  const file = await page.request.get(`/api/images/${saved.image[0].id}`);
+  expect(file.headers()["content-type"]).toBe("image/png");
+
+  // Opened again, both hold what was saved, and each is changed on its own.
+  await page.reload();
+  await toggle.click();
+  await expect(observation.getByRole("radio", { name: "Moderate" })).toBeChecked();
+  await observation.getByRole("radio", { name: "Severe" }).check();
+  await observation.getByRole("button", { name: "Save observation" }).click();
+  await expect(observation.getByText("Changes not saved.")).toBeHidden();
+
+  await expect(image.getByRole("textbox", { name: "Scale bar" })).toHaveValue("100");
+  await image.getByRole("textbox", { name: "Scale bar" }).fill("250");
+  await image.getByRole("button", { name: "Save image" }).click();
+  await expect(image.getByText("Changes not saved.")).toBeHidden();
+
+  const [changed] = await stored();
+  expect(changed.phenotype[0]).toMatchObject({ severity: "severe", stage: "ZFS:0000035" });
+  // Saving the observation left its image alone, and the image kept its file.
+  expect(changed.image).toMatchObject([{ id: saved.image[0].id, scale_bar: "250 µm" }]);
+});

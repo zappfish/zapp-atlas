@@ -74,3 +74,6 @@ export const stageAt = (value: string, unit: string): Stage | undefined => {
   if (hours === null) return undefined;
   return ZFS_STAGES.find((stage) => hours >= stage.start && hours < stage.end);
 };
+
+/** The hours a stage covers, as a card's title gives them. */
+export const stageSpan = (stage: Stage) => `${stage.start} to ${stage.end} hpf`;
