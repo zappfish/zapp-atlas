@@ -284,6 +284,7 @@
 .mysub__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: var(--text-sm); color: var(--muted); }
 .mysub__status { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; }
 .mysub__status--published { color: var(--status-published); }
+.mysub__status--draft { color: var(--status-in-progress); }
 .mysub__status--in-progress { color: var(--status-in-progress); }
 .mysub__status--on-hold { color: var(--status-on-hold); }
 .mysub__status--retracted { color: var(--status-retracted); }

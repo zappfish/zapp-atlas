@@ -9,6 +9,7 @@ import {
   addMember,
   createGroup,
   fetchGroup,
+  fetchGroups,
   fetchMembers,
   removeMember,
 } from "./groups";
@@ -348,6 +349,30 @@ export const useGroupStudies = (groupId: number) =>
     queryKey: keys.groupStudies(groupId),
     queryFn: ({ signal }) => fetchGroupStudies(groupId, signal),
   });
+
+/**
+ * The studies of every group the caller belongs to, each with its group.
+ * Asked for a group at a time, so a group's page and this share what is held.
+ */
+export const useMyStudies = () => {
+  const groups = useQuery({
+    queryKey: keys.groups,
+    queryFn: ({ signal }) => fetchGroups(signal),
+  });
+  return useQueries({
+    queries: (groups.data ?? []).map((group) => ({
+      queryKey: keys.groupStudies(group.id),
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        fetchGroupStudies(group.id, signal),
+    })),
+    combine: (results) => ({
+      isPending: groups.isPending || results.some((each) => each.isPending),
+      studies: results.flatMap((each, i) =>
+        (each.data ?? []).map((study) => ({ study, group: groups.data![i]! })),
+      ),
+    }),
+  });
+};
 
 /** One study, for its page. */
 export const useStudy = (studyId: number) =>

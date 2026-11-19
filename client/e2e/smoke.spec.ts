@@ -28,6 +28,23 @@ test("signing in shows the caller's research group", async ({ page }) => {
   await expect(page.getByRole("link", { name: GROUP })).toBeVisible();
 });
 
+test("My Submissions lists the studies of the caller's groups, each opening its page", async ({
+  page,
+}) => {
+  await signIn(page);
+
+  // One of the studies the seed gives the group, which is published.
+  const study = page.locator("#submissions").getByRole("link", { name: "PMID:22194820" });
+  await expect(study).toBeVisible();
+  await page.getByRole("button", { name: /^Draft/ }).click();
+  await expect(study).toBeHidden();
+
+  await page.getByRole("button", { name: /^All/ }).click();
+  await study.click();
+  await expect(page).toHaveURL(/\/research-groups\/\d+\/studies\/\d+$/);
+  await expect(page.getByRole("heading", { name: "PMID:22194820" })).toBeVisible();
+});
+
 test("a group's page lists its fish tank, chemical cabinet and studies", async ({
   page,
 }) => {
