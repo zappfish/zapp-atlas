@@ -20,7 +20,7 @@ def _create_observation(client: TestClient, group: int) -> int:
     study = client.post(
         "/api/studies",
         json={
-            "publication": "PMID:img-1",
+            "publication": "PMID:1003",
             "lab": "ZFIN:ZDB-LAB-1-1",
             **study_fields(group),
         },

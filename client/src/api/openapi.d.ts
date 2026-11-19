@@ -2020,7 +2020,7 @@ export interface components {
             nickname?: string | null;
             /**
              * Publication
-             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.
+             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.
              */
             publication?: string | null;
             /**
@@ -2068,7 +2068,7 @@ export interface components {
             nickname?: string | null;
             /**
              * Publication
-             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.
+             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.
              */
             publication?: string | null;
             /**
@@ -2117,7 +2117,7 @@ export interface components {
             nickname?: string | null;
             /**
              * Publication
-             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.
+             * @description The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.
              */
             publication?: string | null;
             /**

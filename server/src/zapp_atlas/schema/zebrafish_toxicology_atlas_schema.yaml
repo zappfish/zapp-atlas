@@ -490,8 +490,14 @@ slots:
     description: >-
       The persistent publication identifier (e.g., PMID, DOI) for the study.
       Absent while the study is unpublished, in which case its nickname
-      identifies it instead.
+      identifies it instead. A PubMed id as PMID:22194820, or a DOI as
+      DOI:10.1000/xyz123.
     range: string
+    # Blank is allowed because blank text is stored as no value at all, and
+    # a blank form field is how a client says a study has no publication.
+    pattern: "^(\\s*|PMID:[0-9]+|DOI:10\\.[0-9]{4,9}/\\S+)$"
+    examples:
+      - value: PMID:22194820
   nickname:
     description: >-
       An informal label a research group gives to something it works with,

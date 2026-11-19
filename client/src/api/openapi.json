@@ -3708,10 +3708,15 @@
                 "type": "null"
               }
             ],
-            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
+              ],
+              "examples": [
+                {
+                  "value": "PMID:22194820"
+                }
               ]
             },
             "title": "Publication"
@@ -3872,10 +3877,15 @@
                 "type": "null"
               }
             ],
-            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
+              ],
+              "examples": [
+                {
+                  "value": "PMID:22194820"
+                }
               ]
             },
             "title": "Publication"
@@ -4026,10 +4036,15 @@
                 "type": "null"
               }
             ],
-            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead.",
+            "description": "The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123.",
             "linkml_meta": {
               "domain_of": [
                 "Study"
+              ],
+              "examples": [
+                {
+                  "value": "PMID:22194820"
+                }
               ]
             },
             "title": "Publication"

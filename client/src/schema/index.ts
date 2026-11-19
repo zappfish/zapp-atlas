@@ -291,7 +291,7 @@ export interface Study extends ZappEntity {
     status: string,
     /** The experiment in a study. */
     experiment?: Experiment[],
-    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. */
+    /** The persistent publication identifier (e.g., PMID, DOI) for the study. Absent while the study is unpublished, in which case its nickname identifies it instead. A PubMed id as PMID:22194820, or a DOI as DOI:10.1000/xyz123. */
     publication?: string,
     /** A short working name for the study, and what it is listed under when picking a study. Required while the study has no publication identifier; no two studies in a research group may share one. */
     nickname?: string,
