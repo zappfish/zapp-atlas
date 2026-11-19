@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useController } from "react-hook-form";
+import { useStages } from "@/api/hooks";
+import type { Stage } from "@/api/types";
 import { MeasureRow, ShortSelect, TextInput } from "@/styles/elements";
 import Field from "./Field";
-import { STAGE_UNITS, ZFS_STAGES, stageAt, stageSpan, type Stage } from "./stages";
+import { STAGE_UNITS, stageAt, stageSpan } from "./stages";
 
+/** ZFIN names a stage "Period:Stage", or by its period alone. */
 const describe = (stage: Stage) =>
-  `ZFS stage: ${stage.period}${stage.name === stage.period ? "" : `: ${stage.name}`} (${stage.id})`;
+  `ZFS stage: ${stage.name.replace(":", ": ")} (${stage.stage_id})`;
 
 /**
  * A time, as a number and its unit, for a slot that holds a ZFS stage.
@@ -24,6 +27,7 @@ const StageField = ({
   name: string;
   required?: boolean;
 }) => {
+  const stages = useStages();
   const { field } = useController({ name });
   const [text, setText] = useState("");
   const [unit, setUnit] = useState(STAGE_UNITS[0]!);
@@ -31,11 +35,11 @@ const StageField = ({
   const hold = (nextText: string, nextUnit: string) => {
     setText(nextText);
     setUnit(nextUnit);
-    field.onChange(stageAt(nextText, nextUnit)?.id);
+    field.onChange(stageAt(stages, nextText, nextUnit)?.stage_id);
   };
 
   const typed = text.trim() !== "";
-  const saved = ZFS_STAGES.find((stage) => stage.id === field.value);
+  const saved = stages.find((stage) => stage.stage_id === field.value);
   const error = !typed
     ? undefined
     : !/^\d+(\.\d+)?$/.test(text.trim())

@@ -30,6 +30,9 @@ export type AlleleBody = Schemas["AlleleInput"];
 export type Zygosity = Schemas["ZygosityEnum"];
 export type ParentZygosity = Schemas["ParentZygosityEnum"];
 
+/** One of ZFIN's developmental stages, with the hours post fertilization it covers. */
+export type Stage = Schemas["ZfinStageOut"];
+
 /** One of ZFIN's wild-type lines. */
 export type Wildtype = Schemas["ZfinWildtypeOut"];
 

@@ -5,8 +5,9 @@ import {
   useChemicalNames,
   useDeleteExposure,
   useSaveExposure,
+  useStages,
 } from "@/api/hooks";
-import type { ExposureEvent } from "@/api/types";
+import type { ExposureEvent, Stage } from "@/api/types";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { bodyResolver, showProblems, type Problem } from "@/problems";
 import { sameBody, toBody, type Body } from "@/schema/bodies";
@@ -22,7 +23,6 @@ import {
 } from "@/styles/elements";
 import { Observations } from "./ObservationCard";
 import { ExposureFields } from "./sections/ExperimentSection";
-import { ZFS_STAGES } from "./stages";
 
 type Values = Body<"ExposureEvent">;
 
@@ -36,11 +36,13 @@ const BLANK: Values = {
 const ownFields = (saved: ExposureEvent): Values =>
   toBody("ExposureEvent", { ...saved, phenotype_observation: undefined });
 
-const order = (stage: string | null | undefined) =>
-  ZFS_STAGES.findIndex((each) => each.id === stage);
-
-/** The schema holds each stage on its own; that one follows the other is said here. */
-const stagesInOrder = (values: Values): Problem[] => {
+/**
+ * The schema holds each stage on its own; that one follows the other is said
+ * here, and by the server. `stages` is in order, earliest first.
+ */
+const stagesInOrder = (stages: Stage[], values: Values): Problem[] => {
+  const order = (id: string | null | undefined) =>
+    stages.findIndex((each) => each.stage_id === id);
   const start = order(values.exposure_start_stage);
   const end = order(values.exposure_end_stage);
   return start >= 0 && end >= 0 && end < start
@@ -78,11 +80,14 @@ const ExposureEventCard = ({
   const [removing, setRemoving] = useState(false);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
+  const stages = useStages();
   const save = useSaveExposure(studyId, experimentId, saved?.id ?? null);
   const remove = useDeleteExposure(studyId);
   const form = useForm<Values>({
     values: saved ? ownFields(saved) : BLANK,
-    resolver: bodyResolver("ExposureEvent", stagesInOrder),
+    resolver: bodyResolver("ExposureEvent", (values) =>
+      stagesInOrder(stages, values),
+    ),
     // Checked on leaving a field, then as it is corrected.
     mode: "onTouched",
   });

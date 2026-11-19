@@ -110,7 +110,7 @@ server/src/zapp_atlas/
 | `/api/studies/{id}/revisions` | `api` studies router | a study's history |
 | `/api/research-groups/…` | `api` routers | groups, members, chemical cabinet, fish tank |
 | `/api/chemicals/{autocomplete,normalize,vehicle-info}` | `api` chemicals router | read-only chemical lookups (NodeNorm + ChEBI cache) |
-| `GET /api/zfin/{wildtypes,status}`, `GET /api/zfin/alleles?q=`, `GET /api/zfin/{alleles,genotypes,fish}/{id}` | `api` zfin router | read-only ZFIN lookups from the bundle's `zfin.db` (503 without it) |
+| `GET /api/zfin/{stages,wildtypes,status}`, `GET /api/zfin/alleles?q=`, `GET /api/zfin/{alleles,genotypes,fish}/{id}` | `api` zfin router | read-only ZFIN lookups from the bundle's `zfin.db` (503 without it) |
 | `POST /api/zfin/resolve` | `api` zfin router | the registered ZFIN genotype and fish a described fish corresponds to |
 | `GET /extdata/manifest.json` | `extdata` router | the ontology bundle's hash and versions (not cached) |
 | `GET /extdata/<hash>/*` | `extdata` router | ontology files for the client, immutable per hash |
@@ -352,7 +352,7 @@ class:
 
 Where a control takes more than the schema stores, it keeps the rest in its
 own state and gives the form the schema's value: `StageField` takes a time and
-holds the ZFS stage it falls in, `useQuantity` takes a number and a unit and
+holds the stage it falls in, by the table the server serves, `useQuantity` takes a number and a unit and
 holds a quantity once there is a number, and an image's `Measure` holds the
 two as the one text its slot stores. An image's file is not a field at all: it
 is handed to the card, which uploads it beside the fields.
@@ -419,6 +419,13 @@ used, and a stored term's label is brought up to date when it is next named.
 The bundle does not carry every ontology the schema names. A term from one it
 lacks, which today is an exposure type from ECTO, is held to its prefix alone
 and keeps the label it was sent with.
+
+A developmental stage is such a term: a stage slot holds one of ZFIN's stages
+by its ZFS id. `zfin.db` has each stage's hours post fertilization, served at
+`GET /api/zfin/stages`. The form takes a time and stores the stage it falls
+in, and the server refuses an exposure whose end stage is before its start
+stage (`api/stages.py`), a rule about two slots that the schema cannot
+state.
 
 ### Reference data for the fish picker
 

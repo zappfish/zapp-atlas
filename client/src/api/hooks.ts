@@ -19,7 +19,7 @@ import type {
   ResearchGroupRole,
 } from "./types";
 import { addFish, deleteFish, fetchFishEntry, fetchFishTank } from "./fishTank";
-import { fetchWildtypes, resolveFish, searchAlleles } from "./zfin";
+import { fetchStages, fetchWildtypes, resolveFish, searchAlleles } from "./zfin";
 import {
   addChemical,
   deleteChemical,
@@ -69,6 +69,7 @@ export const keys = {
   cabinetEntry: (id: number, entryId: number) =>
     ["group", id, "cabinet", entryId] as const,
   wildtypes: ["zfin", "wildtypes"] as const,
+  stages: ["zfin", "stages"] as const,
   alleleSearch: (q: string) => ["zfin", "alleles", q] as const,
   resolveFish: (description: FishDescription) =>
     ["zfin", "resolve", description] as const,
@@ -144,6 +145,17 @@ export const useCabinet = (groupId: number) =>
     queryKey: keys.cabinet(groupId),
     queryFn: ({ signal }) => fetchCabinet(groupId, signal),
   });
+
+/**
+ * ZFIN's developmental stages, earliest first; none until they arrive. They
+ * are the server's reference data, which does not change while the app runs.
+ */
+export const useStages = () =>
+  useQuery({
+    queryKey: keys.stages,
+    queryFn: ({ signal }) => fetchStages(signal),
+    staleTime: Infinity,
+  }).data ?? [];
 
 /** ZFIN's wild-type lines. Reference data from the bundle: it does not move. */
 export const useWildtypes = () =>

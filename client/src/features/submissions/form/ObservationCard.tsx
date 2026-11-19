@@ -1,7 +1,11 @@
 import { useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { ApiError } from "@/api/client";
-import { useDeleteObservation, useSaveObservation } from "@/api/hooks";
+import {
+  useDeleteObservation,
+  useSaveObservation,
+  useStages,
+} from "@/api/hooks";
 import type { Observation } from "@/api/types";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { bodyResolver, showProblems, type Problem } from "@/problems";
@@ -25,7 +29,7 @@ import {
 } from "@/styles/elements";
 import ImageCard from "./ImageCard";
 import PhenotypeFields from "./sections/PhenotypeSection";
-import { ZFS_STAGES, stageSpan } from "./stages";
+import { stageSpan } from "./stages";
 
 type Values = Body<"PhenotypeObservationSet">;
 
@@ -151,6 +155,7 @@ const ObservationCard = ({
   const [removing, setRemoving] = useState(false);
   const toggle = useCallback(() => setIsOpen((was) => !was), []);
 
+  const stages = useStages();
   const save = useSaveObservation(studyId, exposureId, saved?.id ?? null);
   const remove = useDeleteObservation(studyId);
   const form = useForm<Values>({
@@ -166,14 +171,14 @@ const ObservationCard = ({
     saved && sameBody("PhenotypeObservationSet", entered, ownFields(saved));
   // Named for when it was made and what was seen, once those are entered.
   const phenotypes = entered.phenotype ?? [];
-  const stages = [...new Set(phenotypes.map((each) => each.stage))].flatMap(
-    (id) => ZFS_STAGES.filter((stage) => stage.id === id).map(stageSpan),
+  const spans = [...new Set(phenotypes.map((each) => each.stage))].flatMap(
+    (id) => stages.filter((stage) => stage.stage_id === id).map(stageSpan),
   );
   const terms = phenotypes.flatMap((each) => {
     const term = each.phenotype_term_id;
     return term ? [term.term_label ?? term.term_uri] : [];
   });
-  const title = [...stages, ...terms].join(" • ");
+  const title = [...spans, ...terms].join(" • ");
   // Its number is the lesser label, with how many images it has once saved.
   const label = [
     ...(title ? [`Observation ${n}`] : []),
