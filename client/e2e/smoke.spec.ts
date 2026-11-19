@@ -91,6 +91,47 @@ test("a study added on the group page is saved as a draft, and listed", async ({
   await expect(studies.getByText("Smoke test study")).toBeVisible();
 });
 
+test("a study's own fields are edited on its page, and checked as the schema says", async ({
+  page,
+}) => {
+  await signIn(page);
+  const groups = await (await page.request.get("/api/research-groups")).json();
+  const study = await (
+    await page.request.post("/api/studies", {
+      data: { research_group: groups[0].id, status: "draft", nickname: "Edit me" },
+    })
+  ).json();
+  await page.goto(`/research-groups/${groups[0].id}/studies/${study.id}`);
+
+  await page.getByLabel("Actions for Edit me").click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  const dialog = page.getByRole("dialog");
+  // The nickname it was saved with is there to change.
+  await expect(dialog.getByPlaceholder("e.g. Tamoxifen heart study")).toHaveValue("Edit me");
+
+  // The schema says what a publication looks like, and gives the example.
+  const publication = dialog.getByPlaceholder("PMID:41812223 or DOI:10.1000/xyz123");
+  await publication.fill("in press");
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog.getByText("Enter this in the form PMID:22194820.")).toBeVisible();
+
+  await publication.fill("PMID:41812223");
+  await dialog.getByPlaceholder("What the study sets out to do").fill("Edited on its page");
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByText("Edited on its page")).toBeVisible();
+
+  const stored = await (await page.request.get(`/api/studies/${study.id}`)).json();
+  expect(stored).toMatchObject({
+    publication: "PMID:41812223",
+    nickname: "Edit me",
+    description: "Edited on its page",
+    // Left as it was: a body carries the group and status it was read with.
+    status: "draft",
+    research_group: groups[0].id,
+  });
+});
+
 test("the signed-in session can save a study, and a draft stays private", async ({
   page,
   playwright,

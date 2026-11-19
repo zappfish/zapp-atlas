@@ -32,7 +32,9 @@ import {
   deleteStudy,
   fetchGroupStudies,
   fetchStudy,
+  replaceStudy,
 } from "./studies";
+import type { StudyBody } from "./types";
 import type { Suggestion } from "./chemicals";
 
 /** Query keys, so a mutation can invalidate one section by name. */
@@ -355,6 +357,18 @@ export const useCreateStudy = (groupId: number) => {
       createStudy(groupId, study),
     onSuccess: (study) => {
       if (study) client.setQueryData(keys.study(study.id), study);
+      client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
+    },
+  });
+};
+
+/** The answer is the study as it now stands, so its page needs no refetch. */
+export const useReplaceStudy = (groupId: number, studyId: number) => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: StudyBody) => replaceStudy(studyId, body),
+    onSuccess: (study) => {
+      if (study) client.setQueryData(keys.study(studyId), study);
       client.invalidateQueries({ queryKey: keys.groupStudies(groupId) });
     },
   });

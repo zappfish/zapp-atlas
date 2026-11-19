@@ -4,7 +4,8 @@ import { useDeleteStudy, useGroupDashboard, useStudy } from "@/api/hooks";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RecordDetail from "@/components/RecordDetail";
 import RowMenu, { RowMenuItem } from "@/components/RowMenu";
-import { TrashIcon } from "@/components/icons";
+import { PencilIcon, TrashIcon } from "@/components/icons";
+import EditStudyForm from "./EditStudyForm";
 
 const StudyDetail = ({
   groupId,
@@ -15,6 +16,7 @@ const StudyDetail = ({
 }) => {
   const { group } = useGroupDashboard(groupId);
   const { isPending, error, data } = useStudy(studyId);
+  const [editing, setEditing] = useState(false);
   const [removing, setRemoving] = useState(false);
   const deleteStudy = useDeleteStudy(groupId);
   const navigate = useNavigate();
@@ -51,11 +53,24 @@ const StudyDetail = ({
                 ...(data.description
                   ? [{ label: "Description", value: data.description }]
                   : []),
+                ...(data.lab ? [{ label: "ZFIN lab", value: data.lab, mono: true }] : []),
+                {
+                  label: "Visibility",
+                  value:
+                    data.status === "draft"
+                      ? "Draft, visible to this group only"
+                      : "Published",
+                },
               ]
             : []
         }
         actions={
           <RowMenu label={`Actions for ${name ?? "this study"}`}>
+            <RowMenuItem
+              icon={<PencilIcon />}
+              label="Edit"
+              onClick={() => setEditing(true)}
+            />
             <RowMenuItem
               icon={<TrashIcon />}
               label="Remove"
@@ -65,6 +80,15 @@ const StudyDetail = ({
           </RowMenu>
         }
       />
+
+      {data && (
+        <EditStudyForm
+          groupId={groupId}
+          study={data}
+          open={editing}
+          onClose={() => setEditing(false)}
+        />
+      )}
 
       <ConfirmDialog
         open={removing}
