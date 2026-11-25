@@ -42,3 +42,31 @@ jobs:
         run: extdata/ci.sh publish
         env:
           GH_TOKEN: ${{ github.token }}
+
+  beta:
+    name: Deploy beta
+    # Every app release, prereleases included, so beta is never behind
+    # production. See fly.beta.toml.
+    if: ${{ !startsWith(github.event.release.tag_name, 'extdata-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      # To download a published extdata bundle.
+      contents: read
+    concurrency: deploy-beta
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+
+      # As for production. Beta never publishes the bundle: production does
+      # that for full releases, and two jobs publishing the same release
+      # would race.
+      - name: Fetch or build the extdata bundle
+        run: extdata/ci.sh fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6
+      # --ha=false: one machine, since the database is on its root filesystem.
+      - run: flyctl deploy --config fly.beta.toml --remote-only --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_BETA_API_TOKEN }}
