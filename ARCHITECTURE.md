@@ -413,6 +413,15 @@ Containerized via `Dockerfile`. Targets: **Fly.io** (`fly.toml`) and **GCP Cloud
 Run** (the `gcp-build` / `gcp-deploy` / `gcp-ship` recipes in the `Justfile`,
 with the SQLite DB and uploads on a mounted Cloud Storage volume).
 
+Fly deploys come from GitHub releases (`.github/workflows/fly-deploy.yml`). A
+full release deploys to production (`fly.toml`) and to beta (`fly.beta.toml`);
+a prerelease deploys to beta only. Beta signs in with ORCID and starts with no
+seed data. It has no volume: its database is on the machine's root filesystem,
+which is kept while the machine idles down and replaced on every deploy, so
+beta starts empty with each release. Pull requests labelled `preview` get
+their own apps (`fly.preview.toml`, `.github/workflows/preview.yml`), with
+development sign-in and seed data that resets whenever the machine stops.
+
 The image includes the ontology bundle from `extdata/dist`, so a local image
 build needs `just extdata` first. The deploy workflows put it there
 themselves: they download the GitHub release `extdata-<hash>` for the

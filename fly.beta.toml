@@ -1,0 +1,55 @@
+# Fly config for the beta app. NOT production — see fly.toml for that.
+#
+# Used by .github/workflows/fly-deploy.yml, which deploys every release here,
+# prereleases included. Production takes full releases only. Beta signs in
+# with ORCID like production does; it differs in where its data lives:
+#
+#   * No [[mounts]]. The database and uploads live on the machine's root
+#     filesystem, which persist_rootfs = 'restart' keeps when the machine
+#     stops and starts again but discards when the machine is updated. So data
+#     survives the machine idling down, and every deploy starts beta empty.
+#     Setting a secret also updates the machine, and empties it too. Fly may
+#     still wipe the root filesystem for maintenance, and it is not backed up.
+#     When beta data needs to outlast a release, add a volume as in fly.toml.
+#   * ZAPP_SKIP_SEED is on, so beta starts with no data rather than the demo
+#     studies.
+#
+# One machine only: each machine has its own root filesystem, so a second
+# would hold a second database. The workflow deploys with --ha=false.
+
+app = 'zapp-atlas-beta'
+primary_region = 'sjc'
+
+[build]
+
+[env]
+  ZAPP_DB_PATH = '/data/zapp.db'
+  ZAPP_UPLOAD_DIR = '/data/uploads'
+  ZAPP_ORCID_REDIRECT_URI = 'https://beta.atlas.zappfish.org/registered'
+  ZAPP_SKIP_SEED = 'true'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 250
+    soft_limit = 200
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
+  persist_rootfs = 'restart'
