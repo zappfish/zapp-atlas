@@ -43,5 +43,9 @@ Any image build needs the ontology bundle in `extdata/dist`, so run
 `just extdata` first. The deploy workflows fetch or build it themselves.
 
 - **Fly.io** — `fly deploy` (uses the top-level `Dockerfile` + `fly.toml`).
+  Publishing a GitHub release deploys it: a full release goes to production
+  and to beta, a prerelease to beta only (`fly.beta.toml`, at
+  <https://beta.atlas.zappfish.org>). Beta's database is emptied on every
+  deploy.
 - **GCP Cloud Run** — `just gcp-ship` builds, pushes, and deploys with a
   GCS-backed volume for the SQLite DB.
